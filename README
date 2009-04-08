@@ -1,0 +1,96 @@
+Lord of the Rings Online and Dungeons & Dragons Online
+Launcher for Linux and Mac OS X
+(C) 2009 AJackson
+
+Based on LotROLinux
+(C) 2007-2008 AJackson
+
+Based on CLI launcher for
+LOTRO (C) 2007-2009 SNy
+
+To install
+========
+
+NB The following items are required
+to run PyLotRO
+
+Python
+4Suite
+PyQT4
+
+On Ubuntu you should only need to
+install python-4suite-xml and python-qt4
+
+Install using
+sudo ./setup.py install
+
+or
+
+sudo python setup.py install
+
+To uninstall
+============
+
+sudo ./setup.py install
+
+or
+
+sudo python setup.py install
+
+To run
+======
+
+From terminal:
+pylotro
+
+From menu:
+Select the menu option for Lord of the Rings Online
+
+A settings wizard exists that can attempt to
+find relevant installations of LotRO or DDO.
+For CrossOver and CrossOver Games it searches
+in the default bottle location. For Wine it
+looks for wine folders in your home directory
+(folders tarting with a full stop with a
+directory called drive_c under that). For all
+options it tries to find the game in the
+"Program Files" directory (or directories off
+that). If your game is installed elsewhere then
+you will need to manually configure the game.
+
+The wizard will default hi-res graphics to
+enabled if it finds the file associated with
+that (client_highres.dat) in the game folder.
+Note the DLL used for patching is set to
+patchclient.dll, for DDO you will need to enter
+the options window and manually change it if
+you wish to patch the game (see below).
+
+To switch between the launcher using it's
+settings for Lord of the Rings Online and
+Dungeons & Dragons Online select the Switch
+option under the Options menu.
+
+To patch the game files with official patches
+released by Turbine/Codemaster select the
+Patch from the Options menu and follow the
+instructions. Note at this time Dungeons &
+Dragons Online needs a copy of patchclient.dll
+from Lord of the Rings Online book 11 or newer.
+This file should be renamed and placed in the
+DDO directory and the name entered under
+Settings -> Options in the Patch Client DLL field.
+
+You can change your settings via the
+Settings -> Options menu.
+
+All options are game dependant (ie can be set
+differently for LOTRO and DDO).
+
+If save these settings is ticked then your
+account name, language and realm selection
+are saved when you successfully login.
+
+NB: Your password is not saved for security
+reasons.
+

@@ -1,0 +1,17 @@
+Lord of the Rings Online and Dungeons & Dragons Online
+Launcher for Linux and Mac OS X
+(C) 2009 AJackson
+
+Changes
+=======
+0.1.0 - Initial version, direct port from LotROLinux
+
+0.1.1 - Add uninstall option to setup.py
+        Fixed SettingsWizard problem with returning path
+        Fixed MainWindow thread not return data correctly
+
+0.1.2 - Improved error trapping when servers are down
+        Rename PyLotRO folder PyLotROLauncher so that
+        people extracting on Windows didn't get errors
+
+

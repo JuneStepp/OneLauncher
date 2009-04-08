@@ -1,0 +1,5 @@
+include pylotro README AUTHORS COPYING PyLotRO_Menu.png ChangeLog PyLotRO.desktop
+recursive-include PyLotROLauncher *
+recursive-include PyLotROLauncher/ui *
+recursive-include PyLotROLauncher/images *
+

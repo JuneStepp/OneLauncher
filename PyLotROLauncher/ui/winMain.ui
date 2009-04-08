@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>winMain</class>
+ <widget class="QMainWindow" name="winMain">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>790</width>
+    <height>445</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string notr="true">Linux Launcher</string>
+  </property>
+  <property name="statusTip">
+   <string notr="true"/>
+  </property>
+  <property name="whatsThis">
+   <string notr="true"/>
+  </property>
+  <property name="accessibleName">
+   <string notr="true"/>
+  </property>
+  <property name="windowFilePath">
+   <string notr="true"/>
+  </property>
+  <property name="unifiedTitleAndToolBarOnMac">
+   <bool>true</bool>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QLabel" name="lblRealm">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>10</y>
+      <width>120</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true">Realm</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lblLanguage">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>49</y>
+      <width>120</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true">Language</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lblAccount">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>88</y>
+      <width>120</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true">Account</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lblPassword">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>124</y>
+      <width>120</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true">Password</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cboRealm">
+    <property name="geometry">
+     <rect>
+      <x>525</x>
+      <y>5</y>
+      <width>260</width>
+      <height>34</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cboLanguage">
+    <property name="geometry">
+     <rect>
+      <x>525</x>
+      <y>44</y>
+      <width>260</width>
+      <height>34</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="txtAccount">
+    <property name="geometry">
+     <rect>
+      <x>525</x>
+      <y>84</y>
+      <width>260</width>
+      <height>32</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="txtPassword">
+    <property name="geometry">
+     <rect>
+      <x>525</x>
+      <y>122</y>
+      <width>260</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <property name="echoMode">
+     <enum>QLineEdit::Password</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="imgMain">
+    <property name="geometry">
+     <rect>
+      <x>5</x>
+      <y>5</y>
+      <width>390</width>
+      <height>120</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnLogin">
+    <property name="geometry">
+     <rect>
+      <x>415</x>
+      <y>159</y>
+      <width>90</width>
+      <height>34</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true">Login</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="chkSaveSettings">
+    <property name="geometry">
+     <rect>
+      <x>515</x>
+      <y>161</y>
+      <width>260</width>
+      <height>29</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true">Remember these settings</string>
+    </property>
+   </widget>
+   <widget class="QTextBrowser" name="txtStatus">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>198</y>
+      <width>385</width>
+      <height>213</height>
+     </rect>
+    </property>
+    <property name="textInteractionFlags">
+     <set>Qt::TextSelectableByMouse</set>
+    </property>
+    <property name="openLinks">
+     <bool>false</bool>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>790</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="statusTip">
+     <string notr="true"/>
+    </property>
+    <property name="whatsThis">
+     <string notr="true"/>
+    </property>
+    <property name="accessibleName">
+     <string notr="true"/>
+    </property>
+    <property name="accessibleDescription">
+     <string notr="true"/>
+    </property>
+    <property name="title">
+     <string notr="true">File</string>
+    </property>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string notr="true">Tools</string>
+    </property>
+    <addaction name="actionOptions"/>
+    <addaction name="actionSettings_Wizard"/>
+    <addaction name="actionPatch"/>
+    <addaction name="actionSwitch_Game"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string notr="true">Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuTools"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <action name="actionExit">
+   <property name="text">
+    <string notr="true">Exit</string>
+   </property>
+   <property name="iconText">
+    <string notr="true">Exit</string>
+   </property>
+   <property name="toolTip">
+    <string notr="true">Exit</string>
+   </property>
+   <property name="statusTip">
+    <string notr="true"/>
+   </property>
+   <property name="whatsThis">
+    <string notr="true"/>
+   </property>
+  </action>
+  <action name="actionOptions">
+   <property name="text">
+    <string notr="true">Options</string>
+   </property>
+  </action>
+  <action name="actionPatch">
+   <property name="text">
+    <string notr="true">Patch</string>
+   </property>
+   <property name="iconText">
+    <string notr="true">Patch</string>
+   </property>
+   <property name="toolTip">
+    <string notr="true">Patch</string>
+   </property>
+  </action>
+  <action name="actionSwitch_Game">
+   <property name="text">
+    <string notr="true">Switch Game</string>
+   </property>
+   <property name="iconText">
+    <string notr="true">Switch Game</string>
+   </property>
+   <property name="toolTip">
+    <string notr="true">Switch Game</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string notr="true">About</string>
+   </property>
+   <property name="iconText">
+    <string notr="true">About</string>
+   </property>
+   <property name="toolTip">
+    <string notr="true">About</string>
+   </property>
+   <property name="statusTip">
+    <string notr="true"/>
+   </property>
+   <property name="whatsThis">
+    <string notr="true"/>
+   </property>
+  </action>
+  <action name="actionSettings_Wizard">
+   <property name="text">
+    <string>Settings Wizard</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>actionExit</sender>
+   <signal>activated()</signal>
+   <receiver>winMain</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>394</x>
+     <y>222</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
