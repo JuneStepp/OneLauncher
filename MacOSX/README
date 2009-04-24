@@ -1,0 +1,35 @@
+Lord of the Rings Online and Dungeons & Dragons Online
+Launcher for Linux and Mac OS X
+(C) 2009 AJackson
+
+Based on LotROLinux
+(C) 2007-2008 AJackson
+
+Based on CLI launcher for
+LOTRO (C) 2007-2009 SNy
+
+To create .app file
+===================
+
+./setup.py make_app
+
+or
+
+python setup.py make_app
+
+The .app file will be created in the
+dist directory
+
+To run
+======
+
+NB The following items are required
+to run PyLotRO
+
+Python
+4Suite
+PyQT4
+
+Double-click the .app file, see main
+README for details about PyLotRO.
+

@@ -29,21 +29,28 @@
 ###########################################################################
 import os
 import sys
-import httplib
 import glob
-import urllib
+from PyQt4 import QtCore
 from Ft.Xml.Domlette import NonvalidatingReader, Print
 from Ft.Lib import Uri
+
+# If Python 3.0 is in use use http otherwise httplib
+try:
+	from http.client import HTTPConnection, HTTPSConnection
+	from urllib.parse import quote
+except:
+	from httplib import HTTPConnection, HTTPSConnection
+	from urllib import quote
 
 def WebConnection(urlIn):
 	if urlIn.upper().find("HTTP://") >= 0:
 		url = urlIn[7:].split("/")[0]
 		post = urlIn[7:].replace(url, "")
-		return httplib.HTTPConnection(url), post
+		return HTTPConnection(url), post
 	else:
 		url = urlIn[8:].split("/")[0]
 		post = urlIn[8:].replace(url, "")
-		return httplib.HTTPSConnection(url), post
+		return HTTPSConnection(url), post
 
 class BaseConfig:
 	def __init__(self, configFile):
@@ -54,8 +61,8 @@ class BaseConfig:
 			file_uri = Uri.OsPathToUri(configFile)
 			doc = NonvalidatingReader.parseUri(file_uri)
 
-			val = (None, u'value')
-			xpathquery = u"//appSettings/add[@key=\"%s\"]"
+			val = (None, 'value')
+			xpathquery = "//appSettings/add[@key=\"%s\"]"
 
 			self.GLSDataCentreService = doc.xpath(xpathquery % ("Launcher.DataCenterService.GLS"))[0].attributes[val].value
 			self.gameName = doc.xpath(xpathquery % ("DataCenter.GameName"))[0].attributes[val].value
@@ -65,13 +72,12 @@ class BaseConfig:
 			self.isConfigOK = False
 
 class DetermineGame:
-	def __init__(self, rootDir):
+	def __init__(self):
 		self.configFile = ""
 		self.configFileAlt = ""
 		self.icoFile = ""
 		self.pngFile = ""
 		self.title = ""
-		self.rootDir = rootDir
 
 	def GetSettings(self, usingDND, usingTest):
 		self.configFile = "/TurbineLauncher.exe.config"
@@ -88,20 +94,21 @@ class DetermineGame:
 
 		if usingDND:
 			self.configFileAlt = "/dndlauncher.exe.config"
-			self.icoFile = os.path.join(self.rootDir, "images", "DDOLinux.ico")
-			self.pngFile = os.path.join(self.rootDir, "images", "DDOLinux.png")
+			self.icoFile = os.path.join("images", "DDOLinux.ico")
+			self.pngFile = os.path.join("images", "DDOLinux.png")
 
 			self.title = "Dungeons & Dragons Online" + self.__test + self.__os
 		else:
 			self.configFileAlt = "/TurbineLauncher.exe.config"
-			self.icoFile = os.path.join(self.rootDir, "images", "LotROLinux.ico")
-			self.pngFile = os.path.join(self.rootDir, "images", "LotROLinux.png")
+			self.icoFile = os.path.join("images", "LotROLinux.ico")
+			self.pngFile = os.path.join("images", "LotROLinux.png")
 
 			self.title = "Lord of the Rings Online" + self.__test + self.__os
 
 class DetermineOS:
 	def __init__(self):
 		if os.name == 'mac':
+			self.usingMac = True
 			self.appDir = "Library/Application Support/LotROLinux/"
 			self.globalDir = "/Application"
 			self.settingsCXG = "Library/Application Support/CrossOver Games/Bottles"
@@ -112,6 +119,7 @@ class DetermineOS:
 			if self.macPathCX == None:
 				self.macPathCX = ""
 		else:
+			self.usingMac = False
 			self.appDir = ".LotROLinux/"
 			self.globalDir = "/opt"
 			self.settingsCXG = ".cxgames"
@@ -119,6 +127,118 @@ class DetermineOS:
 			self.directoryCXG = "/cxgames/bin/"
 			self.directoryCXO = "/cxoffice/bin/"
 			self.macPathCX = ""
+
+	def startCXG(self):
+		finished = True
+
+		if self.usingMac:
+			uid = os.getuid()
+			tempfile = os.popen("ps -ocomm -U%s" % (uid))
+			cxPath = ""
+			for line in tempfile.readlines():
+				line = line.replace("\n", "")
+				if line.endswith("CrossOver Games"):
+					cxPath = line
+
+			if cxPath == "":
+				process = QtCore.QProcess()
+				process.start("open", ["-b", "com.codeweavers.CrossOverGames"])
+				finished = process.waitForFinished()
+				if finished:
+					tempfile = os.popen("ps -ocomm -U%s" % (uid))
+					cxPath = ""
+					for line in tempfile.readlines():
+						line = line.replace("\n", "")
+						if line.endswith("CrossOver Games"):
+							cxPath = line
+				else:
+					process.close()
+
+			if finished:
+				lineout = ""
+
+				lines = cxPath.split("/")
+				for line in lines[0:len(lines) - 3]:
+					lineout += "%s/" % (line)
+
+				cxPath = lineout
+
+				path = os.environ.get('PATH')
+
+				os.environ["CX_ROOT"] = "%s/Contents/SharedSupport/CrossOverGames" % (cxPath)
+				os.environ["FONT_ENCODINGS_DIRECTORY"] = (cxPath + "/Contents/SharedSupport/X11/lib/" +
+					"X11/fonts/encodings/encodings.dir")
+				os.environ["FONTCONFIG_ROOT"] = "%s/Contents/SharedSupport/X11" % (cxPath)
+				os.environ["COMMAND_MODE"] = "legacy" 
+				os.environ["FONTCONFIG_PATH"] = "%s/Contents/SharedSupport/X11/etc/fonts" % (cxPath)
+				os.environ["DYLD_FALLBACK_LIBRARY_PATH"] = (cxPath + "/Contents/SharedSupport/X11/lib" +
+					":" + os.environ.get('HOME') + "/lib:/usr/local/lib:/lib:/usr/lib")
+				os.environ["PATH"] = (path + ":" + cxPath + "/Contents/SharedSupport/CrossOverGames/bin")
+				self.macPathCX = os.environ.get('CX_ROOT')
+
+				tempfile = os.popen("defaults read com.coeweavers.CrossOverGames Display")
+				display = tempfile.read().replace("\n", "")
+				if display == "":
+					display = "2"
+				os.environ["DISPLAY"] = ":%s" % (display)
+
+		return finished			
+
+	def startCXO(self):
+		finished = True
+
+		if self.usingMac:
+			uid = os.getuid()
+			tempfile = os.popen("ps -ocomm -U%s" % (uid))
+			cxPath = ""
+			for line in tempfile.readlines():
+				line = line.replace("\n", "")
+				if line.endswith("CrossOver"):
+					cxPath = line
+
+			if cxPath == "":
+				process = QtCore.QProcess()
+				process.start("open", ["-b", "com.codeweavers.CrossOver"])
+				finished = process.waitForFinished()
+				if finished:
+					tempfile = os.popen("ps -ocomm -U%s" % (uid))
+					cxPath = ""
+					for line in tempfile.readlines():
+						line = line.replace("\n", "")
+						if line.endswith("CrossOver"):
+							cxPath = line
+				else:
+					process.close()
+
+			if finished:
+				lineout = ""
+
+				lines = cxPath.split("/")
+				for line in lines[0:len(lines) - 3]:
+					lineout += "%s/" % (line)
+
+				cxPath = lineout
+
+				path = os.environ.get('PATH')
+
+				os.environ["CX_ROOT"] = "%s/Contents/SharedSupport/CrossOver" % (cxPath)
+				os.environ["FONT_ENCODINGS_DIRECTORY"] = (cxPath + "/Contents/SharedSupport/X11/lib/" +
+					"X11/fonts/encodings/encodings.dir")
+				os.environ["FONTCONFIG_ROOT"] = "%s/Contents/SharedSupport/X11" % (cxPath)
+				os.environ["COMMAND_MODE"] = "legacy" 
+				os.environ["FONTCONFIG_PATH"] = "%s/Contents/SharedSupport/X11/etc/fonts" % (cxPath)
+				os.environ["DYLD_FALLBACK_LIBRARY_PATH"] = (cxPath + "/Contents/SharedSupport/X11/lib" +
+					":" + os.environ.get('HOME') + "/lib:/usr/local/lib:/lib:/usr/lib")
+				os.environ["PATH"] = (path + ":" + cxPath + "/Contents/SharedSupport/CrossOver/bin")
+				self.macPathCX = os.environ.get('CX_ROOT')
+
+				tempfile = os.popen("defaults read com.coeweavers.CrossOver Display")
+				display = tempfile.read().replace("\n", "")
+				if display == "":
+					display = "2"
+				os.environ["DISPLAY"] = ":%s" % (display)
+
+		return finished			
 
 class GLSDataCentre:
 	def __init__(self, urlGLSDataCentreService, gameName):
@@ -150,9 +270,9 @@ class GLSDataCentre:
 				tempxml = "<zxz>" + tempxml + "</zxz>"
 				doc = NonvalidatingReader.parseString(tempxml, urlGLSDataCentreService)
 
-				self.authServer = doc.xpath(u"//AuthServer")[0].firstChild.nodeValue
-				self.patchServer = doc.xpath(u"//PatchServer")[0].firstChild.nodeValue
-				self.launchConfigServer = doc.xpath(u"//LauncherConfigurationServer")[0].firstChild.nodeValue
+				self.authServer = doc.xpath("//AuthServer")[0].firstChild.nodeValue
+				self.patchServer = doc.xpath("//PatchServer")[0].firstChild.nodeValue
+				self.launchConfigServer = doc.xpath("//LauncherConfigurationServer")[0].firstChild.nodeValue
 
 				self.realmList = []
 
@@ -160,7 +280,7 @@ class GLSDataCentre:
 				urlChatServer = ""
 				urlStatusServer = ""
 
-				for node in doc.xpath(u"//World"):
+				for node in doc.xpath("//World"):
 					for realm in node.childNodes:
 						if realm.nodeName == "Name":
 							name = realm.firstChild.nodeValue
@@ -230,14 +350,17 @@ class Realm:
 			else:
 				doc = NonvalidatingReader.parseString(tempxml, self.urlServerStatus)
 
-				if useDND:
+				try:
+					self.nowServing = doc.xpath("//nowservingqueuenumber")[0].firstChild.nodeValue
+				except:
 					self.nowServing = ""
-					self.queueURL = ""
-				else:
-					self.nowServing = doc.xpath(u"//nowservingqueuenumber")[0].firstChild.nodeValue
-					self.queueURL = doc.xpath(u"//queueurls")[0].firstChild.nodeValue.split(";")[0]
 
-				self.loginServer = doc.xpath(u"//loginservers")[0].firstChild.nodeValue.split(";")[0]
+				try:
+					self.queueURL = doc.xpath("//queueurls")[0].firstChild.nodeValue.split(";")[0]
+				except:
+					self.queueURL = ""
+
+				self.loginServer = doc.xpath("//loginservers")[0].firstChild.nodeValue.split(";")[0]
 
 				self.realmAvailable = True
 		except:
@@ -248,8 +371,8 @@ class WorldQueueConfig:
 		try:
 			doc = NonvalidatingReader.parseUri(urlConfigServer)
 
-			val = (None, u'value')
-			xpathquery = u"//appSettings/add[@key=\"%s\"]"
+			val = (None, 'value')
+			xpathquery = "//appSettings/add[@key=\"%s\"]"
 
 			self.gameClientFilename = doc.xpath(xpathquery % ("GameClient.Filename"))[0].attributes[val].value
 			self.gameClientArgTemplate = doc.xpath(xpathquery % ("GameClient.ArgTemplate"))[0].attributes[val].value
@@ -284,6 +407,8 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
 
 		SoapMessage = SM_TEMPLATE%(name, password)
 
+		webresp = None
+
 		try:
 			webservice, post = WebConnection(urlLoginServer)
 
@@ -311,9 +436,9 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
 
 				doc = NonvalidatingReader.parseString(tempxml, urlLoginServer)
 
-				self.ticket = doc.xpath(u"//Ticket")[0].firstChild.nodeValue
+				self.ticket = doc.xpath("//Ticket")[0].firstChild.nodeValue
 
-				for node in doc.xpath(u"//GameSubscription"):
+				for node in doc.xpath("//GameSubscription"):
 					validGame = True
 					name = ""
 					desc = ""
@@ -353,7 +478,7 @@ class JoinWorldQueue:
 			webservice, post = WebConnection(urlIn)
 
 			argComplete = argTemplate.replace("{0}", account).replace("{1}",
-				urllib.quote(ticket)).replace("{2}", urllib.quote(queue))
+				quote(ticket)).replace("{2}", quote(queue))
 
 			webservice.putrequest("POST", post)
 			webservice.putheader("Content-type", "application/x-www-form-urlencoded")
@@ -371,9 +496,9 @@ class JoinWorldQueue:
 			else:
 				doc = NonvalidatingReader.parseString(tempxml, urlIn)
 
-				if doc.xpath(u"//HResult")[0].firstChild.nodeValue == "0x00000000":
-					self.number = doc.xpath(u"//QueueNumber")[0].firstChild.nodeValue
-					self.serving = doc.xpath(u"//NowServingNumber")[0].firstChild.nodeValue
+				if doc.xpath("//HResult")[0].firstChild.nodeValue == "0x00000000":
+					self.number = doc.xpath("//QueueNumber")[0].firstChild.nodeValue
+					self.serving = doc.xpath("//NowServingNumber")[0].firstChild.nodeValue
 
 				self.joinSuccess = True
 		except:

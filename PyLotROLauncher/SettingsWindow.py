@@ -28,7 +28,7 @@
 # along with PyLotRO.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 from PyQt4 import QtCore, QtGui, uic
-from PyLotROUtils import DetermineOS
+from .PyLotROUtils import DetermineOS
 import os.path
 import glob
 
@@ -40,7 +40,16 @@ class SettingsWindow:
 		self.osType = osType
 
 		self.winSettings = QtGui.QDialog(parent)
-		Ui_dlgSettings, base_class = uic.loadUiType(os.path.join(rootDir, "ui", "winSettings.ui"))
+
+		uifile = None
+
+		try:
+			from pkg_resources import resource_filename
+			uifile = resource_filename(__name__, 'ui/winSettings.ui')
+		except:
+			uifile = os.path.join(rootDir, "ui", "winSettings.ui")
+
+		Ui_dlgSettings, base_class = uic.loadUiType(uifile)
 		self.uiSettings = Ui_dlgSettings()
 		self.uiSettings.setupUi(self.winSettings)
 		screen = QtGui.QDesktopWidget().screenGeometry()

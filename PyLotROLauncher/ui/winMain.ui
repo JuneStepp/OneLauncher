@@ -215,6 +215,7 @@
     <addaction name="actionSettings_Wizard"/>
     <addaction name="actionPatch"/>
     <addaction name="actionSwitch_Game"/>
+    <addaction name="actionCheck_Bottle"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -290,6 +291,11 @@
   <action name="actionSettings_Wizard">
    <property name="text">
     <string>Settings Wizard</string>
+   </property>
+  </action>
+  <action name="actionCheck_Bottle">
+   <property name="text">
+    <string>Check Bottle</string>
    </property>
   </action>
  </widget>

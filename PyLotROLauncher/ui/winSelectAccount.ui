@@ -29,9 +29,7 @@
     </rect>
    </property>
    <property name="text">
-    <string notr="true">Multiple game accounts found
-
-Please select the required game</string>
+    <string notr="true"/>
    </property>
   </widget>
   <widget class="QComboBox" name="comboBox">

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding=utf-8
 ###########################################################################
 # Name:   MainWindow
@@ -33,13 +32,22 @@ import sys
 from Ft.Xml.Xslt import Processor
 from Ft.Xml.Domlette import NonvalidatingReader
 from PyQt4 import QtCore, QtGui, uic
-from SettingsWindow import *
-from SettingsWizard import *
-from PatchWindow import *
-from StartGame import *
-from Settings import *
-from PyLotROUtils import *
-import Information
+from .SettingsWindow import SettingsWindow
+from .SettingsWizard import SettingsWizard
+from .PatchWindow import PatchWindow
+from .StartGame import StartGame
+from .Settings import Settings
+from .CheckConfig import CheckConfig
+from .PyLotROUtils import DetermineOS, DetermineGame, LanguageConfig, Language
+from .PyLotROUtils import BaseConfig, GLSDataCentre, WorldQueueConfig
+from .PyLotROUtils import AuthenticateUser, JoinWorldQueue
+from . import Information
+
+# If Python 3.0 is in use use http otherwise httplib
+try:
+	from http.client import HTTPConnection, HTTPSConnection
+except:
+	from httplib import HTTPConnection, HTTPSConnection
 
 class MainWindow:
 	def __init__(self):
@@ -49,10 +57,18 @@ class MainWindow:
 			self.rootDir = os.path.realpath(self.rootDir)
 		self.rootDir = os.path.dirname(os.path.abspath(self.rootDir))
 
+		uifile = None
+
+		try:
+			from pkg_resources import resource_filename
+			uifile = resource_filename(__name__, 'ui/winMain.ui')
+		except:
+			uifile = os.path.join(self.rootDir, "ui", "winMain.ui")
+
 		self.app = QtGui.QApplication(sys.argv)
 
 		# Create the main window and set all text so that translations are handled via gettext
-		Ui_winMain, base_class = uic.loadUiType(os.path.join(self.rootDir, "ui", "winMain.ui"))
+		Ui_winMain, base_class = uic.loadUiType(uifile)
 		self.winMain = QtGui.QMainWindow()
 		self.winMain.setWindowFlags(QtCore.Qt.Dialog)
 		self.uiMain = Ui_winMain()
@@ -85,6 +101,7 @@ class MainWindow:
 		QtCore.QObject.connect(self.uiMain.actionOptions, QtCore.SIGNAL("activated()"), self.actionOptionsSelected)
 		QtCore.QObject.connect(self.uiMain.actionSettings_Wizard, QtCore.SIGNAL("activated()"), self.actionWizardSelected)
 		QtCore.QObject.connect(self.uiMain.actionSwitch_Game, QtCore.SIGNAL("activated()"), self.actionSwitchSelected)
+		QtCore.QObject.connect(self.uiMain.actionCheck_Bottle, QtCore.SIGNAL("activated()"), self.actionCheckSelected)
 		QtCore.QObject.connect(self.winMain, QtCore.SIGNAL("AddLog(QString)"), self.AddLog)
 		QtCore.QObject.connect(self.winMain, QtCore.SIGNAL("ReturnLangConfig(PyQt_PyObject)"), self.GetLanguageConfig)
 		QtCore.QObject.connect(self.winMain, QtCore.SIGNAL("ReturnBaseConfig(PyQt_PyObject)"), self.GetBaseConfig)
@@ -100,7 +117,7 @@ class MainWindow:
 		# Initialise variables
 		self.settings = None
 		self.osType = DetermineOS()
-		self.gameType = DetermineGame(self.rootDir)
+		self.gameType = DetermineGame()
 		self.configFile = ""
 		self.currentGame = None
 
@@ -110,9 +127,22 @@ class MainWindow:
 		self.winMain.show()
 		sys.exit(self.app.exec_())
 
+	def actionCheckSelected(self):
+		confCheck = CheckConfig(self.winMain, self.settings, self.valHomeDir)
+		confCheck.Run()
+
 	def actionAboutSelected(self):
 		dlgAbout = QtGui.QDialog(self.winMain)
-		Ui_dlgAbout, base_class = uic.loadUiType(os.path.join(self.rootDir, "ui", "winAbout.ui"))
+
+		uifile = None
+
+		try:
+			from pkg_resources import resource_filename
+			uifile = resource_filename(__name__, 'ui/winAbout.ui')
+		except:
+			uifile = os.path.join(self.rootDir, "ui", "winAbout.ui")
+
+		Ui_dlgAbout, base_class = uic.loadUiType(uifile)
 		ui = Ui_dlgAbout()
 		ui.setupUi(dlgAbout)
 		ui.lblDescription.setText(Information.LongDescription)
@@ -165,7 +195,16 @@ class MainWindow:
 
 	def actionSwitchSelected(self):
 		dlgChooseAccount = QtGui.QDialog(self.winMain)
-		Ui_dlgChooseAccount, base_class = uic.loadUiType(os.path.join(self.rootDir, "ui", "winSelectAccount.ui"))
+
+		uifile = None
+
+		try:
+			from pkg_resources import resource_filename
+			uifile = resource_filename(__name__, 'ui/winSelectAccount.ui')
+		except:
+			uifile = os.path.join(self.rootDir, "ui", "winSelectAccount.ui")
+
+		Ui_dlgChooseAccount, base_class = uic.loadUiType(uifile)
 		ui = Ui_dlgChooseAccount()
 		ui.setupUi(dlgChooseAccount)
 		ui.lblMessage.setText("Please select game to switch to")
@@ -208,6 +247,12 @@ class MainWindow:
 
 	def AuthAccount(self):
 		self.AddLog("Checking account details...")
+
+		# Force a small display to ensure message above is displayed
+		# as program can look like it is not responding while validating
+		for loop in range(1, 5):
+			self.app.processEvents()
+
 		self.account = AuthenticateUser(self.dataCentre.authServer, self.uiMain.txtAccount.text(), 
 			self.uiMain.txtPassword.text(), self.baseConfig.gameName)
 
@@ -218,9 +263,19 @@ class MainWindow:
 
 			if len(self.account.gameList) > 1:
 				dlgChooseAccount = QtGui.QDialog(self.winMain)
-				Ui_dlgChooseAccount, base_class = uic.loadUiType(os.path.join(self.rootDir, "ui", "winSelectAccount.ui"))
+
+				uifile = None
+
+				try:
+					from pkg_resources import resource_filename
+					uifile = resource_filename(__name__, 'ui/winSelectAccount.ui')
+				except:
+					uifile = os.path.join(self.rootDir, "ui", "winSelectAccount.ui")
+
+				Ui_dlgChooseAccount, base_class = uic.loadUiType(uifile)
 				ui = Ui_dlgChooseAccount()
 				ui.setupUi(dlgChooseAccount)
+				ui.lblMessage.setText("Multiple game accounts found\n\nPlease select the required game")
 
 				for game in self.account.gameList:
 					ui.comboBox.addItem(game.description)
@@ -240,13 +295,10 @@ class MainWindow:
 				self.urlChatServer = tempRealm.urlChatServer
 				self.urlLoginServer = tempRealm.loginServer
 
-				if self.settings.usingDND:
+				if tempRealm.queueURL == "":
 					self.LaunchGame()
 				else:
-					if tempRealm.queueURL == "":
-						self.LaunchGame()
-					else:
-						self.EnterWorldQueue(tempRealm.queueURL)
+					self.EnterWorldQueue(tempRealm.queueURL)
 			else:
 				self.AddLog("[E10] Error getting realm status")
 		else:
@@ -294,6 +346,8 @@ class MainWindow:
 		self.uiMain.txtPassword.setEnabled(False)
 		self.uiMain.actionPatch.setEnabled(False)
 		self.uiMain.actionPatch.setVisible(False)
+		self.uiMain.actionCheck_Bottle.setEnabled(False)
+		self.uiMain.actionCheck_Bottle.setVisible(False)
 		self.uiMain.btnLogin.setEnabled(False)
 		self.uiMain.chkSaveSettings.setEnabled(False)
 		self.valHomeDir = self.GetHomeDir()
@@ -326,16 +380,36 @@ class MainWindow:
 				self.uiMain.txtPassword.setFocus()
 
 		self.gameType.GetSettings(self.settings.usingDND, self.settings.usingTest)
-		self.uiMain.imgMain.setPixmap(QtGui.QPixmap(self.gameType.pngFile))
+
+		pngFile = None
+		icoFile = None
+
+		try:
+			from pkg_resources import resource_filename
+			pngFile = resource_filename(__name__, self.gameType.pngFile.replace("\\", "/"))
+			icoFile = resource_filename(__name__, self.gameType.icoFile.replace("\\", "/"))
+		except:
+			pngFile = os.path.join(self.rootDir, self.gameType.pngFile)
+			icoFile = os.path.join(self.rootDir, self.gameType.icoFile)
+
+		self.uiMain.imgMain.setPixmap(QtGui.QPixmap(pngFile))
 		self.winMain.setWindowTitle(self.gameType.title)
 		icon = QtGui.QIcon()
-		icon.addPixmap(QtGui.QPixmap(self.gameType.icoFile), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+		icon.addPixmap(QtGui.QPixmap(icoFile), QtGui.QIcon.Normal, QtGui.QIcon.Off)
 		self.winMain.setWindowIcon(icon)
 
 		self.configFile = "%s%s" % (self.settings.gameDir, self.gameType.configFile)
 		self.gameDirExists = os.path.exists(self.settings.gameDir)
 
-		if not self.gameDirExists:
+		if self.gameDirExists:
+			self.uiMain.actionCheck_Bottle.setEnabled(True)
+			self.uiMain.actionCheck_Bottle.setVisible(True)
+
+			if self.settings.app == "Wine":
+				self.uiMain.actionCheck_Bottle.setText("Check Prefix")
+			else:
+				self.uiMain.actionCheck_Bottle.setText("Check Bottle")
+		else:
 			self.AddLog("[E13] Game Directory not found")
 
 		self.langConfig = None
@@ -494,12 +568,12 @@ class MainWindowThread(QtCore.QThread):
 				temp = urlNewsFeed[:7]
 				url = urlNewsFeed[7:].split("/")[0]
 				post = urlNewsFeed[7:].replace(url, "")
-				webservice = httplib.HTTPConnection(url)
+				webservice = HTTPConnection(url)
 			else:
 				temp = urlNewsFeed[:8]
 				url = urlNewsFeed[8:].split("/")[0]
 				post = urlNewsFeed[8:].replace(url, "")
-				webservice = httplib.HTTPSConnection(url)
+				webservice = HTTPSConnection(url)
 
 			webservice.putrequest("GET", post)
 			webservice.endheaders()

@@ -29,21 +29,34 @@
 # along with PyLotRO.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 from PyQt4 import QtCore, QtGui, uic
-from PyLotROUtils import DetermineOS
+from .PyLotROUtils import DetermineOS
 import os.path
 
 class PatchWindow:
 	def __init__(self, parent, urlPatchServer, prodCode, language, runDir, patchClient,
-		wineProgram, hiResEnabled, icoFile, homeDir, winePrefix, wineApp, osType, rootDir):
+		wineProgram, hiResEnabled, icoFileIn, homeDir, winePrefix, wineApp, osType, rootDir):
 
 		self.homeDir = homeDir
 		self.winLog = QtGui.QMainWindow(parent)
-		Ui_winLog, base_class = uic.loadUiType(os.path.join(rootDir, "ui", "winLog.ui"))
+		self.osType = osType
+
+		uifile = None
+		icofile = None
+
+		try:
+			from pkg_resources import resource_filename
+			uifile = resource_filename(__name__, 'ui/winLog.ui')
+			icofile = resource_filename(__name__, icoFileIn)
+		except:
+			uifile = os.path.join(rootDir, "ui", "winLog.ui")
+			icofile = os.path.join(rootDir, icoFileIn)
+
+		Ui_winLog, base_class = uic.loadUiType(uifile)
 		self.uiLog = Ui_winLog()
 		self.uiLog.setupUi(self.winLog)
 		self.winLog.setWindowFlags(QtCore.Qt.Dialog)
 		icon = QtGui.QIcon()
-		icon.addPixmap(QtGui.QPixmap(icoFile), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+		icon.addPixmap(QtGui.QPixmap(icofile), QtGui.QIcon.Normal, QtGui.QIcon.Off)
 		self.winLog.setWindowIcon(icon)
 		screen = QtGui.QDesktopWidget().screenGeometry()
 		size =  self.winLog.geometry()
@@ -64,6 +77,7 @@ class PatchWindow:
 
 		self.aborted = False
 		self.finished = True
+		self.lastRun = False
 		self.command = ""
 		self.arguments = QtCore.QStringList()
 
@@ -103,35 +117,45 @@ class PatchWindow:
 			self.process.setWorkingDirectory(runDir)
 
 			if wineApp == "CXGames":
-				if osType.macPathCX == "":
-					tempFile = "%s%s%s" % (osType.globalDir, osType.directoryCXG, wineProgram)
+				if not self.osType.startCXG():
+					self.uiLog.txtLog.append(QtCore.QString("<b>Error: Couldn't start Crossover Games</b>"))
+					self.uiLog.btnSave.setEnabled(False)
+					self.uiLog.btnStart.setEnabled(False)
+
+				if self.osType.macPathCX == "":
+					tempFile = "%s%s%s" % (self.osType.globalDir, self.osType.directoryCXG, wineProgram)
 
 					if os.path.isfile(tempFile):
 						self.command = QtCore.QString(tempFile)
 					else:
-						tempFile = "%s%s%s" % (homeDir, osType.directoryCXG, wineProgram)
+						tempFile = "%s%s%s" % (homeDir, self.osType.directoryCXG, wineProgram)
 
 						if os.path.isfile(tempFile):
 							self.command = QtCore.QString(tempFile)
 						else:
 							self.command = QtCore.QString(wineProgram)
 				else:
-					self.command = QtCore.QString("%s%s" % (osType.macPathCX, wineProgram))
+					self.command = QtCore.QString("%s%s" % (self.osType.macPathCX, wineProgram))
 			elif wineApp == "CXOffice":
-				if osType.macPathCX == "":
-					tempFile = "%s%s%s" % (osType.globalDir, osType.directoryCXO, wineProgram)
+				if not self.osType.startCXO():
+					self.uiLog.txtLog.append(QtCore.QString("<b>Error: Couldn't start Crossover</b>"))
+					self.uiLog.btnSave.setEnabled(False)
+					self.uiLog.btnStart.setEnabled(False)
+
+				if self.osType.macPathCX == "":
+					tempFile = "%s%s%s" % (self.osType.globalDir, self.osType.directoryCXO, wineProgram)
 
 					if os.path.isfile(tempFile):
 						self.command = QtCore.QString(tempFile)
 					else:
-						tempFile = "%s%s%s" % (homeDir, osType.directoryCXO, wineProgram)
+						tempFile = "%s%s%s" % (homeDir, self.osType.directoryCXO, wineProgram)
 
 						if os.path.isfile(tempFile):
 							self.command = QtCore.QString(tempFile)
 						else:
 							self.command = QtCore.QString(wineProgram)
 				else:
-					self.command = QtCore.QString("%s%s" % (osType.macPathCX, wineProgram))
+					self.command = QtCore.QString("%s%s" % (self.osType.macPathCX, wineProgram))
 
 
 	def readOutput(self):
@@ -142,8 +166,14 @@ class PatchWindow:
 
 	def resetButtons(self, exitCode, exitStatus):
 		self.finished = True
+		self.uiLog.btnStop.setText("Exit")
 		self.uiLog.btnSave.setEnabled(True)
 		self.uiLog.btnStart.setEnabled(True)
+		if self.aborted:
+			self.uiLog.txtLog.append(QtCore.QString("<b>***  Aborted  ***</b>"))
+		else:
+			if self.lastRun:
+				self.uiLog.txtLog.append(QtCore.QString("<b>***  Finished  ***</b>"))
 
 	def btnStopClicked(self):
 		if self.finished:
@@ -161,9 +191,11 @@ class PatchWindow:
 			outfile.close()
 
 	def btnStartClicked(self):
+		self.lastRun = False
 		self.aborted = False
 		self.finished = False
 		self.uiLog.btnStart.setEnabled(False)
+		self.uiLog.btnStop.setText("Abort")
 		self.uiLog.btnSave.setEnabled(False)
 		self.process.start(self.command, self.arguments)
 
@@ -173,6 +205,7 @@ class PatchWindow:
 		if not self.aborted:
 			self.finished = False
 			self.uiLog.btnStart.setEnabled(False)
+			self.uiLog.btnStop.setText("Abort")
 			self.uiLog.btnSave.setEnabled(False)
 			self.process.start(self.command, self.arguments)
 
@@ -180,8 +213,10 @@ class PatchWindow:
 				self.__app.processEvents()
 
 			if not self.aborted:
+				self.lastRun = True
 				self.finished = False
 				self.uiLog.btnStart.setEnabled(False)
+				self.uiLog.btnStop.setText("Abort")
 				self.uiLog.btnSave.setEnabled(False)
 
 				loop = 0

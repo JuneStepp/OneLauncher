@@ -1,0 +1,20 @@
+#!/bin/sh
+# Normalize the current path and command, to find the MacOS folder of the bundle
+# --------------------------------------------------------------------------------
+PWD=`pwd`
+MACOS_PATH=`echo "$PWD/$0" | awk -F"/" '{ for(i = 1; i <= NF - 1; i++) { printf("%s/", $i); } }'`
+cd "$MACOS_PATH"
+MACOS_PATH=`pwd`
+
+# Find the base folder of the bundle
+# --------------------------------------------------------------------------------
+BASE_PATH=`echo "$MACOS_PATH" | awk -F"/" '{ for(i = 1; i <= NF - 2; i++) { printf("%s/", $i); } }'`
+
+# Find the resource folder of the bundle
+# --------------------------------------------------------------------------------
+RESOURCES_PATH=`echo "$MACOS_PATH" | awk -F"/" '{ for(i = 1; i <= NF - 1; i++) { printf("%s/", $i); } printf("Resources"); }'`
+
+# Launch the application
+# --------------------------------------------------------------------------------
+cd "$BASE_PATH"
+exec "$RESOURCES_PATH/pylotro"

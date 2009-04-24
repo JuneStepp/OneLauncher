@@ -1,11 +1,10 @@
-#!/usr/bin/env python
 # coding=utf-8
 ###########################################################################
-# Name:   pylotro
+# Name:   Runner
 # Author: Alan Jackson
 # Date:   11th March 2009
 #
-# Launch script for the Linux/OS X based launcher
+# Runner for the Linux/OS X based launcher
 # for the game Lord of the Rings Online
 #
 # Based on a script by SNy <SNy@bmx-chemnitz.de>
@@ -28,8 +27,12 @@
 # You should have received a copy of the GNU General Public License
 # along with PyLotRO.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-import PyLotROLauncher.Runner
+from .MainWindow import MainWindow
+
+def main():
+	app = MainWindow()
+	app.run()
 
 if __name__ == '__main__':
-	PyLotROLauncher.Runner.main()
+	main()
 

@@ -28,7 +28,7 @@
 # along with PyLotRO.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 from PyQt4 import QtCore, QtGui, uic
-from PyLotROUtils import DetermineOS
+from .PyLotROUtils import DetermineOS
 import os.path
 import glob
 
@@ -41,7 +41,16 @@ class SettingsWizard:
 		self.gameDir = ""
 
 		self.winSettings = QtGui.QDialog(parent)
-		Ui_winGameWizard, base_class = uic.loadUiType(os.path.join(rootDir, "ui", "winGameWizard.ui"))
+
+		uifile = None
+
+		try:
+			from pkg_resources import resource_filename
+			uifile = resource_filename(__name__, 'ui/winGameWizard.ui')
+		except:
+			uifile = os.path.join(rootDir, "ui", "winGameWizard.ui")
+
+		Ui_winGameWizard, base_class = uic.loadUiType(uifile)
 		self.uiWizard = Ui_winGameWizard()
 		self.uiWizard.setupUi(self.winSettings)
 		screen = QtGui.QDesktopWidget().screenGeometry()

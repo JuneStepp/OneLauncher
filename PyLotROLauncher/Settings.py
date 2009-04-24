@@ -32,7 +32,7 @@ import os
 from Ft.Xml.Domlette import NonvalidatingReader, Print
 from Ft.Xml import EMPTY_NAMESPACE
 from Ft.Lib import Uri
-from PyLotROUtils import DetermineOS
+from .PyLotROUtils import DetermineOS
 
 class Settings:
 	def __init__(self, baseDir, osType):
@@ -64,7 +64,7 @@ class Settings:
 				doc = NonvalidatingReader.parseUri(file_uri)
 
 				if useGame == None:
-					defaultGame = doc.xpath(u"//Settings/Default.Game")[0].firstChild.nodeValue
+					defaultGame = doc.xpath("//Settings/Default.Game")[0].firstChild.nodeValue
 				else:
 					defaultGame = useGame
 
@@ -81,7 +81,7 @@ class Settings:
 					self.usingDND = True
 					self.usingTest = True
 
-				xpathquery = u"//Settings/%s/" % (defaultGame)
+				xpathquery = "//Settings/%s/" % (defaultGame)
 
 				tempNode = doc.xpath(xpathquery + "Wine.Application")
 				if len(tempNode) > 0:
@@ -168,7 +168,7 @@ class Settings:
 				currGame += ".Test"
 
 		# Set default game to current game
-		defaultGameNode = doc.xpath(u"//Settings/Default.Game")
+		defaultGameNode = doc.xpath("//Settings/Default.Game")
 		if len(defaultGameNode) > 0:
 			defaultGameNode[0].firstChild.nodeValue = currGame
 		else:
@@ -177,12 +177,12 @@ class Settings:
 			settingsNode.appendChild(defaultGameNode)
 
 		# Remove old game block
-		tempNode = doc.xpath(u"//Settings/%s" % (currGame))
+		tempNode = doc.xpath("//Settings/%s" % (currGame))
 		if len(tempNode) > 0:
 			doc.documentElement.removeChild(tempNode[0])
 
 		# Create new game block
-		settingsNode = doc.xpath(u"//Settings")[0]
+		settingsNode = doc.xpath("//Settings")[0]
 		gameConfigNode = doc.createElementNS(EMPTY_NAMESPACE, currGame)
 		settingsNode.appendChild(gameConfigNode)
 
