@@ -27,4 +27,4 @@ Changes
         Some versions of PyQt4 had problem with multi-line message
         in ui/winSelectAccount.ui [365541]
 
-
+0.1.5 - Fixed problem with launcher consuming high CPU when client running

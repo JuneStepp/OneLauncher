@@ -37,7 +37,7 @@ class StartGame:
 		hiResEnabled, wineApp, osType, homeDir, icoFileIn, rootDir):
 
 		self.homeDir = homeDir
-		self.winLog = QtGui.QMainWindow(parent)
+		self.winLog = QtGui.QDialog(parent)
 		self.osType = osType
 
 		uifile = None
@@ -174,10 +174,11 @@ class StartGame:
 			self.uiLog.txtLog.append(QtCore.QString("<b>***  Finished  ***</b>"))
 
 	def btnStopClicked(self):
-		if not self.finished:
-			self.process.kill()
+		if self.finished:
+			self.winLog.close()
+		else:
 			self.aborted = True
-		self.winLog.close()
+			self.process.kill()
 
 	def btnSaveClicked(self):
 		filename = QtGui.QFileDialog.getSaveFileName(self.winLog, "Save log file", self.homeDir)
@@ -187,13 +188,13 @@ class StartGame:
 			outfile.write(self.uiLog.txtLog.toPlainText())
 			outfile.close()
 
-	def Run(self, app):
+	def Run(self):
+		import time
 		self.winLog.show()
 		self.finished = False
 
 		self.uiLog.btnStop.setText("Abort")
 		self.process.start(self.command, self.arguments)
 
-		while self.winLog.isVisible():
-			app.processEvents()
+		return self.winLog.exec_()
 

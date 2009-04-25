@@ -314,7 +314,7 @@ class MainWindow:
 			self.osType, self.valHomeDir, self.gameType.icoFile, self.rootDir)
 
 		self.winMain.hide()
-		game.Run(self.app)
+		game.Run()
 
 	def EnterWorldQueue(self, queueURL):
 		self.worldQueue = JoinWorldQueue(self.worldQueueConfig.worldQueueParam,

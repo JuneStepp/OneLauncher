@@ -37,7 +37,7 @@ class PatchWindow:
 		wineProgram, hiResEnabled, icoFileIn, homeDir, winePrefix, wineApp, osType, rootDir):
 
 		self.homeDir = homeDir
-		self.winLog = QtGui.QMainWindow(parent)
+		self.winLog = QtGui.QDialog(parent)
 		self.osType = osType
 
 		uifile = None
