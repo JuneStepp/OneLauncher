@@ -2,7 +2,8 @@
 # Normalize the current path and command, to find the MacOS folder of the bundle
 # --------------------------------------------------------------------------------
 PWD=`pwd`
-MACOS_PATH=`echo "$PWD/$0" | awk -F"/" '{ for(i = 1; i <= NF - 1; i++) { printf("%s/", $i); } }'`
+MACOS_PATH=`echo "$0" | awk -F"/" '{ for(i = 1; i <= NF - 1; i++) { printf("%s/", $i); } }'`
+
 cd "$MACOS_PATH"
 MACOS_PATH=`pwd`
 

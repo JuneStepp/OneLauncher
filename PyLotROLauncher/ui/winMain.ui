@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string notr="true">Linux Launcher</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../images/LotROLinux.ico</normaloff>../images/LotROLinux.ico</iconset>
+  </property>
   <property name="statusTip">
    <string notr="true"/>
   </property>
@@ -300,22 +304,5 @@
   </action>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>actionExit</sender>
-   <signal>activated()</signal>
-   <receiver>winMain</receiver>
-   <slot>close()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>394</x>
-     <y>222</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

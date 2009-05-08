@@ -34,9 +34,10 @@ import sys
 from .Settings import Settings
 
 class CheckConfig:
-	def __init__(self, parent, settings, homeDir):
+	def __init__(self, parent, settings, homeDir, osType):
 		self.settings = settings
 		self.homeDir = homeDir
+		self.osType = osType
 
 		self.winCheckConfig = QtGui.QDialog(parent)
 
@@ -74,10 +75,18 @@ class CheckConfig:
 		try:
 			infile = None
 
-			if self.settings.winePrefix == "":
-				infile = open(self.homeDir + os.sep + ".wine" + os.sep + "system.reg", "r")
+			if self.settings.app == "Wine":
+				if self.settings.winePrefix == "":
+					infile = open(self.homeDir + os.sep + ".wine" + os.sep + "system.reg", "r")
+				else:
+					infile = open(self.settings.winePrefix + os.sep + "system.reg", "r")
+			elif self.settings.app == "CXGames":
+				infile = open(self.homeDir + os.sep + self.osType.settingsCXG + os.sep +
+					self.settings.winePrefix + os.sep + "system.reg", "r")
 			else:
-				infile = open(self.settings.winePrefix + os.sep + "system.reg", "r")
+				infile = open(self.homeDir + os.sep + self.osType.settingsCXO + os.sep +
+					self.settings.winePrefix + os.sep + "system.reg", "r")
+
 			systemReg = infile.readlines()
 			infile.close()
 
@@ -100,10 +109,18 @@ class CheckConfig:
 		try:
 			infile = None
 
-			if self.settings.winePrefix == "":
-				infile = open(self.homeDir + os.sep + ".wine" + os.sep + "user.reg", "r")
+			if self.settings.app == "Wine":
+				if self.settings.winePrefix == "":
+					infile = open(self.homeDir + os.sep + ".wine" + os.sep + "user.reg", "r")
+				else:
+					infile = open(self.settings.winePrefix + os.sep + "user.reg", "r")
+			elif self.settings.app == "CXGames":
+				infile = open(self.homeDir + os.sep + self.osType.settingsCXG + os.sep +
+					self.settings.winePrefix + os.sep + "user.reg", "r")
 			else:
-				infile = open(self.settings.winePrefix + os.sep + "user.reg", "r")
+				infile = open(self.homeDir + os.sep + self.osType.settingsCXO + os.sep +
+					self.settings.winePrefix + os.sep + "user.reg", "r")
+
 			userReg = infile.readlines()
 			infile.close()
 
@@ -125,10 +142,18 @@ class CheckConfig:
 					index += 1
 
 			if version == "Unknown":
-				if self.settings.winePrefix == "":
-					infile = open(self.homeDir + os.sep + ".wine" + os.sep + "system.reg", "r")
+				if self.settings.app == "Wine":
+					if self.settings.winePrefix == "":
+						infile = open(self.homeDir + os.sep + ".wine" + os.sep + "system.reg", "r")
+					else:
+						infile = open(self.settings.winePrefix + os.sep + "system.reg", "r")
+				elif self.settings.app == "CXGames":
+					infile = open(self.homeDir + os.sep + self.osType.settingsCXG + os.sep +
+						self.settings.winePrefix + os.sep + "system.reg", "r")
 				else:
-					infile = open(self.settings.winePrefix + os.sep + "system.reg", "r")
+					infile = open(self.homeDir + os.sep + self.osType.settingsCXO + os.sep +
+						self.settings.winePrefix + os.sep + "system.reg", "r")
+
 				systemReg = infile.readlines()
 				infile.close()
 
@@ -145,9 +170,9 @@ class CheckConfig:
 								tempStr = systemReg[index].replace("\n", "").replace("\"", "")
 								tempStr = tempStr.replace("CurrentBuildNumber=", "")
 								if tempStr == "2195":
-									version = "w2k"
+									version = "win2k"
 								else:
-									version = "not w2k"
+									version = "not win2k"
 
 						if systemReg[index].startswith("[Software\\\\Microsoft\\\\Windows NT\\\\CurrentVersion]"):
 							printing = True
@@ -164,10 +189,18 @@ class CheckConfig:
 		try:
 			infile = None
 
-			if self.settings.winePrefix == "":
-				infile = open(self.homeDir + os.sep + ".wine" + os.sep + "user.reg", "r")
+			if self.settings.app == "Wine":
+				if self.settings.winePrefix == "":
+					infile = open(self.homeDir + os.sep + ".wine" + os.sep + "user.reg", "r")
+				else:
+					infile = open(self.settings.winePrefix + os.sep + "user.reg", "r")
+			elif self.settings.app == "CXGames":
+				infile = open(self.homeDir + os.sep + self.osType.settingsCXG + os.sep +
+					self.settings.winePrefix + os.sep + "user.reg", "r")
 			else:
-				infile = open(self.settings.winePrefix + os.sep + "user.reg", "r")
+				infile = open(self.homeDir + os.sep + self.osType.settingsCXO + os.sep +
+					self.settings.winePrefix + os.sep + "user.reg", "r")
+
 			userReg = infile.readlines()
 			infile.close()
 

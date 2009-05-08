@@ -28,19 +28,19 @@
 # along with PyLotRO.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import os
+import subprocess
 import sys
 import glob
 from PyQt4 import QtCore
-from Ft.Xml.Domlette import NonvalidatingReader, Print
-from Ft.Lib import Uri
+import xml.dom.minidom
 
 # If Python 3.0 is in use use http otherwise httplib
-try:
-	from http.client import HTTPConnection, HTTPSConnection
-	from urllib.parse import quote
-except:
+if sys.version_info[:2] < (3, 0):
 	from httplib import HTTPConnection, HTTPSConnection
 	from urllib import quote
+else:
+	from http.client import HTTPConnection, HTTPSConnection
+	from urllib.parse import quote
 
 def WebConnection(urlIn):
 	if urlIn.upper().find("HTTP://") >= 0:
@@ -52,20 +52,28 @@ def WebConnection(urlIn):
 		post = urlIn[8:].replace(url, "")
 		return HTTPSConnection(url), post
 
+def GetText(nodelist):
+	rc = ""
+	for node in nodelist:
+		if node.nodeType == node.TEXT_NODE or node.nodeType == node.CDATA_SECTION_NODE:
+			rc = rc + node.data
+	return rc
+
 class BaseConfig:
 	def __init__(self, configFile):
 		self.GLSDataCentreService = ""
 		self.gameName = ""
 
 		try:
-			file_uri = Uri.OsPathToUri(configFile)
-			doc = NonvalidatingReader.parseUri(file_uri)
+			doc = xml.dom.minidom.parse(configFile)
 
-			val = (None, 'value')
-			xpathquery = "//appSettings/add[@key=\"%s\"]"
-
-			self.GLSDataCentreService = doc.xpath(xpathquery % ("Launcher.DataCenterService.GLS"))[0].attributes[val].value
-			self.gameName = doc.xpath(xpathquery % ("DataCenter.GameName"))[0].attributes[val].value
+			nodes = doc.getElementsByTagName("appSettings")[0].childNodes
+			for node in nodes:
+				if node.nodeType == node.ELEMENT_NODE:
+					if node.attributes.item(1).firstChild.nodeValue == "Launcher.DataCenterService.GLS":
+						self.GLSDataCentreService = node.attributes.item(0).firstChild.nodeValue
+					elif node.attributes.item(1).firstChild.nodeValue == "DataCenter.GameName":
+						self.gameName = node.attributes.item(0).firstChild.nodeValue
 
 			self.isConfigOK = True
 		except:
@@ -80,10 +88,12 @@ class DetermineGame:
 		self.title = ""
 
 	def GetSettings(self, usingDND, usingTest):
-		self.configFile = "/TurbineLauncher.exe.config"
+		self.configFile = os.sep + "TurbineLauncher.exe.config"
 
 		if os.name == 'mac':
 			self.__os = " - Launcher for Mac OS X"
+		elif os.name == 'nt':
+			self.__os = " - Launcher for Windows"
 		else:
 			self.__os = " - Launcher for Linux"
 
@@ -93,7 +103,7 @@ class DetermineGame:
 			self.__test = ""
 
 		if usingDND:
-			self.configFileAlt = "/dndlauncher.exe.config"
+			self.configFileAlt = os.sep + "dndlauncher.exe.config"
 			self.icoFile = os.path.join("images", "DDOLinux.ico")
 			self.pngFile = os.path.join("images", "DDOLinux.png")
 
@@ -109,6 +119,7 @@ class DetermineOS:
 	def __init__(self):
 		if os.name == 'mac':
 			self.usingMac = True
+			self.usingWindows = False
 			self.appDir = "Library/Application Support/LotROLinux/"
 			self.globalDir = "/Application"
 			self.settingsCXG = "Library/Application Support/CrossOver Games/Bottles"
@@ -118,9 +129,20 @@ class DetermineOS:
 			self.macPathCX = os.environ.get('CX_ROOT')
 			if self.macPathCX == None:
 				self.macPathCX = ""
+		elif os.name == 'nt':
+			self.usingMac = False
+			self.usingWindows = True
+			self.appDir = "PyLotRO" + os.sep
+			self.globalDir = ""
+			self.settingsCXG = ""
+			self.settingsCXO = ""
+			self.directoryCXG = ""
+			self.directoryCXO = ""
+			self.macPathCX = ""
 		else:
 			self.usingMac = False
-			self.appDir = ".LotROLinux/"
+			self.usingWindows = False
+			self.appDir = ".LotROLinux" + os.sep
 			self.globalDir = "/opt"
 			self.settingsCXG = ".cxgames"
 			self.settingsCXO = ".cxoffice"
@@ -133,7 +155,7 @@ class DetermineOS:
 
 		if self.usingMac:
 			uid = os.getuid()
-			tempfile = os.popen("ps -ocomm -U%s" % (uid))
+			tempfile = subprocess.Popen("ps -ocomm -U%s" % (uid), shell=True, stdout=subprocess.PIPE).stdout
 			cxPath = ""
 			for line in tempfile.readlines():
 				line = line.replace("\n", "")
@@ -145,7 +167,7 @@ class DetermineOS:
 				process.start("open", ["-b", "com.codeweavers.CrossOverGames"])
 				finished = process.waitForFinished()
 				if finished:
-					tempfile = os.popen("ps -ocomm -U%s" % (uid))
+					tempfile = subprocess.Popen("ps -ocomm -U%s" % (uid), shell=True, stdout=subprocess.PIPE).stdout
 					cxPath = ""
 					for line in tempfile.readlines():
 						line = line.replace("\n", "")
@@ -176,7 +198,8 @@ class DetermineOS:
 				os.environ["PATH"] = (path + ":" + cxPath + "/Contents/SharedSupport/CrossOverGames/bin")
 				self.macPathCX = os.environ.get('CX_ROOT')
 
-				tempfile = os.popen("defaults read com.coeweavers.CrossOverGames Display")
+				tempfile =  subprocess.Popen("defaults read com.coeweavers.CrossOverGames Display",
+					shell=True, stdout=subprocess.PIPE).stdout
 				display = tempfile.read().replace("\n", "")
 				if display == "":
 					display = "2"
@@ -189,7 +212,7 @@ class DetermineOS:
 
 		if self.usingMac:
 			uid = os.getuid()
-			tempfile = os.popen("ps -ocomm -U%s" % (uid))
+			tempfile = subprocess.Popen("ps -ocomm -U%s" % (uid), shell=True, stdout=subprocess.PIPE).stdout
 			cxPath = ""
 			for line in tempfile.readlines():
 				line = line.replace("\n", "")
@@ -201,7 +224,7 @@ class DetermineOS:
 				process.start("open", ["-b", "com.codeweavers.CrossOver"])
 				finished = process.waitForFinished()
 				if finished:
-					tempfile = os.popen("ps -ocomm -U%s" % (uid))
+					tempfile = subprocess.Popen("ps -ocomm -U%s" % (uid), shell=True, stdout=subprocess.PIPE).stdout
 					cxPath = ""
 					for line in tempfile.readlines():
 						line = line.replace("\n", "")
@@ -232,7 +255,8 @@ class DetermineOS:
 				os.environ["PATH"] = (path + ":" + cxPath + "/Contents/SharedSupport/CrossOver/bin")
 				self.macPathCX = os.environ.get('CX_ROOT')
 
-				tempfile = os.popen("defaults read com.coeweavers.CrossOver Display")
+				tempfile =  subprocess.Popen("defaults read com.coeweavers.CrossOver Display",
+					shell=True, stdout=subprocess.PIPE).stdout
 				display = tempfile.read().replace("\n", "")
 				if display == "":
 					display = "2"
@@ -266,13 +290,11 @@ class GLSDataCentre:
 			if tempxml == "":
 				self.loadSuccess = False
 			else:
-				tempxml = tempxml.split("<GetDatacentersResult>")[1].split("</GetDatacentersResult>")[0]
-				tempxml = "<zxz>" + tempxml + "</zxz>"
-				doc = NonvalidatingReader.parseString(tempxml, urlGLSDataCentreService)
+				doc = xml.dom.minidom.parseString(tempxml)
 
-				self.authServer = doc.xpath("//AuthServer")[0].firstChild.nodeValue
-				self.patchServer = doc.xpath("//PatchServer")[0].firstChild.nodeValue
-				self.launchConfigServer = doc.xpath("//LauncherConfigurationServer")[0].firstChild.nodeValue
+				self.authServer = GetText(doc.getElementsByTagName("AuthServer")[0].childNodes)
+				self.patchServer = GetText(doc.getElementsByTagName("PatchServer")[0].childNodes)
+				self.launchConfigServer = GetText(doc.getElementsByTagName("LauncherConfigurationServer")[0].childNodes)
 
 				self.realmList = []
 
@@ -280,7 +302,7 @@ class GLSDataCentre:
 				urlChatServer = ""
 				urlStatusServer = ""
 
-				for node in doc.xpath("//World"):
+				for node in doc.getElementsByTagName("World"):
 					for realm in node.childNodes:
 						if realm.nodeName == "Name":
 							name = realm.firstChild.nodeValue
@@ -319,9 +341,9 @@ class LanguageConfig():
 		self.langFound = False
 		self.langList = []
 
-		for name in glob.glob("%s/client_local_*.dat" % (runDir)):
+		for name in glob.glob("%s%sclient_local_*.dat" % (runDir, os.sep)):
 			self.langFound = True
-			temp = name.replace("%s/client_local_" % (runDir), "").replace(".dat", "")
+			temp = name.replace("%s%sclient_local_" % (runDir, os.sep), "").replace(".dat", "")
 			self.langList.append(Language(temp))
 
 class Realm:
@@ -348,19 +370,19 @@ class Realm:
 			if tempxml == "":
 				self.realmAvailable = False
 			else:
-				doc = NonvalidatingReader.parseString(tempxml, self.urlServerStatus)
+				doc = xml.dom.minidom.parseString(tempxml)
 
 				try:
-					self.nowServing = doc.xpath("//nowservingqueuenumber")[0].firstChild.nodeValue
+					self.nowServing = GetText(doc.getElementsByTagName("nowservingqueuenumber")[0].childNodes)
 				except:
 					self.nowServing = ""
 
 				try:
-					self.queueURL = doc.xpath("//queueurls")[0].firstChild.nodeValue.split(";")[0]
+					self.queueURL = GetText(doc.getElementsByTagName("queueurls")[0].childNodes).split(";")[0]
 				except:
 					self.queueURL = ""
 
-				self.loginServer = doc.xpath("//loginservers")[0].firstChild.nodeValue.split(";")[0]
+				self.loginServer = GetText(doc.getElementsByTagName("loginservers")[0].childNodes).split(";")[0]
 
 				self.realmAvailable = True
 		except:
@@ -368,26 +390,48 @@ class Realm:
 
 class WorldQueueConfig:
 	def __init__(self, urlConfigServer, usingDND):
+		self.gameClientFilename = ""
+		self.gameClientArgTemplate = ""
+		self.newsFeedURL = ""
+		self.newsStyleSheetURL = ""
+		self.patchProductCode = ""
+		self.worldQueueURL = ""
+		self.worldQueueParam = ""
+
 		try:
-			doc = NonvalidatingReader.parseUri(urlConfigServer)
+			webservice, post = WebConnection(urlConfigServer)
 
-			val = (None, 'value')
-			xpathquery = "//appSettings/add[@key=\"%s\"]"
+			webservice.putrequest("GET", post)
+			webservice.endheaders()
 
-			self.gameClientFilename = doc.xpath(xpathquery % ("GameClient.Filename"))[0].attributes[val].value
-			self.gameClientArgTemplate = doc.xpath(xpathquery % ("GameClient.ArgTemplate"))[0].attributes[val].value
-			self.newsFeedURL = doc.xpath(xpathquery % ("URL.NewsFeed"))[0].attributes[val].value
-			self.newsStyleSheetURL = doc.xpath(xpathquery % ("URL.NewsStyleSheet"))[0].attributes[val].value
-			self.patchProductCode = doc.xpath(xpathquery % ("Patching.ProductCode"))[0].attributes[val].value
+			webresp = webservice.getresponse()
 
-			if usingDND:
-				self.worldQueueURL = ""
-				self.worldQueueParam = ""
+			tempxml = webresp.read()
+
+			if tempxml == "":
+				self.loadSuccess = False
 			else:
-				self.worldQueueURL = doc.xpath(xpathquery % ("WorldQueue.LoginQueue.URL"))[0].attributes[val].value
-				self.worldQueueParam = doc.xpath(xpathquery % ("WorldQueue.TakeANumber.Parameters"))[0].attributes[val].value
+				doc = xml.dom.minidom.parseString(tempxml)
 
-			self.loadSuccess = True
+				nodes = doc.getElementsByTagName("appSettings")[0].childNodes
+				for node in nodes:
+					if node.nodeType == node.ELEMENT_NODE:
+						if node.attributes.item(1).firstChild.nodeValue == "GameClient.Filename":
+							self.gameClientFilename = node.attributes.item(0).firstChild.nodeValue
+						elif node.attributes.item(1).firstChild.nodeValue == "GameClient.ArgTemplate":
+							self.gameClientArgTemplate = node.attributes.item(0).firstChild.nodeValue
+						elif node.attributes.item(1).firstChild.nodeValue == "URL.NewsFeed":
+							self.newsFeedURL = node.attributes.item(0).firstChild.nodeValue
+						elif node.attributes.item(1).firstChild.nodeValue == "URL.NewsStyleSheet":
+							self.newsStyleSheetURL = node.attributes.item(0).firstChild.nodeValue
+						elif node.attributes.item(1).firstChild.nodeValue == "Patching.ProductCode":
+							self.patchProductCode = node.attributes.item(0).firstChild.nodeValue
+						elif node.attributes.item(1).firstChild.nodeValue == "WorldQueue.LoginQueue.URL":
+							self.worldQueueURL = node.attributes.item(0).firstChild.nodeValue
+						elif node.attributes.item(1).firstChild.nodeValue == "WorldQueue.TakeANumber.Parameters":
+							self.worldQueueParam = node.attributes.item(0).firstChild.nodeValue
+
+				self.loadSuccess = True
 		except:
 			self.loadSuccess = False
 
@@ -432,29 +476,27 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
 				self.authSuccess = False
 				self.messError = "[E08] Server not found - may be down"
 			else:
-				tempxml = "<zxz>" + tempxml.split("<LoginAccountResult>")[1].split("</LoginAccountResult>")[0] + "</zxz>"
+				doc = xml.dom.minidom.parseString(tempxml)
 
-				doc = NonvalidatingReader.parseString(tempxml, urlLoginServer)
+				self.ticket = GetText(doc.getElementsByTagName("Ticket")[0].childNodes)
 
-				self.ticket = doc.xpath("//Ticket")[0].firstChild.nodeValue
-
-				for node in doc.xpath("//GameSubscription"):
-					validGame = True
+				for nodes in doc.getElementsByTagName("GameSubscription"):
+					game2 = ""
+					status = ""
 					name = ""
 					desc = ""
-					for node2 in node.childNodes:
-						if node2.nodeName == "Game":
-							if node2.firstChild.nodeValue != game:
-								validGame = False
-						elif node2.nodeName == "Status":
-							if node2.firstChild.nodeValue != "Active":
-								validGame = False
-						elif node2.nodeName == "Name":
-							name = node2.firstChild.nodeValue
-						elif node2.nodeName == "Description":
-							desc = node2.firstChild.nodeValue
 
-					if validGame:
+					for node in nodes.childNodes:
+						if node.nodeName == "Game":
+							game2 = GetText(node.childNodes)
+						elif node.nodeName == "Status":
+							status = GetText(node.childNodes)
+						elif node.nodeName == "Name":
+							name = GetText(node.childNodes)
+						elif node.nodeName == "Description":
+							desc = GetText(node.childNodes)
+
+					if game2 == game and status == "Active":
 						activeAccount = True
 						self.gameList.append(Game(name, desc))
 
@@ -494,11 +536,11 @@ class JoinWorldQueue:
 			if tempxml == "":
 				self.joinSuccess = False
 			else:
-				doc = NonvalidatingReader.parseString(tempxml, urlIn)
+				doc = xml.dom.minidom.parseString(tempxml)
 
-				if doc.xpath("//HResult")[0].firstChild.nodeValue == "0x00000000":
-					self.number = doc.xpath("//QueueNumber")[0].firstChild.nodeValue
-					self.serving = doc.xpath("//NowServingNumber")[0].firstChild.nodeValue
+				if GetText(doc.getElementsByTagName("HResult")[0].childNodes) == "0x00000000":
+					self.number = GetText(doc.getElementsByTagName("QueueNumber")[0].childNodes)
+					self.serving = GetText(doc.getElementsByTagName("NowServingNumber")[0].childNodes)
 
 				self.joinSuccess = True
 		except:

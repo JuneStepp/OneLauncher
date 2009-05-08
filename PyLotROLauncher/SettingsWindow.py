@@ -57,11 +57,17 @@ class SettingsWindow:
 		self.winSettings.move((screen.width()-size.width())/2, (screen.height()-size.height())/2)
 		self.winSettings.setWindowTitle("Game Settings")
 
-		self.uiSettings.cboApplication.addItem("Wine")
-		self.uiSettings.cboApplication.addItem("Crossover Games")
-		self.uiSettings.cboApplication.addItem("Crossover Office")
-		self.uiSettings.txtPrefix.setText(winePrefix)
-		self.uiSettings.txtDebug.setText(wineDebug)
+		if self.osType.usingWindows:
+			self.uiSettings.cboApplication.addItem("Native")
+			self.uiSettings.txtPrefix.setEnabled(False)
+			self.uiSettings.txtDebug.setEnabled(False)
+		else:
+			self.uiSettings.cboApplication.addItem("Wine")
+			self.uiSettings.cboApplication.addItem("Crossover Games")
+			self.uiSettings.cboApplication.addItem("Crossover Office")
+			self.uiSettings.txtPrefix.setText(winePrefix)
+			self.uiSettings.txtDebug.setText(wineDebug)
+
 		self.uiSettings.txtGameDir.setText(gameDir)
 		self.uiSettings.cboGraphics.addItem("Enabled")
 		self.uiSettings.cboGraphics.addItem("Disabled")
@@ -71,20 +77,29 @@ class SettingsWindow:
 		self.uiSettings.txtPatchClient.setText(patchClient)
 		self.uiSettings.txtPatchClient.setEnabled(False)
 
-		if app == "Wine":
+		if self.osType.usingWindows:
 			self.uiSettings.lblPrefix.setText("WINEPREFIX")
+			self.uiSettings.lblPrefix.setEnabled(False)
 			self.uiSettings.txtPrefix.setVisible(True)
+			self.uiSettings.txtPrefix.setEnabled(False)
+			self.uiSettings.lblDebug.setEnabled(False)
 			self.uiSettings.cboBottle.setVisible(False)
 			self.uiSettings.cboApplication.setCurrentIndex(0)
 		else:
-			self.uiSettings.lblPrefix.setText("Bottle")
-			if app == "CXGames":
-				self.uiSettings.cboApplication.setCurrentIndex(1)
+			if app == "Wine":
+				self.uiSettings.lblPrefix.setText("WINEPREFIX")
+				self.uiSettings.txtPrefix.setVisible(True)
+				self.uiSettings.cboBottle.setVisible(False)
+				self.uiSettings.cboApplication.setCurrentIndex(0)
 			else:
-				self.uiSettings.cboApplication.setCurrentIndex(2)
-			self.uiSettings.txtPrefix.setVisible(False)
-			self.uiSettings.cboBottle.setVisible(True)
-			self.ShowBottles(winePrefix)
+				self.uiSettings.lblPrefix.setText("Bottle")
+				if app == "CXGames":
+					self.uiSettings.cboApplication.setCurrentIndex(1)
+				else:
+					self.uiSettings.cboApplication.setCurrentIndex(2)
+				self.uiSettings.txtPrefix.setVisible(False)
+				self.uiSettings.cboBottle.setVisible(True)
+				self.ShowBottles(winePrefix)
 
 		if hiRes:
 			self.uiSettings.cboGraphics.setCurrentIndex(0)
@@ -139,7 +154,10 @@ class SettingsWindow:
 		tempdir = self.uiSettings.txtGameDir.text()
 
 		if tempdir == "":
-			tempdir = self.homeDir
+			if self.osType.usingWindows:
+				tempdir = os.environ.get('ProgramFiles')
+			else:
+				tempdir = self.homeDir
 
 		filename = QtGui.QFileDialog.getExistingDirectory(self.winSettings, "Game Directory", tempdir)
 
@@ -147,12 +165,15 @@ class SettingsWindow:
 			self.uiSettings.txtGameDir.setText(filename)
 
 	def getApp(self):
-		if self.uiSettings.cboApplication.currentIndex() == 0:
-			return "Wine"
-		elif self.uiSettings.cboApplication.currentIndex() == 1:
-			return "CXGames"
+		if self.osType.usingWindows:
+			return "Native"
 		else:
-			return "CXOffice"
+			if self.uiSettings.cboApplication.currentIndex() == 0:
+				return "Wine"
+			elif self.uiSettings.cboApplication.currentIndex() == 1:
+				return "CXGames"
+			else:
+				return "CXOffice"
 
 	def getPrefix(self):
 		if self.uiSettings.cboApplication.currentIndex() == 0:

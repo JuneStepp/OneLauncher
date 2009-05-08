@@ -62,10 +62,13 @@ class StartGame:
 		size =  self.winLog.geometry()
 		self.winLog.move((screen.width()-size.width())/2, (screen.height()-size.height())/2)
 
-		if wineApp == "Wine":
-			self.winLog.setWindowTitle("Wine output")
+		if self.osType.usingWindows:
+			self.winLog.setWindowTitle("Output")
 		else:
-			self.winLog.setWindowTitle("Crossover output")
+			if wineApp == "Wine":
+				self.winLog.setWindowTitle("Wine output")
+			else:
+				self.winLog.setWindowTitle("Crossover output")
 
 		self.uiLog.btnStart.setVisible(False)
 		self.uiLog.btnSave.setText("Save")
@@ -96,7 +99,16 @@ class StartGame:
 		QtCore.QObject.connect(self.process, QtCore.SIGNAL("readyReadStandardError()"), self.readErrors)
 		QtCore.QObject.connect(self.process, QtCore.SIGNAL("finished(int, QProcess::ExitStatus)"), self.resetButtons)
 
-		if wineApp == "Wine":
+		if wineApp == "Native":
+			self.command = QtCore.QString(appName)
+			self.process.setWorkingDirectory(runDir)
+
+			os.chdir(runDir)
+
+			for arg in gameParams.split(" "):
+				self.arguments.append(QtCore.QString(arg))
+
+		elif wineApp == "Wine":
 			self.command = QtCore.QString(wineProgram)
 			self.process.setWorkingDirectory(runDir)
 
@@ -189,7 +201,6 @@ class StartGame:
 			outfile.close()
 
 	def Run(self):
-		import time
 		self.winLog.show()
 		self.finished = False
 

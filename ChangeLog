@@ -28,3 +28,8 @@ Changes
         in ui/winSelectAccount.ui [365541]
 
 0.1.5 - Fixed problem with launcher consuming high CPU when client running
+
+0.1.6 - Remove 4suite as dependency
+        Added compatibility for working under Windows
+
+

@@ -29,8 +29,7 @@
 ###########################################################################
 import os
 import sys
-from Ft.Xml.Xslt import Processor
-from Ft.Xml.Domlette import NonvalidatingReader
+import xml.dom.minidom
 from PyQt4 import QtCore, QtGui, uic
 from .SettingsWindow import SettingsWindow
 from .SettingsWizard import SettingsWizard
@@ -40,14 +39,19 @@ from .Settings import Settings
 from .CheckConfig import CheckConfig
 from .PyLotROUtils import DetermineOS, DetermineGame, LanguageConfig, Language
 from .PyLotROUtils import BaseConfig, GLSDataCentre, WorldQueueConfig
-from .PyLotROUtils import AuthenticateUser, JoinWorldQueue
+from .PyLotROUtils import AuthenticateUser, JoinWorldQueue, GetText, WebConnection
 from . import Information
 
-# If Python 3.0 is in use use http otherwise httplib
 try:
-	from http.client import HTTPConnection, HTTPSConnection
+	from PyQt4 import QtWebKit
 except:
+	pass
+
+# If Python 3.0 is in use use http otherwise httplib
+if sys.version_info[:2] < (3, 0):
 	from httplib import HTTPConnection, HTTPSConnection
+else:
+	from http.client import HTTPConnection, HTTPSConnection
 
 class MainWindow:
 	def __init__(self):
@@ -76,7 +80,6 @@ class MainWindow:
 
 		self.webMainExists = True
 		try:
-			from PyQt4 import QtWebKit
 			self.webMain = QtWebKit.QWebView(self.uiMain.centralwidget)
 			self.webMain.setGeometry(QtCore.QRect(5, 130, 390, 280))
 			self.webMain.setUrl(QtCore.QUrl("about:blank"))
@@ -96,12 +99,13 @@ class MainWindow:
 		QtCore.QObject.connect(self.uiMain.btnLogin, QtCore.SIGNAL("clicked()"), self.btnLoginClicked)
 		QtCore.QObject.connect(self.uiMain.txtAccount, QtCore.SIGNAL("returnPressed()"), self.txtAccountEnter)
 		QtCore.QObject.connect(self.uiMain.txtPassword, QtCore.SIGNAL("returnPressed()"), self.txtPasswordEnter)
-		QtCore.QObject.connect(self.uiMain.actionAbout, QtCore.SIGNAL("activated()"), self.actionAboutSelected)
-		QtCore.QObject.connect(self.uiMain.actionPatch, QtCore.SIGNAL("activated()"), self.actionPatchSelected)
-		QtCore.QObject.connect(self.uiMain.actionOptions, QtCore.SIGNAL("activated()"), self.actionOptionsSelected)
-		QtCore.QObject.connect(self.uiMain.actionSettings_Wizard, QtCore.SIGNAL("activated()"), self.actionWizardSelected)
-		QtCore.QObject.connect(self.uiMain.actionSwitch_Game, QtCore.SIGNAL("activated()"), self.actionSwitchSelected)
-		QtCore.QObject.connect(self.uiMain.actionCheck_Bottle, QtCore.SIGNAL("activated()"), self.actionCheckSelected)
+		QtCore.QObject.connect(self.uiMain.actionExit, QtCore.SIGNAL("triggered()"), self.winMain.close)
+		QtCore.QObject.connect(self.uiMain.actionAbout, QtCore.SIGNAL("triggered()"), self.actionAboutSelected)
+		QtCore.QObject.connect(self.uiMain.actionPatch, QtCore.SIGNAL("triggered()"), self.actionPatchSelected)
+		QtCore.QObject.connect(self.uiMain.actionOptions, QtCore.SIGNAL("triggered()"), self.actionOptionsSelected)
+		QtCore.QObject.connect(self.uiMain.actionSettings_Wizard, QtCore.SIGNAL("triggered()"), self.actionWizardSelected)
+		QtCore.QObject.connect(self.uiMain.actionSwitch_Game, QtCore.SIGNAL("triggered()"), self.actionSwitchSelected)
+		QtCore.QObject.connect(self.uiMain.actionCheck_Bottle, QtCore.SIGNAL("triggered()"), self.actionCheckSelected)
 		QtCore.QObject.connect(self.winMain, QtCore.SIGNAL("AddLog(QString)"), self.AddLog)
 		QtCore.QObject.connect(self.winMain, QtCore.SIGNAL("ReturnLangConfig(PyQt_PyObject)"), self.GetLanguageConfig)
 		QtCore.QObject.connect(self.winMain, QtCore.SIGNAL("ReturnBaseConfig(PyQt_PyObject)"), self.GetBaseConfig)
@@ -128,7 +132,7 @@ class MainWindow:
 		sys.exit(self.app.exec_())
 
 	def actionCheckSelected(self):
-		confCheck = CheckConfig(self.winMain, self.settings, self.valHomeDir)
+		confCheck = CheckConfig(self.winMain, self.settings, self.valHomeDir, self.osType)
 		confCheck.Run()
 
 	def actionAboutSelected(self):
@@ -352,6 +356,10 @@ class MainWindow:
 		self.uiMain.chkSaveSettings.setEnabled(False)
 		self.valHomeDir = self.GetHomeDir()
 
+		if self.osType.usingWindows:
+			self.uiMain.actionSettings_Wizard.setEnabled(False)
+			self.uiMain.actionSettings_Wizard.setVisible(False)
+
 		if self.webMainExists:
 			self.webMain.setHtml(QtCore.QString(""))
 		else:
@@ -399,11 +407,13 @@ class MainWindow:
 		self.winMain.setWindowIcon(icon)
 
 		self.configFile = "%s%s" % (self.settings.gameDir, self.gameType.configFile)
+		self.configFileAlt = "%s%s" % (self.settings.gameDir, self.gameType.configFileAlt)
 		self.gameDirExists = os.path.exists(self.settings.gameDir)
 
 		if self.gameDirExists:
-			self.uiMain.actionCheck_Bottle.setEnabled(True)
-			self.uiMain.actionCheck_Bottle.setVisible(True)
+			if not self.osType.usingWindows:
+				self.uiMain.actionCheck_Bottle.setEnabled(True)
+				self.uiMain.actionCheck_Bottle.setVisible(True)
 
 			if self.settings.app == "Wine":
 				self.uiMain.actionCheck_Bottle.setText("Check Prefix")
@@ -415,7 +425,7 @@ class MainWindow:
 		self.langConfig = None
 
 		self.configThread = MainWindowThread()
-		self.configThread.SetUp(self.winMain, self.settings, self.configFile)
+		self.configThread.SetUp(self.winMain, self.settings, self.configFile, self.configFileAlt)
 		self.configThread.start()
 
 	def GetLanguageConfig(self, langConfig):
@@ -477,8 +487,11 @@ class MainWindow:
 	def GetHomeDir(self):
 		temp = os.environ.get('HOME')
 
-		if not temp.endswith("/"):
-			temp += "/"
+		if temp is None:
+			temp = os.environ.get('USERPROFILE')
+
+		if not temp.endswith(os.sep):
+			temp += os.sep
 
 		return temp
 
@@ -489,10 +502,11 @@ class MainWindow:
 		self.uiMain.txtStatus.append(QtCore.QString(message))
 
 class MainWindowThread(QtCore.QThread):
-	def SetUp(self, winMain, settings, configFile):
+	def SetUp(self, winMain, settings, configFile, configFileAlt):
 		self.winMain = winMain
 		self.settings = settings
 		self.configFile = configFile
+		self.configFileAlt = configFileAlt
 
 	def run(self):
 		self.LoadLanguageList()
@@ -524,8 +538,7 @@ class MainWindowThread(QtCore.QThread):
 
 			self.AccessGLSDataCentre(self.baseConfig.GLSDataCentreService, self.baseConfig.gameName)
 		else:
-			self.configFile = "%s%s" % (self.settings.gameDir, self.gameType.configFileAlt)
-			self.baseConfig = BaseConfig(self.configFile)
+			self.baseConfig = BaseConfig(self.configFileAlt)
 
 			if self.baseConfig.isConfigOK:
 				QtCore.QObject.emit(self.winMain, QtCore.SIGNAL("ReturnBaseConfig(PyQt_PyObject)"), self.baseConfig)
@@ -560,31 +573,66 @@ class MainWindowThread(QtCore.QThread):
 				"[E05] Error getting world queue configuration")
 
 	def GetNews(self):
-		try:
-			urlNewsFeed = self.worldQueueConfig.newsFeedURL.replace("{lang}",
-				self.langConfig.langList[self.langPos].code.replace("_", "-"))
+		HTMLTEMPLATE = "<html><head><link rel=\"stylesheet\" type=\"text/css\" href=\"http://ddoeugls.com/News/style.css\"/><base target=\"_blank\"/></head><body><div class=\"launcherNewsItemsContainer\">"
 
-			if urlNewsFeed.upper().find("HTTP://") >= 0:
-				temp = urlNewsFeed[:7]
-				url = urlNewsFeed[7:].split("/")[0]
-				post = urlNewsFeed[7:].replace(url, "")
-				webservice = HTTPConnection(url)
-			else:
-				temp = urlNewsFeed[:8]
-				url = urlNewsFeed[8:].split("/")[0]
-				post = urlNewsFeed[8:].replace(url, "")
-				webservice = HTTPSConnection(url)
+		try:
+			webservice, post = WebConnection(self.worldQueueConfig.newsStyleSheetURL)
 
 			webservice.putrequest("GET", post)
 			webservice.endheaders()
 
 			webresp = webservice.getresponse()
 
-			processor = Processor.Processor()
-			transform = NonvalidatingReader.parseUri(self.worldQueueConfig.newsStyleSheetURL)
-			source = NonvalidatingReader.parseString(webresp.read(), "http://www.lotrolinux.com/news.xml")
-			processor.appendStylesheetNode(transform, "")
-			result = processor.runNode(source, "")
+			tempxml = webresp.read()
+
+			doc = xml.dom.minidom.parseString(tempxml)
+
+			nodes = doc.getElementsByTagName("div")
+			for node in nodes:
+				if node.nodeType == node.ELEMENT_NODE:
+					if node.attributes.item(0).firstChild.nodeValue == "launcherNewsItemDate":
+						timeCode = GetText(node.childNodes).replace("\n", "").replace(" ", "")
+						timeCode = timeCode.replace("\t", "").replace(",", "").replace("-", "")
+						if len(timeCode) > 0:
+							timeCode = " %s" % (timeCode)
+
+			urlNewsFeed = self.worldQueueConfig.newsFeedURL.replace("{lang}",
+				self.langConfig.langList[self.langPos].code.replace("_", "-"))
+
+			webservice, post = WebConnection(urlNewsFeed)
+
+			webservice.putrequest("GET", post)
+			webservice.endheaders()
+
+			webresp = webservice.getresponse()
+
+			tempxml = webresp.read()
+
+			result = HTMLTEMPLATE
+
+			doc = xml.dom.minidom.parseString(tempxml)
+
+			items = doc.getElementsByTagName("item")
+			for item in items:
+				title = ""
+				description = ""
+				date = ""
+
+				for node in item.childNodes:
+					if node.nodeType == node.ELEMENT_NODE:
+						if node.nodeName == "title":
+							title = "<div class=\"launcherNewsItemTitle\">%s</div>" % (GetText(node.childNodes))
+						elif node.nodeName == "description":
+							description = "<div class=\"launcherNewsItemDescription\">%s</div>" % (GetText(node.childNodes))
+						elif node.nodeName == "pubDate":
+							tempDate = GetText(node.childNodes)
+							dispDate = "%s %s %s %s%s" % (tempDate[8:11], tempDate[5:7], tempDate[12:16],
+								tempDate[17:22], timeCode)
+							date = "<div class=\"launcherNewsItemDate\">%s</div>" % (dispDate)
+
+				result += "<div class=\"launcherNewsItemContainer\">%s%s%s</div>" % (title, date, description)
+
+			result += "</div></body></html>"
 
 			QtCore.QObject.emit(self.winMain, QtCore.SIGNAL("ReturnNews(QString)"), result)
 		except:

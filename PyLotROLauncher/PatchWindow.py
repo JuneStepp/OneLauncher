@@ -62,10 +62,13 @@ class PatchWindow:
 		size =  self.winLog.geometry()
 		self.winLog.move((screen.width()-size.width())/2, (screen.height()-size.height())/2)
 
-		if wineApp == "Wine":
-			self.winLog.setWindowTitle("Wine output")
+		if self.osType.usingWindows:
+			self.winLog.setWindowTitle("Output")
 		else:
-			self.winLog.setWindowTitle("Crossover output")
+			if wineApp == "Wine":
+				self.winLog.setWindowTitle("Wine output")
+			else:
+				self.winLog.setWindowTitle("Crossover output")
 
 		self.uiLog.btnSave.setText("Save")
 		self.uiLog.btnSave.setEnabled(False)
@@ -90,7 +93,20 @@ class PatchWindow:
 		QtCore.QObject.connect(self.process, QtCore.SIGNAL("finished(int, QProcess::ExitStatus)"),
 			self.resetButtons)
 
-		if wineApp == "Wine":
+		if wineApp == "Native":
+			patchParams = "%s,Patch %s --language %s --productcode %s --filesonly" % (patchClient,
+				urlPatchServer, language, prodCode)
+
+			if hiResEnabled:
+				patchParams = patchParams + " --highres"
+
+			self.command = QtCore.QString("rundll32.exe")
+			self.process.setWorkingDirectory(runDir)
+
+			for arg in patchParams.split(" "):
+				self.arguments.append(QtCore.QString(arg))
+
+		elif wineApp == "Wine":
 			patchParams = "rundll32.exe %s,Patch %s --language %s --productcode %s --filesonly" % (patchClient,
 				urlPatchServer, language, prodCode)
 

@@ -29,10 +29,9 @@
 # along with PyLotRO.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import os
-from Ft.Xml.Domlette import NonvalidatingReader, Print
-from Ft.Xml import EMPTY_NAMESPACE
-from Ft.Lib import Uri
-from .PyLotROUtils import DetermineOS
+from .PyLotROUtils import DetermineOS, GetText
+from xml.dom import EMPTY_NAMESPACE
+import xml.dom.minidom
 
 class Settings:
 	def __init__(self, baseDir, osType):
@@ -60,11 +59,10 @@ class Settings:
 
 		try:
 			if os.path.exists(self.settingsFile):
-				file_uri = Uri.OsPathToUri(self.settingsFile)
-				doc = NonvalidatingReader.parseUri(file_uri)
+				doc = xml.dom.minidom.parse(self.settingsFile)
 
 				if useGame == None:
-					defaultGame = doc.xpath("//Settings/Default.Game")[0].firstChild.nodeValue
+					defaultGame = GetText(doc.getElementsByTagName("Default.Game")[0].childNodes)
 				else:
 					defaultGame = useGame
 
@@ -81,57 +79,32 @@ class Settings:
 					self.usingDND = True
 					self.usingTest = True
 
-				xpathquery = "//Settings/%s/" % (defaultGame)
-
-				tempNode = doc.xpath(xpathquery + "Wine.Application")
-				if len(tempNode) > 0:
-					self.app = tempNode[0].firstChild.nodeValue
-
-				tempNode = doc.xpath(xpathquery + "Wine.Program")
-				if len(tempNode) > 0:
-					self.wineProg = tempNode[0].firstChild.nodeValue
-
-				tempNode = doc.xpath(xpathquery + "Wine.Debug")
-				if len(tempNode) > 0:
-					if tempNode[0].hasChildNodes():
-						self.wineDebug = tempNode[0].firstChild.nodeValue
-					else:
-						self.wineDebug = ""
-
-				tempNode = doc.xpath(xpathquery + "Wine.Prefix")
-				if len(tempNode) > 0:
-					if tempNode[0].hasChildNodes():
-						self.winePrefix = tempNode[0].firstChild.nodeValue
-					else:
-						self.winePrefix = ""
-
-				tempNode = doc.xpath(xpathquery + "HiRes")
-				if len(tempNode) > 0:
-					if tempNode[0].firstChild.nodeValue == "True":
-						self.hiResEnabled = True
-					else:
-						self.hiResEnabled = False
-
-				tempNode = doc.xpath(xpathquery + "Game.Directory")
-				if len(tempNode) > 0:
-					self.gameDir = tempNode[0].firstChild.nodeValue
-
-				tempNode = doc.xpath(xpathquery + "Realm")
-				if len(tempNode) > 0:
-					self.realm = tempNode[0].firstChild.nodeValue
-
-				tempNode = doc.xpath(xpathquery + "Language")
-				if len(tempNode) > 0:
-					self.language = tempNode[0].firstChild.nodeValue
-
-				tempNode = doc.xpath(xpathquery + "Account")
-				if len(tempNode) > 0:
-					self.account = tempNode[0].firstChild.nodeValue
-					self.focusAccount = False
-
-				tempNode = doc.xpath(xpathquery + "PatchClient")
-				if len(tempNode) > 0:
-					self.patchClient = tempNode[0].firstChild.nodeValue
+				nodes = doc.getElementsByTagName(defaultGame)[0].childNodes
+				for node in nodes:
+					if node.nodeName == "Wine.Application":
+						self.app = GetText(node.childNodes)
+					elif node.nodeName == "Wine.Program":
+						self.wineProg = GetText(node.childNodes)
+					elif node.nodeName == "Wine.Debug":
+						self.wineDebug = GetText(node.childNodes)
+					elif node.nodeName == "Wine.Prefix":
+						self.winePrefix = GetText(node.childNodes)
+					elif node.nodeName == "HiRes":
+						if GetText(node.childNodes) == "True":
+							self.hiResEnabled = True
+						else:
+							self.hiResEnabled = False
+					elif node.nodeName == "Game.Directory":
+						self.gameDir = GetText(node.childNodes)
+					elif node.nodeName == "Realm":
+						self.realm = GetText(node.childNodes)
+					elif node.nodeName == "Language":
+						self.language = GetText(node.childNodes)
+					elif node.nodeName == "Account":
+						self.account = GetText(node.childNodes)
+						self.focusAccount = False
+					elif node.nodeName == "PatchClient":
+						self.patchClient = GetText(node.childNodes)
 
 				success = True
 		except:
@@ -148,11 +121,9 @@ class Settings:
 
 		# Check if settings file exists if not create new settings XML
 		if os.path.exists(self.settingsFile):
-			file_uri = Uri.OsPathToUri(self.settingsFile)
-			doc = NonvalidatingReader.parseUri(file_uri)
+			doc = xml.dom.minidom.parse(self.settingsFile)
 		else:
-			from Ft.Xml.Domlette import implementation
-			doc = implementation.createDocument(EMPTY_NAMESPACE, None, None)
+			doc = xml.dom.minidom.Document()
 			settingsNode = doc.createElementNS(EMPTY_NAMESPACE, "Settings")
 			doc.appendChild(settingsNode)
 
@@ -168,7 +139,7 @@ class Settings:
 				currGame += ".Test"
 
 		# Set default game to current game
-		defaultGameNode = doc.xpath("//Settings/Default.Game")
+		defaultGameNode = doc.getElementsByTagName("Default.Game")
 		if len(defaultGameNode) > 0:
 			defaultGameNode[0].firstChild.nodeValue = currGame
 		else:
@@ -177,30 +148,30 @@ class Settings:
 			settingsNode.appendChild(defaultGameNode)
 
 		# Remove old game block
-		tempNode = doc.xpath("//Settings/%s" % (currGame))
+		tempNode = doc.getElementsByTagName(currGame)
 		if len(tempNode) > 0:
 			doc.documentElement.removeChild(tempNode[0])
 
 		# Create new game block
-		settingsNode = doc.xpath("//Settings")[0]
+		settingsNode = doc.getElementsByTagName("Settings")[0]
 		gameConfigNode = doc.createElementNS(EMPTY_NAMESPACE, currGame)
 		settingsNode.appendChild(gameConfigNode)
 
 		tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Application")
-		tempNode.appendChild(doc.createTextNode(self.app))
+		tempNode.appendChild(doc.createTextNode("%s" % (self.app)))
 		gameConfigNode.appendChild(tempNode)
 
 		tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Program")
-		tempNode.appendChild(doc.createTextNode(self.wineProg))
+		tempNode.appendChild(doc.createTextNode("%s" % (self.wineProg)))
 		gameConfigNode.appendChild(tempNode)
 
 		tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Debug")
-		tempNode.appendChild(doc.createTextNode(self.wineDebug))
+		tempNode.appendChild(doc.createTextNode("%s" % (self.wineDebug)))
 		gameConfigNode.appendChild(tempNode)
 
 		if self.winePrefix != "":
 			tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Prefix")
-			tempNode.appendChild(doc.createTextNode(self.winePrefix))
+			tempNode.appendChild(doc.createTextNode("%s" % (self.winePrefix)))
 			gameConfigNode.appendChild(tempNode)
 
 		tempNode = doc.createElementNS(EMPTY_NAMESPACE, "HiRes")
@@ -211,28 +182,28 @@ class Settings:
 		gameConfigNode.appendChild(tempNode)
 
 		tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Game.Directory")
-		tempNode.appendChild(doc.createTextNode(self.gameDir))
+		tempNode.appendChild(doc.createTextNode("%s" % (self.gameDir)))
 		gameConfigNode.appendChild(tempNode)
 
 		tempNode = doc.createElementNS(EMPTY_NAMESPACE, "PatchClient")
-		tempNode.appendChild(doc.createTextNode(self.patchClient))
+		tempNode.appendChild(doc.createTextNode("%s" % (self.patchClient)))
 		gameConfigNode.appendChild(tempNode)
 
 		if saveAccountDetails:
 			tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Realm")
-			tempNode.appendChild(doc.createTextNode(self.realm))
+			tempNode.appendChild(doc.createTextNode("%s" % (self.realm)))
 			gameConfigNode.appendChild(tempNode)
 
 			tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Language")
-			tempNode.appendChild(doc.createTextNode(self.language))
+			tempNode.appendChild(doc.createTextNode("%s" % (self.language)))
 			gameConfigNode.appendChild(tempNode)
 
 			tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Account")
-			tempNode.appendChild(doc.createTextNode(self.account))
+			tempNode.appendChild(doc.createTextNode("%s" % (self.account)))
 			gameConfigNode.appendChild(tempNode)
 
 		# write new settings file
 		f = open(self.settingsFile, 'w')
-		Print(doc, stream=f, encoding='utf-8')
+		f.write(doc.toxml())
 		f.close()
 
