@@ -32,4 +32,10 @@ Changes
 0.1.6 - Remove 4suite as dependency
         Added compatibility for working under Windows
 
+0.1.6.1 Use APPDATA rather than USERPROFILE when running under Windows
+
+0.1.6.2 Fix winMain.ui to stop launcher failing on Hardy
+
+
+
 

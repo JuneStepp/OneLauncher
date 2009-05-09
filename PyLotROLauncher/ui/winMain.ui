@@ -13,10 +13,6 @@
   <property name="windowTitle">
    <string notr="true">Linux Launcher</string>
   </property>
-  <property name="windowIcon">
-   <iconset>
-    <normaloff>../images/LotROLinux.ico</normaloff>../images/LotROLinux.ico</iconset>
-  </property>
   <property name="statusTip">
    <string notr="true"/>
   </property>

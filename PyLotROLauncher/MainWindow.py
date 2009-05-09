@@ -488,7 +488,7 @@ class MainWindow:
 		temp = os.environ.get('HOME')
 
 		if temp is None:
-			temp = os.environ.get('USERPROFILE')
+			temp = os.environ.get('APPDATA')
 
 		if not temp.endswith(os.sep):
 			temp += os.sep
