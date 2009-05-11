@@ -8,33 +8,14 @@ from distutils.core import setup
 
 installMode = False
 uninstallMode = False
-makeAppMode = False
 
 for arg in sys.argv:
 	if arg == 'install':
 		installMode = True
 	elif arg == 'uninstall':
 		uninstallMode = True
-	elif arg == 'make_app':
-		makeAppMode = True
 
-if makeAppMode:		# User wishes to make a Mac OS X app file
-	if os.path.exists(os.path.join("dist", "PyLotRO.app")):
-		shutil.rmtree(os.path.join("dist", "PyLotRO.app"))
-
-	print("Creating app file structure...")
-	os.makedirs(os.path.join("dist", "PyLotRO.app", "Contents", "MacOS"))
-	os.makedirs(os.path.join("dist", "PyLotRO.app", "Contents", "Resources"))
-
-	print("Copying PyLotRO to app file structure...")
-	shutil.copytree("PyLotROLauncher", os.path.join("dist", "PyLotRO.app", "Contents", "Resources", "PyLotROLauncher"))
-	shutil.copy(os.path.join("MacOSX", "PyLotRO"), os.path.join("dist", "PyLotRO.app", "Contents", "MacOS", "PyLotRO"))
-	shutil.copy(os.path.join("MacOSX", "PyLotRO.icns"), os.path.join("dist", "PyLotRO.app", "Contents",
-		"Resources", "PyLotRO.icns"))
-	shutil.copy(os.path.join("MacOSX", "Info.plist"), os.path.join("dist", "PyLotRO.app", "Contents", "Info.plist"))
-	shutil.copy("pylotro", os.path.join("dist", "PyLotRO.app", "Contents", "Resources", "pylotro"))
-	print("App file created")
-elif uninstallMode:
+if uninstallMode:
 	logfile = open("pylotro-install.log", "r")
 	maindir = ""
 

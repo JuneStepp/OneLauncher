@@ -43,6 +43,7 @@ from .PyLotROUtils import AuthenticateUser, JoinWorldQueue, GetText, WebConnecti
 from . import Information
 
 try:
+	import PyQt4.QtNetwork
 	from PyQt4 import QtWebKit
 except:
 	pass
@@ -56,7 +57,7 @@ else:
 class MainWindow:
 	def __init__(self):
 		# Determine where module is located (needed for finding ICO & PNG files)
-		self.rootDir = __file__
+		self.rootDir = __file__.replace("library.zip", "")
 		if os.path.islink(self.rootDir):
 			self.rootDir = os.path.realpath(self.rootDir)
 		self.rootDir = os.path.dirname(os.path.abspath(self.rootDir))
@@ -106,6 +107,7 @@ class MainWindow:
 		QtCore.QObject.connect(self.uiMain.actionSettings_Wizard, QtCore.SIGNAL("triggered()"), self.actionWizardSelected)
 		QtCore.QObject.connect(self.uiMain.actionSwitch_Game, QtCore.SIGNAL("triggered()"), self.actionSwitchSelected)
 		QtCore.QObject.connect(self.uiMain.actionCheck_Bottle, QtCore.SIGNAL("triggered()"), self.actionCheckSelected)
+		QtCore.QObject.connect(self.uiMain.actionHideWinMain, QtCore.SIGNAL("triggered()"), self.actionHideWinMainSelected)
 		QtCore.QObject.connect(self.winMain, QtCore.SIGNAL("AddLog(QString)"), self.AddLog)
 		QtCore.QObject.connect(self.winMain, QtCore.SIGNAL("ReturnLangConfig(PyQt_PyObject)"), self.GetLanguageConfig)
 		QtCore.QObject.connect(self.winMain, QtCore.SIGNAL("ReturnBaseConfig(PyQt_PyObject)"), self.GetBaseConfig)
@@ -131,9 +133,28 @@ class MainWindow:
 		self.winMain.show()
 		sys.exit(self.app.exec_())
 
+	def hideWinMain(self):
+		if self.settings.hideWinMain:
+			self.winMain.hide()
+
+	def resetFocus(self):
+		if self.settings.hideWinMain:
+			self.winMain.show()
+
+			if self.uiMain.txtAccount.text() == "":
+				self.uiMain.txtAccount.setFocus()
+			elif self.uiMain.txtPassword.text() == "":
+				self.uiMain.txtPassword.setFocus()
+
+	def actionHideWinMainSelected(self):
+		self.settings.hideWinMain = not self.settings.hideWinMain
+
 	def actionCheckSelected(self):
 		confCheck = CheckConfig(self.winMain, self.settings, self.valHomeDir, self.osType)
+
+		self.hideWinMain()
 		confCheck.Run()
+		self.resetFocus()
 
 	def actionAboutSelected(self):
 		dlgAbout = QtGui.QDialog(self.winMain)
@@ -154,7 +175,10 @@ class MainWindow:
 		ui.lblVersion.setText("<b>Version:</b> " + Information.Version)
 		ui.lblCLIReference.setText(Information.CLIReference)
 		ui.lblLotROLinuxReference.setText(Information.LotROLinuxReference)
+
+		self.hideWinMain()
 		dlgAbout.exec_()
+		self.resetFocus()
 
 	def actionPatchSelected(self):
 		winPatch = PatchWindow(self.winMain, self.dataCentre.patchServer, self.worldQueueConfig.patchProductCode,
@@ -163,13 +187,16 @@ class MainWindow:
 			self.settings.hiResEnabled, self.gameType.icoFile, self.valHomeDir, self.settings.winePrefix,
 			self.settings.app, self.osType, self.rootDir)
 		
+		self.hideWinMain()
 		winPatch.Run(self.app)
+		self.resetFocus()
 
 	def actionOptionsSelected(self):
 		winSettings = SettingsWindow(self.winMain, self.settings.hiResEnabled, self.settings.app,
 			self.settings.wineProg, self.settings.wineDebug, self.settings.patchClient,
 			self.settings.winePrefix, self.settings.gameDir, self.valHomeDir, self.osType, self.rootDir)
 		
+		self.hideWinMain()
 		if winSettings.Run() == QtGui.QDialog.Accepted:
 			self.settings.hiResEnabled = winSettings.getHiRes()
 			self.settings.app = winSettings.getApp()
@@ -179,11 +206,15 @@ class MainWindow:
 			self.settings.winePrefix = winSettings.getPrefix()
 			self.settings.gameDir = winSettings.getGameDir()
 			self.settings.SaveSettings(self.uiMain.chkSaveSettings.isChecked())
+			self.resetFocus()
 			self.InitialSetup()
+		else:
+			self.resetFocus()
 
 	def actionWizardSelected(self):
 		winWizard = SettingsWizard(self.winMain, self.valHomeDir, self.osType, self.rootDir)
 
+		self.hideWinMain()
 		if winWizard.Run() == QtGui.QDialog.Accepted:
 			self.settings.usingDND = winWizard.getUsingDND()
 			self.settings.usingTest = winWizard.getUsingTest()
@@ -195,7 +226,10 @@ class MainWindow:
 			self.settings.winePrefix = winWizard.getPrefix()
 			self.settings.gameDir = winWizard.getGameDir()
 			self.settings.SaveSettings(self.uiMain.chkSaveSettings.isChecked())
+			self.resetFocus()
 			self.InitialSetup()
+		else:
+			self.resetFocus()
 
 	def actionSwitchSelected(self):
 		dlgChooseAccount = QtGui.QDialog(self.winMain)
@@ -219,6 +253,7 @@ class MainWindow:
 		ui.comboBox.addItem("Dungeons & Dragons Online")
 		ui.comboBox.addItem("Dungeons & Dragons Online (Test)")
 
+		self.hideWinMain()
 		if dlgChooseAccount.exec_() == QtGui.QDialog.Accepted:
 			if ui.comboBox.currentIndex() == 0:
 				self.currentGame = "LOTRO"
@@ -229,7 +264,10 @@ class MainWindow:
 			elif ui.comboBox.currentIndex() == 3:
 				self.currentGame = "DDO.Test"
 
+			self.resetFocus()
 			self.InitialSetup()
+		else:
+			self.resetFocus()
 
 	def btnLoginClicked(self):
 		if self.uiMain.txtAccount.text() == "" or self.uiMain.txtPassword.text() == "":
@@ -284,9 +322,12 @@ class MainWindow:
 				for game in self.account.gameList:
 					ui.comboBox.addItem(game.description)
 
+				self.hideWinMain()
 				if dlgChooseAccount.exec_() == QtGui.QDialog.Accepted:
 					self.accNumber = self.account.gameList[ui.comboBox.currentIndex()].name
+					self.resetFocus()
 				else:
+					self.resetFocus()
 					self.AddLog("No game selected - aborting")
 					return
 			else:
@@ -340,6 +381,7 @@ class MainWindow:
 				if not self.worldQueue.joinSuccess:
 					self.AddLog("[E10] Error getting realm status")
 
+		if self.worldQueue.joinSuccess:
 			self.LaunchGame()
 		else:
 			self.AddLog("[E11] Error joining world queue")
@@ -405,6 +447,7 @@ class MainWindow:
 		icon = QtGui.QIcon()
 		icon.addPixmap(QtGui.QPixmap(icoFile), QtGui.QIcon.Normal, QtGui.QIcon.Off)
 		self.winMain.setWindowIcon(icon)
+		self.uiMain.actionHideWinMain.setChecked(self.settings.hideWinMain)
 
 		self.configFile = "%s%s" % (self.settings.gameDir, self.gameType.configFile)
 		self.configFileAlt = "%s%s" % (self.settings.gameDir, self.gameType.configFileAlt)

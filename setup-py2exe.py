@@ -25,8 +25,13 @@ setup(name = "PyLotROLauncher",
 	packages = ['PyLotROLauncher'],
 	scripts = ["pylotro"],
 	package_data = {'PyLotROLauncher' : ["*.png", "ui/*", "images/*"] },
+	data_files = [('PyLotROLauncher/ui', ["PyLotROLauncher/ui/winMain.ui", "PyLotROLauncher/ui/winAbout.ui",
+		"PyLotROLauncher/ui/winCheckConfig.ui", "PyLotROLauncher/ui/winLog.ui",
+		"PyLotROLauncher/ui/winSelectAccount.ui", "PyLotROLauncher/ui/winSettings.ui"]),
+		('PyLotROLauncher/images', ["PyLotROLauncher/images/LotROLinux.png", "PyLotROLauncher/images/LotROLinux.ico",
+		"PyLotROLauncher/images/DDOLinux.png", "PyLotROLauncher/images/DDOLinux.ico"])],
 	long_description = PyLotROLauncher.Information.LongDescription ,
 	windows = [{"script": "pylotro", "icon_resources": [(0, "PyLotRO_Menu.ico")]}],
-	options = {"py2exe": {"skip_archive": True, "includes": ["sip"]}}
+	options = {"py2exe": {"includes": ["sip"]}}
 )
 

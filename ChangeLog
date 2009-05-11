@@ -36,6 +36,17 @@ Changes
 
 0.1.6.2 Fix winMain.ui to stop launcher failing on Hardy
 
+0.1.7 - Fixed problem that was stopping Windows version use
+        proper web browser widget
+        Windows version now smaller in size (due to allowing py2exe to
+        put all pyc files in zip file)
+        Due to issues with child windows drawing under the parent
+        window on some systems, add option under tools so that all
+        child windows hide the parent and then redisplay the parent
+        when finished
+        Due to the windows version providing a standalone solution
+        the generation of a Mac OS X app file has been withdrawn
+
 
 
 

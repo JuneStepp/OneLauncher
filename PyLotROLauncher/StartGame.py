@@ -36,6 +36,7 @@ class StartGame:
 		chatServer, language, runDir, wineProgram, wineDebug, winePrefix, 
 		hiResEnabled, wineApp, osType, homeDir, icoFileIn, rootDir):
 
+		self.winMain = parent
 		self.homeDir = homeDir
 		self.winLog = QtGui.QDialog(parent)
 		self.osType = osType
@@ -66,9 +67,9 @@ class StartGame:
 			self.winLog.setWindowTitle("Output")
 		else:
 			if wineApp == "Wine":
-				self.winLog.setWindowTitle("Wine output")
+				self.winLog.setWindowTitle("Launch Game - Wine output")
 			else:
-				self.winLog.setWindowTitle("Crossover output")
+				self.winLog.setWindowTitle("Launch Game - Crossover output")
 
 		self.uiLog.btnStart.setVisible(False)
 		self.uiLog.btnSave.setText("Save")
@@ -201,11 +202,11 @@ class StartGame:
 			outfile.close()
 
 	def Run(self):
-		self.winLog.show()
 		self.finished = False
 
 		self.uiLog.btnStop.setText("Abort")
 		self.process.start(self.command, self.arguments)
 
+		self.winMain.hide()
 		return self.winLog.exec_()
 

@@ -216,6 +216,8 @@
     <addaction name="actionPatch"/>
     <addaction name="actionSwitch_Game"/>
     <addaction name="actionCheck_Bottle"/>
+    <addaction name="separator"/>
+    <addaction name="actionHideWinMain"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -246,6 +248,12 @@
   </action>
   <action name="actionOptions">
    <property name="text">
+    <string notr="true">Options</string>
+   </property>
+   <property name="iconText">
+    <string notr="true">Options</string>
+   </property>
+   <property name="toolTip">
     <string notr="true">Options</string>
    </property>
   </action>
@@ -290,12 +298,20 @@
   </action>
   <action name="actionSettings_Wizard">
    <property name="text">
-    <string>Settings Wizard</string>
+    <string notr="true">Settings Wizard</string>
    </property>
   </action>
   <action name="actionCheck_Bottle">
    <property name="text">
-    <string>Check Bottle</string>
+    <string notr="true">Check Bottle</string>
+   </property>
+  </action>
+  <action name="actionHideWinMain">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string notr="true">Hide Main Window</string>
    </property>
   </action>
  </widget>

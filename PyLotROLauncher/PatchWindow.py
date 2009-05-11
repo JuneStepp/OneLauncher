@@ -36,6 +36,7 @@ class PatchWindow:
 	def __init__(self, parent, urlPatchServer, prodCode, language, runDir, patchClient,
 		wineProgram, hiResEnabled, icoFileIn, homeDir, winePrefix, wineApp, osType, rootDir):
 
+		self.winMain = parent
 		self.homeDir = homeDir
 		self.winLog = QtGui.QDialog(parent)
 		self.osType = osType
@@ -66,9 +67,9 @@ class PatchWindow:
 			self.winLog.setWindowTitle("Output")
 		else:
 			if wineApp == "Wine":
-				self.winLog.setWindowTitle("Wine output")
+				self.winLog.setWindowTitle("Patch - Wine output")
 			else:
-				self.winLog.setWindowTitle("Crossover output")
+				self.winLog.setWindowTitle("Patch - Crossover output")
 
 		self.uiLog.btnSave.setText("Save")
 		self.uiLog.btnSave.setEnabled(False)
@@ -247,10 +248,7 @@ class PatchWindow:
 				self.process.start(self.command, self.arguments)
 
 	def Run(self, app):
-		self.winLog.show()
-
 		self.__app = app
 
-		while self.winLog.isVisible():
-			self.__app.processEvents()
+		self.winLog.exec_()
 
