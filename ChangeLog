@@ -47,6 +47,9 @@ Changes
         Due to the windows version providing a standalone solution
         the generation of a Mac OS X app file has been withdrawn
 
+0.1.8 - Fixed problem with windows icon not showing up on some set-ups
+        Added a native version of the options window
+
 
 
 

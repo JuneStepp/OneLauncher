@@ -43,11 +43,18 @@ class SettingsWindow:
 
 		uifile = None
 
-		try:
-			from pkg_resources import resource_filename
-			uifile = resource_filename(__name__, 'ui/winSettings.ui')
-		except:
-			uifile = os.path.join(rootDir, "ui", "winSettings.ui")
+		if self.osType.usingWindows:
+			try:
+				from pkg_resources import resource_filename
+				uifile = resource_filename(__name__, 'ui/winSettingsNative.ui')
+			except:
+				uifile = os.path.join(rootDir, "ui", "winSettingsNative.ui")
+		else:
+			try:
+				from pkg_resources import resource_filename
+				uifile = resource_filename(__name__, 'ui/winSettings.ui')
+			except:
+				uifile = os.path.join(rootDir, "ui", "winSettings.ui")
 
 		Ui_dlgSettings, base_class = uic.loadUiType(uifile)
 		self.uiSettings = Ui_dlgSettings()
@@ -57,35 +64,23 @@ class SettingsWindow:
 		self.winSettings.move((screen.width()-size.width())/2, (screen.height()-size.height())/2)
 		self.winSettings.setWindowTitle("Game Settings")
 
-		if self.osType.usingWindows:
-			self.uiSettings.cboApplication.addItem("Native")
-			self.uiSettings.txtPrefix.setEnabled(False)
-			self.uiSettings.txtDebug.setEnabled(False)
-		else:
+		if not self.osType.usingWindows:
 			self.uiSettings.cboApplication.addItem("Wine")
 			self.uiSettings.cboApplication.addItem("Crossover Games")
 			self.uiSettings.cboApplication.addItem("Crossover Office")
 			self.uiSettings.txtPrefix.setText(winePrefix)
 			self.uiSettings.txtDebug.setText(wineDebug)
+			self.uiSettings.txtProgram.setText(wineProg)
+			self.uiSettings.txtProgram.setEnabled(False)
 
 		self.uiSettings.txtGameDir.setText(gameDir)
 		self.uiSettings.cboGraphics.addItem("Enabled")
 		self.uiSettings.cboGraphics.addItem("Disabled")
 		self.uiSettings.chkAdvanced.setChecked(False)
-		self.uiSettings.txtProgram.setText(wineProg)
-		self.uiSettings.txtProgram.setEnabled(False)
 		self.uiSettings.txtPatchClient.setText(patchClient)
 		self.uiSettings.txtPatchClient.setEnabled(False)
 
-		if self.osType.usingWindows:
-			self.uiSettings.lblPrefix.setText("WINEPREFIX")
-			self.uiSettings.lblPrefix.setEnabled(False)
-			self.uiSettings.txtPrefix.setVisible(True)
-			self.uiSettings.txtPrefix.setEnabled(False)
-			self.uiSettings.lblDebug.setEnabled(False)
-			self.uiSettings.cboBottle.setVisible(False)
-			self.uiSettings.cboApplication.setCurrentIndex(0)
-		else:
+		if not self.osType.usingWindows:
 			if app == "Wine":
 				self.uiSettings.lblPrefix.setText("WINEPREFIX")
 				self.uiSettings.txtPrefix.setVisible(True)
@@ -108,8 +103,10 @@ class SettingsWindow:
 
 		QtCore.QObject.connect(self.uiSettings.btnGameDir, QtCore.SIGNAL("clicked()"), self.btnGameDirClicked)
 		QtCore.QObject.connect(self.uiSettings.chkAdvanced, QtCore.SIGNAL("clicked()"), self.chkAdvancedClicked)
-		QtCore.QObject.connect(self.uiSettings.cboApplication, QtCore.SIGNAL("currentIndexChanged(int)"),
-			self.cboApplicationChanged)
+
+		if not self.osType.usingWindows:
+			QtCore.QObject.connect(self.uiSettings.cboApplication, QtCore.SIGNAL("currentIndexChanged(int)"),
+				self.cboApplicationChanged)
 
 	def ShowBottles(self, defaultBottle=None):
 		self.uiSettings.cboBottle.clear()
@@ -143,12 +140,18 @@ class SettingsWindow:
 			self.ShowBottles()
 
 	def chkAdvancedClicked(self):
-		if self.uiSettings.chkAdvanced.isChecked():
-			self.uiSettings.txtProgram.setEnabled(True)
-			self.uiSettings.txtPatchClient.setEnabled(True)
+		if self.osType.usingWindows:
+			if self.uiSettings.chkAdvanced.isChecked():
+				self.uiSettings.txtPatchClient.setEnabled(True)
+			else:
+				self.uiSettings.txtPatchClient.setEnabled(False)
 		else:
-			self.uiSettings.txtProgram.setEnabled(False)
-			self.uiSettings.txtPatchClient.setEnabled(False)
+			if self.uiSettings.chkAdvanced.isChecked():
+				self.uiSettings.txtProgram.setEnabled(True)
+				self.uiSettings.txtPatchClient.setEnabled(True)
+			else:
+				self.uiSettings.txtProgram.setEnabled(False)
+				self.uiSettings.txtPatchClient.setEnabled(False)
 
 	def btnGameDirClicked(self):
 		tempdir = self.uiSettings.txtGameDir.text()

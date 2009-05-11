@@ -200,11 +200,14 @@ class MainWindow:
 		if winSettings.Run() == QtGui.QDialog.Accepted:
 			self.settings.hiResEnabled = winSettings.getHiRes()
 			self.settings.app = winSettings.getApp()
-			self.settings.wineProg = winSettings.getProg()
-			self.settings.wineDebug = winSettings.getDebug()
 			self.settings.patchClient = winSettings.getPatchClient()
-			self.settings.winePrefix = winSettings.getPrefix()
 			self.settings.gameDir = winSettings.getGameDir()
+
+			if not self.osType.usingWindows:
+				self.settings.wineProg = winSettings.getProg()
+				self.settings.wineDebug = winSettings.getDebug()
+				self.settings.winePrefix = winSettings.getPrefix()
+
 			self.settings.SaveSettings(self.uiMain.chkSaveSettings.isChecked())
 			self.resetFocus()
 			self.InitialSetup()
@@ -444,9 +447,7 @@ class MainWindow:
 
 		self.uiMain.imgMain.setPixmap(QtGui.QPixmap(pngFile))
 		self.winMain.setWindowTitle(self.gameType.title)
-		icon = QtGui.QIcon()
-		icon.addPixmap(QtGui.QPixmap(icoFile), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-		self.winMain.setWindowIcon(icon)
+		self.winMain.setWindowIcon(QtGui.QIcon(icoFile))
 		self.uiMain.actionHideWinMain.setChecked(self.settings.hideWinMain)
 
 		self.configFile = "%s%s" % (self.settings.gameDir, self.gameType.configFile)
