@@ -50,6 +50,8 @@ Changes
 0.1.8 - Fixed problem with windows icon not showing up on some set-ups
         Added a native version of the options window
 
+0.1.8.2 Fixed error in JoinWorldQueue, not recognising if join failed
+
 
 
 

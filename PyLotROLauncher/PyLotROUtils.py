@@ -542,7 +542,9 @@ class JoinWorldQueue:
 					self.number = GetText(doc.getElementsByTagName("QueueNumber")[0].childNodes)
 					self.serving = GetText(doc.getElementsByTagName("NowServingNumber")[0].childNodes)
 
-				self.joinSuccess = True
+					self.joinSuccess = True
+				else:
+					self.joinSuccess = False
 		except:
 			self.joinSuccess = False
 
