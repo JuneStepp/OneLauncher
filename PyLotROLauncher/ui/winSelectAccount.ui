@@ -1,11 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ui version="4.0">
+<ui version="4.0" >
  <class>dlgChooseAccount</class>
- <widget class="QDialog" name="dlgChooseAccount">
-  <property name="windowModality">
+ <widget class="QDialog" name="dlgChooseAccount" >
+  <property name="windowModality" >
    <enum>Qt::ApplicationModal</enum>
   </property>
-  <property name="geometry">
+  <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
@@ -13,14 +12,20 @@
     <height>205</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string notr="true">Choose Account</string>
+  <property name="font" >
+   <font>
+    <family>Verdana</family>
+    <pointsize>12</pointsize>
+   </font>
   </property>
-  <property name="modal">
+  <property name="windowTitle" >
+   <string>Choose Account</string>
+  </property>
+  <property name="modal" >
    <bool>true</bool>
   </property>
-  <widget class="QLabel" name="lblMessage">
-   <property name="geometry">
+  <widget class="QLabel" name="lblMessage" >
+   <property name="geometry" >
     <rect>
      <x>5</x>
      <y>5</y>
@@ -28,12 +33,12 @@
      <height>121</height>
     </rect>
    </property>
-   <property name="text">
-    <string notr="true"/>
+   <property name="text" >
+    <string/>
    </property>
   </widget>
-  <widget class="QComboBox" name="comboBox">
-   <property name="geometry">
+  <widget class="QComboBox" name="comboBox" >
+   <property name="geometry" >
     <rect>
      <x>5</x>
      <y>117</y>
@@ -42,8 +47,8 @@
     </rect>
    </property>
   </widget>
-  <widget class="QPushButton" name="btnOK">
-   <property name="geometry">
+  <widget class="QPushButton" name="btnOK" >
+   <property name="geometry" >
     <rect>
      <x>225</x>
      <y>160</y>
@@ -51,12 +56,12 @@
      <height>33</height>
     </rect>
    </property>
-   <property name="text">
-    <string notr="true">OK</string>
+   <property name="text" >
+    <string>OK</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="btnCancel">
-   <property name="geometry">
+  <widget class="QPushButton" name="btnCancel" >
+   <property name="geometry" >
     <rect>
      <x>130</x>
      <y>160</y>
@@ -64,8 +69,8 @@
      <height>33</height>
     </rect>
    </property>
-   <property name="text">
-    <string notr="true">Cancel</string>
+   <property name="text" >
+    <string>Cancel</string>
    </property>
   </widget>
  </widget>
@@ -77,11 +82,11 @@
    <receiver>dlgChooseAccount</receiver>
    <slot>accept()</slot>
    <hints>
-    <hint type="sourcelabel">
+    <hint type="sourcelabel" >
      <x>228</x>
      <y>176</y>
     </hint>
-    <hint type="destinationlabel">
+    <hint type="destinationlabel" >
      <x>149</x>
      <y>102</y>
     </hint>
@@ -93,11 +98,11 @@
    <receiver>dlgChooseAccount</receiver>
    <slot>reject()</slot>
    <hints>
-    <hint type="sourcelabel">
+    <hint type="sourcelabel" >
      <x>174</x>
      <y>176</y>
     </hint>
-    <hint type="destinationlabel">
+    <hint type="destinationlabel" >
      <x>159</x>
      <y>102</y>
     </hint>

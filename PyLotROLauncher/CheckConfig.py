@@ -34,7 +34,7 @@ import sys
 from .Settings import Settings
 
 class CheckConfig:
-	def __init__(self, parent, settings, homeDir, osType):
+	def __init__(self, parent, settings, homeDir, osType, rootDir):
 		self.settings = settings
 		self.homeDir = homeDir
 		self.osType = osType
@@ -58,6 +58,8 @@ class CheckConfig:
 
 		if settings.app == "Wine":
 			self.winCheckConfig.setWindowTitle("Prefix Checker")
+		elif settings.app == "Native":
+			self.winCheckConfig.setWindowTitle("Configuration Checker")
 		else:
 			self.winCheckConfig.setWindowTitle("Bottle Checker")
 
@@ -83,9 +85,16 @@ class CheckConfig:
 			elif self.settings.app == "CXGames":
 				infile = open(self.homeDir + os.sep + self.osType.settingsCXG + os.sep +
 					self.settings.winePrefix + os.sep + "system.reg", "r")
-			else:
+			elif self.settings.app == "CXOffice":
 				infile = open(self.homeDir + os.sep + self.osType.settingsCXO + os.sep +
 					self.settings.winePrefix + os.sep + "system.reg", "r")
+			else:
+				temp = os.environ.get('WINEPREFIX')
+
+				if temp == None:
+					temp = os.environ.get('OLDPWD') + os.sep + ".wine"
+
+				infile = open(temp + os.sep + "system.reg", "r")
 
 			systemReg = infile.readlines()
 			infile.close()
@@ -117,9 +126,16 @@ class CheckConfig:
 			elif self.settings.app == "CXGames":
 				infile = open(self.homeDir + os.sep + self.osType.settingsCXG + os.sep +
 					self.settings.winePrefix + os.sep + "user.reg", "r")
-			else:
+			elif self.settings.app == "CXOffice":
 				infile = open(self.homeDir + os.sep + self.osType.settingsCXO + os.sep +
 					self.settings.winePrefix + os.sep + "user.reg", "r")
+			else:
+				temp = os.environ.get('WINEPREFIX')
+
+				if temp == None:
+					temp = os.environ.get('OLDPWD') + os.sep + ".wine"
+
+				infile = open(temp + os.sep + "user.reg", "r")
 
 			userReg = infile.readlines()
 			infile.close()
@@ -134,7 +150,7 @@ class CheckConfig:
 				else:
 					if printing:
 						if userReg[index].startswith("\"Version\""):
-							version = userReg[index].replace("\n", "").replace("\"", "").replace("Version=", "")
+							version = userReg[index].strip().replace("\"", "").replace("Version=", "")
 
 					if userReg[index].startswith("[Software\\\\Wine]"):
 						printing = True
@@ -150,9 +166,16 @@ class CheckConfig:
 				elif self.settings.app == "CXGames":
 					infile = open(self.homeDir + os.sep + self.osType.settingsCXG + os.sep +
 						self.settings.winePrefix + os.sep + "system.reg", "r")
-				else:
+				elif self.settings.app == "CXOffice":
 					infile = open(self.homeDir + os.sep + self.osType.settingsCXO + os.sep +
 						self.settings.winePrefix + os.sep + "system.reg", "r")
+				else:
+					temp = os.environ.get('WINEPREFIX')
+
+					if temp == None:
+						temp = os.environ.get('OLDPWD') + os.sep + ".wine"
+
+					infile = open(temp + os.sep + "system.reg", "r")
 
 				systemReg = infile.readlines()
 				infile.close()
@@ -167,7 +190,7 @@ class CheckConfig:
 					else:
 						if printing:
 							if systemReg[index].startswith("\"CurrentBuildNumber\""):
-								tempStr = systemReg[index].replace("\n", "").replace("\"", "")
+								tempStr = systemReg[index].strip().replace("\"", "")
 								tempStr = tempStr.replace("CurrentBuildNumber=", "")
 								if tempStr == "2195":
 									version = "win2k"
@@ -197,9 +220,16 @@ class CheckConfig:
 			elif self.settings.app == "CXGames":
 				infile = open(self.homeDir + os.sep + self.osType.settingsCXG + os.sep +
 					self.settings.winePrefix + os.sep + "user.reg", "r")
-			else:
+			elif self.settings.app == "CXOffice":
 				infile = open(self.homeDir + os.sep + self.osType.settingsCXO + os.sep +
 					self.settings.winePrefix + os.sep + "user.reg", "r")
+			else:
+				temp = os.environ.get('WINEPREFIX')
+
+				if temp == None:
+					temp = os.environ.get('OLDPWD') + os.sep + ".wine"
+
+				infile = open(temp + os.sep + "system.reg", "r")
 
 			userReg = infile.readlines()
 			infile.close()
@@ -214,7 +244,7 @@ class CheckConfig:
 				else:
 					if printing:
 						if userReg[index].startswith("\"VideoMemorySize\""):
-							memory = userReg[index].replace("\n", "").replace("\"", "").replace("VideoMemorySize=", "")
+							memory = userReg[index].strip().replace("\"", "").replace("VideoMemorySize=", "")
 
 					if userReg[index].startswith("[Software\\\\Wine\\\\Direct3D]"):
 						printing = True

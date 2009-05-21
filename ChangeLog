@@ -52,6 +52,9 @@ Changes
 
 0.1.8.2 Fixed error in JoinWorldQueue, not recognising if join failed
 
+0.1.9 - Make ConfigCheck work when in a CX/Wine bottle
+        Fixed issue with incorrect font size on Windows version
+
 
 
 

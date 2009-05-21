@@ -1,26 +1,31 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ui version="4.0">
+<ui version="4.0" >
  <class>dlgCheckConfig</class>
- <widget class="QDialog" name="dlgCheckConfig">
-  <property name="windowModality">
+ <widget class="QDialog" name="dlgCheckConfig" >
+  <property name="windowModality" >
    <enum>Qt::ApplicationModal</enum>
   </property>
-  <property name="geometry">
+  <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>390</width>
+    <width>392</width>
     <height>152</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string notr="true">Bottle Checker</string>
+  <property name="font" >
+   <font>
+    <family>Verdana</family>
+    <pointsize>12</pointsize>
+   </font>
   </property>
-  <property name="modal">
+  <property name="windowTitle" >
+   <string>Bottle Checker</string>
+  </property>
+  <property name="modal" >
    <bool>true</bool>
   </property>
-  <widget class="QDialogButtonBox" name="buttonBox">
-   <property name="geometry">
+  <widget class="QDialogButtonBox" name="buttonBox" >
+   <property name="geometry" >
     <rect>
      <x>10</x>
      <y>110</y>
@@ -28,15 +33,15 @@
      <height>32</height>
     </rect>
    </property>
-   <property name="orientation">
+   <property name="orientation" >
     <enum>Qt::Horizontal</enum>
    </property>
-   <property name="standardButtons">
+   <property name="standardButtons" >
     <set>QDialogButtonBox::Close</set>
    </property>
   </widget>
-  <widget class="QLabel" name="label1">
-   <property name="geometry">
+  <widget class="QLabel" name="label1" >
+   <property name="geometry" >
     <rect>
      <x>10</x>
      <y>10</y>
@@ -44,12 +49,12 @@
      <height>20</height>
     </rect>
    </property>
-   <property name="text">
-    <string notr="true">&lt;b&gt;Windows Version:&lt;b&gt;</string>
+   <property name="text" >
+    <string>&lt;b>Windows Version:&lt;b></string>
    </property>
   </widget>
-  <widget class="QLabel" name="label2">
-   <property name="geometry">
+  <widget class="QLabel" name="label2" >
+   <property name="geometry" >
     <rect>
      <x>10</x>
      <y>40</y>
@@ -57,12 +62,12 @@
      <height>20</height>
     </rect>
    </property>
-   <property name="text">
-    <string notr="true">&lt;b&gt;Graphics Memory (MB):&lt;b&gt;</string>
+   <property name="text" >
+    <string>&lt;b>Graphics Memory (MB):&lt;b></string>
    </property>
   </widget>
-  <widget class="QLabel" name="label3">
-   <property name="geometry">
+  <widget class="QLabel" name="label3" >
+   <property name="geometry" >
     <rect>
      <x>10</x>
      <y>70</y>
@@ -70,47 +75,47 @@
      <height>20</height>
     </rect>
    </property>
-   <property name="text">
-    <string notr="true">&lt;b&gt;Visual C++ 2005 run-time:&lt;b&gt;</string>
+   <property name="text" >
+    <string>&lt;b>Visual C++ 2005 run-time:&lt;b></string>
    </property>
   </widget>
-  <widget class="QLabel" name="lblWinVersion">
-   <property name="geometry">
+  <widget class="QLabel" name="lblWinVersion" >
+   <property name="geometry" >
     <rect>
      <x>260</x>
      <y>10</y>
-     <width>100</width>
+     <width>110</width>
      <height>20</height>
     </rect>
    </property>
-   <property name="text">
-    <string notr="true">wine default</string>
+   <property name="text" >
+    <string>wine default</string>
    </property>
   </widget>
-  <widget class="QLabel" name="lblMemory">
-   <property name="geometry">
+  <widget class="QLabel" name="lblMemory" >
+   <property name="geometry" >
     <rect>
      <x>260</x>
      <y>40</y>
-     <width>100</width>
+     <width>110</width>
      <height>20</height>
     </rect>
    </property>
-   <property name="text">
-    <string notr="true">auto detect</string>
+   <property name="text" >
+    <string>auto detect</string>
    </property>
   </widget>
-  <widget class="QLabel" name="lblVCRun">
-   <property name="geometry">
+  <widget class="QLabel" name="lblVCRun" >
+   <property name="geometry" >
     <rect>
      <x>260</x>
      <y>70</y>
-     <width>100</width>
+     <width>110</width>
      <height>20</height>
     </rect>
    </property>
-   <property name="text">
-    <string notr="true">not installed</string>
+   <property name="text" >
+    <string>not installed</string>
    </property>
   </widget>
  </widget>
@@ -122,11 +127,11 @@
    <receiver>dlgCheckConfig</receiver>
    <slot>accept()</slot>
    <hints>
-    <hint type="sourcelabel">
+    <hint type="sourcelabel" >
      <x>248</x>
      <y>254</y>
     </hint>
-    <hint type="destinationlabel">
+    <hint type="destinationlabel" >
      <x>157</x>
      <y>274</y>
     </hint>
@@ -138,11 +143,11 @@
    <receiver>dlgCheckConfig</receiver>
    <slot>reject()</slot>
    <hints>
-    <hint type="sourcelabel">
+    <hint type="sourcelabel" >
      <x>316</x>
      <y>260</y>
     </hint>
-    <hint type="destinationlabel">
+    <hint type="destinationlabel" >
      <x>286</x>
      <y>274</y>
     </hint>

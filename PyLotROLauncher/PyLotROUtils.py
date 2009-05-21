@@ -158,7 +158,7 @@ class DetermineOS:
 			tempfile = subprocess.Popen("ps -ocomm -U%s" % (uid), shell=True, stdout=subprocess.PIPE).stdout
 			cxPath = ""
 			for line in tempfile.readlines():
-				line = line.replace("\n", "")
+				line = line.strip()
 				if line.endswith("CrossOver Games"):
 					cxPath = line
 
@@ -170,7 +170,7 @@ class DetermineOS:
 					tempfile = subprocess.Popen("ps -ocomm -U%s" % (uid), shell=True, stdout=subprocess.PIPE).stdout
 					cxPath = ""
 					for line in tempfile.readlines():
-						line = line.replace("\n", "")
+						line = line.strip()
 						if line.endswith("CrossOver Games"):
 							cxPath = line
 				else:
@@ -200,7 +200,7 @@ class DetermineOS:
 
 				tempfile =  subprocess.Popen("defaults read com.coeweavers.CrossOverGames Display",
 					shell=True, stdout=subprocess.PIPE).stdout
-				display = tempfile.read().replace("\n", "")
+				display = tempfile.read().strip()
 				if display == "":
 					display = "2"
 				os.environ["DISPLAY"] = ":%s" % (display)
@@ -215,7 +215,7 @@ class DetermineOS:
 			tempfile = subprocess.Popen("ps -ocomm -U%s" % (uid), shell=True, stdout=subprocess.PIPE).stdout
 			cxPath = ""
 			for line in tempfile.readlines():
-				line = line.replace("\n", "")
+				line = line.strip()
 				if line.endswith("CrossOver"):
 					cxPath = line
 
@@ -227,7 +227,7 @@ class DetermineOS:
 					tempfile = subprocess.Popen("ps -ocomm -U%s" % (uid), shell=True, stdout=subprocess.PIPE).stdout
 					cxPath = ""
 					for line in tempfile.readlines():
-						line = line.replace("\n", "")
+						line = line.strip()
 						if line.endswith("CrossOver"):
 							cxPath = line
 				else:
@@ -257,7 +257,7 @@ class DetermineOS:
 
 				tempfile =  subprocess.Popen("defaults read com.coeweavers.CrossOver Display",
 					shell=True, stdout=subprocess.PIPE).stdout
-				display = tempfile.read().replace("\n", "")
+				display = tempfile.read().strip()
 				if display == "":
 					display = "2"
 				os.environ["DISPLAY"] = ":%s" % (display)

@@ -10,23 +10,29 @@
     <height>445</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <family>Verdana</family>
+    <pointsize>12</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
-   <string notr="true">Linux Launcher</string>
+   <string>Linux Launcher</string>
   </property>
   <property name="statusTip">
-   <string notr="true"/>
+   <string/>
   </property>
   <property name="whatsThis">
-   <string notr="true"/>
+   <string/>
   </property>
   <property name="accessibleName">
-   <string notr="true"/>
+   <string/>
   </property>
   <property name="windowFilePath">
-   <string notr="true"/>
+   <string/>
   </property>
   <property name="unifiedTitleAndToolBarOnMac">
-   <bool>true</bool>
+   <bool>false</bool>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QLabel" name="lblRealm">
@@ -38,8 +44,13 @@
       <height>24</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Verdana</family>
+     </font>
+    </property>
     <property name="text">
-     <string notr="true">Realm</string>
+     <string>Realm</string>
     </property>
    </widget>
    <widget class="QLabel" name="lblLanguage">
@@ -51,8 +62,13 @@
       <height>24</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Verdana</family>
+     </font>
+    </property>
     <property name="text">
-     <string notr="true">Language</string>
+     <string>Language</string>
     </property>
    </widget>
    <widget class="QLabel" name="lblAccount">
@@ -64,8 +80,13 @@
       <height>24</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Verdana</family>
+     </font>
+    </property>
     <property name="text">
-     <string notr="true">Account</string>
+     <string>Account</string>
     </property>
    </widget>
    <widget class="QLabel" name="lblPassword">
@@ -77,8 +98,13 @@
       <height>24</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Verdana</family>
+     </font>
+    </property>
     <property name="text">
-     <string notr="true">Password</string>
+     <string>Password</string>
     </property>
    </widget>
    <widget class="QComboBox" name="cboRealm">
@@ -90,6 +116,11 @@
       <height>34</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Verdana</family>
+     </font>
+    </property>
    </widget>
    <widget class="QComboBox" name="cboLanguage">
     <property name="geometry">
@@ -99,6 +130,11 @@
       <width>260</width>
       <height>34</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Verdana</family>
+     </font>
     </property>
    </widget>
    <widget class="QLineEdit" name="txtAccount">
@@ -110,6 +146,11 @@
       <height>32</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Verdana</family>
+     </font>
+    </property>
    </widget>
    <widget class="QLineEdit" name="txtPassword">
     <property name="geometry">
@@ -119,6 +160,11 @@
       <width>260</width>
       <height>32</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Verdana</family>
+     </font>
     </property>
     <property name="echoMode">
      <enum>QLineEdit::Password</enum>
@@ -146,8 +192,13 @@
       <height>34</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Verdana</family>
+     </font>
+    </property>
     <property name="text">
-     <string notr="true">Login</string>
+     <string>Login</string>
     </property>
    </widget>
    <widget class="QCheckBox" name="chkSaveSettings">
@@ -159,8 +210,13 @@
       <height>29</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Verdana</family>
+     </font>
+    </property>
     <property name="text">
-     <string notr="true">Remember these settings</string>
+     <string>Remember these settings</string>
     </property>
    </widget>
    <widget class="QTextBrowser" name="txtStatus">
@@ -171,6 +227,11 @@
       <width>385</width>
       <height>213</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Verdana</family>
+     </font>
     </property>
     <property name="textInteractionFlags">
      <set>Qt::TextSelectableByMouse</set>
@@ -186,30 +247,42 @@
      <x>0</x>
      <y>0</y>
      <width>790</width>
-     <height>27</height>
+     <height>29</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
+    <property name="font">
+     <font>
+      <family>Verdana</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
     <property name="statusTip">
-     <string notr="true"/>
+     <string/>
     </property>
     <property name="whatsThis">
-     <string notr="true"/>
+     <string/>
     </property>
     <property name="accessibleName">
-     <string notr="true"/>
+     <string/>
     </property>
     <property name="accessibleDescription">
-     <string notr="true"/>
+     <string/>
     </property>
     <property name="title">
-     <string notr="true">File</string>
+     <string>File</string>
     </property>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuTools">
+    <property name="font">
+     <font>
+      <family>Verdana</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
     <property name="title">
-     <string notr="true">Tools</string>
+     <string>Tools</string>
     </property>
     <addaction name="actionOptions"/>
     <addaction name="actionSettings_Wizard"/>
@@ -220,8 +293,14 @@
     <addaction name="actionHideWinMain"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
+    <property name="font">
+     <font>
+      <family>Verdana</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
     <property name="title">
-     <string notr="true">Help</string>
+     <string>Help</string>
     </property>
     <addaction name="actionAbout"/>
    </widget>
@@ -231,79 +310,121 @@
   </widget>
   <action name="actionExit">
    <property name="text">
-    <string notr="true">Exit</string>
+    <string>Exit</string>
    </property>
    <property name="iconText">
-    <string notr="true">Exit</string>
+    <string>Exit</string>
    </property>
    <property name="toolTip">
-    <string notr="true">Exit</string>
+    <string>Exit</string>
    </property>
    <property name="statusTip">
-    <string notr="true"/>
+    <string/>
    </property>
    <property name="whatsThis">
-    <string notr="true"/>
+    <string/>
+   </property>
+   <property name="font">
+    <font>
+     <family>Verdana</family>
+     <pointsize>12</pointsize>
+    </font>
    </property>
   </action>
   <action name="actionOptions">
    <property name="text">
-    <string notr="true">Options</string>
+    <string>Options</string>
    </property>
    <property name="iconText">
-    <string notr="true">Options</string>
+    <string>Options</string>
    </property>
    <property name="toolTip">
-    <string notr="true">Options</string>
+    <string>Options</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Verdana</family>
+     <pointsize>12</pointsize>
+    </font>
    </property>
   </action>
   <action name="actionPatch">
    <property name="text">
-    <string notr="true">Patch</string>
+    <string>Patch</string>
    </property>
    <property name="iconText">
-    <string notr="true">Patch</string>
+    <string>Patch</string>
    </property>
    <property name="toolTip">
-    <string notr="true">Patch</string>
+    <string>Patch</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Verdana</family>
+     <pointsize>12</pointsize>
+    </font>
    </property>
   </action>
   <action name="actionSwitch_Game">
    <property name="text">
-    <string notr="true">Switch Game</string>
+    <string>Switch Game</string>
    </property>
    <property name="iconText">
-    <string notr="true">Switch Game</string>
+    <string>Switch Game</string>
    </property>
    <property name="toolTip">
-    <string notr="true">Switch Game</string>
+    <string>Switch Game</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Verdana</family>
+     <pointsize>12</pointsize>
+    </font>
    </property>
   </action>
   <action name="actionAbout">
    <property name="text">
-    <string notr="true">About</string>
+    <string>About</string>
    </property>
    <property name="iconText">
-    <string notr="true">About</string>
+    <string>About</string>
    </property>
    <property name="toolTip">
-    <string notr="true">About</string>
+    <string>About</string>
    </property>
    <property name="statusTip">
-    <string notr="true"/>
+    <string/>
    </property>
    <property name="whatsThis">
-    <string notr="true"/>
+    <string/>
+   </property>
+   <property name="font">
+    <font>
+     <family>Verdana</family>
+     <pointsize>12</pointsize>
+    </font>
    </property>
   </action>
   <action name="actionSettings_Wizard">
    <property name="text">
-    <string notr="true">Settings Wizard</string>
+    <string>Settings Wizard</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Verdana</family>
+     <pointsize>12</pointsize>
+    </font>
    </property>
   </action>
   <action name="actionCheck_Bottle">
    <property name="text">
-    <string notr="true">Check Bottle</string>
+    <string>Check Bottle</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Verdana</family>
+     <pointsize>12</pointsize>
+    </font>
    </property>
   </action>
   <action name="actionHideWinMain">
@@ -311,7 +432,13 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string notr="true">Hide Main Window</string>
+    <string>Hide Main Window</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Verdana</family>
+     <pointsize>12</pointsize>
+    </font>
    </property>
   </action>
  </widget>

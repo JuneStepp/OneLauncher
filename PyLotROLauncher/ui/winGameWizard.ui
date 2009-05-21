@@ -1,11 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ui version="4.0">
+<ui version="4.0" >
  <class>winGameWizard</class>
- <widget class="QDialog" name="winGameWizard">
-  <property name="windowModality">
+ <widget class="QDialog" name="winGameWizard" >
+  <property name="windowModality" >
    <enum>Qt::ApplicationModal</enum>
   </property>
-  <property name="geometry">
+  <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
@@ -13,14 +12,20 @@
     <height>480</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string notr="true">Game Set Up Wizard</string>
+  <property name="font" >
+   <font>
+    <family>Verdana</family>
+    <pointsize>12</pointsize>
+   </font>
   </property>
-  <property name="modal">
+  <property name="windowTitle" >
+   <string>Game Set Up Wizard</string>
+  </property>
+  <property name="modal" >
    <bool>true</bool>
   </property>
-  <widget class="QLabel" name="lblApplication">
-   <property name="geometry">
+  <widget class="QLabel" name="lblApplication" >
+   <property name="geometry" >
     <rect>
      <x>5</x>
      <y>11</y>
@@ -28,12 +33,12 @@
      <height>20</height>
     </rect>
    </property>
-   <property name="text">
-    <string notr="true">Application</string>
+   <property name="text" >
+    <string>Application</string>
    </property>
   </widget>
-  <widget class="QComboBox" name="cboApplication">
-   <property name="geometry">
+  <widget class="QComboBox" name="cboApplication" >
+   <property name="geometry" >
     <rect>
      <x>130</x>
      <y>5</y>
@@ -42,8 +47,8 @@
     </rect>
    </property>
   </widget>
-  <widget class="QLabel" name="lblGame">
-   <property name="geometry">
+  <widget class="QLabel" name="lblGame" >
+   <property name="geometry" >
     <rect>
      <x>5</x>
      <y>47</y>
@@ -51,12 +56,12 @@
      <height>20</height>
     </rect>
    </property>
-   <property name="text">
-    <string notr="true">Game</string>
+   <property name="text" >
+    <string>Game</string>
    </property>
   </widget>
-  <widget class="QComboBox" name="cboGame">
-   <property name="geometry">
+  <widget class="QComboBox" name="cboGame" >
+   <property name="geometry" >
     <rect>
      <x>130</x>
      <y>41</y>
@@ -65,8 +70,8 @@
     </rect>
    </property>
   </widget>
-  <widget class="QDialogButtonBox" name="btnBoxOptions">
-   <property name="geometry">
+  <widget class="QDialogButtonBox" name="btnBoxOptions" >
+   <property name="geometry" >
     <rect>
      <x>5</x>
      <y>445</y>
@@ -74,15 +79,15 @@
      <height>32</height>
     </rect>
    </property>
-   <property name="orientation">
+   <property name="orientation" >
     <enum>Qt::Horizontal</enum>
    </property>
-   <property name="standardButtons">
+   <property name="standardButtons" >
     <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel</set>
    </property>
   </widget>
-  <widget class="QTableView" name="tblGame">
-   <property name="geometry">
+  <widget class="QTableView" name="tblGame" >
+   <property name="geometry" >
     <rect>
      <x>5</x>
      <y>80</y>
@@ -90,18 +95,18 @@
      <height>360</height>
     </rect>
    </property>
-   <property name="editTriggers">
+   <property name="editTriggers" >
     <set>QAbstractItemView::NoEditTriggers</set>
    </property>
-   <property name="selectionMode">
+   <property name="selectionMode" >
     <enum>QAbstractItemView::SingleSelection</enum>
    </property>
-   <property name="selectionBehavior">
+   <property name="selectionBehavior" >
     <enum>QAbstractItemView::SelectRows</enum>
    </property>
   </widget>
-  <widget class="QPushButton" name="btnFind">
-   <property name="geometry">
+  <widget class="QPushButton" name="btnFind" >
+   <property name="geometry" >
     <rect>
      <x>525</x>
      <y>23</y>
@@ -109,8 +114,8 @@
      <height>30</height>
     </rect>
    </property>
-   <property name="text">
-    <string notr="true">Find Games</string>
+   <property name="text" >
+    <string>Find Games</string>
    </property>
   </widget>
  </widget>
@@ -122,11 +127,11 @@
    <receiver>winGameWizard</receiver>
    <slot>accept()</slot>
    <hints>
-    <hint type="sourcelabel">
+    <hint type="sourcelabel" >
      <x>349</x>
      <y>460</y>
     </hint>
-    <hint type="destinationlabel">
+    <hint type="destinationlabel" >
      <x>349</x>
      <y>239</y>
     </hint>
@@ -138,11 +143,11 @@
    <receiver>winGameWizard</receiver>
    <slot>reject()</slot>
    <hints>
-    <hint type="sourcelabel">
+    <hint type="sourcelabel" >
      <x>349</x>
      <y>460</y>
     </hint>
-    <hint type="destinationlabel">
+    <hint type="destinationlabel" >
      <x>349</x>
      <y>239</y>
     </hint>

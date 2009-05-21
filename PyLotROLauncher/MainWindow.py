@@ -150,7 +150,7 @@ class MainWindow:
 		self.settings.hideWinMain = not self.settings.hideWinMain
 
 	def actionCheckSelected(self):
-		confCheck = CheckConfig(self.winMain, self.settings, self.valHomeDir, self.osType)
+		confCheck = CheckConfig(self.winMain, self.settings, self.valHomeDir, self.osType, self.rootDir)
 
 		self.hideWinMain()
 		confCheck.Run()
@@ -455,12 +455,18 @@ class MainWindow:
 		self.gameDirExists = os.path.exists(self.settings.gameDir)
 
 		if self.gameDirExists:
-			if not self.osType.usingWindows:
+			if self.osType.usingWindows:
+				if os.environ.get('WINEPREFIX') != None and os.environ.get('OLDPWD') != None:
+					self.uiMain.actionCheck_Bottle.setEnabled(True)
+					self.uiMain.actionCheck_Bottle.setVisible(True)
+			else:
 				self.uiMain.actionCheck_Bottle.setEnabled(True)
 				self.uiMain.actionCheck_Bottle.setVisible(True)
 
 			if self.settings.app == "Wine":
 				self.uiMain.actionCheck_Bottle.setText("Check Prefix")
+			elif self.settings.app == "Native":
+				self.uiMain.actionCheck_Bottle.setText("Check Config")
 			else:
 				self.uiMain.actionCheck_Bottle.setText("Check Bottle")
 		else:
@@ -635,7 +641,7 @@ class MainWindowThread(QtCore.QThread):
 			for node in nodes:
 				if node.nodeType == node.ELEMENT_NODE:
 					if node.attributes.item(0).firstChild.nodeValue == "launcherNewsItemDate":
-						timeCode = GetText(node.childNodes).replace("\n", "").replace(" ", "")
+						timeCode = GetText(node.childNodes).strip()
 						timeCode = timeCode.replace("\t", "").replace(",", "").replace("-", "")
 						if len(timeCode) > 0:
 							timeCode = " %s" % (timeCode)

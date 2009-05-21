@@ -1,11 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ui version="4.0">
+<ui version="4.0" >
  <class>dlgSettings</class>
- <widget class="QDialog" name="dlgSettings">
-  <property name="windowModality">
+ <widget class="QDialog" name="dlgSettings" >
+  <property name="windowModality" >
    <enum>Qt::ApplicationModal</enum>
   </property>
-  <property name="geometry">
+  <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
@@ -13,14 +12,20 @@
     <height>190</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string notr="true">Game Settings</string>
+  <property name="font" >
+   <font>
+    <family>Verdana</family>
+    <pointsize>12</pointsize>
+   </font>
   </property>
-  <property name="modal">
+  <property name="windowTitle" >
+   <string>Game Settings</string>
+  </property>
+  <property name="modal" >
    <bool>true</bool>
   </property>
-  <widget class="QDialogButtonBox" name="btnBoxOptions">
-   <property name="geometry">
+  <widget class="QDialogButtonBox" name="btnBoxOptions" >
+   <property name="geometry" >
     <rect>
      <x>5</x>
      <y>150</y>
@@ -28,15 +33,15 @@
      <height>32</height>
     </rect>
    </property>
-   <property name="orientation">
+   <property name="orientation" >
     <enum>Qt::Horizontal</enum>
    </property>
-   <property name="standardButtons">
+   <property name="standardButtons" >
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Save</set>
    </property>
   </widget>
-  <widget class="QLineEdit" name="txtGameDir">
-   <property name="geometry">
+  <widget class="QLineEdit" name="txtGameDir" >
+   <property name="geometry" >
     <rect>
      <x>155</x>
      <y>6</y>
@@ -45,8 +50,8 @@
     </rect>
    </property>
   </widget>
-  <widget class="QToolButton" name="btnGameDir">
-   <property name="geometry">
+  <widget class="QToolButton" name="btnGameDir" >
+   <property name="geometry" >
     <rect>
      <x>419</x>
      <y>6</y>
@@ -54,12 +59,12 @@
      <height>30</height>
     </rect>
    </property>
-   <property name="text">
-    <string notr="true">...</string>
+   <property name="text" >
+    <string>...</string>
    </property>
   </widget>
-  <widget class="QLabel" name="lblGameDir">
-   <property name="geometry">
+  <widget class="QLabel" name="lblGameDir" >
+   <property name="geometry" >
     <rect>
      <x>5</x>
      <y>10</y>
@@ -67,12 +72,12 @@
      <height>23</height>
     </rect>
    </property>
-   <property name="text">
-    <string notr="true">Game Directory</string>
+   <property name="text" >
+    <string>Game Directory</string>
    </property>
   </widget>
-  <widget class="QLabel" name="lblGraphics">
-   <property name="geometry">
+  <widget class="QLabel" name="lblGraphics" >
+   <property name="geometry" >
     <rect>
      <x>5</x>
      <y>47</y>
@@ -80,12 +85,12 @@
      <height>23</height>
     </rect>
    </property>
-   <property name="text">
-    <string notr="true">Hi-Res Graphics</string>
+   <property name="text" >
+    <string>Hi-Res Graphics</string>
    </property>
   </widget>
-  <widget class="QComboBox" name="cboGraphics">
-   <property name="geometry">
+  <widget class="QComboBox" name="cboGraphics" >
+   <property name="geometry" >
     <rect>
      <x>155</x>
      <y>42</y>
@@ -94,8 +99,8 @@
     </rect>
    </property>
   </widget>
-  <widget class="QCheckBox" name="chkAdvanced">
-   <property name="geometry">
+  <widget class="QCheckBox" name="chkAdvanced" >
+   <property name="geometry" >
     <rect>
      <x>5</x>
      <y>80</y>
@@ -103,15 +108,15 @@
      <height>28</height>
     </rect>
    </property>
-   <property name="text">
-    <string notr="true">Advanced Options</string>
+   <property name="text" >
+    <string>Advanced Options</string>
    </property>
-   <property name="checked">
+   <property name="checked" >
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QLineEdit" name="txtPatchClient">
-   <property name="geometry">
+  <widget class="QLineEdit" name="txtPatchClient" >
+   <property name="geometry" >
     <rect>
      <x>155</x>
      <y>113</y>
@@ -120,8 +125,8 @@
     </rect>
    </property>
   </widget>
-  <widget class="QLabel" name="lblPatchClient">
-   <property name="geometry">
+  <widget class="QLabel" name="lblPatchClient" >
+   <property name="geometry" >
     <rect>
      <x>5</x>
      <y>117</y>
@@ -129,8 +134,8 @@
      <height>23</height>
     </rect>
    </property>
-   <property name="text">
-    <string notr="true">Patch Client DLL</string>
+   <property name="text" >
+    <string>Patch Client DLL</string>
    </property>
   </widget>
  </widget>
@@ -142,11 +147,11 @@
    <receiver>dlgSettings</receiver>
    <slot>accept()</slot>
    <hints>
-    <hint type="sourcelabel">
+    <hint type="sourcelabel" >
      <x>248</x>
      <y>254</y>
     </hint>
-    <hint type="destinationlabel">
+    <hint type="destinationlabel" >
      <x>157</x>
      <y>274</y>
     </hint>
@@ -158,11 +163,11 @@
    <receiver>dlgSettings</receiver>
    <slot>reject()</slot>
    <hints>
-    <hint type="sourcelabel">
+    <hint type="sourcelabel" >
      <x>316</x>
      <y>260</y>
     </hint>
-    <hint type="destinationlabel">
+    <hint type="destinationlabel" >
      <x>286</x>
      <y>274</y>
     </hint>
