@@ -405,6 +405,10 @@ class MainWindow:
 		self.uiMain.chkSaveSettings.setEnabled(False)
 		self.valHomeDir = self.GetHomeDir()
 
+		if self.osType.usingWindows:
+			self.uiMain.actionSettings_Wizard.setEnabled(False)
+			self.uiMain.actionSettings_Wizard.setVisible(False)
+
 		if self.webMainExists:
 			self.webMain.setHtml(QtCore.QString(""))
 		else:

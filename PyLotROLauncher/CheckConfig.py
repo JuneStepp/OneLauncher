@@ -229,7 +229,7 @@ class CheckConfig:
 				if temp == None:
 					temp = os.environ.get('OLDPWD') + os.sep + ".wine"
 
-				infile = open(temp + os.sep + "system.reg", "r")
+				infile = open(temp + os.sep + "user.reg", "r")
 
 			userReg = infile.readlines()
 			infile.close()

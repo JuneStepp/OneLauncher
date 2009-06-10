@@ -44,11 +44,18 @@ class SettingsWizard:
 
 		uifile = None
 
-		try:
-			from pkg_resources import resource_filename
-			uifile = resource_filename(__name__, 'ui/winGameWizard.ui')
-		except:
-			uifile = os.path.join(rootDir, "ui", "winGameWizard.ui")
+		if self.osType.usingWindows:
+			try:
+				from pkg_resources import resource_filename
+				uifile = resource_filename(__name__, 'ui/winGameWizardNative.ui')
+			except:
+				uifile = os.path.join(rootDir, "ui", "winGameWizardNative.ui")
+		else:
+			try:
+				from pkg_resources import resource_filename
+				uifile = resource_filename(__name__, 'ui/winGameWizard.ui')
+			except:
+				uifile = os.path.join(rootDir, "ui", "winGameWizard.ui")
 
 		Ui_winGameWizard, base_class = uic.loadUiType(uifile)
 		self.uiWizard = Ui_winGameWizard()
@@ -61,14 +68,21 @@ class SettingsWizard:
 		self.model = QtGui.QStandardItemModel(0, 3, self.winSettings)
 		self.model.setHeaderData(0, QtCore.Qt.Horizontal, QtCore.QVariant("Prefix"))
 		self.model.setHeaderData(1, QtCore.Qt.Horizontal, QtCore.QVariant("Game Directory"))
-		self.model.setHeaderData(2, QtCore.Qt.Horizontal, QtCore.QVariant("Full Path"))
+		self.model.setHeaderData(2, QtCore.Qt.Horizontal, QtCore.QVariant("Game Directory"))
 		self.uiWizard.tblGame.setModel(self.model)
-		self.uiWizard.tblGame.setColumnWidth(0, 240)
-		self.uiWizard.tblGame.setColumnWidth(1, 410)
-		self.uiWizard.tblGame.setColumnWidth(2, 0)
-		self.uiWizard.cboApplication.addItem("Wine")
-		self.uiWizard.cboApplication.addItem("Crossover Games")
-		self.uiWizard.cboApplication.addItem("Crossover Office")
+
+		if self.osType.usingWindows:
+			self.uiWizard.tblGame.setColumnWidth(0, 0)
+			self.uiWizard.tblGame.setColumnWidth(1, 0)
+			self.uiWizard.tblGame.setColumnWidth(2, 650)
+		else:		
+			self.uiWizard.tblGame.setColumnWidth(0, 260)
+			self.uiWizard.tblGame.setColumnWidth(1, 390)
+			self.uiWizard.tblGame.setColumnWidth(2, 0)
+			self.uiWizard.cboApplication.addItem("Wine")
+			self.uiWizard.cboApplication.addItem("Crossover Games")
+			self.uiWizard.cboApplication.addItem("Crossover Office")
+
 		self.uiWizard.cboGame.addItem("Lord of the Rings Online")
 		self.uiWizard.cboGame.addItem("Lord of the Rings Online (Test)")
 		self.uiWizard.cboGame.addItem("Dungeons & Dragons Online")
@@ -77,7 +91,11 @@ class SettingsWizard:
 		self.ClearGameTable()
 
 		QtCore.QObject.connect(self.uiWizard.btnFind, QtCore.SIGNAL("clicked()"), self.btnFindClicked)
-		QtCore.QObject.connect(self.uiWizard.cboApplication, QtCore.SIGNAL("currentIndexChanged(int)"), self.ClearGameTable)
+
+		if not self.osType.usingWindows:
+			QtCore.QObject.connect(self.uiWizard.cboApplication, QtCore.SIGNAL("currentIndexChanged(int)"),
+				self.ClearGameTable)
+
 		QtCore.QObject.connect(self.uiWizard.cboGame, QtCore.SIGNAL("currentIndexChanged(int)"), self.ClearGameTable)
 		QtCore.QObject.connect(self.uiWizard.tblGame, QtCore.SIGNAL("clicked(QModelIndex)"), self.GameSelected)
 
@@ -90,7 +108,7 @@ class SettingsWizard:
 
 		gameDir1 = self.model.data(currIndex.sibling(self.uiWizard.tblGame.currentIndex().row(), 1)).toString()
 		gameDir2 = self.model.data(currIndex.sibling(self.uiWizard.tblGame.currentIndex().row(), 2)).toString()
-		self.gameDir = gameDir2 + os.sep + gameDir1
+		self.gameDir = gameDir2
 
 	def ClearGameTable(self):
 		self.uiWizard.btnBoxOptions.setStandardButtons(QtGui.QDialogButtonBox.Cancel)
@@ -104,46 +122,55 @@ class SettingsWizard:
 		else:
 			self.client = "dndclient.exe"
 
-		if self.uiWizard.cboApplication.currentIndex() == 0:
-			startDir = self.homeDir + ".*"
-		elif self.uiWizard.cboApplication.currentIndex() == 1:
-			startDir = self.homeDir + self.osType.settingsCXG + "/*"
+		if self.osType.usingWindows:
+			startDir = "C:\\"
+			prefix = ""
+			self.trawl(os.path.join(startDir, "Program Files"), prefix, os.path.join(startDir, "Program Files"))
 		else:
-			startDir = self.homeDir + self.osType.settingsCXO + "/*"
+			if self.uiWizard.cboApplication.currentIndex() == 0:
+				startDir = self.homeDir + ".*"
+			elif self.uiWizard.cboApplication.currentIndex() == 1:
+				startDir = self.homeDir + self.osType.settingsCXG + "/*"
+			else:
+				startDir = self.homeDir + self.osType.settingsCXO + "/*"
 
-		for name in glob.glob(startDir):
-			if os.path.isdir(name):
-				if os.path.exists(os.path.join(name, "drive_c")):
-					prefix = ""
-					path = os.path.join(name, "drive_c", "Program Files")
+			for name in glob.glob(startDir):
+				if os.path.isdir(name):
+					if os.path.exists(os.path.join(name, "drive_c")):
+						prefix = ""
+						path = os.path.join(name, "drive_c", "Program Files")
 
-					if self.uiWizard.cboApplication.currentIndex() == 0:
-						prefix = name
-					elif self.uiWizard.cboApplication.currentIndex() == 1:
-						prefix = name.replace(self.homeDir + self.osType.settingsCXG + "/", "")
-					else:
-						prefix = name.replace(self.homeDir + self.osType.settingsCXO + "/", "")
+						if self.osType.usingWindows:
+							prefix = name
+						elif self.uiWizard.cboApplication.currentIndex() == 0:
+							prefix = name
+						elif self.uiWizard.cboApplication.currentIndex() == 1:
+							prefix = name.replace(self.homeDir + self.osType.settingsCXG + "/", "")
+						else:
+							prefix = name.replace(self.homeDir + self.osType.settingsCXO + "/", "")
 
-					self.trawl(path, prefix, os.path.join(name, "drive_c", "Program Files"))
+						self.trawl(path, prefix, os.path.join(name, "drive_c", "Program Files"))
 
 	def trawl(self, path, prefix, directory):
-		for name in glob.glob(directory + "/*"):
+		for name in glob.glob(directory + os.sep + "*"):
 			if name.lower().find(self.client) >= 0:
 				row = self.model.rowCount(QtCore.QModelIndex())
 				self.model.insertRows(row, 1, QtCore.QModelIndex())
 				self.model.setData(self.model.index(row, 0, QtCore.QModelIndex()), QtCore.QVariant(prefix))
 
-				dirName = os.path.dirname(name.replace(path + "/", ""))
+				dirName = os.path.dirname(name.replace(path + os.sep, ""))
 
 				self.model.setData(self.model.index(row, 1, QtCore.QModelIndex()), QtCore.QVariant(dirName))
-				self.model.setData(self.model.index(row, 2, QtCore.QModelIndex()), QtCore.QVariant(path))
+				self.model.setData(self.model.index(row, 2, QtCore.QModelIndex()), QtCore.QVariant(path + os.sep + dirName))
 
 			if os.path.isdir(name):
-				if not name.upper().endswith("/BACKUP"):
+				if not name.upper().endswith(os.sep + "BACKUP"):
 					self.trawl(path, prefix, name)
 
 	def getApp(self):
-		if self.uiWizard.cboApplication.currentIndex() == 0:
+		if self.osType.usingWindows:
+			return "Native"
+		elif self.uiWizard.cboApplication.currentIndex() == 0:
 			return "Wine"
 		elif self.uiWizard.cboApplication.currentIndex() == 1:
 			return "CXGames"

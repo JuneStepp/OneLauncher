@@ -55,6 +55,9 @@ Changes
 0.1.9 - Make ConfigCheck work when in a CX/Wine bottle
         Fixed issue with incorrect font size on Windows version
 
+0.1.10  Switch to using pyinstaller rather than py2exe (can now build via wine)
+        Configuration wizard now works on Windows version
+
 
 
 

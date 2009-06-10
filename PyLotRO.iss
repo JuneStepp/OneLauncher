@@ -7,7 +7,7 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{EB42F98E-B61B-4EE7-AF06-CAAF8D1825A3}
 AppName=PyLotRO
-AppVerName=PyLotRO 0.1.9
+AppVerName=PyLotRO 0.1.10
 AppPublisher=AJackson
 AppPublisherURL=http://www.lotrolinux.com
 AppSupportURL=http://www.lotrolinux.com
@@ -16,7 +16,7 @@ DefaultDirName={pf}\PyLotRO
 DefaultGroupName=PyLotRO
 AllowNoIcons=yes
 OutputBaseFilename=pylotro-setup
-SetupIconFile=C:\PyLotRO\PyLotRO_Menu.ico
+;SetupIconFile=C:\PyLotRO\PyLotRO_Menu.ico
 Compression=lzma
 SolidCompression=yes
 
@@ -27,8 +27,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\PyLotRO\dist\pylotro.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\PyLotRO\dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\pyinstaller\PyLotRO\dist\pylotro.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\pyinstaller\PyLotRO\dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
