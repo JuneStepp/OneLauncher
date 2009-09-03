@@ -496,9 +496,10 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
 						elif node.nodeName == "Description":
 							desc = GetText(node.childNodes)
 
-					if game2 == game and status == "Active":
-						activeAccount = True
-						self.gameList.append(Game(name, desc))
+					if game2 == game:
+						if status == "Active" or game == "DDO" or game == "DDO.Test":
+							activeAccount = True
+							self.gameList.append(Game(name, desc))
 
 				if activeAccount:
 					self.messError = "No Error"

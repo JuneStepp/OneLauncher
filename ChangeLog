@@ -58,6 +58,9 @@ Changes
 0.1.10  Switch to using pyinstaller rather than py2exe (can now build via wine)
         Configuration wizard now works on Windows version
 
+0.1.11  Now that DDO is free-to-play there is no longer a need to
+        reject accounts flagged as inactive (DDO only)
+
 
 
 
