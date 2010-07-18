@@ -9,11 +9,11 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=True,
-          console=True , icon='PyLotRO\\PyLotRO_Menu.ico')
+          console=True , icon='PyLotRO\\PyLotRO.ico')
 coll = COLLECT( exe,
                a.binaries,
                a.zipfiles,
                a.datas,
                strip=False,
                upx=True,
-               name='dist', icon='PyLotRO\\PyLotRO_Menu.ico')
+               name='dist', icon='PyLotRO\\PyLotRO.ico')

@@ -61,6 +61,7 @@ Changes
 0.1.11  Now that DDO is free-to-play there is no longer a need to
         reject accounts flagged as inactive (DDO only)
 
-
+0.1.12  Display status code on E08 errors
+        Save returned data from servers
 
 

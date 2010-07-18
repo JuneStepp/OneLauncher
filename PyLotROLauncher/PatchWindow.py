@@ -114,6 +114,7 @@ class PatchWindow:
 
 			self.command = QtCore.QString(wineProgram)
 			self.process.setWorkingDirectory(runDir)
+			self.uiLog.txtLog.append(QtCore.QString(patchParams))
 
 			for arg in patchParams.split(" "):
 				self.arguments.append(QtCore.QString(arg))

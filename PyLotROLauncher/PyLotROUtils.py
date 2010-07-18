@@ -265,7 +265,7 @@ class DetermineOS:
 		return finished			
 
 class GLSDataCentre:
-	def __init__(self, urlGLSDataCentreService, gameName):
+	def __init__(self, urlGLSDataCentreService, gameName, baseDir, osType):
 		SM_TEMPLATE = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\
 <soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
 <soap:Body><GetDatacenters xmlns=\"http://www.turbine.com/SE/GLS\"><game>%s</game>\
@@ -286,6 +286,11 @@ class GLSDataCentre:
 			webresp = webservice.getresponse()
 
 			tempxml = webresp.read()
+
+			filename = "%s%sGLSDataCenter.config" % (baseDir, osType.appDir)
+			outfile = open(filename, "w")
+			outfile.write(tempxml)
+			outfile.close()
 
 			if tempxml == "":
 				self.loadSuccess = False
@@ -356,7 +361,7 @@ class Realm:
 		self.loginServer = ""
 		self.queueURL = ""
 
-	def CheckRealm(self, useDND):
+	def CheckRealm(self, useDND, baseDir, osType):
 		try:
 			webservice, post = WebConnection(self.urlServerStatus)
 
@@ -366,6 +371,11 @@ class Realm:
 			webresp = webservice.getresponse()
 
 			tempxml = webresp.read()
+
+			filename = "%s%sserver.config" % (baseDir, osType.appDir)
+			outfile = open(filename, "w")
+			outfile.write(tempxml)
+			outfile.close()
 
 			if tempxml == "":
 				self.realmAvailable = False
@@ -389,7 +399,7 @@ class Realm:
 			self.realmAvailable = False
 
 class WorldQueueConfig:
-	def __init__(self, urlConfigServer, usingDND):
+	def __init__(self, urlConfigServer, usingDND, baseDir, osType):
 		self.gameClientFilename = ""
 		self.gameClientArgTemplate = ""
 		self.newsFeedURL = ""
@@ -407,6 +417,11 @@ class WorldQueueConfig:
 			webresp = webservice.getresponse()
 
 			tempxml = webresp.read()
+
+			filename = "%s%slauncher.config" % (baseDir, osType.appDir)
+			outfile = open(filename, "w")
+			outfile.write(tempxml)
+			outfile.close()
 
 			if tempxml == "":
 				self.loadSuccess = False
@@ -441,7 +456,7 @@ class Game:
 		self.description = description
 
 class AuthenticateUser:
-	def __init__(self, urlLoginServer, name, password, game):
+	def __init__(self, urlLoginServer, name, password, game, baseDir, osType):
 		SM_TEMPLATE = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\
 <soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" \
 xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" \
@@ -471,6 +486,11 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
 			self.ticket = ""
 
 			tempxml = webresp.read()
+
+			filename = "%s%sGLSAuthServer.config" % (baseDir, osType.appDir)
+			outfile = open(filename, "w")
+			outfile.write(tempxml)
+			outfile.close()
 
 			if tempxml == "":
 				self.authSuccess = False
@@ -513,10 +533,10 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
 			if webresp.status == 500:
 				self.messError = "[E07] Account details incorrect"
 			else:
-				self.messError = "[E08] Server not found - may be down"
+				self.messError = "[E08] Server not found - may be down (%s)" % (webresp.status)
 
 class JoinWorldQueue:
-	def __init__(self, argTemplate, account, ticket, queue, urlIn):
+	def __init__(self, argTemplate, account, ticket, queue, urlIn, baseDir, osType):
 		try:
 			webservice, post = WebConnection(urlIn)
 
@@ -533,6 +553,11 @@ class JoinWorldQueue:
 			webresp = webservice.getresponse()
 
 			tempxml = webresp.read()
+
+			filename = "%s%sWorldQueue.config" % (baseDir, osType.appDir)
+			outfile = open(filename, "w")
+			outfile.write(tempxml)
+			outfile.close()
 
 			if tempxml == "":
 				self.joinSuccess = False

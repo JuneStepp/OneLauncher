@@ -303,7 +303,7 @@ class MainWindow:
 			self.app.processEvents()
 
 		self.account = AuthenticateUser(self.dataCentre.authServer, self.uiMain.txtAccount.text(), 
-			self.uiMain.txtPassword.text(), self.baseConfig.gameName)
+			self.uiMain.txtPassword.text(), self.baseConfig.gameName, self.valHomeDir, self.osType)
 
 		if self.account.authSuccess:
 			self.AddLog("Account authenticated")
@@ -341,7 +341,7 @@ class MainWindow:
 				self.accNumber = self.account.gameList[0].name
 
 			tempRealm = self.dataCentre.realmList[self.uiMain.cboRealm.currentIndex()]
-			tempRealm.CheckRealm(self.settings.usingDND)
+			tempRealm.CheckRealm(self.settings.usingDND, self.valHomeDir, self.osType)
 
 			if tempRealm.realmAvailable:
 				self.urlChatServer = tempRealm.urlChatServer
@@ -370,7 +370,7 @@ class MainWindow:
 
 	def EnterWorldQueue(self, queueURL):
 		self.worldQueue = JoinWorldQueue(self.worldQueueConfig.worldQueueParam,
-			self.accNumber, self.account.ticket, queueURL, self.worldQueueConfig.worldQueueURL)
+			self.accNumber, self.account.ticket, queueURL, self.worldQueueConfig.worldQueueURL, self.valHomeDir, self.osType)
 
 		if self.worldQueue.joinSuccess:
 			self.AddLog("Joined world queue")
@@ -383,7 +383,8 @@ class MainWindow:
 					displayQueueing = False
 
 				self.worldQueue = JoinWorldQueue(self.worldQueueConfig.worldQueueParam,
-					self.accNumber, self.account.ticket, queueURL, self.worldQueueConfig.worldQueueURL)
+					self.accNumber, self.account.ticket, queueURL, self.worldQueueConfig.worldQueueURL,
+						self.valHomeDir, self.osType)
 
 				if not self.worldQueue.joinSuccess:
 					self.AddLog("[E10] Error getting realm status")
@@ -475,7 +476,8 @@ class MainWindow:
 		self.langConfig = None
 
 		self.configThread = MainWindowThread()
-		self.configThread.SetUp(self.winMain, self.settings, self.configFile, self.configFileAlt)
+		self.configThread.SetUp(self.winMain, self.settings, self.configFile, self.configFileAlt,
+			self.valHomeDir, self.osType)
 		self.configThread.start()
 
 	def GetLanguageConfig(self, langConfig):
@@ -552,11 +554,13 @@ class MainWindow:
 		self.uiMain.txtStatus.append(QtCore.QString(message))
 
 class MainWindowThread(QtCore.QThread):
-	def SetUp(self, winMain, settings, configFile, configFileAlt):
+	def SetUp(self, winMain, settings, configFile, configFileAlt, baseDir, osType):
 		self.winMain = winMain
 		self.settings = settings
 		self.configFile = configFile
 		self.configFileAlt = configFileAlt
+		self.osType = osType
+		self.baseDir = baseDir
 
 	def run(self):
 		self.LoadLanguageList()
@@ -599,7 +603,7 @@ class MainWindowThread(QtCore.QThread):
 					"[E03] Error reading launcher configuration file.")
 
 	def AccessGLSDataCentre(self, urlGLS, gameName):
-		self.dataCentre = GLSDataCentre(urlGLS, gameName)
+		self.dataCentre = GLSDataCentre(urlGLS, gameName, self.baseDir, self.osType)
 
 		if self.dataCentre.loadSuccess:
 			QtCore.QObject.emit(self.winMain, QtCore.SIGNAL("AddLog(QString)"), "Fetched details from GLS data centre.")
@@ -611,7 +615,7 @@ class MainWindowThread(QtCore.QThread):
 			QtCore.QObject.emit(self.winMain, QtCore.SIGNAL("AddLog(QString)"), "[E04] Error accessing GLS data centre.")
 
 	def GetWorldQueueConfig(self, urlWorldQueueServer):
-		self.worldQueueConfig = WorldQueueConfig(urlWorldQueueServer, self.settings.usingDND)
+		self.worldQueueConfig = WorldQueueConfig(urlWorldQueueServer, self.settings.usingDND, self.baseDir, self.osType)
 
 		if self.worldQueueConfig.loadSuccess:
 			QtCore.QObject.emit(self.winMain, QtCore.SIGNAL("AddLog(QString)"), "World queue configuration read")
