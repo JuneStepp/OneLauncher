@@ -64,4 +64,6 @@ Changes
 0.1.12  Display status code on E08 errors
         Save returned data from servers
 
+0.1.13  LotRO is now F2P, remove account check
+
 

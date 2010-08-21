@@ -517,16 +517,12 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
 							desc = GetText(node.childNodes)
 
 					if game2 == game:
-						if status == "Active" or game == "DDO" or game == "DDO.Test":
-							activeAccount = True
-							self.gameList.append(Game(name, desc))
+						activeAccount = True
+						self.gameList.append(Game(name, desc))
 
 				if activeAccount:
 					self.messError = "No Error"
 					self.authSuccess = True
-				else:
-					self.messError = "[E06] Account marked as not active"
-					self.authSuccess = False
 		except:
 			self.authSuccess = False
 
