@@ -66,4 +66,6 @@ Changes
 
 0.1.13  LotRO is now F2P, remove account check
 
+0.1.14  Get proper CSS file for newsfeed
+        New error [E14] if game account not linked to user account
 

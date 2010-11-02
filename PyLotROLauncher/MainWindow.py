@@ -627,9 +627,9 @@ class MainWindowThread(QtCore.QThread):
 				"[E05] Error getting world queue configuration")
 
 	def GetNews(self):
-		HTMLTEMPLATE = "<html><head><link rel=\"stylesheet\" type=\"text/css\" href=\"http://ddoeugls.com/News/style.css\"/><base target=\"_blank\"/></head><body><div class=\"launcherNewsItemsContainer\">"
-
 		try:
+			href = ""
+
 			webservice, post = WebConnection(self.worldQueueConfig.newsStyleSheetURL)
 
 			webservice.putrequest("GET", post)
@@ -649,6 +649,16 @@ class MainWindowThread(QtCore.QThread):
 						timeCode = timeCode.replace("\t", "").replace(",", "").replace("-", "")
 						if len(timeCode) > 0:
 							timeCode = " %s" % (timeCode)
+
+
+			links = doc.getElementsByTagName("link")
+			for link in links:
+				if link.nodeType == link.ELEMENT_NODE:
+					href = link.attributes["href"]
+
+			HTMLTEMPLATE = "<html><head><link rel=\"stylesheet\" type=\"text/css\" href=\""
+			HTMLTEMPLATE += href.value
+			HTMLTEMPLATE += "\"/><base target=\"_blank\"/></head><body><div class=\"launcherNewsItemsContainer\">"
 
 			urlNewsFeed = self.worldQueueConfig.newsFeedURL.replace("{lang}",
 				self.langConfig.langList[self.langPos].code.replace("_", "-"))

@@ -523,6 +523,9 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
 				if activeAccount:
 					self.messError = "No Error"
 					self.authSuccess = True
+				else:
+					self.messError = "[E14] Game account not associated with user account - please visit games website and check account details"
+					self.authSuccess = False
 		except:
 			self.authSuccess = False
 
