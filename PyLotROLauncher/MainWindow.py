@@ -661,7 +661,7 @@ class MainWindowThread(QtCore.QThread):
 			HTMLTEMPLATE += "\"/><base target=\"_blank\"/></head><body><div class=\"launcherNewsItemsContainer\">"
 
 			urlNewsFeed = self.worldQueueConfig.newsFeedURL.replace("{lang}",
-				self.langConfig.langList[self.langPos].code.replace("_", "-"))
+				self.langConfig.langList[self.langPos].news)
 
 			webservice, post = WebConnection(urlNewsFeed)
 

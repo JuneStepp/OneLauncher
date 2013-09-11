@@ -324,6 +324,7 @@ class GLSDataCentre:
 class Language:
 	def __init__(self, code):
 		self.code = code.upper()
+		self.news = "en"
 
 		if code == "EN_GB":
 			self.name = "English (UK)"
@@ -334,9 +335,11 @@ class Language:
 		elif code == "FR":
 			self.name = "French"
 			self.code = "FR"
+			self.news = "fr"
 		elif code == "DE":
 			self.name = "German"
 			self.code = "DE"
+			self.news = "de"
 		else:
 			self.name = code
 			self.code = code
