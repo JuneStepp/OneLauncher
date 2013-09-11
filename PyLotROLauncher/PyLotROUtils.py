@@ -70,10 +70,10 @@ class BaseConfig:
 			nodes = doc.getElementsByTagName("appSettings")[0].childNodes
 			for node in nodes:
 				if node.nodeType == node.ELEMENT_NODE:
-					if node.attributes.item(1).firstChild.nodeValue == "Launcher.DataCenterService.GLS":
-						self.GLSDataCentreService = node.attributes.item(0).firstChild.nodeValue
-					elif node.attributes.item(1).firstChild.nodeValue == "DataCenter.GameName":
-						self.gameName = node.attributes.item(0).firstChild.nodeValue
+					if node.getAttribute("key") == "Launcher.DataCenterService.GLS":
+						self.GLSDataCentreService = node.getAttribute("value")
+					elif node.getAttribute("key") == "DataCenter.GameName":
+						self.gameName = node.getAttribute("value")
 
 			self.isConfigOK = True
 		except:
@@ -434,20 +434,20 @@ class WorldQueueConfig:
 				nodes = doc.getElementsByTagName("appSettings")[0].childNodes
 				for node in nodes:
 					if node.nodeType == node.ELEMENT_NODE:
-						if node.attributes.item(1).firstChild.nodeValue == "GameClient.Filename":
-							self.gameClientFilename = node.attributes.item(0).firstChild.nodeValue
-						elif node.attributes.item(1).firstChild.nodeValue == "GameClient.ArgTemplate":
-							self.gameClientArgTemplate = node.attributes.item(0).firstChild.nodeValue
-						elif node.attributes.item(1).firstChild.nodeValue == "URL.NewsFeed":
-							self.newsFeedURL = node.attributes.item(0).firstChild.nodeValue
-						elif node.attributes.item(1).firstChild.nodeValue == "URL.NewsStyleSheet":
-							self.newsStyleSheetURL = node.attributes.item(0).firstChild.nodeValue
-						elif node.attributes.item(1).firstChild.nodeValue == "Patching.ProductCode":
-							self.patchProductCode = node.attributes.item(0).firstChild.nodeValue
-						elif node.attributes.item(1).firstChild.nodeValue == "WorldQueue.LoginQueue.URL":
-							self.worldQueueURL = node.attributes.item(0).firstChild.nodeValue
-						elif node.attributes.item(1).firstChild.nodeValue == "WorldQueue.TakeANumber.Parameters":
-							self.worldQueueParam = node.attributes.item(0).firstChild.nodeValue
+						if node.getAttribute("key") == "GameClient.Filename":
+							self.gameClientFilename = node.getAttribute("value")
+						elif node.getAttribute("key") == "GameClient.ArgTemplate":
+							self.gameClientArgTemplate = node.getAttribute("value")
+						elif node.getAttribute("key") == "URL.NewsFeed":
+							self.newsFeedURL = node.getAttribute("value")
+						elif node.getAttribute("key") == "URL.NewsStyleSheet":
+							self.newsStyleSheetURL = node.getAttribute("value")
+						elif node.getAttribute("key") == "Patching.ProductCode":
+							self.patchProductCode = node.getAttribute("value")
+						elif node.getAttribute("key") == "WorldQueue.LoginQueue.URL":
+							self.worldQueueURL = node.getAttribute("value")
+						elif node.getAttribute("key") == "WorldQueue.TakeANumber.Parameters":
+							self.worldQueueParam = node.getAttribute("value")
 
 				self.loadSuccess = True
 		except:
