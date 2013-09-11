@@ -672,6 +672,13 @@ class MainWindowThread(QtCore.QThread):
 
 			tempxml = webresp.read()
 
+			if len(tempxml) == 0:
+				webservice, post = WebConnection(webresp.getheader("location"))
+				webservice.putrequest("GET", post)
+				webservice.endheaders()
+				webresp = webservice.getresponse()
+				tempxml = webresp.read()
+
 			result = HTMLTEMPLATE
 
 			doc = xml.dom.minidom.parseString(tempxml)

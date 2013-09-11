@@ -69,3 +69,6 @@ Changes
 0.1.14  Get proper CSS file for newsfeed
         New error [E14] if game account not linked to user account
 
+0.1.15  Fix problem getting newsfeed (might be temp glitch)
+		Fix EN GB -> English problem
+

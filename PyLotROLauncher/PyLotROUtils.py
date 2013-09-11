@@ -327,19 +327,19 @@ class Language:
 
 		if code == "EN_GB":
 			self.name = "English (UK)"
-			self.patch = "en_gb"
+			self.code = "ENGLISH"
 		elif code == "ENGLISH":
 			self.name = "English"
-			self.patch = "en"
+			self.code = "ENGLISH"
 		elif code == "FR":
 			self.name = "French"
-			self.patch = "fr"
+			self.code = "FR"
 		elif code == "DE":
 			self.name = "German"
-			self.patch = "de"
+			self.code = "DE"
 		else:
 			self.name = code
-			self.patch = code
+			self.code = code
 
 class LanguageConfig():
 	def __init__(self, runDir):
