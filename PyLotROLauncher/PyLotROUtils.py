@@ -34,13 +34,21 @@ import glob
 from PyQt4 import QtCore
 import xml.dom.minidom
 
-# If Python 3.0 is in use use http otherwise httplib
+# If Python >3.0 is in use use http otherwise httplib
+# Python >3.0 uses unicode strings by default, so also
+# need to take care of encoding/decoding for sending/receiving
 if sys.version_info[:2] < (3, 0):
 	from httplib import HTTPConnection, HTTPSConnection
 	from urllib import quote
+
+	def string_encode(s): return s;
+	def string_decode(s): return s;
 else:
 	from http.client import HTTPConnection, HTTPSConnection
 	from urllib.parse import quote
+
+	def string_encode(s): return s.encode();
+	def string_decode(s): return s.decode();
 
 def WebConnection(urlIn):
 	if urlIn.upper().find("HTTP://") >= 0:
@@ -274,6 +282,7 @@ class GLSDataCentre:
 		SoapMessage = SM_TEMPLATE%(gameName)
 
 		try:
+			msg = string_encode(SoapMessage)
 			webservice, post = WebConnection(urlGLSDataCentreService)
 
 			webservice.putrequest("POST", post)
@@ -281,11 +290,11 @@ class GLSDataCentre:
 			webservice.putheader("Content-length", "%d" % len(SoapMessage))
 			webservice.putheader("SOAPAction", "http://www.turbine.com/SE/GLS/GetDatacenters")
 			webservice.endheaders()
-			webservice.send(SoapMessage)
+			webservice.send(msg)
 
 			webresp = webservice.getresponse()
 
-			tempxml = webresp.read()
+			tempxml = string_decode(webresp.read())
 
 			filename = "%s%sGLSDataCenter.config" % (baseDir, osType.appDir)
 			outfile = open(filename, "w")
@@ -373,7 +382,7 @@ class Realm:
 
 			webresp = webservice.getresponse()
 
-			tempxml = webresp.read()
+			tempxml = string_decode(webresp.read())
 
 			filename = "%s%sserver.config" % (baseDir, osType.appDir)
 			outfile = open(filename, "w")
@@ -419,7 +428,7 @@ class WorldQueueConfig:
 
 			webresp = webservice.getresponse()
 
-			tempxml = webresp.read()
+			tempxml = string_decode(webresp.read())
 
 			filename = "%s%slauncher.config" % (baseDir, osType.appDir)
 			outfile = open(filename, "w")
@@ -472,6 +481,7 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
 		webresp = None
 
 		try:
+			msg = string_encode(SoapMessage)
 			webservice, post = WebConnection(urlLoginServer)
 
 			webservice.putrequest("POST", post)
@@ -479,7 +489,7 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
 			webservice.putheader("Content-length", "%d" % len(SoapMessage))
 			webservice.putheader("SOAPAction", "http://www.turbine.com/SE/GLS/LoginAccount")
 			webservice.endheaders()
-			webservice.send(SoapMessage)
+			webservice.send(msg)
 
 			webresp = webservice.getresponse()
 
@@ -488,7 +498,7 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
 			activeAccount = False
 			self.ticket = ""
 
-			tempxml = webresp.read()
+			tempxml = string_decode(webresp.read())
 
 			filename = "%s%sGLSAuthServer.config" % (baseDir, osType.appDir)
 			outfile = open(filename, "w")
@@ -545,16 +555,17 @@ class JoinWorldQueue:
 			argComplete = argTemplate.replace("{0}", account).replace("{1}",
 				quote(ticket)).replace("{2}", quote(queue))
 
+			msg = string_encode(argComplete)
 			webservice.putrequest("POST", post)
 			webservice.putheader("Content-type", "application/x-www-form-urlencoded")
 			webservice.putheader("Content-length", "%d" % len(argComplete))
 			webservice.putheader("SOAPAction", "http://www.turbine.com/SE/GLS/LoginAccount")
 			webservice.endheaders()
-			webservice.send(argComplete)
+			webservice.send(msg)
 
 			webresp = webservice.getresponse()
 
-			tempxml = webresp.read()
+			tempxml = string_decode(webresp.read())
 
 			filename = "%s%sWorldQueue.config" % (baseDir, osType.appDir)
 			outfile = open(filename, "w")
