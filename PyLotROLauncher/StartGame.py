@@ -79,7 +79,7 @@ class StartGame:
 		self.aborted = False
 		self.finished = False
 		self.command = ""
-		self.arguments = QtCore.QStringList()
+		self.arguments = []
 
 		gameParams = argTemplate.replace("{0}", account).replace("{1}", server)\
 			.replace("{2}", ticket).replace("{3}", chatServer).replace("{4}", language)
@@ -99,26 +99,26 @@ class StartGame:
 		QtCore.QObject.connect(self.process, QtCore.SIGNAL("finished(int, QProcess::ExitStatus)"), self.resetButtons)
 
 		if wineApp == "Native":
-			self.command = QtCore.QString(appName)
+			self.command = appName
 			self.process.setWorkingDirectory(runDir)
 
 			os.chdir(runDir)
 
 			for arg in gameParams.split(" "):
-				self.arguments.append(QtCore.QString(arg))
+				self.arguments.append(arg)
 
 		elif wineApp == "Wine":
-			self.command = QtCore.QString(wineProgram)
+			self.command = wineProgram
 			self.process.setWorkingDirectory(runDir)
 
-			self.arguments.append(QtCore.QString(appName))
+			self.arguments.append(appName)
 
 			for arg in gameParams.split(" "):
-				self.arguments.append(QtCore.QString(arg))
+				self.arguments.append(arg)
 
 		elif wineApp == "CXGames":
 			if not self.osType.startCXG():
-				self.uiLog.txtLog.append(QtCore.QString("<b>Error: Couldn't start Crossover Games</b>"))
+				self.uiLog.txtLog.append("<b>Error: Couldn't start Crossover Games</b>")
 				self.uiLog.btnSave.setEnabled(False)
 				self.uiLog.btnStart.setEnabled(False)
 
@@ -126,25 +126,25 @@ class StartGame:
 				tempFile = "%s%s%s" % (self.osType.globalDir, self.osType.directoryCXG, wineProgram)
 
 				if os.path.isfile(tempFile):
-					self.command = QtCore.QString(tempFile)
+					self.command = tempFile
 				else:
 					tempFile = "%s%s%s" % (homeDir, self.osType.directoryCXG, wineProgram)
 
 					if os.path.isfile(tempFile):
-						self.command = QtCore.QString(tempFile)
+						self.command = tempFile
 					else:
-						self.command = QtCore.QString(wineProgram)
+						self.command = wineProgram
 			else:
-				self.command = QtCore.QString("%s%s" % (self.osType.macPathCX, wineProgram))
+				self.command = "%s%s" % (self.osType.macPathCX, wineProgram)
 
 			self.process.setWorkingDirectory(runDir)
 
 			tempArg = "--bottle %s --verbose -- %s %s" % (winePrefix, appName, gameParams)
 			for arg in tempArg.split(" "):
-				self.arguments.append(QtCore.QString(arg))
+				self.arguments.append(arg)
 		elif wineApp == "CXOffice":
 			if not self.osType.startCXO():
-				self.uiLog.txtLog.append(QtCore.QString("<b>Error: Couldn't start Crossover</b>"))
+				self.uiLog.txtLog.append("<b>Error: Couldn't start Crossover</b>")
 				self.uiLog.btnSave.setEnabled(False)
 				self.uiLog.btnStart.setEnabled(False)
 
@@ -152,37 +152,37 @@ class StartGame:
 				tempFile = "%s%s%s" % (self.osType.globalDir, self.osType.directoryCXO, wineProgram)
 
 				if os.path.isfile(tempFile):
-					self.command = QtCore.QString(tempFile)
+					self.command = tempFile
 				else:
 					tempFile = "%s%s%s" % (homeDir, self.osType.directoryCXO, wineProgram)
 
 					if os.path.isfile(tempFile):
-						self.command = QtCore.QString(tempFile)
+						self.command = tempFile
 					else:
-						self.command = QtCore.QString(wineProgram)
+						self.command = wineProgram
 			else:
-				self.command = QtCore.QString("%s%s" % (self.osType.macPathCX, wineProgram))
+				self.command = "%s%s" % (self.osType.macPathCX, wineProgram)
 
 			self.process.setWorkingDirectory(runDir)
 
 			tempArg = "--bottle %s --verbose -- %s %s" % (winePrefix, appName, gameParams)
 			for arg in tempArg.split(" "):
-				self.arguments.append(QtCore.QString(arg))
+				self.arguments.append(arg)
 
 	def readOutput(self):
-		self.uiLog.txtLog.append(QtCore.QString(self.process.readAllStandardOutput()))
+		self.uiLog.txtLog.append(str(self.process.readAllStandardOutput()))
 
 	def readErrors(self):
-		self.uiLog.txtLog.append(QtCore.QString(self.process.readAllStandardError()))
+		self.uiLog.txtLog.append(str(self.process.readAllStandardError()))
 
 	def resetButtons(self, exitCode, exitStatus):
 		self.finished = True
 		self.uiLog.btnStop.setText("Exit")
 		self.uiLog.btnSave.setEnabled(True)
 		if self.aborted:
-			self.uiLog.txtLog.append(QtCore.QString("<b>***  Aborted  ***</b>"))
+			self.uiLog.txtLog.append("<b>***  Aborted  ***</b>")
 		else:
-			self.uiLog.txtLog.append(QtCore.QString("<b>***  Finished  ***</b>"))
+			self.uiLog.txtLog.append("<b>***  Finished  ***</b>")
 
 	def btnStopClicked(self):
 		if self.finished:

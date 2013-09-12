@@ -407,9 +407,9 @@ class MainWindow:
 		self.valHomeDir = self.GetHomeDir()
 
 		if self.webMainExists:
-			self.webMain.setHtml(QtCore.QString(""))
+			self.webMain.setHtml("")
 		else:
-			self.webMain.setText(QtCore.QString(""))
+			self.webMain.setText("")
 
 		if self.settings is None:
 			self.settings = Settings(self.valHomeDir, self.osType)
@@ -527,14 +527,14 @@ class MainWindow:
 
 	def GetNews(self, news):
 		if self.webMainExists:
-			self.webMain.setHtml(QtCore.QString(news))
+			self.webMain.setHtml(news)
 		else:
 			newsString = news
 			temp = news.split("</head>")
 			if len(temp) > 0:
 				newsString = temp[1].split("</html>")[0]
 
-			self.webMain.setHtml(QtCore.QString(newsString))
+			self.webMain.setHtml(newsString)
 
 	def GetHomeDir(self):
 		temp = os.environ.get('HOME')
@@ -548,10 +548,10 @@ class MainWindow:
 		return temp
 
 	def ClearLog(self):
-		self.uiMain.txtStatus.setText(QtCore.QString(""))
+		self.uiMain.txtStatus.setText("")
 
 	def AddLog(self, message):
-		self.uiMain.txtStatus.append(QtCore.QString(message))
+		self.uiMain.txtStatus.append(message)
 
 class MainWindowThread(QtCore.QThread):
 	def SetUp(self, winMain, settings, configFile, configFileAlt, baseDir, osType):
