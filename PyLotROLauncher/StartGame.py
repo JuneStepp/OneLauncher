@@ -29,7 +29,13 @@
 ###########################################################################
 from PyQt4 import QtCore, QtGui, uic
 from .PyLotROUtils import DetermineOS
-import os.path
+import sys, os.path
+
+if sys.version_info[:2] < (3, 0):
+	def QByteArray2str(s): return str(s);
+else:
+	def QByteArray2str(s): return str(s, encoding="utf8", errors="replace");
+
 
 class StartGame:
 	def __init__(self, parent, appName, argTemplate, account, server, ticket,
@@ -170,10 +176,10 @@ class StartGame:
 				self.arguments.append(arg)
 
 	def readOutput(self):
-		self.uiLog.txtLog.append(str(self.process.readAllStandardOutput()))
+		self.uiLog.txtLog.append(QByteArray2str(self.process.readAllStandardOutput()))
 
 	def readErrors(self):
-		self.uiLog.txtLog.append(str(self.process.readAllStandardError()))
+		self.uiLog.txtLog.append(QByteArray2str(self.process.readAllStandardError()))
 
 	def resetButtons(self, exitCode, exitStatus):
 		self.finished = True
