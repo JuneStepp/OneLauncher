@@ -33,6 +33,7 @@ import sys
 import glob
 from PyQt4 import QtCore
 import xml.dom.minidom
+from xml.sax.saxutils import escape as xml_escape
 
 # If Python >3.0 is in use use http otherwise httplib
 # Python >3.0 uses unicode strings by default, so also
@@ -476,7 +477,7 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
 <soap:Body><LoginAccount xmlns=\"http://www.turbine.com/SE/GLS\"><username>%s</username>\
 <password>%s</password><additionalInfo></additionalInfo></LoginAccount></soap:Body></soap:Envelope>"
 
-		SoapMessage = SM_TEMPLATE%(name, password)
+		SoapMessage = SM_TEMPLATE%(xml_escape(name), xml_escape(password))
 
 		webresp = None
 
