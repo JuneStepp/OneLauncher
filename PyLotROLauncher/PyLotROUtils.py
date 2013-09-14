@@ -34,6 +34,7 @@ import glob
 from PyQt4 import QtCore
 import xml.dom.minidom
 from xml.sax.saxutils import escape as xml_escape
+import ssl
 
 # If Python >3.0 is in use use http otherwise httplib
 # Python >3.0 uses unicode strings by default, so also
@@ -470,6 +471,8 @@ class Game:
 
 class AuthenticateUser:
 	def __init__(self, urlLoginServer, name, password, game, baseDir, osType):
+		self.authSuccess = False
+
 		SM_TEMPLATE = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\
 <soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" \
 xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" \
@@ -507,7 +510,6 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
 			outfile.close()
 
 			if tempxml == "":
-				self.authSuccess = False
 				self.messError = "[E08] Server not found - may be down"
 			else:
 				doc = xml.dom.minidom.parseString(tempxml)
@@ -539,14 +541,14 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
 					self.authSuccess = True
 				else:
 					self.messError = "[E14] Game account not associated with user account - please visit games website and check account details"
-					self.authSuccess = False
-		except:
-			self.authSuccess = False
 
-			if webresp.status == 500:
+		except ssl.SSLError:
+			self.messError = "[E15] SSL Error occured in HTTPS connection"
+		except:
+			if webresp and webresp.status == 500:
 				self.messError = "[E07] Account details incorrect"
 			else:
-				self.messError = "[E08] Server not found - may be down (%s)" % (webresp.status)
+				self.messError = "[E08] Server not found - may be down (%s)" % (webresp and webresp.status or "N/A")
 
 class JoinWorldQueue:
 	def __init__(self, argTemplate, account, ticket, queue, urlIn, baseDir, osType):
