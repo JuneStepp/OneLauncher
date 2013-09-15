@@ -52,15 +52,37 @@ else:
 	def string_encode(s): return s.encode();
 	def string_decode(s): return s.decode();
 
-def WebConnection(urlIn):
-	if urlIn.upper().find("HTTP://") >= 0:
-		url = urlIn[7:].split("/")[0]
-		post = urlIn[7:].replace(url, "")
-		return HTTPConnection(url), post
-	else:
-		url = urlIn[8:].split("/")[0]
-		post = urlIn[8:].replace(url, "")
-		return HTTPSConnection(url), post
+# Python <3.2 neither support OpenSSL version info, nor SSL contexts,
+# so this has to be an ugly TLS 1.2 prevention workaround:
+if sys.version_info[:2] < (3, 2):
+	import socket
+
+	def WebConnection(urlIn):
+		if urlIn.upper().find("HTTP://") >= 0:
+			url = urlIn[7:].split("/")[0]
+			post = urlIn[7:].replace(url, "")
+			return HTTPConnection(url), post
+		else:
+			url = urlIn[8:].split("/")[0]
+			post = urlIn[8:].replace(url, "")
+			# OpenSSL 1.x workaround, we basically need to re-implement HTTPSConnection.connect()
+			# to be able to request ssl.PROTOCOL_TLSv1
+			conn = HTTPSConnection(url)
+			sock = socket.create_connection((conn.host, conn.port), conn.timeout, conn.source_address)
+			conn.sock = ssl.wrap_socket(sock, conn.key_file, conn.cert_file, ssl_version=ssl.PROTOCOL_TLSv1)
+			return conn, post
+else:
+	pylotro_ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+
+	def WebConnection(urlIn):
+		if urlIn.upper().find("HTTP://") >= 0:
+			url = urlIn[7:].split("/")[0]
+			post = urlIn[7:].replace(url, "")
+			return HTTPConnection(url), post
+		else:
+			url = urlIn[8:].split("/")[0]
+			post = urlIn[8:].replace(url, "")
+			return HTTPSConnection(url, context=pylotro_ssl_ctx), post
 
 def GetText(nodelist):
 	rc = ""
