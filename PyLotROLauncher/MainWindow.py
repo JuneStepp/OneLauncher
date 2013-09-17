@@ -656,9 +656,9 @@ class MainWindowThread(QtCore.QThread):
 				if link.nodeType == link.ELEMENT_NODE:
 					href = link.attributes["href"]
 
-			HTMLTEMPLATE = "<html><head><link rel=\"stylesheet\" type=\"text/css\" href=\""
+			HTMLTEMPLATE = '<html><head><link rel="stylesheet" type="text/css" href="'
 			HTMLTEMPLATE += href.value
-			HTMLTEMPLATE += "\"/><base target=\"_blank\"/></head><body><div class=\"launcherNewsItemsContainer\">"
+			HTMLTEMPLATE += '"/><base target="_blank"/></head><body><div class="launcherNewsItemsContainer" style="width:auto">'
 
 			urlNewsFeed = self.worldQueueConfig.newsFeedURL.replace("{lang}",
 				self.langConfig.langList[self.langPos].news)
