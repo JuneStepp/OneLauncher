@@ -384,9 +384,10 @@ class LanguageConfig():
 		self.langFound = False
 		self.langList = []
 
-		for name in glob.glob("%s%sclient_local_*.dat" % (runDir, os.sep)):
+		for name in glob.glob(os.path.join(runDir, "client_local_*.dat")):
 			self.langFound = True
-			temp = name.replace("%s%sclient_local_" % (runDir, os.sep), "").replace(".dat", "")
+			# remove "client_local_" (13 chars) and ".dat" (4 chars) from filename
+			temp = os.path.basename(name)[13:-4]
 			self.langList.append(Language(temp))
 
 class Realm:
