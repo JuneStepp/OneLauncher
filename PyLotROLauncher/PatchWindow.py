@@ -29,7 +29,7 @@
 # along with PyLotRO.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 from PyQt4 import QtCore, QtGui, uic
-from .PyLotROUtils import DetermineOS
+from .PyLotROUtils import DetermineOS, QByteArray2str
 import os.path
 
 class PatchWindow:
@@ -81,7 +81,7 @@ class PatchWindow:
 		self.finished = True
 		self.lastRun = False
 		self.command = ""
-		self.arguments = QtCore.QStringList()
+		self.arguments = []
 
 		if winePrefix != "" and wineApp == "Wine":
 			os.environ["WINEPREFIX"] = winePrefix
@@ -99,11 +99,11 @@ class PatchWindow:
 			if hiResEnabled:
 				patchParams = patchParams + " --highres"
 
-			self.command = QtCore.QString("rundll32.exe")
+			self.command = "rundll32.exe"
 			self.process.setWorkingDirectory(runDir)
 
 			for arg in patchParams.split(" "):
-				self.arguments.append(QtCore.QString(arg))
+				self.arguments.append(arg)
 
 		elif wineApp == "Wine":
 			patchParams = "rundll32.exe %s,Patch %s --language %s --productcode %s --filesonly" % (patchClient,
@@ -112,12 +112,12 @@ class PatchWindow:
 			if hiResEnabled:
 				patchParams = patchParams + " --highres"
 
-			self.command = QtCore.QString(wineProgram)
+			self.command = wineProgram
 			self.process.setWorkingDirectory(runDir)
-			self.uiLog.txtLog.append(QtCore.QString(patchParams))
+			self.uiLog.txtLog.append(patchParams)
 
 			for arg in patchParams.split(" "):
-				self.arguments.append(QtCore.QString(arg))
+				self.arguments.append(arg)
 
 		else:
 			tempArg = ("--bottle %s --cx-app rundll32.exe --verbose " +
@@ -128,13 +128,13 @@ class PatchWindow:
 				tempArg = tempArg + " --highres"
 
 			for arg in tempArg.split(" "):
-				self.arguments.append(QtCore.QString(arg))
+				self.arguments.append(arg)
 
 			self.process.setWorkingDirectory(runDir)
 
 			if wineApp == "CXGames":
 				if not self.osType.startCXG():
-					self.uiLog.txtLog.append(QtCore.QString("<b>Error: Couldn't start Crossover Games</b>"))
+					self.uiLog.txtLog.append("<b>Error: Couldn't start Crossover Games</b>")
 					self.uiLog.btnSave.setEnabled(False)
 					self.uiLog.btnStart.setEnabled(False)
 
@@ -142,19 +142,19 @@ class PatchWindow:
 					tempFile = "%s%s%s" % (self.osType.globalDir, self.osType.directoryCXG, wineProgram)
 
 					if os.path.isfile(tempFile):
-						self.command = QtCore.QString(tempFile)
+						self.command = tempFile
 					else:
 						tempFile = "%s%s%s" % (homeDir, self.osType.directoryCXG, wineProgram)
 
 						if os.path.isfile(tempFile):
-							self.command = QtCore.QString(tempFile)
+							self.command = tempFile
 						else:
-							self.command = QtCore.QString(wineProgram)
+							self.command = wineProgram
 				else:
-					self.command = QtCore.QString("%s%s" % (self.osType.macPathCX, wineProgram))
+					self.command = "%s%s" % (self.osType.macPathCX, wineProgram)
 			elif wineApp == "CXOffice":
 				if not self.osType.startCXO():
-					self.uiLog.txtLog.append(QtCore.QString("<b>Error: Couldn't start Crossover</b>"))
+					self.uiLog.txtLog.append("<b>Error: Couldn't start Crossover</b>")
 					self.uiLog.btnSave.setEnabled(False)
 					self.uiLog.btnStart.setEnabled(False)
 
@@ -162,23 +162,23 @@ class PatchWindow:
 					tempFile = "%s%s%s" % (self.osType.globalDir, self.osType.directoryCXO, wineProgram)
 
 					if os.path.isfile(tempFile):
-						self.command = QtCore.QString(tempFile)
+						self.command = tempFile
 					else:
 						tempFile = "%s%s%s" % (homeDir, self.osType.directoryCXO, wineProgram)
 
 						if os.path.isfile(tempFile):
-							self.command = QtCore.QString(tempFile)
+							self.command = tempFile
 						else:
-							self.command = QtCore.QString(wineProgram)
+							self.command = wineProgram
 				else:
-					self.command = QtCore.QString("%s%s" % (self.osType.macPathCX, wineProgram))
+					self.command = "%s%s" % (self.osType.macPathCX, wineProgram)
 
 
 	def readOutput(self):
-		self.uiLog.txtLog.append(QtCore.QString(self.process.readAllStandardOutput()))
+		self.uiLog.txtLog.append(QByteArray2str(self.process.readAllStandardOutput()))
 
 	def readErrors(self):
-		self.uiLog.txtLog.append(QtCore.QString(self.process.readAllStandardError()))
+		self.uiLog.txtLog.append(QByteArray2str(self.process.readAllStandardError()))
 
 	def resetButtons(self, exitCode, exitStatus):
 		self.finished = True
@@ -186,10 +186,10 @@ class PatchWindow:
 		self.uiLog.btnSave.setEnabled(True)
 		self.uiLog.btnStart.setEnabled(True)
 		if self.aborted:
-			self.uiLog.txtLog.append(QtCore.QString("<b>***  Aborted  ***</b>"))
+			self.uiLog.txtLog.append("<b>***  Aborted  ***</b>")
 		else:
 			if self.lastRun:
-				self.uiLog.txtLog.append(QtCore.QString("<b>***  Finished  ***</b>"))
+				self.uiLog.txtLog.append("<b>***  Finished  ***</b>")
 
 	def btnStopClicked(self):
 		if self.finished:
@@ -239,7 +239,7 @@ class PatchWindow:
 
 				while loop < len(self.arguments):
 					if self.arguments[loop] == "--filesonly":
-						self.arguments[loop] = QtCore.QString("--dataonly")
+						self.arguments[loop] = "--dataonly"
 						loop = len(self.arguments)
 					else:
 						loop += 1

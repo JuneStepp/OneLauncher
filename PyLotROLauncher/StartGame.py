@@ -28,14 +28,8 @@
 # along with PyLotRO.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 from PyQt4 import QtCore, QtGui, uic
-from .PyLotROUtils import DetermineOS
+from .PyLotROUtils import DetermineOS, QByteArray2str
 import sys, os.path
-
-if sys.version_info[:2] < (3, 0):
-	def QByteArray2str(s): return str(s);
-else:
-	def QByteArray2str(s): return str(s, encoding="utf8", errors="replace");
-
 
 class StartGame:
 	def __init__(self, parent, appName, argTemplate, account, server, ticket,

@@ -45,12 +45,14 @@ if sys.version_info[:2] < (3, 0):
 
 	def string_encode(s): return s;
 	def string_decode(s): return s;
+	def QByteArray2str(s): return str(s);
 else:
 	from http.client import HTTPConnection, HTTPSConnection
 	from urllib.parse import quote
 
 	def string_encode(s): return s.encode();
 	def string_decode(s): return s.decode();
+	def QByteArray2str(s): return str(s, encoding="utf8", errors="replace");
 
 # Python <3.2 neither support OpenSSL version info, nor SSL contexts,
 # so this has to be an ugly TLS 1.2 prevention workaround:
