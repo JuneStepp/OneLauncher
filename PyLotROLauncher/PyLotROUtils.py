@@ -313,7 +313,7 @@ class GLSDataCentre:
 
 			webservice.putrequest("POST", post)
 			webservice.putheader("Content-type", "text/xml; charset=\"UTF-8\"")
-			webservice.putheader("Content-length", "%d" % len(SoapMessage))
+			webservice.putheader("Content-length", "%d" % len(msg))
 			webservice.putheader("SOAPAction", "http://www.turbine.com/SE/GLS/GetDatacenters")
 			webservice.endheaders()
 			webservice.send(msg)
@@ -515,7 +515,7 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
 
 			webservice.putrequest("POST", post)
 			webservice.putheader("Content-type", "text/xml; charset=\"UTF-8\"")
-			webservice.putheader("Content-length", "%d" % len(SoapMessage))
+			webservice.putheader("Content-length", "%d" % len(msg))
 			webservice.putheader("SOAPAction", "http://www.turbine.com/SE/GLS/LoginAccount")
 			webservice.endheaders()
 			webservice.send(msg)
@@ -586,7 +586,7 @@ class JoinWorldQueue:
 			msg = string_encode(argComplete)
 			webservice.putrequest("POST", post)
 			webservice.putheader("Content-type", "application/x-www-form-urlencoded")
-			webservice.putheader("Content-length", "%d" % len(argComplete))
+			webservice.putheader("Content-length", "%d" % len(msg))
 			webservice.putheader("SOAPAction", "http://www.turbine.com/SE/GLS/LoginAccount")
 			webservice.endheaders()
 			webservice.send(msg)
