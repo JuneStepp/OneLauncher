@@ -54,6 +54,19 @@ else:
 	def string_decode(s): return s.decode();
 	def QByteArray2str(s): return str(s, encoding="utf8", errors="replace");
 
+# Try to locate the server certificates for HTTPS connections
+certfile = None
+try:
+	from pkg_resources import resource_filename
+	certfile = resource_filename(__name__, "certificates/ca_certs.pem")
+except:
+	if '__path__' in globals():
+		certfile = os.path.join(__path__, "certificates", "ca_certs.pem")
+
+if certfile and not os.access(certfile, os.R_OK):
+	print("certificate file expected at '%s' but not found!" % certfile)
+	certfile = None
+
 # Python <3.2 neither support OpenSSL version info, nor SSL contexts,
 # so this has to be an ugly TLS 1.2 prevention workaround:
 if sys.version_info[:2] < (3, 2):
@@ -75,6 +88,10 @@ if sys.version_info[:2] < (3, 2):
 			return conn, post
 else:
 	pylotro_ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+	if certfile:
+		pylotro_ssl_ctx.verify_mode = ssl.CERT_REQUIRED
+		pylotro_ssl_ctx.load_verify_locations(certfile)
+		print("SSL certificate verification enabled!")
 
 	def WebConnection(urlIn):
 		if urlIn.upper().find("HTTP://") >= 0:
