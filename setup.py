@@ -36,9 +36,10 @@ if uninstallMode:
 	shutil.rmtree(maindir)
 	os.remove("pylotro-install.log")
 else:
+	opts = {}
 	# If called with install capture the installation to to pylotro-install.log
 	if installMode:
-		sys.argv = sys.argv + ['--record', 'pylotro-install.log']
+		opts["install"] = { "record" : "pylotro-install.log" }
 
 	setup(name = "PyLotROLauncher",
 		version = PyLotROLauncher.Information.Version,
@@ -50,7 +51,8 @@ else:
 		scripts = ["pylotro"],
 		data_files = [('share/pixmaps', ['PyLotRO_Menu.png']),
 			('share/applications',['PyLotRO.desktop']),],
-		package_data = {'PyLotROLauncher' : ["*.png", "ui/*", "images/*"] },
-		long_description = PyLotROLauncher.Information.LongDescription 
+		package_data = {'PyLotROLauncher' : ["*.png", "ui/*", "images/*", "certificates/*.pem"] },
+		long_description = PyLotROLauncher.Information.LongDescription,
+		options = opts
 	)
 
