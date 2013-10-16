@@ -32,6 +32,13 @@ from .PyLotROUtils import DetermineOS
 import os.path
 import glob
 
+# small Python 2.x + PyQt4 backwards-compatibility function for QVariant
+def toString(val):
+	if isinstance(val, str):
+		return val
+	else:
+		return val.toString()
+
 class SettingsWizard:
 	def __init__(self, parent, homeDir, osType, rootDir):
 
@@ -66,9 +73,9 @@ class SettingsWizard:
 		self.winSettings.setWindowTitle("Game Settings")
 
 		self.model = QtGui.QStandardItemModel(0, 3, self.winSettings)
-		self.model.setHeaderData(0, QtCore.Qt.Horizontal, QtCore.QVariant("Prefix"))
-		self.model.setHeaderData(1, QtCore.Qt.Horizontal, QtCore.QVariant("Game Directory"))
-		self.model.setHeaderData(2, QtCore.Qt.Horizontal, QtCore.QVariant("Game Directory"))
+		self.model.setHeaderData(0, QtCore.Qt.Horizontal, "Prefix")
+		self.model.setHeaderData(1, QtCore.Qt.Horizontal, "Game Directory")
+		self.model.setHeaderData(2, QtCore.Qt.Horizontal, "Game Directory")
 		self.uiWizard.tblGame.setModel(self.model)
 
 		if self.osType.usingWindows:
@@ -104,10 +111,10 @@ class SettingsWizard:
 
 		currIndex = self.uiWizard.tblGame.currentIndex()
 
-		self.prefix = self.model.data(currIndex.sibling(self.uiWizard.tblGame.currentIndex().row(), 0)).toString()
+		self.prefix = toString(self.model.data(currIndex.sibling(self.uiWizard.tblGame.currentIndex().row(), 0)))
 
-		gameDir1 = self.model.data(currIndex.sibling(self.uiWizard.tblGame.currentIndex().row(), 1)).toString()
-		gameDir2 = self.model.data(currIndex.sibling(self.uiWizard.tblGame.currentIndex().row(), 2)).toString()
+		gameDir1 = toString(self.model.data(currIndex.sibling(self.uiWizard.tblGame.currentIndex().row(), 1)))
+		gameDir2 = toString(self.model.data(currIndex.sibling(self.uiWizard.tblGame.currentIndex().row(), 2)))
 		self.gameDir = gameDir2
 
 	def ClearGameTable(self):
@@ -156,12 +163,12 @@ class SettingsWizard:
 			if name.lower().find(self.client) >= 0:
 				row = self.model.rowCount(QtCore.QModelIndex())
 				self.model.insertRows(row, 1, QtCore.QModelIndex())
-				self.model.setData(self.model.index(row, 0, QtCore.QModelIndex()), QtCore.QVariant(prefix))
+				self.model.setData(self.model.index(row, 0, QtCore.QModelIndex()), prefix)
 
 				dirName = os.path.dirname(name.replace(path + os.sep, ""))
 
-				self.model.setData(self.model.index(row, 1, QtCore.QModelIndex()), QtCore.QVariant(dirName))
-				self.model.setData(self.model.index(row, 2, QtCore.QModelIndex()), QtCore.QVariant(path + os.sep + dirName))
+				self.model.setData(self.model.index(row, 1, QtCore.QModelIndex()), dirName)
+				self.model.setData(self.model.index(row, 2, QtCore.QModelIndex()), (path + os.sep + dirName))
 
 			if os.path.isdir(name):
 				if not name.upper().endswith(os.sep + "BACKUP"):
