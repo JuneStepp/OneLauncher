@@ -72,3 +72,8 @@ Changes
 0.1.15  Fix problem getting newsfeed (might be temp glitch)
 		Fix EN GB -> English problem
 
+0.2.0	Fix newsfeed (again) after site revamp
+		Fix XML parsing	that relied on consistent behaviour of undefined ordering
+		Fix problems when path settings have trailing (back-)slashes.
+		Support for Python 3.x, PyQt 4.6+ and OpenSSL 1.x
+		Enable server authentication for better security (Python 3.2+ only currently)

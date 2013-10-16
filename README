@@ -14,12 +14,14 @@ To install
 NB The following items are required
 to run PyLotRO
 
-Python
-4Suite
+Python (2.x or 3.x work, 3.2+ recommended)
 PyQT4
 
+recommended optional package:
+pkg_resources
+
 On Ubuntu you should only need to
-install python-4suite-xml and python-qt4
+install python-qt4 (or python3-pyqt4)
 
 Install using
 sudo ./setup.py install
@@ -28,14 +30,18 @@ or
 
 sudo python setup.py install
 
+or if you want Python 3.x
+
+sudo python3 setup.py install
+
 To uninstall
 ============
 
-sudo ./setup.py install
+sudo ./setup.py uninstall
 
 or
 
-sudo python setup.py install
+sudo python setup.py uninstall
 
 To run
 ======
