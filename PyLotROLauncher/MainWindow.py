@@ -305,6 +305,9 @@ class MainWindow:
 		self.account = AuthenticateUser(self.dataCentre.authServer, self.uiMain.txtAccount.text(), 
 			self.uiMain.txtPassword.text(), self.baseConfig.gameName, self.valHomeDir, self.osType)
 
+		# don't keep password longer in memory than required
+		self.uiMain.txtPassword.clear()
+
 		if self.account.authSuccess:
 			self.AddLog("Account authenticated")
 

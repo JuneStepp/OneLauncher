@@ -69,10 +69,13 @@ class StartGame:
 			else:
 				self.winLog.setWindowTitle("Launch Game - Crossover output")
 
-		self.uiLog.btnStart.setVisible(False)
+		#self.uiLog.btnStart.setVisible(False)
+		self.uiLog.btnStart.setText("Launcher")
+		self.uiLog.btnStart.setEnabled(False)
 		self.uiLog.btnSave.setText("Save")
 		self.uiLog.btnSave.setEnabled(False)
 		self.uiLog.btnStop.setText("Exit")
+		QtCore.QObject.connect(self.uiLog.btnStart, QtCore.SIGNAL("clicked()"), self.btnStartClicked)
 		QtCore.QObject.connect(self.uiLog.btnSave, QtCore.SIGNAL("clicked()"), self.btnSaveClicked)
 		QtCore.QObject.connect(self.uiLog.btnStop, QtCore.SIGNAL("clicked()"), self.btnStopClicked)
 
@@ -179,10 +182,16 @@ class StartGame:
 		self.finished = True
 		self.uiLog.btnStop.setText("Exit")
 		self.uiLog.btnSave.setEnabled(True)
+		self.uiLog.btnStart.setEnabled(True)
 		if self.aborted:
 			self.uiLog.txtLog.append("<b>***  Aborted  ***</b>")
 		else:
 			self.uiLog.txtLog.append("<b>***  Finished  ***</b>")
+
+	def btnStartClicked(self):
+		if self.finished:
+			self.winMain.show()
+			self.winLog.close()
 
 	def btnStopClicked(self):
 		if self.finished:
