@@ -30,6 +30,7 @@
 ###########################################################################
 from PyQt4 import QtCore, QtGui, uic
 from .PyLotROUtils import DetermineOS, QByteArray2str
+from .ProgressMonitor import ProgressMonitor
 import os.path
 
 class PatchWindow:
@@ -46,10 +47,10 @@ class PatchWindow:
 
 		try:
 			from pkg_resources import resource_filename
-			uifile = resource_filename(__name__, 'ui/winLog.ui')
+			uifile = resource_filename(__name__, 'ui/winPatch.ui')
 			icofile = resource_filename(__name__, icoFileIn)
 		except:
-			uifile = os.path.join(rootDir, "ui", "winLog.ui")
+			uifile = os.path.join(rootDir, "ui", "winPatch.ui")
 			icofile = os.path.join(rootDir, icoFileIn)
 
 		Ui_winLog, base_class = uic.loadUiType(uifile)
@@ -71,6 +72,7 @@ class PatchWindow:
 
 		self.uiLog.btnSave.setText("Save")
 		self.uiLog.btnSave.setEnabled(False)
+		self.uiLog.progressBar.reset()
 		self.uiLog.btnStop.setText("Exit")
 		self.uiLog.btnStart.setText("Start")
 		QtCore.QObject.connect(self.uiLog.btnSave, QtCore.SIGNAL("clicked()"), self.btnSaveClicked)
@@ -83,6 +85,8 @@ class PatchWindow:
 		self.command = ""
 		self.arguments = []
 
+		self.progressMonitor = ProgressMonitor(self.uiLog)
+
 		if winePrefix != "" and wineApp == "Wine":
 			os.environ["WINEPREFIX"] = winePrefix
 
@@ -90,7 +94,7 @@ class PatchWindow:
 		QtCore.QObject.connect(self.process, QtCore.SIGNAL("readyReadStandardOutput()"), self.readOutput)
 		QtCore.QObject.connect(self.process, QtCore.SIGNAL("readyReadStandardError()"), self.readErrors)
 		QtCore.QObject.connect(self.process, QtCore.SIGNAL("finished(int, QProcess::ExitStatus)"),
-			self.resetButtons)
+			self.processFinished)
 
 		if wineApp == "Native":
 			patchParams = "%s,Patch %s --language %s --productcode %s --filesonly" % (patchClient,
@@ -175,16 +179,19 @@ class PatchWindow:
 
 
 	def readOutput(self):
-		self.uiLog.txtLog.append(QByteArray2str(self.process.readAllStandardOutput()))
+		line = QByteArray2str(self.process.readAllStandardOutput())
+		self.uiLog.txtLog.append(line)
+		self.progressMonitor.parseOutput(line)
 
 	def readErrors(self):
 		self.uiLog.txtLog.append(QByteArray2str(self.process.readAllStandardError()))
 
-	def resetButtons(self, exitCode, exitStatus):
+	def resetButtons(self):
 		self.finished = True
 		self.uiLog.btnStop.setText("Exit")
 		self.uiLog.btnSave.setEnabled(True)
 		self.uiLog.btnStart.setEnabled(True)
+		self.progressMonitor.reset()
 		if self.aborted:
 			self.uiLog.txtLog.append("<b>***  Aborted  ***</b>")
 		else:
@@ -206,45 +213,38 @@ class PatchWindow:
 			outfile.write(self.uiLog.txtLog.toPlainText())
 			outfile.close()
 
+	def processFinished(self, exitCode, exitStatus):
+		if self.aborted:
+			self.resetButtons()
+			return
+		# handle remaining patching phases
+		if self.phase == 1:
+			# run file patching again (to avoid problems when patchclient.dll self-patches)
+			self.process.start(self.command, self.arguments)
+		elif self.phase == 2:
+			# run data patching
+			data_arguments = []
+			for arg in self.arguments:
+				if arg == "--filesonly":
+					data_arguments.append("--dataonly")
+				else:
+					data_arguments.append(arg)
+			self.process.start(self.command, data_arguments)
+		else:
+			# finished
+			self.lastRun = True
+			self.resetButtons()
+		self.phase += 1
+
 	def btnStartClicked(self):
 		self.lastRun = False
 		self.aborted = False
 		self.finished = False
+		self.phase = 1
 		self.uiLog.btnStart.setEnabled(False)
 		self.uiLog.btnStop.setText("Abort")
 		self.uiLog.btnSave.setEnabled(False)
 		self.process.start(self.command, self.arguments)
-
-		while not self.finished:
-			self.__app.processEvents()
-
-		if not self.aborted:
-			self.finished = False
-			self.uiLog.btnStart.setEnabled(False)
-			self.uiLog.btnStop.setText("Abort")
-			self.uiLog.btnSave.setEnabled(False)
-			self.process.start(self.command, self.arguments)
-
-			while not self.finished:
-				self.__app.processEvents()
-
-			if not self.aborted:
-				self.lastRun = True
-				self.finished = False
-				self.uiLog.btnStart.setEnabled(False)
-				self.uiLog.btnStop.setText("Abort")
-				self.uiLog.btnSave.setEnabled(False)
-
-				loop = 0
-
-				while loop < len(self.arguments):
-					if self.arguments[loop] == "--filesonly":
-						self.arguments[loop] = "--dataonly"
-						loop = len(self.arguments)
-					else:
-						loop += 1
-
-				self.process.start(self.command, self.arguments)
 
 	def Run(self, app):
 		self.__app = app
