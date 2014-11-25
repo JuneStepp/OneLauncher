@@ -34,7 +34,8 @@ import sys, os.path
 class StartGame:
 	def __init__(self, parent, appName, argTemplate, account, server, ticket,
 		chatServer, language, runDir, wineProgram, wineDebug, winePrefix, 
-		hiResEnabled, wineApp, osType, homeDir, icoFileIn, rootDir):
+		hiResEnabled, wineApp, osType, homeDir, icoFileIn, rootDir, bugurl,
+		authserverurl, supporturl, supportserviceurl, glsticketlifetime):
 
 		self.winMain = parent
 		self.homeDir = homeDir
@@ -84,8 +85,11 @@ class StartGame:
 		self.command = ""
 		self.arguments = []
 
-		gameParams = argTemplate.replace("{0}", account).replace("{1}", server)\
-			.replace("{2}", ticket).replace("{3}", chatServer).replace("{4}", language)
+		gameParams = argTemplate.replace("{SUBSCRIPTION}", account).replace("{LOGIN}", server)\
+			.replace("{GLS}", ticket).replace("{CHAT}", chatServer).replace("{LANG}", language)\
+			.replace("{BUGURL}", bugurl).replace("{AUTHSERVERURL}", authserverurl)\
+			.replace("{GLSTICKETLIFETIME}", glsticketlifetime).replace("{SUPPORTURL}", supporturl)\
+			.replace("{SUPPORTSERVICEURL}",supportserviceurl)
 
 		if not hiResEnabled:
 			gameParams = gameParams + " --HighResOutOfDate"

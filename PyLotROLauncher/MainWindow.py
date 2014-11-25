@@ -366,7 +366,10 @@ class MainWindow:
 			self.langConfig.langList[self.uiMain.cboLanguage.currentIndex()].code,
 			self.settings.gameDir, self.settings.wineProg, self.settings.wineDebug,
 			self.settings.winePrefix, self.settings.hiResEnabled, self.settings.app,
-			self.osType, self.valHomeDir, self.gameType.icoFile, self.rootDir)
+			self.osType, self.valHomeDir, self.gameType.icoFile, self.rootDir,
+			self.worldQueueConfig.bugurl, self.worldQueueConfig.authserverurl,
+			self.worldQueueConfig.supporturl, self.worldQueueConfig.supportserviceurl,
+			self.worldQueueConfig.glsticketlifetime)
 
 		self.winMain.hide()
 		game.Run()

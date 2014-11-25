@@ -458,6 +458,11 @@ class WorldQueueConfig:
 	def __init__(self, urlConfigServer, usingDND, baseDir, osType):
 		self.gameClientFilename = ""
 		self.gameClientArgTemplate = ""
+		self.bugurl = ""
+		self.authserverurl = ""
+		self.supporturl = ""
+		self.supportserviceurl = ""
+		self.glsticketlifetime = ""
 		self.newsFeedURL = ""
 		self.newsStyleSheetURL = ""
 		self.patchProductCode = ""
@@ -487,10 +492,20 @@ class WorldQueueConfig:
 				nodes = doc.getElementsByTagName("appSettings")[0].childNodes
 				for node in nodes:
 					if node.nodeType == node.ELEMENT_NODE:
-						if node.getAttribute("key") == "GameClient.Filename":
+						if node.getAttribute("key") == "GameClient.WIN32.Filename":
 							self.gameClientFilename = node.getAttribute("value")
-						elif node.getAttribute("key") == "GameClient.ArgTemplate":
+						elif node.getAttribute("key") == "GameClient.WIN32.ArgTemplate":
 							self.gameClientArgTemplate = node.getAttribute("value")
+						elif node.getAttribute("key") == "GameClient.Arg.bugurl":
+						        self.bugurl = node.getAttribute("value")
+						elif node.getAttribute("key") == "GameClient.Arg.authserverurl":
+						        self.authserverurl = node.getAttribute("value")
+						elif node.getAttribute("key") == "GameClient.Arg.supporturl":
+						        self.supporturl = node.getAttribute("value")
+						elif node.getAttribute("key") == "GameClient.Arg.supportserviceurl":
+						        self.supportserviceurl = node.getAttribute("value")
+						elif node.getAttribute("key") == "GameClient.Arg.glsticketlifetime":
+							self.glsticketlifetime = node.getAttribute("value")
 						elif node.getAttribute("key") == "URL.NewsFeed":
 							self.newsFeedURL = node.getAttribute("value")
 						elif node.getAttribute("key") == "URL.NewsStyleSheet":
