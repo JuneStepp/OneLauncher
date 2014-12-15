@@ -458,6 +458,8 @@ class WorldQueueConfig:
 	def __init__(self, urlConfigServer, usingDND, baseDir, osType):
 		self.gameClientFilename = ""
 		self.gameClientArgTemplate = ""
+		self.crashreceiver = ""
+		self.DefaultUploadThrottleMbps = ""
 		self.bugurl = ""
 		self.authserverurl = ""
 		self.supporturl = ""
@@ -496,6 +498,10 @@ class WorldQueueConfig:
 							self.gameClientFilename = node.getAttribute("value")
 						elif node.getAttribute("key") == "GameClient.WIN32.ArgTemplate":
 							self.gameClientArgTemplate = node.getAttribute("value")
+						elif node.getAttribute("key") == "GameClient.Arg.crashreceiver":
+						        self.crashreceiver = node.getAttribute("value")
+						elif node.getAttribute("key") == "GameClient.Arg.DefaultUploadThrottleMbps":
+						        self.DefaultUploadThrottleMbps = node.getAttribute("value")
 						elif node.getAttribute("key") == "GameClient.Arg.bugurl":
 						        self.bugurl = node.getAttribute("value")
 						elif node.getAttribute("key") == "GameClient.Arg.authserverurl":

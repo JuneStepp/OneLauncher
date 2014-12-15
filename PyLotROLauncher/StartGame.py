@@ -34,8 +34,9 @@ import sys, os.path
 class StartGame:
 	def __init__(self, parent, appName, argTemplate, account, server, ticket,
 		chatServer, language, runDir, wineProgram, wineDebug, winePrefix, 
-		hiResEnabled, wineApp, osType, homeDir, icoFileIn, rootDir, bugurl,
-		authserverurl, supporturl, supportserviceurl, glsticketlifetime):
+		hiResEnabled, wineApp, osType, homeDir, icoFileIn, rootDir,
+		crashreceiver, DefaultUploadThrottleMbps, bugurl, authserverurl,
+		supporturl, supportserviceurl, glsticketlifetime):
 
 		self.winMain = parent
 		self.homeDir = homeDir
@@ -87,6 +88,7 @@ class StartGame:
 
 		gameParams = argTemplate.replace("{SUBSCRIPTION}", account).replace("{LOGIN}", server)\
 			.replace("{GLS}", ticket).replace("{CHAT}", chatServer).replace("{LANG}", language)\
+			.replace("{CRASHRECEIVER}", crashreceiver).replace("{UPLOADTHROTTLE}", DefaultUploadThrottleMbps)\
 			.replace("{BUGURL}", bugurl).replace("{AUTHSERVERURL}", authserverurl)\
 			.replace("{GLSTICKETLIFETIME}", glsticketlifetime).replace("{SUPPORTURL}", supporturl)\
 			.replace("{SUPPORTSERVICEURL}",supportserviceurl)

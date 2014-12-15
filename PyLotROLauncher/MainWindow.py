@@ -367,6 +367,7 @@ class MainWindow:
 			self.settings.gameDir, self.settings.wineProg, self.settings.wineDebug,
 			self.settings.winePrefix, self.settings.hiResEnabled, self.settings.app,
 			self.osType, self.valHomeDir, self.gameType.icoFile, self.rootDir,
+			self.worldQueueConfig.crashreceiver, self.worldQueueConfig.DefaultUploadThrottleMbps,
 			self.worldQueueConfig.bugurl, self.worldQueueConfig.authserverurl,
 			self.worldQueueConfig.supporturl, self.worldQueueConfig.supportserviceurl,
 			self.worldQueueConfig.glsticketlifetime)
