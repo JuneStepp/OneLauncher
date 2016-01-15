@@ -1,0 +1,33 @@
+In order to connect via SSL/TLS, the server's certificate is validated against
+the certificate chain stored in this file. When Turbine updates their
+certificate chain, this program will break (again) with the error message:
+
+	[E15] SSL Error occured in HTTPS connection
+
+In that case you will need re-assemble the certificate chain and place it into
+this file. Useful commands at the time of this writing include:
+
+	openssl s_client -connect gls.lotro.com:443
+
+...which will attempt to connect to the LotRO authentication server and
+allow you to copy+paste the server's certificate and begin hunting down the
+chain. In order to read each certificate as you work your way up the chain,
+you can use:
+
+	openssl x509 -in <path/to/pem/certificate> -text
+
+...in order to dump information about the specified certificate. You may
+need to add '-inform der' if the certificate is in binary format. Look
+for the 'Authority Information Access' under 'X509v3 extensions' in order
+to quickly retrieve URLs for the certificate chain. You may also need to
+retrieve the root certificate from your local '/etc/ssl/certs/'.
+
+When you have retrieved all of the certificates, you will need to concatenate
+them together. In order to verify that this has been done correctly, again use
+the 'openssl verify' command, and in addition use the '-CAfile <pemfile>'
+argument. It's best to start with the root authority and then work your way
+down (in the order opposite of which the certificates were retrieved). Note
+that, when I did this, the root authority wasn't required for the command
+to verify, but was necessary for the program to actually work.
+
+Good luck.
