@@ -376,7 +376,7 @@ class GLSDataCentre:
 class Language:
 	def __init__(self, code):
 		self.code = code.upper()
-		self.news = ""
+		self.news = "en"
 
 		if code == "EN_GB":
 			self.name = "English (UK)"
