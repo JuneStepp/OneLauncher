@@ -31,6 +31,7 @@ import os
 import subprocess
 import sys
 import glob
+import codecs
 from PyQt4 import QtCore
 import xml.dom.minidom
 from xml.sax.saxutils import escape as xml_escape
@@ -340,7 +341,7 @@ class GLSDataCentre:
 			tempxml = string_decode(webresp.read())
 
 			filename = "%s%sGLSDataCenter.config" % (baseDir, osType.appDir)
-			outfile = open(filename, "w")
+			outfile = codecs.open(filename, "w", "utf-8")
 			outfile.write(tempxml)
 			outfile.close()
 
@@ -429,7 +430,7 @@ class Realm:
 			tempxml = string_decode(webresp.read())
 
 			filename = "%s%sserver.config" % (baseDir, osType.appDir)
-			outfile = open(filename, "w")
+			outfile = codecs.open(filename, "w", "utf-8")
 			outfile.write(tempxml)
 			outfile.close()
 
@@ -482,7 +483,7 @@ class WorldQueueConfig:
 			tempxml = string_decode(webresp.read())
 
 			filename = "%s%slauncher.config" % (baseDir, osType.appDir)
-			outfile = open(filename, "w")
+			outfile = codecs.open(filename, "w", "utf-8")
 			outfile.write(tempxml)
 			outfile.close()
 
@@ -526,6 +527,7 @@ class WorldQueueConfig:
 				self.loadSuccess = True
 		except:
 			self.loadSuccess = False
+			raise
 
 class Game:
 	def __init__(self, name, description):
@@ -568,7 +570,7 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
 			tempxml = string_decode(webresp.read())
 
 			filename = "%s%sGLSAuthServer.config" % (baseDir, osType.appDir)
-			outfile = open(filename, "w")
+			outfile = codecs.open(filename, "w", "utf-8")
 			outfile.write(tempxml)
 			outfile.close()
 
@@ -634,7 +636,7 @@ class JoinWorldQueue:
 			tempxml = string_decode(webresp.read())
 
 			filename = "%s%sWorldQueue.config" % (baseDir, osType.appDir)
-			outfile = open(filename, "w")
+			outfile = codecs.open(filename, "w", "utf-8")
 			outfile.write(tempxml)
 			outfile.close()
 
