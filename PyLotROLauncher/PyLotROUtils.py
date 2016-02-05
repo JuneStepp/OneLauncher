@@ -242,7 +242,7 @@ class DetermineOS:
 				os.environ["FONT_ENCODINGS_DIRECTORY"] = (cxPath + "/Contents/SharedSupport/X11/lib/" +
 					"X11/fonts/encodings/encodings.dir")
 				os.environ["FONTCONFIG_ROOT"] = "%s/Contents/SharedSupport/X11" % (cxPath)
-				os.environ["COMMAND_MODE"] = "legacy" 
+				os.environ["COMMAND_MODE"] = "legacy"
 				os.environ["FONTCONFIG_PATH"] = "%s/Contents/SharedSupport/X11/etc/fonts" % (cxPath)
 				os.environ["DYLD_FALLBACK_LIBRARY_PATH"] = (cxPath + "/Contents/SharedSupport/X11/lib" +
 					":" + os.environ.get('HOME') + "/lib:/usr/local/lib:/lib:/usr/lib")
@@ -256,7 +256,7 @@ class DetermineOS:
 					display = "2"
 				os.environ["DISPLAY"] = ":%s" % (display)
 
-		return finished			
+		return finished
 
 	def startCXO(self):
 		finished = True
@@ -299,7 +299,7 @@ class DetermineOS:
 				os.environ["FONT_ENCODINGS_DIRECTORY"] = (cxPath + "/Contents/SharedSupport/X11/lib/" +
 					"X11/fonts/encodings/encodings.dir")
 				os.environ["FONTCONFIG_ROOT"] = "%s/Contents/SharedSupport/X11" % (cxPath)
-				os.environ["COMMAND_MODE"] = "legacy" 
+				os.environ["COMMAND_MODE"] = "legacy"
 				os.environ["FONTCONFIG_PATH"] = "%s/Contents/SharedSupport/X11/etc/fonts" % (cxPath)
 				os.environ["DYLD_FALLBACK_LIBRARY_PATH"] = (cxPath + "/Contents/SharedSupport/X11/lib" +
 					":" + os.environ.get('HOME') + "/lib:/usr/local/lib:/lib:/usr/lib")
@@ -313,7 +313,7 @@ class DetermineOS:
 					display = "2"
 				os.environ["DISPLAY"] = ":%s" % (display)
 
-		return finished			
+		return finished
 
 class GLSDataCentre:
 	def __init__(self, urlGLSDataCentreService, gameName, baseDir, osType):
@@ -381,11 +381,11 @@ class Language:
 		if code == "EN_GB":
 			self.name = "English (UK)"
 			self.code = "ENGLISH"
-                        self.news = "en"
+			self.news = "en"
 		elif code == "ENGLISH" or code == "en":
 			self.name = "English"
 			self.code = "ENGLISH"
-                        self.news = "en"
+			self.news = "en"
 		elif code == "FR" or code == "fr":
 			self.name = "French"
 			self.code = "FR"
@@ -408,13 +408,13 @@ class LanguageConfig():
 			# remove "client_local_" (13 chars) and ".dat" (4 chars) from filename
 			temp = os.path.basename(name)[13:-4]
 			self.langList.append(Language(temp))
-                # Handle newer clients where the language is a subdir
-                for name in os.listdir(runDir):
-                        lang = Language(name)
-                        if lang.news != "":
-                                self.langList.append(lang)
-                                self.langFound = True
-                        
+		# Handle newer clients where the language is a subdir
+		for name in os.listdir(runDir):
+			lang = Language(name)
+			if lang.news != "":
+				self.langList.append(lang)
+				self.langFound = True
+
 class Realm:
 	def __init__(self, name, urlChatServer, urlServerStatus):
 		self.name = name
@@ -507,17 +507,17 @@ class WorldQueueConfig:
 						elif node.getAttribute("key") == "GameClient.WIN32.ArgTemplate":
 							self.gameClientArgTemplate = node.getAttribute("value")
 						elif node.getAttribute("key") == "GameClient.Arg.crashreceiver":
-						        self.crashreceiver = node.getAttribute("value")
+							self.crashreceiver = node.getAttribute("value")
 						elif node.getAttribute("key") == "GameClient.Arg.DefaultUploadThrottleMbps":
-						        self.DefaultUploadThrottleMbps = node.getAttribute("value")
+							self.DefaultUploadThrottleMbps = node.getAttribute("value")
 						elif node.getAttribute("key") == "GameClient.Arg.bugurl":
-						        self.bugurl = node.getAttribute("value")
+							self.bugurl = node.getAttribute("value")
 						elif node.getAttribute("key") == "GameClient.Arg.authserverurl":
-						        self.authserverurl = node.getAttribute("value")
+							self.authserverurl = node.getAttribute("value")
 						elif node.getAttribute("key") == "GameClient.Arg.supporturl":
-						        self.supporturl = node.getAttribute("value")
+							self.supporturl = node.getAttribute("value")
 						elif node.getAttribute("key") == "GameClient.Arg.supportserviceurl":
-						        self.supportserviceurl = node.getAttribute("value")
+							self.supportserviceurl = node.getAttribute("value")
 						elif node.getAttribute("key") == "GameClient.Arg.glsticketlifetime":
 							self.glsticketlifetime = node.getAttribute("value")
 						elif node.getAttribute("key") == "URL.NewsFeed":
