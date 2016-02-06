@@ -7,7 +7,7 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{EB42F98E-B61B-4EE7-AF06-CAAF8D1825A3}
 AppName=PyLotRO
-AppVerName=PyLotRO 0.2.2
+AppVerName=PyLotRO 0.2.3
 AppPublisher=AJackson
 AppPublisherURL=http://www.lotrolinux.com
 AppSupportURL=http://www.lotrolinux.com

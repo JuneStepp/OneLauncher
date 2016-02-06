@@ -85,3 +85,8 @@ Changes
 0.2.2	Fixes for Update 15.1 changes to launcher.config argument template.  Turbine is now
 		using crashserverurl and DefaultUploadThrottleMbps in the argument template.
 		Version bump to 0.2.2.
+
+0.2.3	Localization changes from hcjiv1 and Arek75. Turbine has removed the client local
+		files for each language. Now each language has a separate subdirectory. If
+		the client local file is not found then I (hcjiv1) pick languages based on those
+		subdirectories.  Thanks to hcjiv1 and Arek75.  Version bump to 0.2.3
