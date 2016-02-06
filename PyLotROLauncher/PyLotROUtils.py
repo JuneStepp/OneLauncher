@@ -37,6 +37,15 @@ import xml.dom.minidom
 from xml.sax.saxutils import escape as xml_escape
 import ssl
 
+# Python 3 on windows needs Turbine-supplied config files
+# to be written in UTF-8, but Python 2 doesn't, and won't
+# convert an ascii string for use in codecs.open()
+if sys.version_info > (2,):
+	import codecs
+	uopen = codecs.open
+else:
+	uopen = open
+
 # If Python >3.0 is in use use http otherwise httplib
 # Python >3.0 uses unicode strings by default, so also
 # need to take care of encoding/decoding for sending/receiving
@@ -341,7 +350,7 @@ class GLSDataCentre:
 			tempxml = string_decode(webresp.read())
 
 			filename = "%s%sGLSDataCenter.config" % (baseDir, osType.appDir)
-			outfile = codecs.open(filename, "w", "utf-8")
+			outfile = uopen(filename, "w", "utf-8")
 			outfile.write(tempxml)
 			outfile.close()
 
@@ -430,7 +439,7 @@ class Realm:
 			tempxml = string_decode(webresp.read())
 
 			filename = "%s%sserver.config" % (baseDir, osType.appDir)
-			outfile = codecs.open(filename, "w", "utf-8")
+			outfile = uopen(filename, "w", "utf-8")
 			outfile.write(tempxml)
 			outfile.close()
 
@@ -483,7 +492,7 @@ class WorldQueueConfig:
 			tempxml = string_decode(webresp.read())
 
 			filename = "%s%slauncher.config" % (baseDir, osType.appDir)
-			outfile = codecs.open(filename, "w", "utf-8")
+			outfile = uopen(filename, "w", "utf-8")
 			outfile.write(tempxml)
 			outfile.close()
 
@@ -570,7 +579,7 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
 			tempxml = string_decode(webresp.read())
 
 			filename = "%s%sGLSAuthServer.config" % (baseDir, osType.appDir)
-			outfile = codecs.open(filename, "w", "utf-8")
+			outfile = uopen(filename, "w", "utf-8")
 			outfile.write(tempxml)
 			outfile.close()
 
@@ -636,7 +645,7 @@ class JoinWorldQueue:
 			tempxml = string_decode(webresp.read())
 
 			filename = "%s%sWorldQueue.config" % (baseDir, osType.appDir)
-			outfile = codecs.open(filename, "w", "utf-8")
+			outfile = uopen(filename, "w", "utf-8")
 			outfile.write(tempxml)
 			outfile.close()
 
