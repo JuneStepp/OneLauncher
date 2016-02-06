@@ -509,17 +509,17 @@ class WorldQueueConfig:
 						elif node.getAttribute("key") == "GameClient.WIN32.ArgTemplate":
 							self.gameClientArgTemplate = node.getAttribute("value")
 						elif node.getAttribute("key") == "GameClient.Arg.crashreceiver":
-						        self.crashreceiver = node.getAttribute("value")
+							self.crashreceiver = node.getAttribute("value")
 						elif node.getAttribute("key") == "GameClient.Arg.DefaultUploadThrottleMbps":
-						        self.DefaultUploadThrottleMbps = node.getAttribute("value")
+							self.DefaultUploadThrottleMbps = node.getAttribute("value")
 						elif node.getAttribute("key") == "GameClient.Arg.bugurl":
-						        self.bugurl = node.getAttribute("value")
+							self.bugurl = node.getAttribute("value")
 						elif node.getAttribute("key") == "GameClient.Arg.authserverurl":
-						        self.authserverurl = node.getAttribute("value")
+							self.authserverurl = node.getAttribute("value")
 						elif node.getAttribute("key") == "GameClient.Arg.supporturl":
-						        self.supporturl = node.getAttribute("value")
+							self.supporturl = node.getAttribute("value")
 						elif node.getAttribute("key") == "GameClient.Arg.supportserviceurl":
-						        self.supportserviceurl = node.getAttribute("value")
+							self.supportserviceurl = node.getAttribute("value")
 						elif node.getAttribute("key") == "GameClient.Arg.glsticketlifetime":
 							self.glsticketlifetime = node.getAttribute("value")
 						elif node.getAttribute("key") == "URL.NewsFeed":
