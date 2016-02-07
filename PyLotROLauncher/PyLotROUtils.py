@@ -393,9 +393,6 @@ class Language:
 		if code == "EN_GB":
 			self.name = "English (UK)"
 			self.code = "ENGLISH"
-		elif code == "ENGLISH":
-			self.name = "English"
-			self.code = "ENGLISH"
 			self.news = "en"
 		elif code == "ENGLISH" or code == "EN":
 			self.name = "English"
