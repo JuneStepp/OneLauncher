@@ -385,15 +385,18 @@ class GLSDataCentre:
 
 class Language:
 	def __init__(self, code):
-		self.code = code.upper()
+		# make code uppercase for easier testing - don't use self.code here unless you want to test against self.code instead of code.
+		code = code.upper()
 		self.news = "en"
 
 		if code == "EN_GB":
 			self.name = "English (UK)"
 			self.code = "ENGLISH"
-		elif code == "ENGLISH":
+			self.news = "en"
+		elif code == "ENGLISH" or code == "EN":
 			self.name = "English"
 			self.code = "ENGLISH"
+			self.news = "en"
 		elif code == "FR":
 			self.name = "French"
 			self.code = "FR"
@@ -416,6 +419,13 @@ class LanguageConfig():
 			# remove "client_local_" (13 chars) and ".dat" (4 chars) from filename
 			temp = os.path.basename(name)[13:-4]
 			self.langList.append(Language(temp))
+		# Handle newer clients where the language is a subdir
+		for name in os.listdir(runDir):
+			path = os.path.join(runDir, name)
+			if os.path.exists(os.path.join(path, "Licenses")):
+				lang = Language(name)
+				self.langList.append(lang)
+				self.langFound = True
 
 class Realm:
 	def __init__(self, name, urlChatServer, urlServerStatus):
