@@ -387,7 +387,6 @@ class Language:
 	def __init__(self, code):
 		# make code uppercase for easier testing - don't use self.code here unless you want to test against self.code instead of code.
 		code = code.upper()
-		print("{}: {}".format("code", code))
 		self.news = "en"
 
 		if code == "EN_GB":
