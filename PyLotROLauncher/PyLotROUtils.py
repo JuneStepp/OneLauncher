@@ -31,10 +31,20 @@ import os
 import subprocess
 import sys
 import glob
+import codecs
 from PyQt4 import QtCore
 import xml.dom.minidom
 from xml.sax.saxutils import escape as xml_escape
 import ssl
+
+# Python 3 on windows needs Turbine-supplied config files
+# to be written in UTF-8, but Python 2 doesn't, and won't
+# convert an ascii string for use in codecs.open()
+if sys.version_info >= (3,):
+	from codecs import open as uopen
+else:
+	def uopen(name, mode, dummy):
+		return open(name, mode)
 
 # If Python >3.0 is in use use http otherwise httplib
 # Python >3.0 uses unicode strings by default, so also
@@ -242,7 +252,7 @@ class DetermineOS:
 				os.environ["FONT_ENCODINGS_DIRECTORY"] = (cxPath + "/Contents/SharedSupport/X11/lib/" +
 					"X11/fonts/encodings/encodings.dir")
 				os.environ["FONTCONFIG_ROOT"] = "%s/Contents/SharedSupport/X11" % (cxPath)
-				os.environ["COMMAND_MODE"] = "legacy"
+				os.environ["COMMAND_MODE"] = "legacy" 
 				os.environ["FONTCONFIG_PATH"] = "%s/Contents/SharedSupport/X11/etc/fonts" % (cxPath)
 				os.environ["DYLD_FALLBACK_LIBRARY_PATH"] = (cxPath + "/Contents/SharedSupport/X11/lib" +
 					":" + os.environ.get('HOME') + "/lib:/usr/local/lib:/lib:/usr/lib")
@@ -256,7 +266,7 @@ class DetermineOS:
 					display = "2"
 				os.environ["DISPLAY"] = ":%s" % (display)
 
-		return finished
+		return finished			
 
 	def startCXO(self):
 		finished = True
@@ -299,7 +309,7 @@ class DetermineOS:
 				os.environ["FONT_ENCODINGS_DIRECTORY"] = (cxPath + "/Contents/SharedSupport/X11/lib/" +
 					"X11/fonts/encodings/encodings.dir")
 				os.environ["FONTCONFIG_ROOT"] = "%s/Contents/SharedSupport/X11" % (cxPath)
-				os.environ["COMMAND_MODE"] = "legacy"
+				os.environ["COMMAND_MODE"] = "legacy" 
 				os.environ["FONTCONFIG_PATH"] = "%s/Contents/SharedSupport/X11/etc/fonts" % (cxPath)
 				os.environ["DYLD_FALLBACK_LIBRARY_PATH"] = (cxPath + "/Contents/SharedSupport/X11/lib" +
 					":" + os.environ.get('HOME') + "/lib:/usr/local/lib:/lib:/usr/lib")
@@ -313,7 +323,7 @@ class DetermineOS:
 					display = "2"
 				os.environ["DISPLAY"] = ":%s" % (display)
 
-		return finished
+		return finished			
 
 class GLSDataCentre:
 	def __init__(self, urlGLSDataCentreService, gameName, baseDir, osType):
@@ -340,7 +350,7 @@ class GLSDataCentre:
 			tempxml = string_decode(webresp.read())
 
 			filename = "%s%sGLSDataCenter.config" % (baseDir, osType.appDir)
-			outfile = open(filename, "w")
+			outfile = uopen(filename, "w", "utf-8")
 			outfile.write(tempxml)
 			outfile.close()
 
@@ -381,16 +391,14 @@ class Language:
 		if code == "EN_GB":
 			self.name = "English (UK)"
 			self.code = "ENGLISH"
-			self.news = "en"
-		elif code == "ENGLISH" or code == "en":
+		elif code == "ENGLISH":
 			self.name = "English"
 			self.code = "ENGLISH"
-			self.news = "en"
-		elif code == "FR" or code == "fr":
+		elif code == "FR":
 			self.name = "French"
 			self.code = "FR"
 			self.news = "fr"
-		elif code == "DE" or code == "de":
+		elif code == "DE":
 			self.name = "German"
 			self.code = "DE"
 			self.news = "de"
@@ -408,12 +416,6 @@ class LanguageConfig():
 			# remove "client_local_" (13 chars) and ".dat" (4 chars) from filename
 			temp = os.path.basename(name)[13:-4]
 			self.langList.append(Language(temp))
-		# Handle newer clients where the language is a subdir
-		for name in os.listdir(runDir):
-			lang = Language(name)
-			if lang.news != "":
-				self.langList.append(lang)
-				self.langFound = True
 
 class Realm:
 	def __init__(self, name, urlChatServer, urlServerStatus):
@@ -437,7 +439,7 @@ class Realm:
 			tempxml = string_decode(webresp.read())
 
 			filename = "%s%sserver.config" % (baseDir, osType.appDir)
-			outfile = open(filename, "w")
+			outfile = uopen(filename, "w", "utf-8")
 			outfile.write(tempxml)
 			outfile.close()
 
@@ -490,7 +492,7 @@ class WorldQueueConfig:
 			tempxml = string_decode(webresp.read())
 
 			filename = "%s%slauncher.config" % (baseDir, osType.appDir)
-			outfile = open(filename, "w")
+			outfile = uopen(filename, "w", "utf-8")
 			outfile.write(tempxml)
 			outfile.close()
 
@@ -534,6 +536,7 @@ class WorldQueueConfig:
 				self.loadSuccess = True
 		except:
 			self.loadSuccess = False
+			raise
 
 class Game:
 	def __init__(self, name, description):
@@ -576,7 +579,7 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
 			tempxml = string_decode(webresp.read())
 
 			filename = "%s%sGLSAuthServer.config" % (baseDir, osType.appDir)
-			outfile = open(filename, "w")
+			outfile = uopen(filename, "w", "utf-8")
 			outfile.write(tempxml)
 			outfile.close()
 
@@ -642,7 +645,7 @@ class JoinWorldQueue:
 			tempxml = string_decode(webresp.read())
 
 			filename = "%s%sWorldQueue.config" % (baseDir, osType.appDir)
-			outfile = open(filename, "w")
+			outfile = uopen(filename, "w", "utf-8")
 			outfile.write(tempxml)
 			outfile.close()
 
