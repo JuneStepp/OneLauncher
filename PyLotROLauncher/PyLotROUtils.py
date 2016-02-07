@@ -375,22 +375,24 @@ class GLSDataCentre:
 
 class Language:
 	def __init__(self, code):
-		self.code = code.upper()
+		# make code uppercase for easier testing - don't use self.code here unless you want to test against self.code instead of code.
+		code = code.upper()
+		print("{}: {}".format("code", code))
 		self.news = "en"
 
 		if code == "EN_GB":
 			self.name = "English (UK)"
 			self.code = "ENGLISH"
 			self.news = "en"
-		elif code == "ENGLISH" or code == "en":
+		elif code == "ENGLISH" or code == "EN":
 			self.name = "English"
 			self.code = "ENGLISH"
 			self.news = "en"
-		elif code == "FR" or code == "fr":
+		elif code == "FR":
 			self.name = "French"
 			self.code = "FR"
 			self.news = "fr"
-		elif code == "DE" or code == "de":
+		elif code == "DE":
 			self.name = "German"
 			self.code = "DE"
 			self.news = "de"
@@ -410,8 +412,9 @@ class LanguageConfig():
 			self.langList.append(Language(temp))
 		# Handle newer clients where the language is a subdir
 		for name in os.listdir(runDir):
-			lang = Language(name)
-			if lang.news != "":
+			path = os.path.join(runDir, name)
+			if os.path.exists(os.path.join(path, "Licenses")):
+				lang = Language(name)
 				self.langList.append(lang)
 				self.langFound = True
 
