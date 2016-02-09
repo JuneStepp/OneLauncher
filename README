@@ -57,7 +57,7 @@ find relevant installations of LotRO or DDO.
 For CrossOver and CrossOver Games it searches
 in the default bottle location. For Wine it
 looks for wine folders in your home directory
-(folders tarting with a full stop with a
+(folders starting with a full stop with a
 directory called drive_c under that). For all
 options it tries to find the game in the
 "Program Files" directory (or directories off
