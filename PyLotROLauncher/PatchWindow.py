@@ -40,6 +40,7 @@ class PatchWindow:
 		self.winMain = parent
 		self.homeDir = homeDir
 		self.winLog = QtGui.QDialog(parent)
+		self.winLog.setPalette(parent.palette())
 		self.osType = osType
 
 		uifile = None

@@ -90,3 +90,9 @@ Changes
 		files for each language. Now each language has a separate subdirectory. If
 		the client local file is not found then I (hcjiv1) pick languages based on those
 		subdirectories.  Thanks to hcjiv1 and Arek75.  Version bump to 0.2.3
+
+0.2.4	News feed fixed - Apparently Turbine changed the content encoding of the news feed to
+		gzip and retrieving the news feed was failing.  We now accept gzip content
+		encoding for the news feed by default and check the Content-Encoding header and
+		uncompress if content is gzip.
+		Also some palette adjustments to the widgets (darker theme)

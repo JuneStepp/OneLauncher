@@ -40,6 +40,7 @@ class SettingsWindow:
 		self.osType = osType
 
 		self.winSettings = QtGui.QDialog(parent)
+		self.winSettings.setPalette(parent.palette())
 
 		uifile = None
 

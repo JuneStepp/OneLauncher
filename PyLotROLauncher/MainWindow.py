@@ -30,6 +30,7 @@
 import os
 import sys
 import xml.dom.minidom
+import zlib
 from PyQt4 import QtCore, QtGui, uic
 from .SettingsWindow import SettingsWindow
 from .SettingsWizard import SettingsWizard
@@ -82,6 +83,30 @@ class MainWindow:
 		self.winMain.setWindowFlags(QtCore.Qt.Dialog)
 		self.uiMain = Ui_winMain()
 		self.uiMain.setupUi(self.winMain)
+
+		# Set window palette
+		self.palette = QtGui.QPalette()
+		self.palette.setColor(QtGui.QPalette.Base, QtCore.Qt.black)
+		self.palette.setColor(QtGui.QPalette.AlternateBase, QtGui.QColor(22,21,21))
+		self.palette.setColor(QtGui.QPalette.ToolTipBase, QtGui.QColor(255,255,220))
+		self.palette.setColor(QtGui.QPalette.ToolTipText, QtCore.Qt.black)
+		self.palette.setColor(QtGui.QPalette.Window, QtGui.QColor(44,43,42))
+		self.palette.setColor(QtGui.QPalette.WindowText, QtCore.Qt.white)
+		self.palette.setColor(QtGui.QPalette.Text, QtCore.Qt.white)
+		self.palette.setColor(QtGui.QPalette.BrightText, QtCore.Qt.white)
+		self.palette.setColor(QtGui.QPalette.ButtonText, QtCore.Qt.white)
+		self.palette.setColor(QtGui.QPalette.Button, QtGui.QColor(44,43,42))
+		self.winMain.setPalette(self.palette)
+
+		# find menubar object and save it so we can find the menus
+		for child in self.winMain.children():
+			if isinstance(child, QtGui.QMenuBar):
+				self.menubar = child
+
+		# find menu objects and set the palette on them
+		for child in self.menubar.children():
+			if isinstance(child, QtGui.QMenu):
+				child.setPalette(self.palette)
 
 		self.webMainExists = True
 		try:
@@ -162,6 +187,7 @@ class MainWindow:
 
 	def actionAboutSelected(self):
 		dlgAbout = QtGui.QDialog(self.winMain)
+		dlgAbout.setPalette(self.winMain.palette())
 
 		uifile = None
 
@@ -240,6 +266,7 @@ class MainWindow:
 
 	def actionSwitchSelected(self):
 		dlgChooseAccount = QtGui.QDialog(self.winMain)
+		dlgChooseAccount.setPalette(self.winMain.palette())
 
 		uifile = None
 
@@ -640,11 +667,16 @@ class MainWindowThread(QtCore.QThread):
 			webservice, post = WebConnection(self.worldQueueConfig.newsStyleSheetURL)
 
 			webservice.putrequest("GET", post)
+			webservice.putheader("Accept-Encoding", "gzip")
 			webservice.endheaders()
 
 			webresp = webservice.getresponse()
 
-			tempxml = webresp.read()
+			if webresp.getheader('Content-Encoding', '') == 'gzip':
+				tempxml = zlib.decompress(webresp.read(), 16+zlib.MAX_WBITS)
+
+			else:
+				tempxml = webresp.read()
 
 			doc = xml.dom.minidom.parseString(tempxml)
 
@@ -673,18 +705,29 @@ class MainWindowThread(QtCore.QThread):
 			webservice, post = WebConnection(urlNewsFeed)
 
 			webservice.putrequest("GET", post)
+			webservice.putheader("Accept-Encoding", "gzip")
 			webservice.endheaders()
 
 			webresp = webservice.getresponse()
 
-			tempxml = webresp.read()
+			if webresp.getheader('Content-Encoding', '') == 'gzip':
+				tempxml = zlib.decompress(webresp.read(), 16+zlib.MAX_WBITS)
+
+			else:
+				tempxml = webresp.read()
 
 			if len(tempxml) == 0:
 				webservice, post = WebConnection(webresp.getheader("location"))
 				webservice.putrequest("GET", post)
+				webservice.putheader("Accept-Encoding", "gzip")
 				webservice.endheaders()
 				webresp = webservice.getresponse()
-				tempxml = webresp.read()
+
+				if webresp.getheader('Content-Encoding', '') == 'gzip':
+					tempxml = zlib.decompress(webresp.read(), 16+zlib.MAX_WBITS)
+
+				else:
+					tempxml = webresp.read()
 
 			result = HTMLTEMPLATE
 

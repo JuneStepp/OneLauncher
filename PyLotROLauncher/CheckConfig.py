@@ -40,6 +40,7 @@ class CheckConfig:
 		self.osType = osType
 
 		self.winCheckConfig = QtGui.QDialog(parent)
+		self.winCheckConfig.setPalette(parent.palette())
 
 		uifile = None
 
