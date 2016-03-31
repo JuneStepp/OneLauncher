@@ -532,6 +532,8 @@ class WorldQueueConfig:
 							self.supportserviceurl = node.getAttribute("value")
 						elif node.getAttribute("key") == "GameClient.Arg.glsticketlifetime":
 							self.glsticketlifetime = node.getAttribute("value")
+						elif node.getAttribute("key") == "Launcher.NewsFeedCSSUrl":
+							self.newsFeedCSSURL = node.getAttribute("value")
 						elif node.getAttribute("key") == "URL.NewsFeed":
 							self.newsFeedURL = node.getAttribute("value")
 						elif node.getAttribute("key") == "URL.NewsStyleSheet":

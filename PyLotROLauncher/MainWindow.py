@@ -674,7 +674,6 @@ class MainWindowThread(QtCore.QThread):
 
 			if webresp.getheader('Content-Encoding', '') == 'gzip':
 				tempxml = zlib.decompress(webresp.read(), 16+zlib.MAX_WBITS)
-
 			else:
 				tempxml = webresp.read()
 
@@ -695,6 +694,9 @@ class MainWindowThread(QtCore.QThread):
 				if link.nodeType == link.ELEMENT_NODE:
 					href = link.attributes["href"]
 
+			# Ignore broken href (as of 3/30/16) in the style sheet and use Launcher.NewsFeedCSSUrl defined in launcher.config
+			href.value = self.worldQueueConfig.newsFeedCSSURL
+
 			HTMLTEMPLATE = '<html><head><link rel="stylesheet" type="text/css" href="'
 			HTMLTEMPLATE += href.value
 			HTMLTEMPLATE += '"/><base target="_blank"/></head><body><div class="launcherNewsItemsContainer" style="width:auto">'
@@ -712,7 +714,6 @@ class MainWindowThread(QtCore.QThread):
 
 			if webresp.getheader('Content-Encoding', '') == 'gzip':
 				tempxml = zlib.decompress(webresp.read(), 16+zlib.MAX_WBITS)
-
 			else:
 				tempxml = webresp.read()
 
@@ -725,7 +726,6 @@ class MainWindowThread(QtCore.QThread):
 
 				if webresp.getheader('Content-Encoding', '') == 'gzip':
 					tempxml = zlib.decompress(webresp.read(), 16+zlib.MAX_WBITS)
-
 				else:
 					tempxml = webresp.read()
 
