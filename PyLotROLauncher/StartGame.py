@@ -36,13 +36,15 @@ class StartGame:
 		chatServer, language, runDir, wineProgram, wineDebug, winePrefix, 
 		hiResEnabled, wineApp, osType, homeDir, icoFileIn, rootDir,
 		crashreceiver, DefaultUploadThrottleMbps, bugurl, authserverurl,
-		supporturl, supportserviceurl, glsticketlifetime):
+		supporturl, supportserviceurl, glsticketlifetime, realmName, accountText):
 
 		self.winMain = parent
 		self.homeDir = homeDir
 		self.winLog = QtGui.QDialog(parent)
 		self.winLog.setPalette(parent.palette())
 		self.osType = osType
+		self.realmName = realmName
+		self.accountText = accountText
 
 		uifile = None
 		icofile = None
@@ -178,6 +180,11 @@ class StartGame:
 			tempArg = "--bottle %s --verbose -- %s %s" % (winePrefix, appName, gameParams)
 			for arg in tempArg.split(" "):
 				self.arguments.append(arg)
+
+		self.uiLog.txtLog.append("Connecting to server: " + realmName)
+		self.uiLog.txtLog.append("Account: " + accountText)
+		self.uiLog.txtLog.append("Game Directory: " + runDir)
+		self.uiLog.txtLog.append("Game Client: " + appName)
 
 	def readOutput(self):
 		self.uiLog.txtLog.append(QByteArray2str(self.process.readAllStandardOutput()))

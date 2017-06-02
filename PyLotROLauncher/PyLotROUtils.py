@@ -475,7 +475,7 @@ class Realm:
 			self.realmAvailable = False
 
 class WorldQueueConfig:
-	def __init__(self, urlConfigServer, usingDND, baseDir, osType):
+	def __init__(self, urlConfigServer, usingDND, baseDir, osType, gameDir):
 		self.gameClientFilename = ""
 		self.gameClientArgTemplate = ""
 		self.crashreceiver = ""
@@ -546,6 +546,21 @@ class WorldQueueConfig:
 							self.worldQueueParam = node.getAttribute("value")
 
 				self.loadSuccess = True
+
+			# check TurbineLauncher.exe.config in gameDir for local game client override
+			tempxml = ""
+			filename = gameDir + '/TurbineLauncher.exe.config'
+			if os.path.exists(filename):
+				infile = uopen(filename, "r", "utf-8")
+				tempxml = infile.read()
+				infile.close()
+				doc = xml.dom.minidom.parseString(tempxml)
+				nodes = doc.getElementsByTagName("appSettings")[0].childNodes
+				for node in nodes:
+					if node.nodeType == node.ELEMENT_NODE:
+						if node.getAttribute("key") == "GameClient.WIN32.Filename":
+							self.gameClientFilename = node.getAttribute("value")
+
 		except:
 			self.loadSuccess = False
 			raise

@@ -96,3 +96,10 @@ Changes
 		encoding for the news feed by default and check the Content-Encoding header and
 		uncompress if content is gzip.
 		Also some palette adjustments to the widgets (darker theme)
+
+0.2.5	Added code to check for local game client override in TurbineLauncher.exe.config in game
+		directory.  This is to handle workaround from SSG for game client crashes on
+		Windows XP/Vista platforms that also affects Linux users running the game under
+		wine.  For more information see link below.
+
+		https://www.lotro.com/forums/showthread.php?654273-Windows-XP-and-Vista-Launcher-Issues-Solution

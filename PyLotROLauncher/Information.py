@@ -1,5 +1,5 @@
 # coding=utf-8
-Version = "0.2.4"
+Version = "0.2.5"
 Description = "LOTRO/DDO Launcher"
 Author = "Alan Jackson"
 Email = "ajackson@bcs.org.uk"

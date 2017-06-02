@@ -397,7 +397,9 @@ class MainWindow:
 			self.worldQueueConfig.crashreceiver, self.worldQueueConfig.DefaultUploadThrottleMbps,
 			self.worldQueueConfig.bugurl, self.worldQueueConfig.authserverurl,
 			self.worldQueueConfig.supporturl, self.worldQueueConfig.supportserviceurl,
-			self.worldQueueConfig.glsticketlifetime)
+			self.worldQueueConfig.glsticketlifetime,
+			self.uiMain.cboRealm.currentText(),
+			self.uiMain.txtAccount.text())
 
 		self.winMain.hide()
 		game.Run()
@@ -649,7 +651,7 @@ class MainWindowThread(QtCore.QThread):
 			QtCore.QObject.emit(self.winMain, QtCore.SIGNAL("AddLog(QString)"), "[E04] Error accessing GLS data centre.")
 
 	def GetWorldQueueConfig(self, urlWorldQueueServer):
-		self.worldQueueConfig = WorldQueueConfig(urlWorldQueueServer, self.settings.usingDND, self.baseDir, self.osType)
+		self.worldQueueConfig = WorldQueueConfig(urlWorldQueueServer, self.settings.usingDND, self.baseDir, self.osType, self.settings.gameDir)
 
 		if self.worldQueueConfig.loadSuccess:
 			QtCore.QObject.emit(self.winMain, QtCore.SIGNAL("AddLog(QString)"), "World queue configuration read")
