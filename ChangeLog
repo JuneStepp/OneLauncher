@@ -103,3 +103,6 @@ Changes
 		wine.  For more information see link below.
 
 		https://www.lotro.com/forums/showthread.php?654273-Windows-XP-and-Vista-Launcher-Issues-Solution
+
+0.2.6	Updated certificate chain to new SSL certificates after recent update (22.0.1 or possibly 22) update
+		by SSG broke authentication using the old certs.
