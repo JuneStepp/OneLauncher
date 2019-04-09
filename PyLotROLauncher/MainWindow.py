@@ -744,16 +744,16 @@ class MainWindowThread(QtCore.QThread):
 				for node in item.childNodes:
 					if node.nodeType == node.ELEMENT_NODE:
 						if node.nodeName == "title":
-							title = "<div class=\"launcherNewsItemTitle\">%s</div>" % (GetText(node.childNodes))
+							title = "<font color=\"gold\"><div class=\"launcherNewsItemTitle\">%s</div></font>" % (GetText(node.childNodes))
 						elif node.nodeName == "description":
 							description = "<div class=\"launcherNewsItemDescription\">%s</div>" % (GetText(node.childNodes))
 						elif node.nodeName == "pubDate":
 							tempDate = GetText(node.childNodes)
 							dispDate = "%s %s %s %s%s" % (tempDate[8:11], tempDate[5:7], tempDate[12:16],
 								tempDate[17:22], timeCode)
-							date = "<div class=\"launcherNewsItemDate\">%s</div>" % (dispDate)
+							date = "<small><i><div align=\"right\"class=\"launcherNewsItemDate\">%s</div></i></small>" % (dispDate)
 
-				result += "<div class=\"launcherNewsItemContainer\">%s%s%s</div>" % (title, date, description)
+				result += "<div class=\"launcherNewsItemContainer\">%s%s%s%s</div>" % (title, date, description, "<hr>")
 
 			result += "</div></body></html>"
 
