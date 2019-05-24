@@ -29,205 +29,224 @@
 ###########################################################################
 from PyQt4 import QtCore, QtGui, uic
 from .PyLotROUtils import DetermineOS, QByteArray2str
-import sys, os.path
+import sys
+import os.path
+
 
 class StartGame:
-	def __init__(self, parent, appName, argTemplate, account, server, ticket,
-		chatServer, language, runDir, wineProgram, wineDebug, winePrefix, 
-		hiResEnabled, wineApp, osType, homeDir, icoFileIn, rootDir,
-		crashreceiver, DefaultUploadThrottleMbps, bugurl, authserverurl,
-		supporturl, supportserviceurl, glsticketlifetime, realmName, accountText):
+    def __init__(self, parent, appName, argTemplate, account, server, ticket,
+                 chatServer, language, runDir, wineProgram, wineDebug, winePrefix,
+                 hiResEnabled, wineApp, osType, homeDir, icoFileIn, rootDir,
+                 crashreceiver, DefaultUploadThrottleMbps, bugurl, authserverurl,
+                 supporturl, supportserviceurl, glsticketlifetime, realmName, accountText):
 
-		self.winMain = parent
-		self.homeDir = homeDir
-		self.winLog = QtGui.QDialog(parent)
-		self.winLog.setPalette(parent.palette())
-		self.osType = osType
-		self.realmName = realmName
-		self.accountText = accountText
+        self.winMain = parent
+        self.homeDir = homeDir
+        self.winLog = QtGui.QDialog(parent)
+        self.winLog.setPalette(parent.palette())
+        self.osType = osType
+        self.realmName = realmName
+        self.accountText = accountText
 
-		uifile = None
-		icofile = None
+        uifile = None
+        icofile = None
 
-		try:
-			from pkg_resources import resource_filename
-			uifile = resource_filename(__name__, 'ui/winLog.ui')
-			icofile = resource_filename(__name__, icoFileIn)
-		except:
-			uifile = os.path.join(rootDir, "ui", "winLog.ui")
-			icofile = os.path.join(rootDir, icoFileIn)
+        try:
+            from pkg_resources import resource_filename
+            uifile = resource_filename(__name__, 'ui/winLog.ui')
+            icofile = resource_filename(__name__, icoFileIn)
+        except:
+            uifile = os.path.join(rootDir, "ui", "winLog.ui")
+            icofile = os.path.join(rootDir, icoFileIn)
 
-		Ui_winLog, base_class = uic.loadUiType(uifile)
-		self.uiLog = Ui_winLog()
-		self.uiLog.setupUi(self.winLog)
-		self.winLog.setWindowFlags(QtCore.Qt.Dialog)
-		self.winLog.setWindowIcon(QtGui.QIcon(icofile))
-		screen = QtGui.QDesktopWidget().screenGeometry()
-		size =  self.winLog.geometry()
-		self.winLog.move((screen.width()-size.width())/2, (screen.height()-size.height())/2)
+        Ui_winLog, base_class = uic.loadUiType(uifile)
+        self.uiLog = Ui_winLog()
+        self.uiLog.setupUi(self.winLog)
+        self.winLog.setWindowFlags(QtCore.Qt.Dialog)
+        self.winLog.setWindowIcon(QtGui.QIcon(icofile))
+        screen = QtGui.QDesktopWidget().screenGeometry()
+        size = self.winLog.geometry()
+        self.winLog.move((screen.width() - size.width()) / 2,
+                         (screen.height() - size.height()) / 2)
 
-		if self.osType.usingWindows:
-			self.winLog.setWindowTitle("Output")
-		else:
-			if wineApp == "Wine":
-				self.winLog.setWindowTitle("Launch Game - Wine output")
-			else:
-				self.winLog.setWindowTitle("Launch Game - Crossover output")
+        if self.osType.usingWindows:
+            self.winLog.setWindowTitle("Output")
+        else:
+            if wineApp == "Wine":
+                self.winLog.setWindowTitle("Launch Game - Wine output")
+            else:
+                self.winLog.setWindowTitle("Launch Game - Crossover output")
 
-		#self.uiLog.btnStart.setVisible(False)
-		self.uiLog.btnStart.setText("Launcher")
-		self.uiLog.btnStart.setEnabled(False)
-		self.uiLog.btnSave.setText("Save")
-		self.uiLog.btnSave.setEnabled(False)
-		self.uiLog.btnStop.setText("Exit")
-		QtCore.QObject.connect(self.uiLog.btnStart, QtCore.SIGNAL("clicked()"), self.btnStartClicked)
-		QtCore.QObject.connect(self.uiLog.btnSave, QtCore.SIGNAL("clicked()"), self.btnSaveClicked)
-		QtCore.QObject.connect(self.uiLog.btnStop, QtCore.SIGNAL("clicked()"), self.btnStopClicked)
+        # self.uiLog.btnStart.setVisible(False)
+        self.uiLog.btnStart.setText("Launcher")
+        self.uiLog.btnStart.setEnabled(False)
+        self.uiLog.btnSave.setText("Save")
+        self.uiLog.btnSave.setEnabled(False)
+        self.uiLog.btnStop.setText("Exit")
+        QtCore.QObject.connect(self.uiLog.btnStart, QtCore.SIGNAL(
+            "clicked()"), self.btnStartClicked)
+        QtCore.QObject.connect(self.uiLog.btnSave, QtCore.SIGNAL(
+            "clicked()"), self.btnSaveClicked)
+        QtCore.QObject.connect(self.uiLog.btnStop, QtCore.SIGNAL(
+            "clicked()"), self.btnStopClicked)
 
-		self.aborted = False
-		self.finished = False
-		self.command = ""
-		self.arguments = []
+        self.aborted = False
+        self.finished = False
+        self.command = ""
+        self.arguments = []
 
-		gameParams = argTemplate.replace("{SUBSCRIPTION}", account).replace("{LOGIN}", server)\
-			.replace("{GLS}", ticket).replace("{CHAT}", chatServer).replace("{LANG}", language)\
-			.replace("{CRASHRECEIVER}", crashreceiver).replace("{UPLOADTHROTTLE}", DefaultUploadThrottleMbps)\
-			.replace("{BUGURL}", bugurl).replace("{AUTHSERVERURL}", authserverurl)\
-			.replace("{GLSTICKETLIFETIME}", glsticketlifetime).replace("{SUPPORTURL}", supporturl)\
-			.replace("{SUPPORTSERVICEURL}",supportserviceurl)
+        gameParams = argTemplate.replace("{SUBSCRIPTION}", account).replace("{LOGIN}", server)\
+            .replace("{GLS}", ticket).replace("{CHAT}", chatServer).replace("{LANG}", language)\
+            .replace("{CRASHRECEIVER}", crashreceiver).replace("{UPLOADTHROTTLE}", DefaultUploadThrottleMbps)\
+            .replace("{BUGURL}", bugurl).replace("{AUTHSERVERURL}", authserverurl)\
+            .replace("{GLSTICKETLIFETIME}", glsticketlifetime).replace("{SUPPORTURL}", supporturl)\
+            .replace("{SUPPORTSERVICEURL}", supportserviceurl)
 
-		if not hiResEnabled:
-			gameParams = gameParams + " --HighResOutOfDate"
+        if not hiResEnabled:
+            gameParams = gameParams + " --HighResOutOfDate"
 
-		if wineDebug != "":
-			os.environ["WINEDEBUG"] = wineDebug
+        if wineDebug != "":
+            os.environ["WINEDEBUG"] = wineDebug
 
-		if winePrefix != "" and wineApp == "Wine":
-			os.environ["WINEPREFIX"] = winePrefix
+        if winePrefix != "" and wineApp == "Wine":
+            os.environ["WINEPREFIX"] = winePrefix
 
-		self.process = QtCore.QProcess()
-		QtCore.QObject.connect(self.process, QtCore.SIGNAL("readyReadStandardOutput()"), self.readOutput)
-		QtCore.QObject.connect(self.process, QtCore.SIGNAL("readyReadStandardError()"), self.readErrors)
-		QtCore.QObject.connect(self.process, QtCore.SIGNAL("finished(int, QProcess::ExitStatus)"), self.resetButtons)
+        self.process = QtCore.QProcess()
+        QtCore.QObject.connect(self.process, QtCore.SIGNAL(
+            "readyReadStandardOutput()"), self.readOutput)
+        QtCore.QObject.connect(self.process, QtCore.SIGNAL(
+            "readyReadStandardError()"), self.readErrors)
+        QtCore.QObject.connect(self.process, QtCore.SIGNAL(
+            "finished(int, QProcess::ExitStatus)"), self.resetButtons)
 
-		if wineApp == "Native":
-			self.command = appName
-			self.process.setWorkingDirectory(runDir)
+        if wineApp == "Native":
+            self.command = appName
+            self.process.setWorkingDirectory(runDir)
 
-			os.chdir(runDir)
+            os.chdir(runDir)
 
-			for arg in gameParams.split(" "):
-				self.arguments.append(arg)
+            for arg in gameParams.split(" "):
+                self.arguments.append(arg)
 
-		elif wineApp == "Wine":
-			self.command = wineProgram
-			self.process.setWorkingDirectory(runDir)
+        elif wineApp == "Wine":
+            self.command = wineProgram
+            self.process.setWorkingDirectory(runDir)
 
-			self.arguments.append(appName)
+            self.arguments.append(appName)
 
-			for arg in gameParams.split(" "):
-				self.arguments.append(arg)
+            for arg in gameParams.split(" "):
+                self.arguments.append(arg)
 
-		elif wineApp == "CXGames":
-			if not self.osType.startCXG():
-				self.uiLog.txtLog.append("<b>Error: Couldn't start Crossover Games</b>")
-				self.uiLog.btnSave.setEnabled(False)
-				self.uiLog.btnStart.setEnabled(False)
+        elif wineApp == "CXGames":
+            if not self.osType.startCXG():
+                self.uiLog.txtLog.append(
+                    "<b>Error: Couldn't start Crossover Games</b>")
+                self.uiLog.btnSave.setEnabled(False)
+                self.uiLog.btnStart.setEnabled(False)
 
-			if self.osType.macPathCX == "":
-				tempFile = "%s%s%s" % (self.osType.globalDir, self.osType.directoryCXG, wineProgram)
+            if self.osType.macPathCX == "":
+                tempFile = "%s%s%s" % (
+                    self.osType.globalDir, self.osType.directoryCXG, wineProgram)
 
-				if os.path.isfile(tempFile):
-					self.command = tempFile
-				else:
-					tempFile = "%s%s%s" % (homeDir, self.osType.directoryCXG, wineProgram)
+                if os.path.isfile(tempFile):
+                    self.command = tempFile
+                else:
+                    tempFile = "%s%s%s" % (
+                        homeDir, self.osType.directoryCXG, wineProgram)
 
-					if os.path.isfile(tempFile):
-						self.command = tempFile
-					else:
-						self.command = wineProgram
-			else:
-				self.command = "%s%s" % (self.osType.macPathCX, wineProgram)
+                    if os.path.isfile(tempFile):
+                        self.command = tempFile
+                    else:
+                        self.command = wineProgram
+            else:
+                self.command = "%s%s" % (self.osType.macPathCX, wineProgram)
 
-			self.process.setWorkingDirectory(runDir)
+            self.process.setWorkingDirectory(runDir)
 
-			tempArg = "--bottle %s --verbose -- %s %s" % (winePrefix, appName, gameParams)
-			for arg in tempArg.split(" "):
-				self.arguments.append(arg)
-		elif wineApp == "CXOffice":
-			if not self.osType.startCXO():
-				self.uiLog.txtLog.append("<b>Error: Couldn't start Crossover</b>")
-				self.uiLog.btnSave.setEnabled(False)
-				self.uiLog.btnStart.setEnabled(False)
+            tempArg = "--bottle %s --verbose -- %s %s" % (
+                winePrefix, appName, gameParams)
+            for arg in tempArg.split(" "):
+                self.arguments.append(arg)
+        elif wineApp == "CXOffice":
+            if not self.osType.startCXO():
+                self.uiLog.txtLog.append(
+                    "<b>Error: Couldn't start Crossover</b>")
+                self.uiLog.btnSave.setEnabled(False)
+                self.uiLog.btnStart.setEnabled(False)
 
-			if self.osType.macPathCX == "":
-				tempFile = "%s%s%s" % (self.osType.globalDir, self.osType.directoryCXO, wineProgram)
+            if self.osType.macPathCX == "":
+                tempFile = "%s%s%s" % (
+                    self.osType.globalDir, self.osType.directoryCXO, wineProgram)
 
-				if os.path.isfile(tempFile):
-					self.command = tempFile
-				else:
-					tempFile = "%s%s%s" % (homeDir, self.osType.directoryCXO, wineProgram)
+                if os.path.isfile(tempFile):
+                    self.command = tempFile
+                else:
+                    tempFile = "%s%s%s" % (
+                        homeDir, self.osType.directoryCXO, wineProgram)
 
-					if os.path.isfile(tempFile):
-						self.command = tempFile
-					else:
-						self.command = wineProgram
-			else:
-				self.command = "%s%s" % (self.osType.macPathCX, wineProgram)
+                    if os.path.isfile(tempFile):
+                        self.command = tempFile
+                    else:
+                        self.command = wineProgram
+            else:
+                self.command = "%s%s" % (self.osType.macPathCX, wineProgram)
 
-			self.process.setWorkingDirectory(runDir)
+            self.process.setWorkingDirectory(runDir)
 
-			tempArg = "--bottle %s --verbose -- %s %s" % (winePrefix, appName, gameParams)
-			for arg in tempArg.split(" "):
-				self.arguments.append(arg)
+            tempArg = "--bottle %s --verbose -- %s %s" % (
+                winePrefix, appName, gameParams)
+            for arg in tempArg.split(" "):
+                self.arguments.append(arg)
 
-		self.uiLog.txtLog.append("Connecting to server: " + realmName)
-		self.uiLog.txtLog.append("Account: " + accountText)
-		self.uiLog.txtLog.append("Game Directory: " + runDir)
-		self.uiLog.txtLog.append("Game Client: " + appName)
+        self.uiLog.txtLog.append("Connecting to server: " + realmName)
+        self.uiLog.txtLog.append("Account: " + accountText)
+        self.uiLog.txtLog.append("Game Directory: " + runDir)
+        self.uiLog.txtLog.append("Game Client: " + appName)
 
-	def readOutput(self):
-		self.uiLog.txtLog.append(QByteArray2str(self.process.readAllStandardOutput()))
+    def readOutput(self):
+        self.uiLog.txtLog.append(QByteArray2str(
+            self.process.readAllStandardOutput()))
 
-	def readErrors(self):
-		self.uiLog.txtLog.append(QByteArray2str(self.process.readAllStandardError()))
+    def readErrors(self):
+        self.uiLog.txtLog.append(QByteArray2str(
+            self.process.readAllStandardError()))
 
-	def resetButtons(self, exitCode, exitStatus):
-		self.finished = True
-		self.uiLog.btnStop.setText("Exit")
-		self.uiLog.btnSave.setEnabled(True)
-		self.uiLog.btnStart.setEnabled(True)
-		if self.aborted:
-			self.uiLog.txtLog.append("<b>***  Aborted  ***</b>")
-		else:
-			self.uiLog.txtLog.append("<b>***  Finished  ***</b>")
+    def resetButtons(self, exitCode, exitStatus):
+        self.finished = True
+        self.uiLog.btnStop.setText("Exit")
+        self.uiLog.btnSave.setEnabled(True)
+        self.uiLog.btnStart.setEnabled(True)
+        if self.aborted:
+            self.uiLog.txtLog.append("<b>***  Aborted  ***</b>")
+        else:
+            self.uiLog.txtLog.append("<b>***  Finished  ***</b>")
 
-	def btnStartClicked(self):
-		if self.finished:
-			self.winMain.show()
-			self.winLog.close()
+    def btnStartClicked(self):
+        if self.finished:
+            self.winMain.show()
+            self.winLog.close()
 
-	def btnStopClicked(self):
-		if self.finished:
-			self.winLog.close()
-		else:
-			self.aborted = True
-			self.process.kill()
+    def btnStopClicked(self):
+        if self.finished:
+            self.winLog.close()
+        else:
+            self.aborted = True
+            self.process.kill()
 
-	def btnSaveClicked(self):
-		filename = QtGui.QFileDialog.getSaveFileName(self.winLog, "Save log file", self.homeDir)
+    def btnSaveClicked(self):
+        filename = QtGui.QFileDialog.getSaveFileName(
+            self.winLog, "Save log file", self.homeDir)
 
-		if filename != "":
-			outfile = open(filename, "w")
-			outfile.write(self.uiLog.txtLog.toPlainText())
-			outfile.close()
+        if filename != "":
+            outfile = open(filename, "w")
+            outfile.write(self.uiLog.txtLog.toPlainText())
+            outfile.close()
 
-	def Run(self):
-		self.finished = False
+    def Run(self):
+        self.finished = False
 
-		self.uiLog.btnStop.setText("Abort")
-		self.process.start(self.command, self.arguments)
+        self.uiLog.btnStop.setText("Abort")
+        self.process.start(self.command, self.arguments)
 
-		self.winMain.hide()
-		return self.winLog.exec_()
-
+        self.winMain.hide()
+        return self.winLog.exec_()
