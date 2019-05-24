@@ -49,11 +49,7 @@ try:
 except:
     pass
 
-# If Python 3.0 is in use use http otherwise httplib
-if sys.version_info[:2] < (3, 0):
-    from httplib import HTTPConnection, HTTPSConnection
-else:
-    from http.client import HTTPConnection, HTTPSConnection
+from http.client import HTTPConnection, HTTPSConnection
 
 
 class MainWindow:
