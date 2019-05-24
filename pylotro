@@ -31,5 +31,4 @@
 import PyLotROLauncher.Runner
 
 if __name__ == '__main__':
-	PyLotROLauncher.Runner.main()
-
+    PyLotROLauncher.Runner.main()
