@@ -37,36 +37,16 @@ import xml.dom.minidom
 from xml.sax.saxutils import escape as xml_escape
 import ssl
 
-# Python 3 on windows needs Turbine-supplied config files
-# to be written in UTF-8, but Python 2 doesn't, and won't
-# convert an ascii string for use in codecs.open()
-if sys.version_info >= (3,):
-    from codecs import open as uopen
-else:
-    def uopen(name, mode, dummy):
-        return open(name, mode)
+from codecs import open as uopen
 
-# If Python >3.0 is in use use http otherwise httplib
-# Python >3.0 uses unicode strings by default, so also
-# need to take care of encoding/decoding for sending/receiving
-if sys.version_info[:2] < (3, 0):
-    from httplib import HTTPConnection, HTTPSConnection
-    from urllib import quote
+from http.client import HTTPConnection, HTTPSConnection
+from urllib.parse import quote
 
-    def string_encode(s): return s
+def string_encode(s): return s.encode()
 
-    def string_decode(s): return s
+def string_decode(s): return s.decode()
 
-    def QByteArray2str(s): return str(s)
-else:
-    from http.client import HTTPConnection, HTTPSConnection
-    from urllib.parse import quote
-
-    def string_encode(s): return s.encode()
-
-    def string_decode(s): return s.decode()
-
-    def QByteArray2str(s): return str(s, encoding="utf8", errors="replace")
+def QByteArray2str(s): return str(s, encoding="utf8", errors="replace")
 
 # Try to locate the server certificates for HTTPS connections
 certfile = None
@@ -81,43 +61,21 @@ if certfile and not os.access(certfile, os.R_OK):
     print("certificate file expected at '%s' but not found!" % certfile)
     certfile = None
 
-# Python <3.2 neither support OpenSSL version info, nor SSL contexts,
-# so this has to be an ugly TLS 1.2 prevention workaround:
-if sys.version_info[:2] < (3, 2):
-    import socket
+pylotro_ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+if certfile:
+    pylotro_ssl_ctx.verify_mode = ssl.CERT_REQUIRED
+    pylotro_ssl_ctx.load_verify_locations(certfile)
+    print("SSL certificate verification enabled!")
 
-    def WebConnection(urlIn):
-        if urlIn.upper().find("HTTP://") >= 0:
-            url = urlIn[7:].split("/")[0]
-            post = urlIn[7:].replace(url, "")
-            return HTTPConnection(url), post
-        else:
-            url = urlIn[8:].split("/")[0]
-            post = urlIn[8:].replace(url, "")
-            # OpenSSL 1.x workaround, we basically need to re-implement HTTPSConnection.connect()
-            # to be able to request ssl.PROTOCOL_TLSv1
-            conn = HTTPSConnection(url)
-            sock = socket.create_connection(
-                (conn.host, conn.port), conn.timeout, conn.source_address)
-            conn.sock = ssl.wrap_socket(
-                sock, conn.key_file, conn.cert_file, ssl_version=ssl.PROTOCOL_TLSv1)
-            return conn, post
-else:
-    pylotro_ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
-    if certfile:
-        pylotro_ssl_ctx.verify_mode = ssl.CERT_REQUIRED
-        pylotro_ssl_ctx.load_verify_locations(certfile)
-        print("SSL certificate verification enabled!")
-
-    def WebConnection(urlIn):
-        if urlIn.upper().find("HTTP://") >= 0:
-            url = urlIn[7:].split("/")[0]
-            post = urlIn[7:].replace(url, "")
-            return HTTPConnection(url), post
-        else:
-            url = urlIn[8:].split("/")[0]
-            post = urlIn[8:].replace(url, "")
-            return HTTPSConnection(url, context=pylotro_ssl_ctx), post
+def WebConnection(urlIn):
+    if urlIn.upper().find("HTTP://") >= 0:
+        url = urlIn[7:].split("/")[0]
+        post = urlIn[7:].replace(url, "")
+        return HTTPConnection(url), post
+    else:
+        url = urlIn[8:].split("/")[0]
+        post = urlIn[8:].replace(url, "")
+        return HTTPSConnection(url, context=pylotro_ssl_ctx), post
 
 
 def GetText(nodelist):
