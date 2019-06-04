@@ -468,7 +468,7 @@ class Realm:
 
 
 class WorldQueueConfig:
-    def __init__(self, urlConfigServer, usingDND, baseDir, osType, gameDir):
+    def __init__(self, urlConfigServer, usingDND, baseDir, osType, gameDir, x86):
         self.gameClientFilename = ""
         self.gameClientArgTemplate = ""
         self.crashreceiver = ""
@@ -507,9 +507,14 @@ class WorldQueueConfig:
                 nodes = doc.getElementsByTagName("appSettings")[0].childNodes
                 for node in nodes:
                     if node.nodeType == node.ELEMENT_NODE:
+                        if node.getAttribute("key") == "GameClient.WIN64.Filename":
+                            if x86:
+                                self.gameClientFilename = node.getAttribute(
+                                    "value")
                         if node.getAttribute("key") == "GameClient.WIN32.Filename":
-                            self.gameClientFilename = node.getAttribute(
-                                "value")
+                            if x86 == False:
+                                self.gameClientFilename = node.getAttribute(
+                                    "value")
                         elif node.getAttribute("key") == "GameClient.WIN32.ArgTemplate":
                             self.gameClientArgTemplate = node.getAttribute(
                                 "value")

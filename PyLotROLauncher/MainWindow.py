@@ -416,7 +416,7 @@ class MainWindow:
             self.AddLog(self.account.messError)
 
     def LaunchGame(self):
-        game = StartGame(self.winMain, self.worldQueueConfig.gameClientFilename,
+        game = StartGame(self.winMain, self.worldQueueConfig.gameClientFilename, self.settings.x86Enabled,
                          self.worldQueueConfig.gameClientArgTemplate, self.accNumber, self.urlLoginServer,
                          self.account.ticket, self.urlChatServer,
                          self.langConfig.langList[self.uiMain.cboLanguage.currentIndex(
@@ -700,7 +700,8 @@ class MainWindowThread(QtCore.QThread):
 
     def GetWorldQueueConfig(self, urlWorldQueueServer):
         self.worldQueueConfig = WorldQueueConfig(
-            urlWorldQueueServer, self.settings.usingDND, self.baseDir, self.osType, self.settings.gameDir)
+            urlWorldQueueServer, self.settings.usingDND, self.baseDir, self.osType, self.settings.gameDir,
+            self.settings.x86Enabled)
 
         if self.worldQueueConfig.loadSuccess:
             QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(

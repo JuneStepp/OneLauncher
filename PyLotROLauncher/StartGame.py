@@ -34,11 +34,14 @@ import os.path
 
 
 class StartGame:
-    def __init__(self, parent, appName, argTemplate, account, server, ticket,
+    def __init__(self, parent, appName, x86, argTemplate, account, server, ticket,
                  chatServer, language, runDir, wineProgram, wineDebug, winePrefix,
                  hiResEnabled, wineApp, osType, homeDir, icoFileIn, rootDir,
                  crashreceiver, DefaultUploadThrottleMbps, bugurl, authserverurl,
                  supporturl, supportserviceurl, glsticketlifetime, realmName, accountText):
+
+        if x86:
+            runDir = os.path.join(runDir, "x64")
 
         self.winMain = parent
         self.homeDir = homeDir
