@@ -120,7 +120,14 @@ class Settings:
                         else:
                             self.hideWinMain = False
 
-                if os.path.exists(self.gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe") == False:
+                # Disables 64-bit client if it is unavailable for LOTRO
+                if (os.path.exists(self.gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe") == False
+                        and self,usingDND == False):
+                    self.x86Enabled = False
+
+                # Disables 64-bit client if it is unavailable for DDO
+                if (os.path.exists(self.gameDir + os.sep + "x64" + os.sep + "dndclient64.exe") == False
+                        and self.usingDND):
                     self.x86Enabled = False
 
                 success = True

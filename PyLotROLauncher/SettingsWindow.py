@@ -34,8 +34,8 @@ import glob
 
 
 class SettingsWindow:
-    def __init__(self, parent, hiRes, app, x86, wineProg, wineDebug, patchClient, winePrefix,
-                 gameDir, homeDir, osType, rootDir):
+    def __init__(self, parent, hiRes, app, x86, wineProg, wineDebug, patchClient, usingDND,
+                    winePrefix, gameDir, homeDir, osType, rootDir):
 
         self.homeDir = homeDir
         self.osType = osType
@@ -104,7 +104,9 @@ class SettingsWindow:
         else:
             self.uiSettings.cboGraphics.setCurrentIndex(1)
 
-        if os.path.exists(gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe"):
+        #Only enables and sets up check box if 64-bit client is available
+        if (os.path.exists(gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe") and usingDND == False or
+                usingDND and os.path.exists(gameDir + os.sep + "x64" + os.sep + "dndclient64.exe")):
             if x86:
                 self.uiSettings.chkx86.setChecked(True)
             else:
