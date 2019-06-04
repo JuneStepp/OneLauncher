@@ -105,8 +105,7 @@ class PatchWindow:
                                self.processFinished)
 
         if wineApp == "Native":
-            patchParams = "%s,Patch %s --language %s --productcode %s --filesonly" % (patchClient,
-                                                                                      urlPatchServer, language, prodCode)
+            patchParams = "%s,Patch %s --language %s --productcode %s" % (patchClient, urlPatchServer, language, prodCode)
 
             if hiResEnabled:
                 patchParams = patchParams + " --highres"
@@ -118,8 +117,7 @@ class PatchWindow:
                 self.arguments.append(arg)
 
         elif wineApp == "Wine":
-            patchParams = "rundll32.exe %s,Patch %s --language %s --productcode %s --filesonly" % (patchClient,
-                                                                                                   urlPatchServer, language, prodCode)
+            patchParams = "rundll32.exe %s,Patch %s --language %s --productcode %s" % (patchClient, urlPatchServer, language, prodCode)
 
             if hiResEnabled:
                 patchParams = patchParams + " --highres"
@@ -133,8 +131,7 @@ class PatchWindow:
 
         else:
             tempArg = ("--bottle %s --cx-app rundll32.exe --verbose " +
-                       "%s,Patch %s --language %s --productcode %s --filesonly") % (winePrefix,
-                                                                                    patchClient, urlPatchServer, language, prodCode)
+                       "%s,Patch %s --language %s --productcode %s") % (winePrefix, patchClient, urlPatchServer, language, prodCode)
 
             if hiResEnabled:
                 tempArg = tempArg + " --highres"
@@ -242,9 +239,6 @@ class PatchWindow:
             # run data patching
             data_arguments = []
             for arg in self.arguments:
-                if arg == "--filesonly":
-                    data_arguments.append("--dataonly")
-                else:
                     data_arguments.append(arg)
             self.process.start(self.command, data_arguments)
         else:
