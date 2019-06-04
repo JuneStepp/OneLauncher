@@ -658,6 +658,7 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
                 self.messError = "[E08] Server not found - may be down (%s)" % (
                     webresp and webresp.status or "N/A")
 
+        self.messError = ("<font color=\"red\">" + self.messError + "</font>")
 
 class JoinWorldQueue:
     def __init__(self, argTemplate, account, ticket, queue, urlIn, baseDir, osType):
