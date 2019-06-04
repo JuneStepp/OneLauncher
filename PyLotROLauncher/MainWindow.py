@@ -242,7 +242,7 @@ class MainWindow:
 
     def actionOptionsSelected(self):
         winSettings = SettingsWindow(self.winMain, self.settings.hiResEnabled, self.settings.app, self.settings.x86Enabled,
-                                     self.settings.wineProg, self.settings.wineDebug, self.settings.patchClient,
+                                     self.settings.wineProg, self.settings.wineDebug, self.settings.patchClient, self.settings.usingDND,
                                      self.settings.winePrefix, self.settings.gameDir, self.valHomeDir, self.osType, self.rootDir)
 
         self.hideWinMain()
@@ -622,8 +622,10 @@ class MainWindow:
         self.uiMain.txtStatus.setText("")
 
     def AddLog(self, message):
-        self.uiMain.txtStatus.append(message)
-
+        for line in message.splitlines():
+            if line.startswith("[E"):
+                line = ("<font color=\"red\">" + message + "</font>")
+            self.uiMain.txtStatus.append(line)
 
 class MainWindowThread(QtCore.QThread):
     def SetUp(self, winMain, settings, configFile, configFileAlt, baseDir, osType):
