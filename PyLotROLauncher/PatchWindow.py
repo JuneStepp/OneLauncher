@@ -73,11 +73,11 @@ class PatchWindow:
             else:
                 self.winLog.setWindowTitle("Patch - Crossover output")
 
-        self.uiLog.btnSave.setText("Save")
+        self.uiLog.btnSave.setText("Save Log")
         self.uiLog.btnSave.setEnabled(False)
         self.uiLog.progressBar.reset()
-        self.uiLog.btnStop.setText("Exit")
-        self.uiLog.btnStart.setText("Start")
+        self.uiLog.btnStop.setText("Launcher")
+        self.uiLog.btnStart.setText("Patch")
         QtCore.QObject.connect(self.uiLog.btnSave, QtCore.SIGNAL(
             "clicked()"), self.btnSaveClicked)
         QtCore.QObject.connect(self.uiLog.btnStop, QtCore.SIGNAL(
@@ -201,7 +201,7 @@ class PatchWindow:
 
     def resetButtons(self):
         self.finished = True
-        self.uiLog.btnStop.setText("Exit")
+        self.uiLog.btnStop.setText("Launcher")
         self.uiLog.btnSave.setEnabled(True)
         self.uiLog.btnStart.setEnabled(True)
         self.progressMonitor.reset()
