@@ -54,6 +54,7 @@ class Settings:
         self.winePrefix = os.environ.get('WINEPREFIX')
         self.gameDir = ""
         self.hideWinMain = False
+        self.x86Enabled = False
         success = False
 
         if self.winePrefix is None:
@@ -97,6 +98,11 @@ class Settings:
                             self.hiResEnabled = True
                         else:
                             self.hiResEnabled = False
+                    elif node.nodeName == "x86":
+                        if GetText(node.childNodes) == "True":
+                            self.x86Enabled = True
+                        else:
+                            self.x86Enabled = False
                     elif node.nodeName == "Game.Directory":
                         self.gameDir = GetText(node.childNodes)
                     elif node.nodeName == "Realm":
@@ -185,6 +191,13 @@ class Settings:
 
         tempNode = doc.createElementNS(EMPTY_NAMESPACE, "HiRes")
         if self.hiResEnabled:
+            tempNode.appendChild(doc.createTextNode("True"))
+        else:
+            tempNode.appendChild(doc.createTextNode("False"))
+        gameConfigNode.appendChild(tempNode)
+
+        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "x86")
+        if self.x86Enabled:
             tempNode.appendChild(doc.createTextNode("True"))
         else:
             tempNode.appendChild(doc.createTextNode("False"))

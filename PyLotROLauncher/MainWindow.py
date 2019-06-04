@@ -241,7 +241,7 @@ class MainWindow:
         self.resetFocus()
 
     def actionOptionsSelected(self):
-        winSettings = SettingsWindow(self.winMain, self.settings.hiResEnabled, self.settings.app,
+        winSettings = SettingsWindow(self.winMain, self.settings.hiResEnabled, self.settings.app, self.settings.x86Enabled,
                                      self.settings.wineProg, self.settings.wineDebug, self.settings.patchClient,
                                      self.settings.winePrefix, self.settings.gameDir, self.valHomeDir, self.osType, self.rootDir)
 
@@ -249,6 +249,7 @@ class MainWindow:
         if winSettings.Run() == QtGui.QDialog.Accepted:
             self.settings.hiResEnabled = winSettings.getHiRes()
             self.settings.app = winSettings.getApp()
+            self.settings.x86Enabled = winSettings.getx86()
             self.settings.patchClient = winSettings.getPatchClient()
             self.settings.gameDir = winSettings.getGameDir()
 

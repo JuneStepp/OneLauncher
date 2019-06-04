@@ -1,47 +1,48 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>dlgSettings</class>
- <widget class="QDialog" name="dlgSettings" >
-  <property name="windowModality" >
+ <widget class="QDialog" name="dlgSettings">
+  <property name="windowModality">
    <enum>Qt::ApplicationModal</enum>
   </property>
-  <property name="geometry" >
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>460</width>
-    <height>338</height>
+    <height>366</height>
    </rect>
   </property>
-  <property name="font" >
+  <property name="font">
    <font>
     <family>Verdana</family>
     <pointsize>12</pointsize>
    </font>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>Game Settings</string>
   </property>
-  <property name="modal" >
+  <property name="modal">
    <bool>true</bool>
   </property>
-  <widget class="QDialogButtonBox" name="btnBoxOptions" >
-   <property name="geometry" >
+  <widget class="QDialogButtonBox" name="btnBoxOptions">
+   <property name="geometry">
     <rect>
-     <x>5</x>
-     <y>301</y>
+     <x>0</x>
+     <y>330</y>
      <width>450</width>
      <height>32</height>
     </rect>
    </property>
-   <property name="orientation" >
+   <property name="orientation">
     <enum>Qt::Horizontal</enum>
    </property>
-   <property name="standardButtons" >
+   <property name="standardButtons">
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Save</set>
    </property>
   </widget>
-  <widget class="QLabel" name="lblApplication" >
-   <property name="geometry" >
+  <widget class="QLabel" name="lblApplication">
+   <property name="geometry">
     <rect>
      <x>5</x>
      <y>10</y>
@@ -49,12 +50,12 @@
      <height>23</height>
     </rect>
    </property>
-   <property name="text" >
+   <property name="text">
     <string>Application</string>
    </property>
   </widget>
-  <widget class="QComboBox" name="cboApplication" >
-   <property name="geometry" >
+  <widget class="QComboBox" name="cboApplication">
+   <property name="geometry">
     <rect>
      <x>155</x>
      <y>5</y>
@@ -63,8 +64,8 @@
     </rect>
    </property>
   </widget>
-  <widget class="QLabel" name="lblDebug" >
-   <property name="geometry" >
+  <widget class="QLabel" name="lblDebug">
+   <property name="geometry">
     <rect>
      <x>5</x>
      <y>47</y>
@@ -72,12 +73,12 @@
      <height>23</height>
     </rect>
    </property>
-   <property name="text" >
+   <property name="text">
     <string>WINEDEBUG</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="txtDebug" >
-   <property name="geometry" >
+  <widget class="QLineEdit" name="txtDebug">
+   <property name="geometry">
     <rect>
      <x>155</x>
      <y>43</y>
@@ -86,8 +87,8 @@
     </rect>
    </property>
   </widget>
-  <widget class="QLabel" name="lblPrefix" >
-   <property name="geometry" >
+  <widget class="QLabel" name="lblPrefix">
+   <property name="geometry">
     <rect>
      <x>5</x>
      <y>85</y>
@@ -95,12 +96,15 @@
      <height>23</height>
     </rect>
    </property>
-   <property name="text" >
+   <property name="text">
     <string>WINEPREFIX</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="txtPrefix" >
-   <property name="geometry" >
+  <widget class="QLineEdit" name="txtPrefix">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
     <rect>
      <x>155</x>
      <y>80</y>
@@ -109,11 +113,11 @@
     </rect>
    </property>
   </widget>
-  <widget class="QComboBox" name="cboBottle" >
-   <property name="enabled" >
+  <widget class="QComboBox" name="cboBottle">
+   <property name="enabled">
     <bool>true</bool>
    </property>
-   <property name="geometry" >
+   <property name="geometry">
     <rect>
      <x>155</x>
      <y>79</y>
@@ -122,8 +126,8 @@
     </rect>
    </property>
   </widget>
-  <widget class="QLineEdit" name="txtGameDir" >
-   <property name="geometry" >
+  <widget class="QLineEdit" name="txtGameDir">
+   <property name="geometry">
     <rect>
      <x>155</x>
      <y>117</y>
@@ -132,8 +136,8 @@
     </rect>
    </property>
   </widget>
-  <widget class="QToolButton" name="btnGameDir" >
-   <property name="geometry" >
+  <widget class="QToolButton" name="btnGameDir">
+   <property name="geometry">
     <rect>
      <x>419</x>
      <y>117</y>
@@ -141,12 +145,12 @@
      <height>30</height>
     </rect>
    </property>
-   <property name="text" >
+   <property name="text">
     <string>...</string>
    </property>
   </widget>
-  <widget class="QLabel" name="lblGameDir" >
-   <property name="geometry" >
+  <widget class="QLabel" name="lblGameDir">
+   <property name="geometry">
     <rect>
      <x>5</x>
      <y>121</y>
@@ -154,12 +158,12 @@
      <height>23</height>
     </rect>
    </property>
-   <property name="text" >
+   <property name="text">
     <string>Game Directory</string>
    </property>
   </widget>
-  <widget class="QLabel" name="lblGraphics" >
-   <property name="geometry" >
+  <widget class="QLabel" name="lblGraphics">
+   <property name="geometry">
     <rect>
      <x>5</x>
      <y>158</y>
@@ -167,12 +171,12 @@
      <height>23</height>
     </rect>
    </property>
-   <property name="text" >
+   <property name="text">
     <string>Hi-Res Graphics</string>
    </property>
   </widget>
-  <widget class="QComboBox" name="cboGraphics" >
-   <property name="geometry" >
+  <widget class="QComboBox" name="cboGraphics">
+   <property name="geometry">
     <rect>
      <x>155</x>
      <y>153</y>
@@ -181,66 +185,79 @@
     </rect>
    </property>
   </widget>
-  <widget class="QCheckBox" name="chkAdvanced" >
-   <property name="geometry" >
+  <widget class="QCheckBox" name="chkAdvanced">
+   <property name="geometry">
     <rect>
-     <x>5</x>
-     <y>196</y>
+     <x>0</x>
+     <y>225</y>
      <width>280</width>
      <height>28</height>
     </rect>
    </property>
-   <property name="text" >
+   <property name="text">
     <string>Advanced Options</string>
    </property>
-   <property name="checked" >
+   <property name="checked">
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QLineEdit" name="txtProgram" >
-   <property name="geometry" >
+  <widget class="QLineEdit" name="txtProgram">
+   <property name="geometry">
     <rect>
-     <x>155</x>
-     <y>229</y>
+     <x>150</x>
+     <y>258</y>
      <width>300</width>
      <height>31</height>
     </rect>
    </property>
   </widget>
-  <widget class="QLabel" name="lblProgram" >
-   <property name="geometry" >
+  <widget class="QLabel" name="lblProgram">
+   <property name="geometry">
     <rect>
-     <x>5</x>
-     <y>233</y>
+     <x>0</x>
+     <y>262</y>
      <width>140</width>
      <height>23</height>
     </rect>
    </property>
-   <property name="text" >
+   <property name="text">
     <string>Wine Program</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="txtPatchClient" >
-   <property name="geometry" >
+  <widget class="QLineEdit" name="txtPatchClient">
+   <property name="geometry">
     <rect>
-     <x>155</x>
-     <y>265</y>
+     <x>150</x>
+     <y>294</y>
      <width>300</width>
      <height>31</height>
     </rect>
    </property>
   </widget>
-  <widget class="QLabel" name="lblPatchClient" >
-   <property name="geometry" >
+  <widget class="QLabel" name="lblPatchClient">
+   <property name="geometry">
     <rect>
-     <x>5</x>
-     <y>269</y>
+     <x>0</x>
+     <y>298</y>
      <width>150</width>
      <height>23</height>
     </rect>
    </property>
-   <property name="text" >
+   <property name="text">
     <string>Patch Client DLL</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="chkx86">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>190</y>
+     <width>121</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>64-bit Client</string>
    </property>
   </widget>
  </widget>
@@ -252,11 +269,11 @@
    <receiver>dlgSettings</receiver>
    <slot>accept()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>248</x>
      <y>254</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>157</x>
      <y>274</y>
     </hint>
@@ -268,11 +285,11 @@
    <receiver>dlgSettings</receiver>
    <slot>reject()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>316</x>
      <y>260</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>286</x>
      <y>274</y>
     </hint>
