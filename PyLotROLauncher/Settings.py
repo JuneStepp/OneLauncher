@@ -120,6 +120,9 @@ class Settings:
                         else:
                             self.hideWinMain = False
 
+                if os.path.exists(self.gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe") == False:
+                    self.x86Enabled = False
+
                 success = True
         except:
             success = False

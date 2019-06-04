@@ -104,10 +104,13 @@ class SettingsWindow:
         else:
             self.uiSettings.cboGraphics.setCurrentIndex(1)
 
-        if x86:
-            self.uiSettings.chkx86.setChecked(True)
+        if os.path.exists(gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe"):
+            if x86:
+                self.uiSettings.chkx86.setChecked(True)
+            else:
+                self.uiSettings.chkx86.setChecked(False)
         else:
-            self.uiSettings.chkx86.setChecked(False)
+            self.uiSettings.chkx86.setEnabled(False)
 
         QtCore.QObject.connect(self.uiSettings.btnGameDir, QtCore.SIGNAL(
             "clicked()"), self.btnGameDirClicked)
