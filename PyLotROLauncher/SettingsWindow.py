@@ -34,7 +34,7 @@ import glob
 
 
 class SettingsWindow:
-    def __init__(self, parent, hiRes, app, wineProg, wineDebug, patchClient, winePrefix,
+    def __init__(self, parent, hiRes, app, x86, wineProg, wineDebug, patchClient, winePrefix,
                  gameDir, homeDir, osType, rootDir):
 
         self.homeDir = homeDir
@@ -103,6 +103,11 @@ class SettingsWindow:
             self.uiSettings.cboGraphics.setCurrentIndex(0)
         else:
             self.uiSettings.cboGraphics.setCurrentIndex(1)
+
+        if x86:
+            self.uiSettings.chkx86.setChecked(True)
+        else:
+            self.uiSettings.chkx86.setChecked(False)
 
         QtCore.QObject.connect(self.uiSettings.btnGameDir, QtCore.SIGNAL(
             "clicked()"), self.btnGameDirClicked)
@@ -207,6 +212,12 @@ class SettingsWindow:
             return True
         else:
             return False
+
+    def getx86(self):
+        if self.uiSettings.chkx86.isChecked():
+            return True
+        else:
+             return False
 
     def Run(self):
         return self.winSettings.exec_()
