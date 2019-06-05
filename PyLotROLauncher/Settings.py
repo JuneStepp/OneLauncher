@@ -122,7 +122,7 @@ class Settings:
 
                 # Disables 64-bit client if it is unavailable for LOTRO
                 if (os.path.exists(self.gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe") == False
-                        and self,usingDND == False):
+                        and self.usingDND == False):
                     self.x86Enabled = False
 
                 # Disables 64-bit client if it is unavailable for DDO

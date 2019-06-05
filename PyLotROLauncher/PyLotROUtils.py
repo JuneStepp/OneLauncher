@@ -548,20 +548,32 @@ class WorldQueueConfig:
 
                 self.loadSuccess = True
 
-            # check TurbineLauncher.exe.config in gameDir for local game client override
+            # check launcher configs in gameDir for local game client override
             tempxml = ""
-            filename = gameDir + '/TurbineLauncher.exe.config'
-            if os.path.exists(filename):
-                infile = uopen(filename, "r", "utf-8")
-                tempxml = infile.read()
-                infile.close()
-                doc = xml.dom.minidom.parseString(tempxml)
-                nodes = doc.getElementsByTagName("appSettings")[0].childNodes
-                for node in nodes:
-                    if node.nodeType == node.ELEMENT_NODE:
-                        if node.getAttribute("key") == "GameClient.WIN32.Filename":
-                            self.gameClientFilename = node.getAttribute(
-                                "value")
+            filenames = ["TurbineLauncher.exe.config", "ddo.launcherconfig", "lotro.launcherconfig"]
+            for filename in filenames:
+                filepath = (gameDir + os.sep + filename)
+                if os.path.exists(filepath):
+                    infile = uopen(filepath, "r", "utf-8")
+                    tempxml = infile.read()
+                    infile.close()
+                    doc = xml.dom.minidom.parseString(tempxml)
+                    nodes = doc.getElementsByTagName("appSettings")[0].childNodes
+
+                    self.message = ""
+                    for node in nodes:
+                        if node.nodeType == node.ELEMENT_NODE:
+                            if node.getAttribute("key") == "GameClient.WIN32.Filename":
+                                self.gameClientFilename = node.getAttribute(
+                                    "value")
+                                self.message = ("<font color=\"Khaki\">" + filename + " 32-bit and/or legacy"
+                                                " client override activated</font>")
+
+                            if node.getAttribute("key") == "GameClient.WIN64.Filename":
+                                self.gameClientFilename = node.getAttribute(
+                                    "value")
+                                self.message = ("<font color=\"Khaki\">" + filename + " 64-bit client"
+                                                " override activated</font>")
 
         except:
             self.loadSuccess = False
