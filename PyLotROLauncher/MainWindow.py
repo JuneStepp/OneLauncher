@@ -326,7 +326,7 @@ class MainWindow:
 
     def btnLoginClicked(self):
         if self.uiMain.txtAccount.text() == "" or self.uiMain.txtPassword.text() == "":
-            self.AddLog("Please enter account name and password")
+            self.AddLog("<font color=\"Khaki\">Please enter account name and password</font>")
         else:
             if self.uiMain.chkSaveSettings.isChecked():
                 self.settings.account = self.uiMain.txtAccount.text()
@@ -704,6 +704,10 @@ class MainWindowThread(QtCore.QThread):
         self.worldQueueConfig = WorldQueueConfig(
             urlWorldQueueServer, self.settings.usingDND, self.baseDir, self.osType, self.settings.gameDir,
             self.settings.x86Enabled)
+
+        if self.worldQueueConfig.message:
+            QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(
+                "AddLog(QString)"), self.worldQueueConfig.message)
 
         if self.worldQueueConfig.loadSuccess:
             QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(
