@@ -40,8 +40,9 @@ class StartGame:
                  crashreceiver, DefaultUploadThrottleMbps, bugurl, authserverurl,
                  supporturl, supportserviceurl, glsticketlifetime, realmName, accountText):
 
+        #Fixes binary path for 64-bit client         
         if x86:
-            runDir = os.path.join(runDir, "x64")
+            appName = ("x64" + os.sep + appName)
 
         self.winMain = parent
         self.homeDir = homeDir
