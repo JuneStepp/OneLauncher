@@ -32,6 +32,7 @@ import sys
 import xml.dom.minidom
 import zlib
 from PyQt4 import QtCore, QtGui, uic
+from PyQt4.QtCore import pyqtSignal, QObject
 from .SettingsWindow import SettingsWindow
 from .SettingsWizard import SettingsWizard
 from .PatchWindow import PatchWindow
@@ -52,8 +53,11 @@ except:
 from http.client import HTTPConnection, HTTPSConnection
 
 
-class MainWindow:
+class MainWindow(QObject):
+    ReturnLog = QtCore.pyqtSignal(str)
+
     def __init__(self):
+        super(MainWindow, self).__init__()
         # Determine where module is located (needed for finding ICO & PNG files)
         try:
             test = sys.frozen
@@ -127,30 +131,20 @@ class MainWindow:
                           (screen.height() - size.height()) / 2)
 
         # Connect signals to functions
-        QtCore.QObject.connect(self.uiMain.btnLogin, QtCore.SIGNAL(
-            "clicked()"), self.btnLoginClicked)
-        QtCore.QObject.connect(self.uiMain.txtAccount, QtCore.SIGNAL(
-            "returnPressed()"), self.txtAccountEnter)
-        QtCore.QObject.connect(self.uiMain.txtPassword, QtCore.SIGNAL(
-            "returnPressed()"), self.txtPasswordEnter)
-        QtCore.QObject.connect(self.uiMain.actionExit, QtCore.SIGNAL(
-            "triggered()"), self.winMain.close)
-        QtCore.QObject.connect(self.uiMain.actionAbout, QtCore.SIGNAL(
-            "triggered()"), self.actionAboutSelected)
-        QtCore.QObject.connect(self.uiMain.actionPatch, QtCore.SIGNAL(
-            "triggered()"), self.actionPatchSelected)
-        QtCore.QObject.connect(self.uiMain.actionOptions, QtCore.SIGNAL(
-            "triggered()"), self.actionOptionsSelected)
-        QtCore.QObject.connect(self.uiMain.actionSettings_Wizard, QtCore.SIGNAL(
-            "triggered()"), self.actionWizardSelected)
-        QtCore.QObject.connect(self.uiMain.actionSwitch_Game, QtCore.SIGNAL(
-            "triggered()"), self.actionSwitchSelected)
-        QtCore.QObject.connect(self.uiMain.actionCheck_Bottle, QtCore.SIGNAL(
-            "triggered()"), self.actionCheckSelected)
-        QtCore.QObject.connect(self.uiMain.actionHideWinMain, QtCore.SIGNAL(
-            "triggered()"), self.actionHideWinMainSelected)
-        QtCore.QObject.connect(self.winMain, QtCore.SIGNAL(
-            "AddLog(QString)"), self.AddLog)
+        self.uiMain.btnLogin.clicked.connect(self.btnLoginClicked)
+        self.uiMain.txtAccount.returnPressed.connect(self.txtAccountEnter)
+        self.uiMain.txtPassword.returnPressed.connect(self.txtPasswordEnter)
+        self.uiMain.actionExit.triggered.connect(self.winMain.close)
+        self.uiMain.actionAbout.triggered.connect(self.actionAboutSelected)
+        self.uiMain.actionPatch.triggered.connect(self.actionPatchSelected)
+        self.uiMain.actionOptions.triggered.connect(self.actionOptionsSelected)
+        self.uiMain.actionSettings_Wizard.triggered.connect(self.actionWizardSelected)
+        self.uiMain.actionSwitch_Game.triggered.connect(self.actionSwitchSelected)
+        self.uiMain.actionCheck_Bottle.triggered.connect(self.actionCheckSelected)
+        self.uiMain.actionHideWinMain.triggered.connect(self.actionHideWinMainSelected)
+
+        self.winMain.ReturnLog = self.ReturnLog
+        self.winMain.ReturnLog.connect(self.AddLog)
         QtCore.QObject.connect(self.winMain, QtCore.SIGNAL(
             "ReturnLangConfig(PyQt_PyObject)"), self.GetLanguageConfig)
         QtCore.QObject.connect(self.winMain, QtCore.SIGNAL(
@@ -643,8 +637,7 @@ class MainWindowThread(QtCore.QThread):
         self.langConfig = LanguageConfig(self.settings.gameDir)
 
         if self.langConfig.langFound:
-            QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(
-                "AddLog(QString)"), "Available languages checked.")
+            self.winMain.ReturnLog.emit("Available languages checked.")
             QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(
                 "ReturnLangConfig(PyQt_PyObject)"), self.langConfig)
 
@@ -658,8 +651,7 @@ class MainWindowThread(QtCore.QThread):
 
             self.LoadLauncherConfig()
         else:
-            QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(
-                "AddLog(QString)"), "[E02] No language files found.")
+            self.winMain.ReturnLog.emit("[E02] No language files found.")
 
     def LoadLauncherConfig(self):
         self.baseConfig = BaseConfig(self.configFile)
@@ -680,25 +672,21 @@ class MainWindowThread(QtCore.QThread):
                 self.AccessGLSDataCentre(
                     self.baseConfig.GLSDataCentreService, self.baseConfig.gameName)
             else:
-                QtCore.QObject.emit(self.winMain, QtCore.SIGNAL("AddLog(QString)"),
-                                    "[E03] Error reading launcher configuration file.")
+                self.winMain.ReturnLog.emit("[E03] Error reading launcher configuration file.")
 
     def AccessGLSDataCentre(self, urlGLS, gameName):
         self.dataCentre = GLSDataCentre(
             urlGLS, gameName, self.baseDir, self.osType)
 
         if self.dataCentre.loadSuccess:
-            QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(
-                "AddLog(QString)"), "Fetched details from GLS data centre.")
+            self.winMain.ReturnLog.emit("Fetched details from GLS data centre.")
             QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(
                 "ReturnGLSDataCentre(PyQt_PyObject)"), self.dataCentre)
-            QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(
-                "AddLog(QString)"), "Realm list obtained.")
+            self.winMain.ReturnLog.emit("Realm list obtained.")
 
             self.GetWorldQueueConfig(self.dataCentre.launchConfigServer)
         else:
-            QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(
-                "AddLog(QString)"), "[E04] Error accessing GLS data centre.")
+            self.winMain.ReturnLog.emit("[E04] Error accessing GLS data centre.")
 
     def GetWorldQueueConfig(self, urlWorldQueueServer):
         self.worldQueueConfig = WorldQueueConfig(
@@ -706,19 +694,16 @@ class MainWindowThread(QtCore.QThread):
             self.settings.x86Enabled)
 
         if self.worldQueueConfig.message:
-            QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(
-                "AddLog(QString)"), self.worldQueueConfig.message)
+            self.winMain.ReturnLog.emit(self.worldQueueConfig.message)
 
         if self.worldQueueConfig.loadSuccess:
-            QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(
-                "AddLog(QString)"), "World queue configuration read")
+            self.winMain.ReturnLog.emit("World queue configuration read")
             QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(
                 "ReturnWorldQueueConfig(PyQt_PyObject)"), self.worldQueueConfig)
 
             self.GetNews()
         else:
-            QtCore.QObject.emit(self.winMain, QtCore.SIGNAL("AddLog(QString)"),
-                                "[E05] Error getting world queue configuration")
+            self.winMain.ReturnLog.emit("[E05] Error getting world queue configuration")
 
     def GetNews(self):
         try:
@@ -824,5 +809,4 @@ class MainWindowThread(QtCore.QThread):
             QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(
                 "ReturnNews(QString)"), result)
         except:
-            QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(
-                "AddLog(QString)"), "[E12] Error gettings news")
+            self.winMain.ReturnLog.emit("[E12] Error gettings news")
