@@ -116,7 +116,7 @@ class DetermineGame:
         self.title = ""
 
     def GetSettings(self, usingDND, usingTest):
-        self.configFile = os.sep + "TurbineLauncher.exe.config"
+        self.configFile = os.sep + "lotro.launcherconfig"
 
         if os.name == 'mac':
             self.__os = " - Launcher for Mac OS X"
@@ -131,7 +131,7 @@ class DetermineGame:
             self.__test = ""
 
         if usingDND:
-            self.configFileAlt = os.sep + "dndlauncher.exe.config"
+            self.configFileAlt = os.sep + "ddo.launcherconfig"
             self.icoFile = os.path.join("images", "DDOLinuxIcon.png")
             self.pngFile = os.path.join("images", "DDOLinux.png")
 
