@@ -32,7 +32,7 @@ import subprocess
 import sys
 import glob
 import codecs
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 import xml.dom.minidom
 from xml.sax.saxutils import escape as xml_escape
 import ssl

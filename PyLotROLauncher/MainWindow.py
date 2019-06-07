@@ -31,8 +31,8 @@ import os
 import sys
 import xml.dom.minidom
 import zlib
-from PyQt4 import QtCore, QtGui, uic
-from PyQt4.QtCore import pyqtSignal, QObject
+from PyQt5 import QtCore, QtGui, QtWebEngineWidgets, QtWidgets, uic
+from PyQt5.QtCore import pyqtSignal, QObject
 from .SettingsWindow import SettingsWindow
 from .SettingsWizard import SettingsWizard
 from .PatchWindow import PatchWindow
@@ -45,8 +45,8 @@ from .PyLotROUtils import AuthenticateUser, JoinWorldQueue, GetText, WebConnecti
 from . import Information
 
 try:
-    import PyQt4.QtNetwork
-    from PyQt4 import QtWebKit
+    import PyQt5.QtNetwork
+    from PyQt5 import QtWebEngineWidgets, QtWidgets
 except:
     pass
 
@@ -54,12 +54,12 @@ from http.client import HTTPConnection, HTTPSConnection
 
 
 class MainWindow(QObject):
-    ReturnLog = QtCore.pyqtSignal("QString")
+    ReturnLog = QtCore.pyqtSignal('QString')
     ReturnLangConfig = pyqtSignal("PyQt_PyObject")
     ReturnBaseConfig = pyqtSignal("PyQt_PyObject")
     ReturnGLSDataCentre = pyqtSignal("PyQt_PyObject")
     ReturnWorldQueueConfig = pyqtSignal("PyQt_PyObject")
-    ReturnNews = pyqtSignal("QString")
+    ReturnNews = pyqtSignal('QString')
 
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -81,11 +81,11 @@ class MainWindow(QObject):
         except:
             uifile = os.path.join(self.rootDir, "ui", "winMain.ui")
 
-        self.app = QtGui.QApplication(sys.argv)
+        self.app = QtWidgets.QApplication(sys.argv)
 
         # Create the main window and set all text so that translations are handled via gettext
         Ui_winMain, base_class = uic.loadUiType(uifile)
-        self.winMain = QtGui.QMainWindow()
+        self.winMain = QtWidgets.QMainWindow()
         self.winMain.setWindowFlags(QtCore.Qt.Dialog)
         self.uiMain = Ui_winMain()
         self.uiMain.setupUi(self.winMain)
@@ -108,29 +108,29 @@ class MainWindow(QObject):
 
         # find menubar object and save it so we can find the menus
         for child in self.winMain.children():
-            if isinstance(child, QtGui.QMenuBar):
+            if isinstance(child, QtWidgets.QMenuBar):
                 self.menubar = child
 
         # find menu objects and set the palette on them
         for child in self.menubar.children():
-            if isinstance(child, QtGui.QMenu):
+            if isinstance(child, QtWidgets.QMenu):
                 child.setPalette(self.palette)
 
         self.webMainExists = True
         try:
-            self.webMain = QtWebKit.QWebView(self.uiMain.centralwidget)
+            self.webMain = QtWebEngineWidgets.QWebView(self.uiMain.centralwidget)
             self.webMain.setGeometry(QtCore.QRect(5, 130, 390, 280))
             self.webMain.setUrl(QtCore.QUrl("about:blank"))
         except:
             self.webMainExists = False
-            self.webMain = QtGui.QTextBrowser(self.uiMain.centralwidget)
+            self.webMain = QtWidgets.QTextBrowser(self.uiMain.centralwidget)
             self.webMain.setGeometry(QtCore.QRect(5, 130, 390, 280))
             self.webMain.setTextInteractionFlags(
                 QtCore.Qt.TextSelectableByMouse)
             self.webMain.setOpenLinks(False)
 
         # Centre window on screen
-        screen = QtGui.QDesktopWidget().screenGeometry()
+        screen = QtWidgets.QDesktopWidget().screenGeometry()
         size = self.winMain.geometry()
         self.winMain.move((screen.width() - size.width()) / 2,
                           (screen.height() - size.height()) / 2)
@@ -203,7 +203,7 @@ class MainWindow(QObject):
         self.resetFocus()
 
     def actionAboutSelected(self):
-        dlgAbout = QtGui.QDialog(self.winMain)
+        dlgAbout = QtWidgets.QDialog(self.winMain)
         dlgAbout.setPalette(self.winMain.palette())
 
         uifile = None
@@ -245,7 +245,7 @@ class MainWindow(QObject):
                                      self.settings.winePrefix, self.settings.gameDir, self.valHomeDir, self.osType, self.rootDir)
 
         self.hideWinMain()
-        if winSettings.Run() == QtGui.QDialog.Accepted:
+        if winSettings.Run() == QtWidgets.QDialog.Accepted:
             self.settings.hiResEnabled = winSettings.getHiRes()
             self.settings.app = winSettings.getApp()
             self.settings.x86Enabled = winSettings.getx86()
@@ -268,7 +268,7 @@ class MainWindow(QObject):
             self.winMain, self.valHomeDir, self.osType, self.rootDir)
 
         self.hideWinMain()
-        if winWizard.Run() == QtGui.QDialog.Accepted:
+        if winWizard.Run() == QtWidgets.QDialog.Accepted:
             self.settings.usingDND = winWizard.getUsingDND()
             self.settings.usingTest = winWizard.getUsingTest()
             self.settings.hiResEnabled = winWizard.getHiRes()
@@ -285,7 +285,7 @@ class MainWindow(QObject):
             self.resetFocus()
 
     def actionSwitchSelected(self):
-        dlgChooseAccount = QtGui.QDialog(self.winMain)
+        dlgChooseAccount = QtWidgets.QDialog(self.winMain)
         dlgChooseAccount.setPalette(self.winMain.palette())
 
         uifile = None
@@ -308,7 +308,7 @@ class MainWindow(QObject):
         ui.comboBox.addItem("Dungeons & Dragons Online (Test)")
 
         self.hideWinMain()
-        if dlgChooseAccount.exec_() == QtGui.QDialog.Accepted:
+        if dlgChooseAccount.exec_() == QtWidgets.QDialog.Accepted:
             if ui.comboBox.currentIndex() == 0:
                 self.currentGame = "LOTRO"
             elif ui.comboBox.currentIndex() == 1:
@@ -363,7 +363,7 @@ class MainWindow(QObject):
             tempRealm = ""
 
             if len(self.account.gameList) > 1:
-                dlgChooseAccount = QtGui.QDialog(self.winMain)
+                dlgChooseAccount = QtWidgets.QDialog(self.winMain)
 
                 uifile = None
 
@@ -385,7 +385,7 @@ class MainWindow(QObject):
                     ui.comboBox.addItem(game.description)
 
                 self.hideWinMain()
-                if dlgChooseAccount.exec_() == QtGui.QDialog.Accepted:
+                if dlgChooseAccount.exec_() == QtWidgets.QDialog.Accepted:
                     self.accNumber = self.account.gameList[ui.comboBox.currentIndex(
                     )].name
                     self.resetFocus()
@@ -669,7 +669,7 @@ class MainWindowThread(QtCore.QThread):
             self.baseConfig = BaseConfig(self.configFileAlt)
 
             if self.baseConfig.isConfigOK:
-                self.winMain.self.baseConfig.emit(self.baseConfig)
+                self.winMain.ReturnBaseConfig.emit(self.baseConfig)
 
                 self.AccessGLSDataCentre(
                     self.baseConfig.GLSDataCentreService, self.baseConfig.gameName)
