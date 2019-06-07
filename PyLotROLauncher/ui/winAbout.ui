@@ -1,124 +1,120 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>dlgAbout</class>
- <widget class="QDialog" name="dlgAbout" >
-  <property name="windowModality" >
+ <widget class="QDialog" name="dlgAbout">
+  <property name="windowModality">
    <enum>Qt::ApplicationModal</enum>
   </property>
-  <property name="geometry" >
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>520</width>
-    <height>300</height>
+    <height>320</height>
    </rect>
   </property>
-  <property name="font" >
+  <property name="font">
    <font>
     <family>Verdana</family>
     <pointsize>12</pointsize>
    </font>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>About</string>
   </property>
-  <property name="modal" >
+  <property name="modal">
    <bool>true</bool>
   </property>
-  <widget class="QDialogButtonBox" name="buttonBox" >
-   <property name="geometry" >
+  <widget class="QDialogButtonBox" name="buttonBox">
+   <property name="geometry">
     <rect>
      <x>10</x>
-     <y>258</y>
+     <y>280</y>
      <width>500</width>
      <height>32</height>
     </rect>
    </property>
-   <property name="orientation" >
+   <property name="orientation">
     <enum>Qt::Horizontal</enum>
    </property>
-   <property name="standardButtons" >
+   <property name="standardButtons">
     <set>QDialogButtonBox::Close</set>
    </property>
   </widget>
-  <widget class="QLabel" name="lblDescription" >
-   <property name="geometry" >
+  <widget class="QWidget" name="">
+   <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>10</y>
-     <width>480</width>
-     <height>40</height>
+     <width>501</width>
+     <height>261</height>
     </rect>
    </property>
-   <property name="text" >
-    <string/>
-   </property>
-   <property name="alignment" >
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="lblCopyright" >
-   <property name="geometry" >
-    <rect>
-     <x>20</x>
-     <y>60</y>
-     <width>480</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text" >
-    <string/>
-   </property>
-   <property name="alignment" >
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="lblVersion" >
-   <property name="geometry" >
-    <rect>
-     <x>20</x>
-     <y>100</y>
-     <width>480</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text" >
-    <string/>
-   </property>
-   <property name="alignment" >
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="lblCLIReference" >
-   <property name="geometry" >
-    <rect>
-     <x>20</x>
-     <y>140</y>
-     <width>480</width>
-     <height>40</height>
-    </rect>
-   </property>
-   <property name="text" >
-    <string/>
-   </property>
-   <property name="alignment" >
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="lblLotROLinuxReference" >
-   <property name="geometry" >
-    <rect>
-     <x>20</x>
-     <y>200</y>
-     <width>480</width>
-     <height>40</height>
-    </rect>
-   </property>
-   <property name="text" >
-    <string/>
-   </property>
-   <property name="alignment" >
-    <set>Qt::AlignCenter</set>
-   </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QLabel" name="lblDescription">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="lblCopyright">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="lblCLIReference">
+      <property name="acceptDrops">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="lblLotROLinuxReference">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="lblPyLotROReference">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="lblVersion">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>
@@ -129,11 +125,11 @@
    <receiver>dlgAbout</receiver>
    <slot>accept()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>259</x>
      <y>273</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>259</x>
      <y>149</y>
     </hint>
