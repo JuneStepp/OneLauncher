@@ -1,5 +1,4 @@
-include pylotro README AUTHORS COPYING PyLotRO_Menu.png ChangeLog PyLotRO.desktop
-recursive-include PyLotROLauncher *
-recursive-include PyLotROLauncher/ui *
-recursive-include PyLotROLauncher/images *
-
+include RunOneLauncher README AUTHORS COPYING OneLauncher_Menu.png ChangeLog
+recursive-include OneLauncher *
+recursive-include OneLauncher/ui *
+recursive-include OneLauncher/images *

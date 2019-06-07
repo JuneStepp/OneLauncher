@@ -1,18 +1,19 @@
 Lord of the Rings Online and Dungeons & Dragons Online
-Launcher for Linux and Mac OS X
+Launcher for Linux and Mac OS X.
+
+OneLauncher
+(c) 2019 Jeremy Stepp
+
+Based on PyLotRO
 (C) 2009 AJackson
+    Many thanks to the many users at Ubuntu Forums,
+    CodeWeavers forums and the official game forums
+    for helping to test and improve LotROLinux and
+    providing ideas that have lead to the development
+    of PyLotRO.
 
 Based on LotROLinux
 (C) 2007-2008 AJackson
 
 Based on CLI launcher for
 LOTRO (C) 2007-2009 SNy
-
-Main Developer: Alan Jackson
-
-Many thanks to the many users at Ubuntu Forums,
-CodeWeavers forums and the official game forums
-for helping to test and improve LotROLinux and
-providing ideas that have lead to the development
-of PyLotRO.
-

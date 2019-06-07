@@ -27,7 +27,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-import PyLotROLauncher.Runner
+import OneLauncher.Runner
 
 if __name__ == '__main__':
-    PyLotROLauncher.Runner.main()
+    OneLauncher.Runner.main()

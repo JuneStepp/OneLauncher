@@ -28,7 +28,7 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import os
-from .PyLotROUtils import DetermineOS, GetText
+from .OneLauncherUtils import DetermineOS, GetText
 from xml.dom import EMPTY_NAMESPACE
 import xml.dom.minidom
 

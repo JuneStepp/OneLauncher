@@ -38,9 +38,9 @@ from .PatchWindow import PatchWindow
 from .StartGame import StartGame
 from .Settings import Settings
 from .CheckConfig import CheckConfig
-from .PyLotROUtils import DetermineOS, DetermineGame, LanguageConfig, Language
-from .PyLotROUtils import BaseConfig, GLSDataCentre, WorldQueueConfig
-from .PyLotROUtils import AuthenticateUser, JoinWorldQueue, GetText, WebConnection
+from .OneLauncherUtils import DetermineOS, DetermineGame, LanguageConfig, Language
+from .OneLauncherUtils import BaseConfig, GLSDataCentre, WorldQueueConfig
+from .OneLauncherUtils import AuthenticateUser, JoinWorldQueue, GetText, WebConnection
 from . import Information
 
 try:

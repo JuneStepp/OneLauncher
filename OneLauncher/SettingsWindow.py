@@ -27,7 +27,7 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
-from .PyLotROUtils import DetermineOS
+from .OneLauncherUtils import DetermineOS
 import os.path
 import glob
 
