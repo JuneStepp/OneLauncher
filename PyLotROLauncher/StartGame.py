@@ -27,7 +27,7 @@
 # You should have received a copy of the GNU General Public License
 # along with PyLotRO.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from PyQt4 import QtCore, QtGui, uic
+from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from .PyLotROUtils import DetermineOS, QByteArray2str
 import sys
 import os.path
@@ -46,7 +46,7 @@ class StartGame:
 
         self.winMain = parent
         self.homeDir = homeDir
-        self.winLog = QtGui.QDialog(parent)
+        self.winLog = QtWidgets.QDialog(parent)
         self.winLog.setPalette(parent.palette())
         self.osType = osType
         self.realmName = realmName
@@ -68,7 +68,7 @@ class StartGame:
         self.uiLog.setupUi(self.winLog)
         self.winLog.setWindowFlags(QtCore.Qt.Dialog)
         self.winLog.setWindowIcon(QtGui.QIcon(icofile))
-        screen = QtGui.QDesktopWidget().screenGeometry()
+        screen = QtWidgets.QDesktopWidget().screenGeometry()
         size = self.winLog.geometry()
         self.winLog.move((screen.width() - size.width()) / 2,
                          (screen.height() - size.height()) / 2)
@@ -232,8 +232,8 @@ class StartGame:
             self.process.kill()
 
     def btnSaveClicked(self):
-        filename = QtGui.QFileDialog.getSaveFileName(
-            self.winLog, "Save log file", self.homeDir)
+        filename = QtWidgets.QFileDialog.getSaveFileName(
+            self.winLog, "Save log file", self.homeDir)[0]
 
         if filename != "":
             outfile = open(filename, "w")

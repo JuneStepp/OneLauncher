@@ -28,7 +28,7 @@
 # You should have received a copy of the GNU General Public License
 # along with PyLotRO.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from PyQt4 import QtCore, QtGui, uic
+from PyQt5 import QtCore, QtGui, QtWidgets, uic
 import os
 import sys
 from .Settings import Settings
@@ -40,7 +40,7 @@ class CheckConfig:
         self.homeDir = homeDir
         self.osType = osType
 
-        self.winCheckConfig = QtGui.QDialog(parent)
+        self.winCheckConfig = QtWidgets.QDialog(parent)
         self.winCheckConfig.setPalette(parent.palette())
 
         uifile = None
@@ -54,7 +54,7 @@ class CheckConfig:
         Ui_dlgCheckConfig, base_class = uic.loadUiType(uifile)
         self.uiSettings = Ui_dlgCheckConfig()
         self.uiSettings.setupUi(self.winCheckConfig)
-        screen = QtGui.QDesktopWidget().screenGeometry()
+        screen = QtWidgets.QDesktopWidget().screenGeometry()
         size = self.winCheckConfig.geometry()
         self.winCheckConfig.move(
             (screen.width() - size.width()) / 2, (screen.height() - size.height()) / 2)

@@ -27,7 +27,7 @@
 # You should have received a copy of the GNU General Public License
 # along with PyLotRO.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from PyQt4 import QtCore, QtGui, uic
+from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from .PyLotROUtils import DetermineOS
 import os.path
 import glob
@@ -50,7 +50,7 @@ class SettingsWizard:
         self.prefix = ""
         self.gameDir = ""
 
-        self.winSettings = QtGui.QDialog(parent)
+        self.winSettings = QtWidgets.QDialog(parent)
         self.winSettings.setPalette(parent.palette())
 
         uifile = None
@@ -72,7 +72,7 @@ class SettingsWizard:
         Ui_winGameWizard, base_class = uic.loadUiType(uifile)
         self.uiWizard = Ui_winGameWizard()
         self.uiWizard.setupUi(self.winSettings)
-        screen = QtGui.QDesktopWidget().screenGeometry()
+        screen = QtWidgets.QDesktopWidget().screenGeometry()
         size = self.winSettings.geometry()
         self.winSettings.move(
             (screen.width() - size.width()) / 2, (screen.height() - size.height()) / 2)
@@ -113,7 +113,7 @@ class SettingsWizard:
 
     def GameSelected(self):
         self.uiWizard.btnBoxOptions.setStandardButtons(
-            QtGui.QDialogButtonBox.Apply | QtGui.QDialogButtonBox.Cancel)
+            QtWidgets.QDialogButtonBox.Apply | QtWidgets.QDialogButtonBox.Cancel)
 
         currIndex = self.uiWizard.tblGame.currentIndex()
 
@@ -128,7 +128,7 @@ class SettingsWizard:
 
     def ClearGameTable(self):
         self.uiWizard.btnBoxOptions.setStandardButtons(
-            QtGui.QDialogButtonBox.Cancel)
+            QtWidgets.QDialogButtonBox.Cancel)
         self.model.removeRows(0, self.model.rowCount(
             QtCore.QModelIndex()), QtCore.QModelIndex())
 

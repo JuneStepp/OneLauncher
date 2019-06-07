@@ -27,7 +27,7 @@
 # You should have received a copy of the GNU General Public License
 # along with PyLotRO.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from PyQt4 import QtCore, QtGui, uic
+from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from .PyLotROUtils import DetermineOS
 import os.path
 import glob
@@ -40,7 +40,7 @@ class SettingsWindow:
         self.homeDir = homeDir
         self.osType = osType
 
-        self.winSettings = QtGui.QDialog(parent)
+        self.winSettings = QtWidgets.QDialog(parent)
         self.winSettings.setPalette(parent.palette())
 
         uifile = None
@@ -61,7 +61,7 @@ class SettingsWindow:
         Ui_dlgSettings, base_class = uic.loadUiType(uifile)
         self.uiSettings = Ui_dlgSettings()
         self.uiSettings.setupUi(self.winSettings)
-        screen = QtGui.QDesktopWidget().screenGeometry()
+        screen = QtWidgets.QDesktopWidget().screenGeometry()
         size = self.winSettings.geometry()
         self.winSettings.move(
             (screen.width() - size.width()) / 2, (screen.height() - size.height()) / 2)
@@ -174,7 +174,7 @@ class SettingsWindow:
             else:
                 tempdir = self.homeDir
 
-        filename = QtGui.QFileDialog.getExistingDirectory(
+        filename = QtWidgets.QFileDialog.getExistingDirectory(
             self.winSettings, "Game Directory", tempdir)
 
         if filename != "":
