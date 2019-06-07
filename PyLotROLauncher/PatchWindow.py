@@ -78,12 +78,9 @@ class PatchWindow:
         self.uiLog.progressBar.reset()
         self.uiLog.btnStop.setText("Launcher")
         self.uiLog.btnStart.setText("Patch")
-        QtCore.QObject.connect(self.uiLog.btnSave, QtCore.SIGNAL(
-            "clicked()"), self.btnSaveClicked)
-        QtCore.QObject.connect(self.uiLog.btnStop, QtCore.SIGNAL(
-            "clicked()"), self.btnStopClicked)
-        QtCore.QObject.connect(self.uiLog.btnStart, QtCore.SIGNAL(
-            "clicked()"), self.btnStartClicked)
+        self.uiLog.btnSave.clicked.connect(self.btnSaveClicked)
+        self.uiLog.btnStop.clicked.connect(self.btnStopClicked)
+        self.uiLog.btnStart.clicked.connect(self.btnStartClicked)
 
         self.aborted = False
         self.finished = True
@@ -97,12 +94,10 @@ class PatchWindow:
             os.environ["WINEPREFIX"] = winePrefix
 
         self.process = QtCore.QProcess()
-        QtCore.QObject.connect(self.process, QtCore.SIGNAL(
-            "readyReadStandardOutput()"), self.readOutput)
-        QtCore.QObject.connect(self.process, QtCore.SIGNAL(
-            "readyReadStandardError()"), self.readErrors)
-        QtCore.QObject.connect(self.process, QtCore.SIGNAL("finished(int, QProcess::ExitStatus)"),
-                               self.processFinished)
+        self.process.readyReadStandardOutput.connect(self.readOutput)
+        self.process.readyReadStandardError.connect(self.readErrors)
+        self.process.finished.connect(self.processFinished)
+
 
         if wineApp == "Native":
             patchParams = "%s,Patch %s --language %s --productcode %s" % (patchClient, urlPatchServer, language, prodCode)
