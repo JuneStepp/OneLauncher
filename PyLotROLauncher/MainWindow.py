@@ -54,12 +54,12 @@ from http.client import HTTPConnection, HTTPSConnection
 
 
 class MainWindow(QObject):
-    ReturnLog = QtCore.pyqtSignal(str)
-    ReturnLangConfig = pyqtSignal(object)
-    ReturnBaseConfig = pyqtSignal(object)
-    ReturnGLSDataCentre = pyqtSignal(object)
-    ReturnWorldQueueConfig = pyqtSignal(object)
-    ReturnNews = pyqtSignal(object)
+    ReturnLog = QtCore.pyqtSignal("QString")
+    ReturnLangConfig = pyqtSignal("PyQt_PyObject")
+    ReturnBaseConfig = pyqtSignal("PyQt_PyObject")
+    ReturnGLSDataCentre = pyqtSignal("PyQt_PyObject")
+    ReturnWorldQueueConfig = pyqtSignal("PyQt_PyObject")
+    ReturnNews = pyqtSignal("QString")
 
     def __init__(self):
         super(MainWindow, self).__init__()
