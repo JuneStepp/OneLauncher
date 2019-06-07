@@ -14,8 +14,9 @@ To install
 NB The following items are required
 to run PyLotRO
 
-Python (3.2+)
-PyQT5
+* Python (3.2+)
+* PyQt5 (Can be installed with pip)
+* PyQtWebEngine (Can be installed with pip)
 
 recommended optional package:
 pkg_resources
