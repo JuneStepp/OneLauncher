@@ -148,7 +148,7 @@ class DetermineOS:
         if os.name == 'mac':
             self.usingMac = True
             self.usingWindows = False
-            self.appDir = "Library/Application Support/LotROLinux/"
+            self.appDir = "Library/Application Support/OneLauncher/"
             self.globalDir = "/Application"
             self.settingsCXG = "Library/Application Support/CrossOver Games/Bottles"
             self.settingsCXO = "Library/Application Support/CrossOver/Bottles"
@@ -170,7 +170,7 @@ class DetermineOS:
         else:
             self.usingMac = False
             self.usingWindows = False
-            self.appDir = ".LotROLinux" + os.sep
+            self.appDir = ".OneLauncher" + os.sep
             self.globalDir = "/opt"
             self.settingsCXG = ".cxgames"
             self.settingsCXO = ".cxoffice"
