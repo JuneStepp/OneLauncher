@@ -114,14 +114,11 @@ class SettingsWindow:
         else:
             self.uiSettings.chkx86.setEnabled(False)
 
-        QtCore.QObject.connect(self.uiSettings.btnGameDir, QtCore.SIGNAL(
-            "clicked()"), self.btnGameDirClicked)
-        QtCore.QObject.connect(self.uiSettings.chkAdvanced, QtCore.SIGNAL(
-            "clicked()"), self.chkAdvancedClicked)
+        self.uiSettings.btnGameDir.clicked.connect(self.btnGameDirClicked)
+        self.uiSettings.chkAdvanced.clicked.connect(self.chkAdvancedClicked)
 
         if not self.osType.usingWindows:
-            QtCore.QObject.connect(self.uiSettings.cboApplication, QtCore.SIGNAL("currentIndexChanged(int)"),
-                                   self.cboApplicationChanged)
+            self.uiSettings.cboApplication.currentIndexChanged.connect(self.cboApplicationChanged)
 
     def ShowBottles(self, defaultBottle=None):
         self.uiSettings.cboBottle.clear()

@@ -103,17 +103,13 @@ class SettingsWizard:
 
         self.ClearGameTable()
 
-        QtCore.QObject.connect(self.uiWizard.btnFind, QtCore.SIGNAL(
-            "clicked()"), self.btnFindClicked)
+        self.uiWizard.btnFind.clicked.connect(self.btnFindClicked)
 
         if not self.osType.usingWindows:
-            QtCore.QObject.connect(self.uiWizard.cboApplication, QtCore.SIGNAL("currentIndexChanged(int)"),
-                                   self.ClearGameTable)
+            self.uiWizard.cboApplication.currentIndexChanged.connect(self.ClearGameTable)
 
-        QtCore.QObject.connect(self.uiWizard.cboGame, QtCore.SIGNAL(
-            "currentIndexChanged(int)"), self.ClearGameTable)
-        QtCore.QObject.connect(self.uiWizard.tblGame, QtCore.SIGNAL(
-            "clicked(QModelIndex)"), self.GameSelected)
+        self.uiWizard.cboGame.currentIndexChanged.connect(self.ClearGameTable)
+        self.uiWizard.tblGame.clicked.connect(self.GameSelected)
 
     def GameSelected(self):
         self.uiWizard.btnBoxOptions.setStandardButtons(
