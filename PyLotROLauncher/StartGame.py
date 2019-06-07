@@ -40,7 +40,7 @@ class StartGame:
                  crashreceiver, DefaultUploadThrottleMbps, bugurl, authserverurl,
                  supporturl, supportserviceurl, glsticketlifetime, realmName, accountText):
 
-        #Fixes binary path for 64-bit client         
+        #Fixes binary path for 64-bit client
         if x86:
             appName = ("x64" + os.sep + appName)
 
@@ -87,12 +87,9 @@ class StartGame:
         self.uiLog.btnSave.setText("Save")
         self.uiLog.btnSave.setEnabled(False)
         self.uiLog.btnStop.setText("Exit")
-        QtCore.QObject.connect(self.uiLog.btnStart, QtCore.SIGNAL(
-            "clicked()"), self.btnStartClicked)
-        QtCore.QObject.connect(self.uiLog.btnSave, QtCore.SIGNAL(
-            "clicked()"), self.btnSaveClicked)
-        QtCore.QObject.connect(self.uiLog.btnStop, QtCore.SIGNAL(
-            "clicked()"), self.btnStopClicked)
+        self.uiLog.btnStart.clicked.connect(self.btnStartClicked)
+        self.uiLog.btnSave.clicked.connect(self.btnSaveClicked)
+        self.uiLog.btnStop.clicked.connect(self.btnStopClicked)
 
         self.aborted = False
         self.finished = False
@@ -116,12 +113,9 @@ class StartGame:
             os.environ["WINEPREFIX"] = winePrefix
 
         self.process = QtCore.QProcess()
-        QtCore.QObject.connect(self.process, QtCore.SIGNAL(
-            "readyReadStandardOutput()"), self.readOutput)
-        QtCore.QObject.connect(self.process, QtCore.SIGNAL(
-            "readyReadStandardError()"), self.readErrors)
-        QtCore.QObject.connect(self.process, QtCore.SIGNAL(
-            "finished(int, QProcess::ExitStatus)"), self.resetButtons)
+        self.process.readyReadStandardOutput.connect(self.readOutput)
+        self.process.readyReadStandardError.connect(self.readErrors)
+        self.process.finished.connect(self.resetButtons)
 
         if wineApp == "Native":
             self.command = appName
