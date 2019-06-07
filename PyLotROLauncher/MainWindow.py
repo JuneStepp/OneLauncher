@@ -55,6 +55,11 @@ from http.client import HTTPConnection, HTTPSConnection
 
 class MainWindow(QObject):
     ReturnLog = QtCore.pyqtSignal(str)
+    ReturnLangConfig = pyqtSignal(object)
+    ReturnBaseConfig = pyqtSignal(object)
+    ReturnGLSDataCentre = pyqtSignal(object)
+    ReturnWorldQueueConfig = pyqtSignal(object)
+    ReturnNews = pyqtSignal(object)
 
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -145,16 +150,16 @@ class MainWindow(QObject):
 
         self.winMain.ReturnLog = self.ReturnLog
         self.winMain.ReturnLog.connect(self.AddLog)
-        QtCore.QObject.connect(self.winMain, QtCore.SIGNAL(
-            "ReturnLangConfig(PyQt_PyObject)"), self.GetLanguageConfig)
-        QtCore.QObject.connect(self.winMain, QtCore.SIGNAL(
-            "ReturnBaseConfig(PyQt_PyObject)"), self.GetBaseConfig)
-        QtCore.QObject.connect(self.winMain, QtCore.SIGNAL(
-            "ReturnGLSDataCentre(PyQt_PyObject)"), self.GetGLSDataCentre)
-        QtCore.QObject.connect(self.winMain, QtCore.SIGNAL("ReturnWorldQueueConfig(PyQt_PyObject)"),
-                               self.GetWorldQueueConfig)
-        QtCore.QObject.connect(self.winMain, QtCore.SIGNAL(
-            "ReturnNews(QString)"), self.GetNews)
+        self.winMain.ReturnLangConfig = self.ReturnLangConfig
+        self.winMain.ReturnLangConfig.connect(self.GetLanguageConfig)
+        self.winMain.ReturnBaseConfig = self.ReturnBaseConfig
+        self.winMain.ReturnBaseConfig.connect(self.GetBaseConfig)
+        self.winMain.ReturnGLSDataCentre = self.ReturnGLSDataCentre
+        self.winMain.ReturnGLSDataCentre.connect(self.GetGLSDataCentre)
+        self.winMain.ReturnWorldQueueConfig = self.ReturnWorldQueueConfig
+        self.winMain.ReturnWorldQueueConfig.connect(self.GetWorldQueueConfig)
+        self.winMain.ReturnNews = self.ReturnNews
+        self.winMain.ReturnNews.connect(self.GetNews)
 
         # Disable login and save settings buttons
         self.uiMain.btnLogin.setEnabled(False)
@@ -638,8 +643,7 @@ class MainWindowThread(QtCore.QThread):
 
         if self.langConfig.langFound:
             self.winMain.ReturnLog.emit("Available languages checked.")
-            QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(
-                "ReturnLangConfig(PyQt_PyObject)"), self.langConfig)
+            self.winMain.ReturnLangConfig.emit(self.langConfig)
 
             self.langPos = 0
             setPos = 0
@@ -657,8 +661,7 @@ class MainWindowThread(QtCore.QThread):
         self.baseConfig = BaseConfig(self.configFile)
 
         if self.baseConfig.isConfigOK:
-            QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(
-                "ReturnBaseConfig(PyQt_PyObject)"), self.baseConfig)
+            self.winMain.ReturnBaseConfig.emit(self.baseConfig)
 
             self.AccessGLSDataCentre(
                 self.baseConfig.GLSDataCentreService, self.baseConfig.gameName)
@@ -666,8 +669,7 @@ class MainWindowThread(QtCore.QThread):
             self.baseConfig = BaseConfig(self.configFileAlt)
 
             if self.baseConfig.isConfigOK:
-                QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(
-                    "ReturnBaseConfig(PyQt_PyObject)"), self.baseConfig)
+                self.winMain.self.baseConfig.emit(self.baseConfig)
 
                 self.AccessGLSDataCentre(
                     self.baseConfig.GLSDataCentreService, self.baseConfig.gameName)
@@ -680,8 +682,7 @@ class MainWindowThread(QtCore.QThread):
 
         if self.dataCentre.loadSuccess:
             self.winMain.ReturnLog.emit("Fetched details from GLS data centre.")
-            QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(
-                "ReturnGLSDataCentre(PyQt_PyObject)"), self.dataCentre)
+            self.winMain.ReturnGLSDataCentre.emit(self.dataCentre)
             self.winMain.ReturnLog.emit("Realm list obtained.")
 
             self.GetWorldQueueConfig(self.dataCentre.launchConfigServer)
@@ -698,8 +699,7 @@ class MainWindowThread(QtCore.QThread):
 
         if self.worldQueueConfig.loadSuccess:
             self.winMain.ReturnLog.emit("World queue configuration read")
-            QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(
-                "ReturnWorldQueueConfig(PyQt_PyObject)"), self.worldQueueConfig)
+            self.winMain.ReturnWorldQueueConfig.emit(self.worldQueueConfig)
 
             self.GetNews()
         else:
@@ -806,7 +806,6 @@ class MainWindowThread(QtCore.QThread):
 
             result += "</div></body></html>"
 
-            QtCore.QObject.emit(self.winMain, QtCore.SIGNAL(
-                "ReturnNews(QString)"), result)
+            self.winMain.ReturnNews.emit(result)
         except:
             self.winMain.ReturnLog.emit("[E12] Error gettings news")
