@@ -14,8 +14,8 @@ To install
 NB The following items are required
 to run PyLotRO
 
-Python (2.x or 3.x work, 3.2+ recommended)
-PyQT4
+Python (3.2+)
+PyQT5
 
 recommended optional package:
 pkg_resources
@@ -99,4 +99,3 @@ are saved when you successfully login.
 
 NB: Your password is not saved for security
 reasons.
-
