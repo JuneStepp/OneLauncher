@@ -38,7 +38,7 @@ class Settings:
         self.usingDND = False
         self.usingTest = False
         self.settingsDir = "%s%s" % (baseDir, osType.appDir)
-        self.settingsFile = "%sLotROLinux.config" % (self.settingsDir)
+        self.settingsFile = "%sOneLauncher.config" % (self.settingsDir)
 
     def LoadSettings(self, useGame=None):
         self.hiResEnabled = True
