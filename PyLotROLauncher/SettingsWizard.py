@@ -1,31 +1,30 @@
 # coding=utf-8
 ###########################################################################
-# Name:   SettingsWizard
-# Author: Alan Jackson
-# Date:   4th April 2009
+# Settings wizard for OneLauncher.
 #
-# Settings wizard for the Linux/OS X based launcher
-# for the game Lord of the Rings Online
-#
-# Based on a script by SNy <SNy@bmx-chemnitz.de>
-# Python port of LotROLinux by AJackson <ajackson@bcs.org.uk>
-#
+# Based on PyLotRO
 # (C) 2009 AJackson <ajackson@bcs.org.uk>
 #
-# This file is part of PyLotRO
+# Based on LotROLinux
+# (C) 2007-2008 AJackson <ajackson@bcs.org.uk>
 #
-# PyLotRO is free software; you can redistribute it and/or modify
+#
+# (C) 2019 Jeremy Stepp <jeremy@bluetecno.com>
+#
+# This file is part of OneLauncher
+#
+# OneLauncher is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
 #
-# PyLotRO is distributed in the hope that it will be useful,
+# OneLauncher is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with PyLotRO.  If not, see <http://www.gnu.org/licenses/>.
+# along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from .PyLotROUtils import DetermineOS

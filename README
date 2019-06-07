@@ -1,5 +1,16 @@
-Lord of the Rings Online and Dungeons & Dragons Online
-Launcher for Linux and Mac OS X
+The OneLauncher is a custom launcher for The Lord of the Rings Online and Dungeons & Dragons Online
+for Linux, Windows, and Mac OS X based on PyLotRO by AJackson. PyLotRO
+was originally made to allow Linux and Mac players to enjoy LOTRO, but fell
+out of relevence once it was no longer needed. This project aims to make a launcher
+with new and interesting features that can always be used wheather it is for private
+servers after the games shut down, if the main launcher stops working on Linux, or
+if people decide to use it right now.
+
+
+OneLauncher
+(c) 2019 Jeremy Stepp
+
+Based on PyLotRO
 (C) 2009 AJackson
 
 Based on LotROLinux
@@ -12,7 +23,7 @@ To install
 ========
 
 NB The following items are required
-to run PyLotRO
+to run OneLauncher
 
 * Python (3.2+)
 * PyQt5 (Can be installed with pip)
@@ -21,17 +32,10 @@ to run PyLotRO
 recommended optional package:
 pkg_resources
 
-On Ubuntu you should only need to
-install python-qt4 (or python3-pyqt4)
-
 Install using
 sudo ./setup.py install
 
 or
-
-sudo python setup.py install
-
-or if you want Python 3.x
 
 sudo python3 setup.py install
 
@@ -42,7 +46,7 @@ sudo ./setup.py uninstall
 
 or
 
-sudo python setup.py uninstall
+sudo python3 setup.py uninstall
 
 To run
 ======
@@ -79,14 +83,9 @@ Dungeons & Dragons Online select the Switch
 option under the Options menu.
 
 To patch the game files with official patches
-released by Turbine/Codemaster select the
+released by StandingStoneGames select the
 Patch from the Options menu and follow the
-instructions. Note at this time Dungeons &
-Dragons Online needs a copy of patchclient.dll
-from Lord of the Rings Online book 11 or newer.
-This file should be renamed and placed in the
-DDO directory and the name entered under
-Settings -> Options in the Patch Client DLL field.
+instructions.
 
 You can change your settings via the
 Settings -> Options menu.
