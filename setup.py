@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # coding=utf-8
-import PyLotROLauncher.Information
+import OneLauncher.Information
 import sys
 import os
 import shutil
@@ -16,7 +16,7 @@ for arg in sys.argv:
         uninstallMode = True
 
 if uninstallMode:
-    logfile = open("pylotro-install.log", "r")
+    logfile = open("OneLauncher-install.log", "r")
     maindir = ""
 
     # read through the install log deleting every file installed
@@ -25,8 +25,8 @@ if uninstallMode:
         print(("removing %s" % (tempfile)))
         os.remove(tempfile)
 
-        # If the directory name ends with PyLotROLauncher then this is the base directory for the installation
-        if os.path.dirname(tempfile).endswith("PyLotROLauncher"):
+        # If the directory name ends with OneLauncher then this is the base directory for the installation
+        if os.path.dirname(tempfile).endswith("OneLauncher"):
             maindir = os.path.dirname(tempfile)
 
     logfile.close()
@@ -34,25 +34,25 @@ if uninstallMode:
     # Remove the base installation directory
     print(("removing %s" % (maindir)))
     shutil.rmtree(maindir)
-    os.remove("pylotro-install.log")
+    os.remove("OneLauncher-install.log")
 else:
     opts = {}
-    # If called with install capture the installation to to pylotro-install.log
+    # If called with install capture the installation to to OneLauncher-install.log
     if installMode:
-        opts["install"] = {"record": "pylotro-install.log"}
+        opts["install"] = {"record": "OneLauncher-install.log"}
 
-    setup(name="PyLotROLauncher",
-          version=PyLotROLauncher.Information.Version,
-          description=PyLotROLauncher.Information.Description,
-          author=PyLotROLauncher.Information.Author,
-          author_email=PyLotROLauncher.Information.Email,
-          url=PyLotROLauncher.Information.WebSite,
-          packages=['PyLotROLauncher'],
-          scripts=["pylotro"],
-          data_files=[('share/pixmaps', ['PyLotRO_Menu.png']),
-                      ('share/applications', ['PyLotRO.desktop']), ],
-          package_data={'PyLotROLauncher': [
+    setup(name="OneLauncher",
+          version=OneLauncher.Information.Version,
+          description=OneLauncher.Information.Description,
+          author=OneLauncher.Information.Author,
+          author_email=OneLauncher.Information.Email,
+          url=OneLauncher.Information.WebSite,
+          packages=['OneLauncher'],
+          scripts=["RunOneLauncher"],
+          data_files=[('share/pixmaps', ['OneLauncher_Menu.png']),
+                      ('share/applications', ['OneLauncher.desktop']), ],
+          package_data={'OneLauncher': [
               "*.png", "ui/*", "images/*", "certificates/*.pem"]},
-          long_description=PyLotROLauncher.Information.LongDescription,
+          long_description=OneLauncher.Information.LongDescription,
           options=opts
           )
