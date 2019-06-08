@@ -34,7 +34,7 @@ import glob
 
 class SettingsWindow:
     def __init__(self, parent, hiRes, app, x86, wineProg, wineDebug, patchClient, usingDND,
-                    winePrefix, gameDir, homeDir, osType, rootDir):
+                 winePrefix, gameDir, homeDir, osType, rootDir):
 
         self.homeDir = homeDir
         self.osType = osType
@@ -103,7 +103,7 @@ class SettingsWindow:
         else:
             self.uiSettings.cboGraphics.setCurrentIndex(1)
 
-        #Only enables and sets up check box if 64-bit client is available
+        # Only enables and sets up check box if 64-bit client is available
         if (os.path.exists(gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe") and usingDND == False or
                 usingDND and os.path.exists(gameDir + os.sep + "x64" + os.sep + "dndclient64.exe")):
             if x86:
@@ -117,7 +117,10 @@ class SettingsWindow:
         self.uiSettings.chkAdvanced.clicked.connect(self.chkAdvancedClicked)
 
         if not self.osType.usingWindows:
-            self.uiSettings.cboApplication.currentIndexChanged.connect(self.cboApplicationChanged)
+            self.uiSettings.cboApplication.currentIndexChanged.connect(
+                self.cboApplicationChanged)
+
+        self.usingDND = usingDND
 
     def ShowBottles(self, defaultBottle=None):
         self.uiSettings.cboBottle.clear()
@@ -179,6 +182,12 @@ class SettingsWindow:
         if filename != "":
             self.uiSettings.txtGameDir.setText(filename)
 
+            if (os.path.exists(filename + os.sep + "x64" + os.sep + "lotroclient64.exe") and self.usingDND == False or
+                    self.usingDND and os.path.exists(filename + os.sep + "x64" + os.sep + "dndclient64.exe")):
+                self.uiSettings.chkx86.setEnabled(True)
+            else:
+                self.uiSettings.chkx86.setEnabled(False)
+
     def getApp(self):
         if self.osType.usingWindows:
             return "Native"
@@ -218,7 +227,7 @@ class SettingsWindow:
         if self.uiSettings.chkx86.isChecked():
             return True
         else:
-             return False
+            return False
 
     def Run(self):
         return self.winSettings.exec_()
