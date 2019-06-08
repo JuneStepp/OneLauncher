@@ -5,7 +5,7 @@ out of relevance once it was no longer needed. This project aims to make a launc
 with new and interesting features that will always be available whether it's for private
 servers after the games have shut down, if the main launcher stops working on Linux, or
 if people see that it is The OneLauncher to Rule Them All and use it for that reason too.
-It is actualy mainly being developed as a fun learning experiance for me and to show my
+It is actually mainly being developed as a fun learning experience for me and to show my
 love for these games.
 
 OneLauncher
@@ -20,43 +20,42 @@ Based on LotROLinux
 Based on CLI launcher for
 LOTRO (C) 2007-2009 SNy
 
-To install
-========
+# Basic Use
 
-NB The following items are required
-to run OneLauncher
+ Simply download the appropriate executable for you operating system and double click it!
 
-* Python (3.2+)
-* PyQt5 (Can be installed with pip)
-* PyQtWebEngine (Can be installed with pip)
+# Development Install
+
+The following items are required
+to run OneLauncher from source.
+
+-   Python (3.2+)
+-   PyQt5 (Can be installed with pip)
+-   PyQtWebEngine (Can be installed with pip)
+
+-   pythoninstaller (Needed to build. Can be installed with pip.
+    Currently [development version](https://github.com/pyinstaller/pyinstaller/archive/develop.zip) is needed
 
 recommended optional package:
 pkg_resources
 
-Install using
-sudo ./setup.py install
+# To run
 
-or
+`./RunOneLauncher`
 
-sudo python3 setup.py install
+Or.
 
-To uninstall
-============
+`python3 RunOneLauncher`
 
-sudo ./setup.py uninstall
+# To build
 
-or
+`python3 build.py`
 
-sudo python3 setup.py uninstall
-
-To run
-======
-
-From terminal:
-RunOneLauncher
-
-From menu:
-Select the menu option for Lord of the Rings Online
+The project can only be built for the os that the build script is run on,
+so it has to be built on every target os individually. The building output
+for Linux can only be run on systems as up to date or more as the system it
+is built on, so an old os may want to be built on. The binary for Linux is
+also not cross architecture compatible.
 
 A settings wizard exists that can attempt to
 find relevant installations of LotRO or DDO.
