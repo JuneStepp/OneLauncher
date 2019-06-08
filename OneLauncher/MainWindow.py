@@ -554,7 +554,6 @@ class MainWindow(QObject):
         self.langConfig = langConfig
 
         setPos = 0
-
         for lang in self.langConfig.langList:
             self.uiMain.cboLanguage.addItem(lang.name)
             if lang.code == self.settings.language:
@@ -639,23 +638,24 @@ class MainWindowThread(QtCore.QThread):
         self.LoadLanguageList()
 
     def LoadLanguageList(self):
-        self.langConfig = LanguageConfig(self.settings.gameDir)
+        if os.path.exists(self.settings.gameDir):
+            self.langConfig = LanguageConfig(self.settings.gameDir)
 
-        if self.langConfig.langFound:
-            self.winMain.ReturnLog.emit("Available languages checked.")
-            self.winMain.ReturnLangConfig.emit(self.langConfig)
+            if self.langConfig.langFound:
+                self.winMain.ReturnLog.emit("Available languages checked.")
+                self.winMain.ReturnLangConfig.emit(self.langConfig)
 
-            self.langPos = 0
-            setPos = 0
+                self.langPos = 0
+                setPos = 0
 
-            for lang in self.langConfig.langList:
-                if lang.code == self.settings.language:
-                    self.langPos = setPos
-                setPos += 1
+                for lang in self.langConfig.langList:
+                    if lang.code == self.settings.language:
+                        self.langPos = setPos
+                    setPos += 1
 
-            self.LoadLauncherConfig()
-        else:
-            self.winMain.ReturnLog.emit("[E02] No language files found.")
+                self.LoadLauncherConfig()
+            else:
+                self.winMain.ReturnLog.emit("[E02] No language files found.")
 
     def LoadLauncherConfig(self):
         self.baseConfig = BaseConfig(self.configFile)

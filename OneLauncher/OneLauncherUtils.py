@@ -60,10 +60,10 @@ if certfile and not os.access(certfile, os.R_OK):
     print("certificate file expected at '%s' but not found!" % certfile)
     certfile = None
 
-pylotro_ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+onelauncher_ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
 if certfile:
-    pylotro_ssl_ctx.verify_mode = ssl.CERT_REQUIRED
-    pylotro_ssl_ctx.load_verify_locations(certfile)
+    onelauncher_ssl_ctx.verify_mode = ssl.CERT_REQUIRED
+    onelauncher_ssl_ctx.load_verify_locations(certfile)
     print("SSL certificate verification enabled!")
 
 def WebConnection(urlIn):
@@ -74,7 +74,7 @@ def WebConnection(urlIn):
     else:
         url = urlIn[8:].split("/")[0]
         post = urlIn[8:].replace(url, "")
-        return HTTPSConnection(url, context=pylotro_ssl_ctx), post
+        return HTTPSConnection(url, context=onelauncher_ssl_ctx), post
 
 
 def GetText(nodelist):
@@ -160,7 +160,7 @@ class DetermineOS:
         elif os.name == 'nt':
             self.usingMac = False
             self.usingWindows = True
-            self.appDir = "PyLotRO" + os.sep
+            self.appDir = "OneLauncher" + os.sep
             self.globalDir = ""
             self.settingsCXG = ""
             self.settingsCXO = ""
