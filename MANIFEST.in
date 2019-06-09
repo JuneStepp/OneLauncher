@@ -1,4 +1,0 @@
-include RunOneLauncher README AUTHORS COPYING OneLauncher_Menu.png ChangeLog
-recursive-include OneLauncher *
-recursive-include OneLauncher/ui *
-recursive-include OneLauncher/images *

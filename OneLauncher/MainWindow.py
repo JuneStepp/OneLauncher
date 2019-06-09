@@ -32,6 +32,7 @@ import xml.dom.minidom
 import zlib
 from PyQt5 import QtCore, QtGui, QtWebEngineWidgets, QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal, QObject
+import qdarkstyle
 from .SettingsWindow import SettingsWindow
 from .SettingsWizard import SettingsWizard
 from .PatchWindow import PatchWindow
@@ -90,30 +91,12 @@ class MainWindow(QObject):
         self.uiMain.setupUi(self.winMain)
 
         # Set window palette
-        self.palette = QtGui.QPalette()
-        self.palette.setColor(QtGui.QPalette.Base, QtCore.Qt.black)
-        self.palette.setColor(QtGui.QPalette.AlternateBase,
-                              QtGui.QColor(22, 21, 21))
-        self.palette.setColor(QtGui.QPalette.ToolTipBase,
-                              QtGui.QColor(255, 255, 220))
-        self.palette.setColor(QtGui.QPalette.ToolTipText, QtCore.Qt.black)
-        self.palette.setColor(QtGui.QPalette.Window, QtGui.QColor(44, 43, 42))
-        self.palette.setColor(QtGui.QPalette.WindowText, QtCore.Qt.white)
-        self.palette.setColor(QtGui.QPalette.Text, QtCore.Qt.white)
-        self.palette.setColor(QtGui.QPalette.BrightText, QtCore.Qt.white)
-        self.palette.setColor(QtGui.QPalette.ButtonText, QtCore.Qt.white)
-        self.palette.setColor(QtGui.QPalette.Button, QtGui.QColor(44, 43, 42))
-        self.winMain.setPalette(self.palette)
+        self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
         # find menubar object and save it so we can find the menus
         for child in self.winMain.children():
             if isinstance(child, QtWidgets.QMenuBar):
                 self.menubar = child
-
-        # find menu objects and set the palette on them
-        for child in self.menubar.children():
-            if isinstance(child, QtWidgets.QMenu):
-                child.setPalette(self.palette)
 
         self.webMainExists = True
         try:
