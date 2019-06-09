@@ -32,5 +32,6 @@ import os
 
 build_command = ("python -O -m PyInstaller RunOneLauncher --name TheOneLauncher -w -y -F "
     "--add-data OneLauncher/certificates{0}OneLauncher/certificates --add-data OneLauncher/"
-    "ui{0}OneLauncher/ui --add-data OneLauncher/images{0}OneLauncher/images".format(os.pathsep))
+    "ui{0}OneLauncher/ui --add-data OneLauncher/images{0}OneLauncher/images"
+    " --hidden-import qdarkstyle".format(os.pathsep))
 os.system(build_command)

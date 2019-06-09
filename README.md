@@ -32,6 +32,7 @@ to run OneLauncher from source.
 -   Python (3.2+)
 -   PyQt5 (Can be installed with pip)
 -   PyQtWebEngine (Can be installed with pip)
+-   qdarkstyle (Can be isntalled with pip)
 
 -   pythoninstaller (Needed to build. Can be installed with pip.
     Currently [development version](https://github.com/pyinstaller/pyinstaller/archive/develop.zip) is needed
