@@ -173,9 +173,9 @@
    <widget class="QLabel" name="imgMain">
     <property name="geometry">
      <rect>
-      <x>5</x>
+      <x>3</x>
       <y>5</y>
-      <width>390</width>
+      <width>401</width>
       <height>120</height>
      </rect>
     </property>
