@@ -105,6 +105,7 @@ class MainWindow(QObject):
         self.uiMain.txtAccount.returnPressed.connect(self.txtAccountEnter)
         self.uiMain.txtPassword.returnPressed.connect(self.txtPasswordEnter)
         self.uiMain.btnExit.clicked.connect(self.winMain.close)
+        self.uiMain.btnMinimize.clicked.connect(self.winMain.showMinimized)
         self.uiMain.btnAbout.clicked.connect(self.actionAboutSelected)
         #self.uiMain.actionPatch.triggered.connect(self.actionPatchSelected)
         #self.uiMain.actionOptions.triggered.connect(self.actionOptionsSelected)

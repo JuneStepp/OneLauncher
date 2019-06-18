@@ -243,7 +243,7 @@
    <widget class="QPushButton" name="btnAbout">
     <property name="geometry">
      <rect>
-      <x>710</x>
+      <x>670</x>
       <y>10</y>
       <width>31</width>
       <height>27</height>
@@ -280,6 +280,19 @@
     </property>
     <property name="openLinks">
      <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnMinimize">
+    <property name="geometry">
+     <rect>
+      <x>710</x>
+      <y>10</y>
+      <width>31</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>-</string>
     </property>
    </widget>
   </widget>
