@@ -87,29 +87,12 @@ class MainWindow(QObject):
         Ui_winMain, base_class = uic.loadUiType(uifile)
         self.winMain = QtWidgets.QMainWindow()
         self.winMain.setWindowFlags(QtCore.Qt.Dialog)
+        self.winMain.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.uiMain = Ui_winMain()
         self.uiMain.setupUi(self.winMain)
 
         # Set window palette
         self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-
-        # find menubar object and save it so we can find the menus
-        for child in self.winMain.children():
-            if isinstance(child, QtWidgets.QMenuBar):
-                self.menubar = child
-
-        self.webMainExists = True
-        try:
-            self.webMain = QtWebEngineWidgets.QWebView(self.uiMain.centralwidget)
-            self.webMain.setGeometry(QtCore.QRect(5, 130, 390, 280))
-            self.webMain.setUrl(QtCore.QUrl("about:blank"))
-        except:
-            self.webMainExists = False
-            self.webMain = QtWidgets.QTextBrowser(self.uiMain.centralwidget)
-            self.webMain.setGeometry(QtCore.QRect(5, 130, 390, 280))
-            self.webMain.setTextInteractionFlags(
-                QtCore.Qt.TextSelectableByMouse)
-            self.webMain.setOpenLinks(False)
 
         # Centre window on screen
         screen = QtWidgets.QDesktopWidget().screenGeometry()
@@ -121,14 +104,14 @@ class MainWindow(QObject):
         self.uiMain.btnLogin.clicked.connect(self.btnLoginClicked)
         self.uiMain.txtAccount.returnPressed.connect(self.txtAccountEnter)
         self.uiMain.txtPassword.returnPressed.connect(self.txtPasswordEnter)
-        self.uiMain.actionExit.triggered.connect(self.winMain.close)
-        self.uiMain.actionAbout.triggered.connect(self.actionAboutSelected)
-        self.uiMain.actionPatch.triggered.connect(self.actionPatchSelected)
-        self.uiMain.actionOptions.triggered.connect(self.actionOptionsSelected)
-        self.uiMain.actionSettings_Wizard.triggered.connect(self.actionWizardSelected)
-        self.uiMain.actionSwitch_Game.triggered.connect(self.actionSwitchSelected)
-        self.uiMain.actionCheck_Bottle.triggered.connect(self.actionCheckSelected)
-        self.uiMain.actionHideWinMain.triggered.connect(self.actionHideWinMainSelected)
+        self.uiMain.btnExit.clicked.connect(self.winMain.close)
+        self.uiMain.btnAbout.clicked.connect(self.actionAboutSelected)
+        #self.uiMain.actionPatch.triggered.connect(self.actionPatchSelected)
+        #self.uiMain.actionOptions.triggered.connect(self.actionOptionsSelected)
+        #self.uiMain.actionSettings_Wizard.triggered.connect(self.actionWizardSelected)
+        #self.uiMain.actionSwitch_Game.triggered.connect(self.actionSwitchSelected)
+        #self.uiMain.actionCheck_Bottle.triggered.connect(self.actionCheckSelected)
+        #self.uiMain.actionHideWinMain.triggered.connect(self.actionHideWinMainSelected)
 
         self.winMain.ReturnLog = self.ReturnLog
         self.winMain.ReturnLog.connect(self.AddLog)
@@ -454,11 +437,6 @@ class MainWindow(QObject):
         self.uiMain.chkSaveSettings.setEnabled(False)
         self.valHomeDir = self.GetHomeDir()
 
-        if self.webMainExists:
-            self.webMain.setHtml("")
-        else:
-            self.webMain.setText("")
-
         if self.settings is None:
             self.settings = Settings(self.valHomeDir, self.osType)
 
@@ -578,15 +556,7 @@ class MainWindow(QObject):
             self.uiMain.txtPassword.setFocus()
 
     def GetNews(self, news):
-        if self.webMainExists:
-            self.webMain.setHtml(news)
-        else:
-            newsString = news
-            temp = news.split("</head>")
-            if len(temp) > 0:
-                newsString = temp[1].split("</html>")[0]
-
-            self.webMain.setHtml(newsString)
+        self.uiMain.txtFeed.setHtml(news)
 
     def GetHomeDir(self):
         temp = os.environ.get('HOME')
