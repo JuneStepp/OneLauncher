@@ -77,7 +77,7 @@ class MainWindow(QObject):
 
         try:
             from pkg_resources import resource_filename
-            uifile = resource_filename(__name__, 'ui/winMain.ui')
+            uifile = resource_filename(__name__, 'ui' + os.sep + 'winMain.ui')
         except:
             uifile = os.path.join(self.rootDir, "ui", "winMain.ui")
 
@@ -192,7 +192,7 @@ class MainWindow(QObject):
 
         try:
             from pkg_resources import resource_filename
-            uifile = resource_filename(__name__, 'ui/winAbout.ui')
+            uifile = resource_filename(__name__, 'ui' + os.sep + 'winAbout.ui')
         except:
             uifile = os.path.join(self.rootDir, "ui", "winAbout.ui")
 
@@ -275,7 +275,7 @@ class MainWindow(QObject):
 
         try:
             from pkg_resources import resource_filename
-            uifile = resource_filename(__name__, 'ui/winSelectAccount.ui')
+            uifile = resource_filename(__name__, 'ui' + os.sep + 'winSelectAccount.ui')
         except:
             uifile = os.path.join(self.rootDir, "ui", "winSelectAccount.ui")
 
@@ -353,7 +353,7 @@ class MainWindow(QObject):
                 try:
                     from pkg_resources import resource_filename
                     uifile = resource_filename(
-                        __name__, 'ui/winSelectAccount.ui')
+                        __name__, 'ui' + os.sep + 'winSelectAccount.ui')
                 except:
                     uifile = os.path.join(
                         self.rootDir, "ui", "winSelectAccount.ui")

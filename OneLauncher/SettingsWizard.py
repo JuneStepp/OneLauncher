@@ -58,13 +58,13 @@ class SettingsWizard:
             try:
                 from pkg_resources import resource_filename
                 uifile = resource_filename(
-                    __name__, 'ui/winGameWizardNative.ui')
+                    __name__, 'ui' + os.sep + 'winGameWizardNative.ui')
             except:
                 uifile = os.path.join(rootDir, "ui", "winGameWizardNative.ui")
         else:
             try:
                 from pkg_resources import resource_filename
-                uifile = resource_filename(__name__, 'ui/winGameWizard.ui')
+                uifile = resource_filename(__name__, 'ui' + os.sep + 'winGameWizard.ui')
             except:
                 uifile = os.path.join(rootDir, "ui", "winGameWizard.ui")
 

@@ -48,7 +48,7 @@ class PatchWindow:
 
         try:
             from pkg_resources import resource_filename
-            uifile = resource_filename(__name__, 'ui/winPatch.ui')
+            uifile = resource_filename(__name__, 'ui' + os.sep + 'winPatch.ui')
             icofile = resource_filename(__name__, icoFileIn)
         except:
             uifile = os.path.join(rootDir, "ui", "winPatch.ui")
@@ -106,6 +106,7 @@ class PatchWindow:
 
             self.command = "rundll32.exe"
             self.process.setWorkingDirectory(runDir)
+            self.uiLog.txtLog.append(self.command + " " + patchParams)
 
             for arg in patchParams.split(" "):
                 self.arguments.append(arg)

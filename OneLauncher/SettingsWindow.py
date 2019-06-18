@@ -47,13 +47,13 @@ class SettingsWindow:
         if self.osType.usingWindows:
             try:
                 from pkg_resources import resource_filename
-                uifile = resource_filename(__name__, 'ui/winSettingsNative.ui')
+                uifile = resource_filename(__name__, 'ui' + os.sep + 'winSettingsNative.ui')
             except:
                 uifile = os.path.join(rootDir, "ui", "winSettingsNative.ui")
         else:
             try:
                 from pkg_resources import resource_filename
-                uifile = resource_filename(__name__, 'ui/winSettings.ui')
+                uifile = resource_filename(__name__, 'ui' + os.sep + 'winSettings.ui')
             except:
                 uifile = os.path.join(rootDir, "ui", "winSettings.ui")
 

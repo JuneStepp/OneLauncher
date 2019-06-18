@@ -46,7 +46,7 @@ class CheckConfig:
 
         try:
             from pkg_resources import resource_filename
-            uifile = resource_filename(__name__, 'ui/winCheckConfig.ui')
+            uifile = resource_filename(__name__, 'ui' + os.sep + 'winCheckConfig.ui')
         except:
             uifile = os.path.join(rootDir, "ui", "winCheckConfig.ui")
 
