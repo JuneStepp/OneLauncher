@@ -169,7 +169,8 @@ class MainWindow(QObject):
         self.resetFocus()
 
     def actionAboutSelected(self):
-        dlgAbout = QtWidgets.QDialog(self.winMain)
+        dlgAbout = QtWidgets.QDialog()
+        dlgAbout.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         dlgAbout.setPalette(self.winMain.palette())
 
         uifile = None
