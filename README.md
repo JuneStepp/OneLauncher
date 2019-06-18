@@ -56,7 +56,8 @@ The project can only be built for the os that the build script is run on,
 so it has to be built on every target os individually. The building output
 for Linux can only be run on systems as up to date or more as the system it
 is built on, so an old os may want to be built on. The binary for Linux is
-also not cross architecture compatible.
+also not cross architecture compatible. Wine can be used for Windows builds
+though.
 
 A settings wizard exists that can attempt to
 find relevant installations of LotRO or DDO.
