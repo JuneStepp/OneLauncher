@@ -56,7 +56,7 @@ class StartGame:
 
         try:
             from pkg_resources import resource_filename
-            uifile = resource_filename(__name__, 'ui/winLog.ui')
+            uifile = resource_filename(__name__, 'ui' + os.sep + 'winLog.ui')
             icofile = resource_filename(__name__, icoFileIn)
         except:
             uifile = os.path.join(rootDir, "ui", "winLog.ui")

@@ -136,7 +136,7 @@ class DetermineGame:
 
             self.title = "Dungeons & Dragons Online" + self.__test + self.__os
         else:
-            self.configFileAlt = "/TurbineLauncher.exe.config"
+            self.configFileAlt = (os.sep + "TurbineLauncher.exe.config")
             self.icoFile = os.path.join("images", "LotROLinuxIcon.png")
             self.pngFile = os.path.join("images", "LotROLinux.png")
 
@@ -160,7 +160,7 @@ class DetermineOS:
         elif os.name == 'nt':
             self.usingMac = False
             self.usingWindows = True
-            self.appDir = "OneLauncher" + os.sep
+            self.appDir = ("OneLauncher" + os.sep)
             self.globalDir = ""
             self.settingsCXG = ""
             self.settingsCXO = ""
