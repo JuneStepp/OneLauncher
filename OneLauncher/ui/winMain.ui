@@ -295,22 +295,42 @@
      <string>-</string>
     </property>
    </widget>
+   <widget class="QToolButton" name="toolButton">
+    <property name="geometry">
+     <rect>
+      <x>743</x>
+      <y>60</y>
+      <width>41</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="popupMode">
+     <enum>QToolButton::MenuButtonPopup</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnOptions">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>31</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
   </widget>
-  <action name="actionExit">
+  <action name="actionHideWinMain">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Exit</string>
-   </property>
-   <property name="iconText">
-    <string>Exit</string>
-   </property>
-   <property name="toolTip">
-    <string>Exit</string>
-   </property>
-   <property name="statusTip">
-    <string/>
-   </property>
-   <property name="whatsThis">
-    <string/>
+    <string>Hide Main Window</string>
    </property>
    <property name="font">
     <font>
@@ -319,15 +339,9 @@
     </font>
    </property>
   </action>
-  <action name="actionOptions">
+  <action name="actionCheck_Bottle">
    <property name="text">
-    <string>Options</string>
-   </property>
-   <property name="iconText">
-    <string>Options</string>
-   </property>
-   <property name="toolTip">
-    <string>Options</string>
+    <string>Check Bottle</string>
    </property>
    <property name="font">
     <font>
@@ -336,15 +350,9 @@
     </font>
    </property>
   </action>
-  <action name="actionPatch">
+  <action name="actionSettings_Wizard">
    <property name="text">
-    <string>Patch</string>
-   </property>
-   <property name="iconText">
-    <string>Patch</string>
-   </property>
-   <property name="toolTip">
-    <string>Patch</string>
+    <string>Settings Wizard</string>
    </property>
    <property name="font">
     <font>
@@ -362,6 +370,23 @@
    </property>
    <property name="toolTip">
     <string>Switch Game</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Verdana</family>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionPatch">
+   <property name="text">
+    <string>Patch</string>
+   </property>
+   <property name="iconText">
+    <string>Patch</string>
+   </property>
+   <property name="toolTip">
+    <string>Patch</string>
    </property>
    <property name="font">
     <font>
@@ -393,9 +418,15 @@
     </font>
    </property>
   </action>
-  <action name="actionSettings_Wizard">
+  <action name="actionOptions">
    <property name="text">
-    <string>Settings Wizard</string>
+    <string>Options</string>
+   </property>
+   <property name="iconText">
+    <string>Options</string>
+   </property>
+   <property name="toolTip">
+    <string>Options</string>
    </property>
    <property name="font">
     <font>
@@ -404,23 +435,21 @@
     </font>
    </property>
   </action>
-  <action name="actionCheck_Bottle">
+  <action name="actionExit">
    <property name="text">
-    <string>Check Bottle</string>
+    <string>Exit</string>
    </property>
-   <property name="font">
-    <font>
-     <family>Verdana</family>
-     <pointsize>12</pointsize>
-    </font>
+   <property name="iconText">
+    <string>Exit</string>
    </property>
-  </action>
-  <action name="actionHideWinMain">
-   <property name="checkable">
-    <bool>true</bool>
+   <property name="toolTip">
+    <string>Exit</string>
    </property>
-   <property name="text">
-    <string>Hide Main Window</string>
+   <property name="statusTip">
+    <string/>
+   </property>
+   <property name="whatsThis">
+    <string/>
    </property>
    <property name="font">
     <font>
