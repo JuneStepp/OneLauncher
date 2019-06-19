@@ -27,7 +27,8 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from qtpy import QtCore, QtGui, QtWidgets, uic
+from pkg_resources import resource_filename
 import os
 import sys
 from .Settings import Settings
@@ -42,13 +43,7 @@ class CheckConfig:
         self.winCheckConfig = QtWidgets.QDialog(parent)
         self.winCheckConfig.setPalette(parent.palette())
 
-        uifile = None
-
-        try:
-            from pkg_resources import resource_filename
-            uifile = resource_filename(__name__, 'ui' + os.sep + 'winCheckConfig.ui')
-        except:
-            uifile = os.path.join(rootDir, "ui", "winCheckConfig.ui")
+        uifile = resource_filename(__name__, 'ui' + os.sep + 'winCheckConfig.ui')
 
         Ui_dlgCheckConfig, base_class = uic.loadUiType(uifile)
         self.uiSettings = Ui_dlgCheckConfig()
