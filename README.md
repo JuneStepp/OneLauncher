@@ -30,15 +30,13 @@ The following items are required
 to run OneLauncher from source.
 
 -   Python (3.2+)
--   PyQt5 (Can be installed with pip)
--   PyQtWebEngine (Can be installed with pip)
--   qdarkstyle (Can be isntalled with pip)
+-   qtpy (Can be installed with pip)
+-   PyQt or Pyside (Can be installed with pip)
+-   qdarkstyle (Can be installed with pip)
+-   pkg_resources (Comes with setuptools. You probably have it, but it can be installed with pip)
 
--   pythoninstaller (Needed to build. Can be installed with pip.
+-   PyInstaller (Needed to build. Can be installed with pip.
     Currently [development version](https://github.com/pyinstaller/pyinstaller/archive/develop.zip) is needed
-
-recommended optional package:
-pkg_resources
 
 # To run
 
@@ -55,7 +53,7 @@ Or.
 The project can only be built for the os that the build script is run on,
 so it has to be built on every target os individually. The building output
 for Linux can only be run on systems as up to date or more as the system it
-is built on, so an old os may want to be built on. The binary for Linux is
+is built on, so an old os may want to be built on. The binary for is
 also not cross architecture compatible. Wine can be used for Windows builds
 though.
 

@@ -26,10 +26,11 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from qtpy import QtCore, QtGui, QtWidgets, uic
 from .OneLauncherUtils import DetermineOS
 import os.path
 import glob
+from pkg_resources import resource_filename
 
 
 class SettingsWindow:
@@ -43,20 +44,10 @@ class SettingsWindow:
         self.winSettings.setPalette(parent.palette())
         self.winSettings.setWindowFlags(QtCore.Qt.FramelessWindowHint)
 
-        uifile = None
-
         if self.osType.usingWindows:
-            try:
-                from pkg_resources import resource_filename
-                uifile = resource_filename(__name__, 'ui' + os.sep + 'winSettingsNative.ui')
-            except:
-                uifile = os.path.join(rootDir, "ui", "winSettingsNative.ui")
+            uifile = resource_filename(__name__, 'ui' + os.sep + 'winSettingsNative.ui')
         else:
-            try:
-                from pkg_resources import resource_filename
-                uifile = resource_filename(__name__, 'ui' + os.sep + 'winSettings.ui')
-            except:
-                uifile = os.path.join(rootDir, "ui", "winSettings.ui")
+            uifile = resource_filename(__name__, 'ui' + os.sep + 'winSettings.ui')
 
         Ui_dlgSettings, base_class = uic.loadUiType(uifile)
         self.uiSettings = Ui_dlgSettings()

@@ -31,10 +31,11 @@ import subprocess
 import sys
 import glob
 import codecs
-from PyQt5 import QtCore
+from qtpy import QtCore
 import xml.dom.minidom
 from xml.sax.saxutils import escape as xml_escape
 import ssl
+from pkg_resources import resource_filename
 
 from codecs import open as uopen
 
@@ -48,13 +49,7 @@ def string_decode(s): return s.decode()
 def QByteArray2str(s): return str(s, encoding="utf8", errors="replace")
 
 # Try to locate the server certificates for HTTPS connections
-certfile = None
-try:
-    from pkg_resources import resource_filename
-    certfile = resource_filename(__name__, "certificates/ca_certs.pem")
-except:
-    if '__path__' in globals():
-        certfile = os.path.join(__path__, "certificates", "ca_certs.pem")
+certfile = resource_filename(__name__, "certificates/ca_certs.pem")
 
 if certfile and not os.access(certfile, os.R_OK):
     print("certificate file expected at '%s' but not found!" % certfile)

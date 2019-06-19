@@ -26,13 +26,11 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from qtpy import QtCore, QtGui, QtWidgets, uic
 from .OneLauncherUtils import DetermineOS
 import os.path
 import glob
-
-# small Python 2.x + PyQt4 backwards-compatibility function for QVariant
-
+from pkg_resources import resource_filename
 
 def toString(val):
     if isinstance(val, str):
@@ -52,21 +50,11 @@ class SettingsWizard:
         self.winSettings = QtWidgets.QDialog(parent)
         self.winSettings.setPalette(parent.palette())
 
-        uifile = None
-
         if self.osType.usingWindows:
-            try:
-                from pkg_resources import resource_filename
-                uifile = resource_filename(
-                    __name__, 'ui' + os.sep + 'winGameWizardNative.ui')
-            except:
-                uifile = os.path.join(rootDir, "ui", "winGameWizardNative.ui")
+            uifile = resource_filename(
+                __name__, 'ui' + os.sep + 'winGameWizardNative.ui')
         else:
-            try:
-                from pkg_resources import resource_filename
-                uifile = resource_filename(__name__, 'ui' + os.sep + 'winGameWizard.ui')
-            except:
-                uifile = os.path.join(rootDir, "ui", "winGameWizard.ui")
+            uifile = resource_filename(__name__, 'ui' + os.sep + 'winGameWizard.ui')
 
         Ui_winGameWizard, base_class = uic.loadUiType(uifile)
         self.uiWizard = Ui_winGameWizard()

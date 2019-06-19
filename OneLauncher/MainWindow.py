@@ -30,8 +30,7 @@ import os
 import sys
 import xml.dom.minidom
 import zlib
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
-from PyQt5.QtCore import pyqtSignal, QObject
+from qtpy import QtCore, QtGui, QtWidgets, uic
 import qdarkstyle
 from .SettingsWindow import SettingsWindow
 from .SettingsWizard import SettingsWizard
@@ -43,14 +42,15 @@ from .OneLauncherUtils import DetermineOS, DetermineGame, LanguageConfig, Langua
 from .OneLauncherUtils import BaseConfig, GLSDataCentre, WorldQueueConfig
 from .OneLauncherUtils import AuthenticateUser, JoinWorldQueue, GetText, WebConnection
 from . import Information
+from pkg_resources import resource_filename
 
-class MainWindow(QObject):
-    ReturnLog = QtCore.pyqtSignal('QString')
-    ReturnLangConfig = pyqtSignal("PyQt_PyObject")
-    ReturnBaseConfig = pyqtSignal("PyQt_PyObject")
-    ReturnGLSDataCentre = pyqtSignal("PyQt_PyObject")
-    ReturnWorldQueueConfig = pyqtSignal("PyQt_PyObject")
-    ReturnNews = pyqtSignal('QString')
+class MainWindow(QtCore.QObject):
+    ReturnLog = QtCore.Signal('QString')
+    ReturnLangConfig = QtCore.Signal("PyQt_PyObject")
+    ReturnBaseConfig = QtCore.Signal("PyQt_PyObject")
+    ReturnGLSDataCentre = QtCore.Signal("PyQt_PyObject")
+    ReturnWorldQueueConfig = QtCore.Signal("PyQt_PyObject")
+    ReturnNews = QtCore.Signal('QString')
 
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -64,13 +64,7 @@ class MainWindow(QObject):
                 self.rootDir = os.path.realpath(self.rootDir)
             self.rootDir = os.path.dirname(os.path.abspath(self.rootDir))
 
-        uifile = None
-
-        try:
-            from pkg_resources import resource_filename
-            uifile = resource_filename(__name__, 'ui' + os.sep + 'winMain.ui')
-        except:
-            uifile = os.path.join(self.rootDir, "ui", "winMain.ui")
+        uifile = resource_filename(__name__, 'ui' + os.sep + 'winMain.ui')
 
         self.app = QtWidgets.QApplication(sys.argv)
 
@@ -99,7 +93,8 @@ class MainWindow(QObject):
         self.uiMain.btnMinimize.clicked.connect(self.winMain.showMinimized)
         self.uiMain.btnAbout.clicked.connect(self.btnAboutSelected)
         #self.uiMain.actionPatch.triggered.connect(self.actionPatchSelected)
-        self.uiMain.btnOptions.setIcon(QtGui.QIcon(os.path.join(self.rootDir, "images", "SettingsGear.png")))
+        self.uiMain.btnOptions.setIcon(QtGui.QIcon(resource_filename(__name__,
+                                        "images" + os.sep + "SettingsGear.png")))
         self.uiMain.btnOptions.clicked.connect(self.btnOptionsSelected)
         #self.uiMain.actionSettings_Wizard.triggered.connect(self.actionWizardSelected)
         #self.uiMain.actionSwitch_Game.triggered.connect(self.actionSwitchSelected)
@@ -165,13 +160,7 @@ class MainWindow(QObject):
         dlgAbout.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         dlgAbout.setPalette(self.winMain.palette())
 
-        uifile = None
-
-        try:
-            from pkg_resources import resource_filename
-            uifile = resource_filename(__name__, 'ui' + os.sep + 'winAbout.ui')
-        except:
-            uifile = os.path.join(self.rootDir, "ui", "winAbout.ui")
+        uifile = resource_filename(__name__, 'ui' + os.sep + 'winAbout.ui')
 
         Ui_dlgAbout, base_class = uic.loadUiType(uifile)
         ui = Ui_dlgAbout()
@@ -248,13 +237,7 @@ class MainWindow(QObject):
         dlgChooseAccount = QtWidgets.QDialog(self.winMain)
         dlgChooseAccount.setPalette(self.winMain.palette())
 
-        uifile = None
-
-        try:
-            from pkg_resources import resource_filename
-            uifile = resource_filename(__name__, 'ui' + os.sep + 'winSelectAccount.ui')
-        except:
-            uifile = os.path.join(self.rootDir, "ui", "winSelectAccount.ui")
+        uifile = resource_filename(__name__, 'ui' + os.sep + 'winSelectAccount.ui')
 
         Ui_dlgChooseAccount, base_class = uic.loadUiType(uifile)
         ui = Ui_dlgChooseAccount()
@@ -325,15 +308,8 @@ class MainWindow(QObject):
             if len(self.account.gameList) > 1:
                 dlgChooseAccount = QtWidgets.QDialog(self.winMain)
 
-                uifile = None
-
-                try:
-                    from pkg_resources import resource_filename
-                    uifile = resource_filename(
-                        __name__, 'ui' + os.sep + 'winSelectAccount.ui')
-                except:
-                    uifile = os.path.join(
-                        self.rootDir, "ui", "winSelectAccount.ui")
+                uifile = resource_filename(
+                    __name__, 'ui' + os.sep + 'winSelectAccount.ui')
 
                 Ui_dlgChooseAccount, base_class = uic.loadUiType(uifile)
                 ui = Ui_dlgChooseAccount()
@@ -456,18 +432,10 @@ class MainWindow(QObject):
         self.gameType.GetSettings(
             self.settings.usingDND, self.settings.usingTest)
 
-        pngFile = None
-        icoFile = None
-
-        try:
-            from pkg_resources import resource_filename
-            pngFile = resource_filename(
-                __name__, self.gameType.pngFile.replace("\\", "/"))
-            icoFile = resource_filename(
-                __name__, self.gameType.icoFile.replace("\\", "/"))
-        except:
-            pngFile = os.path.join(self.rootDir, self.gameType.pngFile)
-            icoFile = os.path.join(self.rootDir, self.gameType.icoFile)
+        pngFile = resource_filename(
+            __name__, self.gameType.pngFile.replace("\\", "/"))
+        icoFile = resource_filename(
+            __name__, self.gameType.icoFile.replace("\\", "/"))
 
         self.uiMain.imgMain.setPixmap(QtGui.QPixmap(pngFile))
         self.winMain.setWindowTitle(self.gameType.title)

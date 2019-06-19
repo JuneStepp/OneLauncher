@@ -26,10 +26,11 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from qtpy import QtCore, QtGui, QtWidgets, uic
 from .OneLauncherUtils import DetermineOS, QByteArray2str
 import sys
 import os.path
+from pkg_resources import resource_filename
 
 
 class StartGame:
@@ -51,16 +52,8 @@ class StartGame:
         self.realmName = realmName
         self.accountText = accountText
 
-        uifile = None
-        icofile = None
-
-        try:
-            from pkg_resources import resource_filename
-            uifile = resource_filename(__name__, 'ui' + os.sep + 'winLog.ui')
-            icofile = resource_filename(__name__, icoFileIn)
-        except:
-            uifile = os.path.join(rootDir, "ui", "winLog.ui")
-            icofile = os.path.join(rootDir, icoFileIn)
+        uifile = resource_filename(__name__, 'ui' + os.sep + 'winLog.ui')
+        icofile = resource_filename(__name__, icoFileIn)
 
         Ui_winLog, base_class = uic.loadUiType(uifile)
         self.uiLog = Ui_winLog()
