@@ -39,8 +39,9 @@ class SettingsWindow:
         self.homeDir = homeDir
         self.osType = osType
 
-        self.winSettings = QtWidgets.QDialog(parent)
+        self.winSettings = QtWidgets.QDialog()
         self.winSettings.setPalette(parent.palette())
+        self.winSettings.setWindowFlags(QtCore.Qt.FramelessWindowHint)
 
         uifile = None
 

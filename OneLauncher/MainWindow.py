@@ -30,7 +30,7 @@ import os
 import sys
 import xml.dom.minidom
 import zlib
-from PyQt5 import QtCore, QtGui, QtWebEngineWidgets, QtWidgets, uic
+from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal, QObject
 import qdarkstyle
 from .SettingsWindow import SettingsWindow
@@ -43,15 +43,6 @@ from .OneLauncherUtils import DetermineOS, DetermineGame, LanguageConfig, Langua
 from .OneLauncherUtils import BaseConfig, GLSDataCentre, WorldQueueConfig
 from .OneLauncherUtils import AuthenticateUser, JoinWorldQueue, GetText, WebConnection
 from . import Information
-
-try:
-    import PyQt5.QtNetwork
-    from PyQt5 import QtWebEngineWidgets, QtWidgets
-except:
-    pass
-
-from http.client import HTTPConnection, HTTPSConnection
-
 
 class MainWindow(QObject):
     ReturnLog = QtCore.pyqtSignal('QString')
@@ -106,9 +97,10 @@ class MainWindow(QObject):
         self.uiMain.txtPassword.returnPressed.connect(self.txtPasswordEnter)
         self.uiMain.btnExit.clicked.connect(self.winMain.close)
         self.uiMain.btnMinimize.clicked.connect(self.winMain.showMinimized)
-        self.uiMain.btnAbout.clicked.connect(self.actionAboutSelected)
+        self.uiMain.btnAbout.clicked.connect(self.btnAboutSelected)
         #self.uiMain.actionPatch.triggered.connect(self.actionPatchSelected)
-        #self.uiMain.actionOptions.triggered.connect(self.actionOptionsSelected)
+        self.uiMain.btnOptions.setIcon(QtGui.QIcon(os.path.join(self.rootDir, "images", "SettingsGear.png")))
+        self.uiMain.btnOptions.clicked.connect(self.btnOptionsSelected)
         #self.uiMain.actionSettings_Wizard.triggered.connect(self.actionWizardSelected)
         #self.uiMain.actionSwitch_Game.triggered.connect(self.actionSwitchSelected)
         #self.uiMain.actionCheck_Bottle.triggered.connect(self.actionCheckSelected)
@@ -168,7 +160,7 @@ class MainWindow(QObject):
         confCheck.Run()
         self.resetFocus()
 
-    def actionAboutSelected(self):
+    def btnAboutSelected(self):
         dlgAbout = QtWidgets.QDialog()
         dlgAbout.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         dlgAbout.setPalette(self.winMain.palette())
@@ -207,7 +199,7 @@ class MainWindow(QObject):
         winPatch.Run(self.app)
         self.resetFocus()
 
-    def actionOptionsSelected(self):
+    def btnOptionsSelected(self):
         winSettings = SettingsWindow(self.winMain, self.settings.hiResEnabled, self.settings.app, self.settings.x86Enabled,
                                      self.settings.wineProg, self.settings.wineDebug, self.settings.patchClient, self.settings.usingDND,
                                      self.settings.winePrefix, self.settings.gameDir, self.valHomeDir, self.osType, self.rootDir)
