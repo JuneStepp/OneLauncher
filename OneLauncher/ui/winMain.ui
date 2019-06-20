@@ -369,6 +369,16 @@
     <string>Lord of the Rings Online (Test)</string>
    </property>
   </action>
+  <action name="actionLOTRO">
+   <property name="text">
+    <string>Lord of the Rings Online</string>
+   </property>
+  </action>
+  <action name="actionDDO">
+   <property name="text">
+    <string>Dungeions &amp; Dragons Online</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
