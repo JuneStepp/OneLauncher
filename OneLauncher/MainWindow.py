@@ -33,7 +33,7 @@ import zlib
 from qtpy import QtCore, QtGui, QtWidgets, uic
 import qdarkstyle
 from .SettingsWindow import SettingsWindow
-from .SettingsWizard import SettingsWizard
+from .SetupWizard import SetupWizard
 from .PatchWindow import PatchWindow
 from .StartGame import StartGame
 from .Settings import Settings
@@ -203,7 +203,7 @@ class MainWindow(QtCore.QObject):
             self.resetFocus()
 
     def actionWizardSelected(self):
-        winWizard = SettingsWizard(
+        winWizard = SetupWizard(
             self.winMain, self.valHomeDir, self.osType, self.rootDir)
 
         self.hideWinMain()

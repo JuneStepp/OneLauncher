@@ -39,7 +39,7 @@ def toString(val):
         return val.toString()
 
 
-class SettingsWizard:
+class SetupWizard:
     def __init__(self, parent, homeDir, osType, rootDir):
 
         self.homeDir = homeDir
