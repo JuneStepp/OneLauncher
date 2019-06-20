@@ -112,7 +112,7 @@
      <rect>
       <x>525</x>
       <y>55</y>
-      <width>211</width>
+      <width>201</width>
       <height>34</height>
      </rect>
     </property>
@@ -298,10 +298,10 @@
    <widget class="QToolButton" name="btnSwitchGame">
     <property name="geometry">
      <rect>
-      <x>743</x>
+      <x>733</x>
       <y>60</y>
-      <width>41</width>
-      <height>21</height>
+      <width>51</width>
+      <height>27</height>
      </rect>
     </property>
     <property name="text">
@@ -309,6 +309,9 @@
     </property>
     <property name="popupMode">
      <enum>QToolButton::MenuButtonPopup</enum>
+    </property>
+    <property name="toolButtonStyle">
+     <enum>Qt::ToolButtonIconOnly</enum>
     </property>
    </widget>
    <widget class="QPushButton" name="btnOptions">

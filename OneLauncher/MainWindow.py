@@ -43,13 +43,12 @@ from . import Information
 from pkg_resources import resource_filename
 
 class MainWindow(QtCore.QObject):
-    ReturnLog = QtCore.Signal('QString')
+    ReturnLog = QtCore.Signal("QString")
     ReturnLangConfig = QtCore.Signal("PyQt_PyObject")
     ReturnBaseConfig = QtCore.Signal("PyQt_PyObject")
     ReturnGLSDataCentre = QtCore.Signal("PyQt_PyObject")
     ReturnWorldQueueConfig = QtCore.Signal("PyQt_PyObject")
-    ReturnNews = QtCore.Signal('QString')
-
+    ReturnNews = QtCore.Signal("QString")
     def __init__(self):
         super(MainWindow, self).__init__()
         # Determine where module is located (needed for finding ICO & PNG files)
@@ -201,37 +200,18 @@ class MainWindow(QtCore.QObject):
             self.resetFocus()
 
     def btnSwitchGameClicked(self):
-        dlgChooseAccount = QtWidgets.QDialog(self.winMain)
-        dlgChooseAccount.setPalette(self.winMain.palette())
+        if self.settings.usingDND:
+            self.currentGame = "LOTRO"
+        else: self.currentGame = "DDO"
+        self.InitialSetup()
 
-        uifile = resource_filename(__name__, 'ui' + os.sep + 'winSelectAccount.ui')
+    def SwitchToDDOTest(self):
+        self.currentGame = "DDO.Test"
+        self.InitialSetup()
 
-        Ui_dlgChooseAccount, base_class = uic.loadUiType(uifile)
-        ui = Ui_dlgChooseAccount()
-        ui.setupUi(dlgChooseAccount)
-        ui.lblMessage.setText("Please select game to switch to")
-        dlgChooseAccount.setWindowTitle("Switch Game")
-
-        ui.comboBox.addItem("Lord of the Rings Online")
-        ui.comboBox.addItem("Lord of the Rings Online (Test)")
-        ui.comboBox.addItem("Dungeons & Dragons Online")
-        ui.comboBox.addItem("Dungeons & Dragons Online (Test)")
-
-        self.hideWinMain()
-        if dlgChooseAccount.exec_() == QtWidgets.QDialog.Accepted:
-            if ui.comboBox.currentIndex() == 0:
-                self.currentGame = "LOTRO"
-            elif ui.comboBox.currentIndex() == 1:
-                self.currentGame = "LOTRO.Test"
-            elif ui.comboBox.currentIndex() == 2:
-                self.currentGame = "DDO"
-            elif ui.comboBox.currentIndex() == 3:
-                self.currentGame = "DDO.Test"
-
-            self.resetFocus()
-            self.InitialSetup()
-        else:
-            self.resetFocus()
+    def SwitchToLOTROTest(self):
+        self.currentGame = "LOTRO.Test"
+        self.InitialSetup()
 
     def btnLoginClicked(self):
         if self.uiMain.txtAccount.text() == "" or self.uiMain.txtPassword.text() == "":
@@ -410,12 +390,23 @@ class MainWindow(QtCore.QObject):
         self.winMain.setWindowIcon(QtGui.QIcon(icoFile))
         self.uiMain.actionHideWinMain.setChecked(self.settings.hideWinMain)
 
-        #Set icon of switch game icon acording to game running
+        #Set icon and dropdown options of switch game button acording to game running
+        self.uiMain.btnSwitchGameMenu = QtWidgets.QMenu()
+        self.uiMain.btnSwitchGame.setMenu(self.uiMain.btnSwitchGameMenu)
         if self.settings.usingDND:
             self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
                                         "images" + os.sep + "LotROLinuxIcon.png")))
-        else: self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
+            DDO_Test = self.uiMain.btnSwitchGameMenu.addAction("Dungeons & Dragons Online (Test)")
+            DDO_Test.triggered.connect(self.SwitchToDDOTest)
+            LOTRO_Test = self.uiMain.btnSwitchGameMenu.addAction("Lord of the Rings Online (Test)")
+            LOTRO_Test.triggered.connect(self.SwitchToLOTROTest)
+        else:
+            self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
                                 "images" + os.sep + "DDOLinuxIcon.png")))
+            LOTRO_Test = self.uiMain.btnSwitchGameMenu.addAction("Lord of the Rings Online (Test)")
+            LOTRO_Test.triggered.connect(self.SwitchToLOTROTest)
+            DDO_Test = self.uiMain.btnSwitchGameMenu.addAction("Dungeons & Dragons Online (Test)")
+            DDO_Test.triggered.connect(self.SwitchToDDOTest)
 
         self.configFile = "%s%s" % (
             self.settings.gameDir, self.gameType.configFile)
