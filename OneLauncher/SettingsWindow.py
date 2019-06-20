@@ -28,6 +28,7 @@
 ###########################################################################
 from qtpy import QtCore, QtGui, QtWidgets, uic
 from .OneLauncherUtils import DetermineOS
+from .CheckConfig import CheckConfig
 import os.path
 import glob
 from pkg_resources import resource_filename
@@ -39,6 +40,10 @@ class SettingsWindow:
 
         self.homeDir = homeDir
         self.osType = osType
+        self.app = app
+        self.winePrefix = winePrefix
+        self.rootDir = rootDir
+        self.parent = parent
 
         self.winSettings = QtWidgets.QDialog()
         self.winSettings.setPalette(parent.palette())
@@ -104,6 +109,13 @@ class SettingsWindow:
                 self.uiSettings.chkx86.setChecked(False)
         else:
             self.uiSettings.chkx86.setEnabled(False)
+
+        if self.app == "Wine":
+            self.uiSettings.btnCheckPrefix.setText("Check Prefix")
+        else:
+            self.uiSettings.btnCheckPrefix.setText("Check Bottle")
+
+        self.uiSettings.btnCheckPrefix.clicked.connect(self.btnCheckPrefixClicked)
 
         self.uiSettings.btnGameDir.clicked.connect(self.btnGameDirClicked)
         self.uiSettings.chkAdvanced.clicked.connect(self.chkAdvancedClicked)
@@ -179,6 +191,12 @@ class SettingsWindow:
                 self.uiSettings.chkx86.setEnabled(True)
             else:
                 self.uiSettings.chkx86.setEnabled(False)
+
+    def btnCheckPrefixClicked(self):
+        confCheck = CheckConfig(
+            self.parent, self.app, self.winePrefix, self.homeDir, self.osType, self.rootDir)
+
+        confCheck.Run()
 
     def getApp(self):
         if self.osType.usingWindows:
