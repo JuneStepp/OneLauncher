@@ -117,11 +117,13 @@ class SettingsWindow:
 
         self.uiSettings.btnCheckPrefix.clicked.connect(self.btnCheckPrefixClicked)
 
+
         self.uiSettings.btnGameDir.clicked.connect(self.btnGameDirClicked)
         self.uiSettings.txtGameDir.textChanged.connect(self.txtGameDirChanged)
         self.uiSettings.btnPrefixDir.clicked.connect(self.btnPrefixDirClicked)
         self.uiSettings.txtPrefix.textChanged.connect(self.txtPrefixChanged)
         self.uiSettings.chkAdvanced.clicked.connect(self.chkAdvancedClicked)
+        self.uiSettings.cboBottle.currentIndexChanged.connect(self.cboBottleChanged)
 
         if not self.osType.usingWindows:
             self.uiSettings.cboApplication.currentIndexChanged.connect(
@@ -153,12 +155,23 @@ class SettingsWindow:
         if self.uiSettings.cboApplication.currentIndex() == 0:
             self.uiSettings.lblPrefix.setText("WINEPREFIX")
             self.uiSettings.txtPrefix.setVisible(True)
+            self.uiSettings.btnPrefixDir.setVisible(True)
             self.uiSettings.cboBottle.setVisible(False)
+            self.uiSettings.btnCheckPrefix.setText("Check Prefix")
+            self.winePrefix = self.uiSettings.txtPrefix.text()
+
         else:
             self.uiSettings.lblPrefix.setText("Bottle")
             self.uiSettings.txtPrefix.setVisible(False)
+            self.uiSettings.btnPrefixDir.setVisible(False)
             self.uiSettings.cboBottle.setVisible(True)
             self.ShowBottles()
+            self.uiSettings.btnCheckPrefix.setText("Check Bottle")
+            if self.uiSettings.cboBottle.currentText() == "":
+                self.winePrefix = ""
+
+    def cboBottleChanged(self):
+        self.winePrefix = self.winSettings.cboBottle.currentText()
 
     def chkAdvancedClicked(self):
         if self.osType.usingWindows:
