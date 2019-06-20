@@ -112,22 +112,22 @@ class SettingsWindow:
         else:
             self.uiSettings.chkx86.setEnabled(False)
 
-        if self.app == "Wine":
-            self.uiSettings.btnCheckPrefix.setText("Check Prefix")
-        else:
-            self.uiSettings.btnCheckPrefix.setText("Check Bottle")
-
-        self.uiSettings.btnCheckPrefix.clicked.connect(self.btnCheckPrefixClicked)
         self.uiSettings.btnSetupWizard.clicked.connect(self.btnSetupWizardClicked)
-
         self.uiSettings.btnGameDir.clicked.connect(self.btnGameDirClicked)
         self.uiSettings.txtGameDir.textChanged.connect(self.txtGameDirChanged)
-        self.uiSettings.btnPrefixDir.clicked.connect(self.btnPrefixDirClicked)
-        self.uiSettings.txtPrefix.textChanged.connect(self.txtPrefixChanged)
         self.uiSettings.chkAdvanced.clicked.connect(self.chkAdvancedClicked)
-        self.uiSettings.cboBottle.currentIndexChanged.connect(self.cboBottleChanged)
 
         if not self.osType.usingWindows:
+            if self.app == "Wine":
+                self.uiSettings.btnCheckPrefix.setText("Check Prefix")
+            else:
+                self.uiSettings.btnCheckPrefix.setText("Check Bottle")
+
+            self.uiSettings.btnCheckPrefix.clicked.connect(self.btnCheckPrefixClicked)
+            self.uiSettings.btnPrefixDir.clicked.connect(self.btnPrefixDirClicked)
+            self.uiSettings.txtPrefix.textChanged.connect(self.txtPrefixChanged)
+            self.uiSettings.cboBottle.currentIndexChanged.connect(self.cboBottleChanged)
+            self.uiSettings.cboBottle.currentIndexChanged.connect(self.cboBottleChanged)
             self.uiSettings.cboApplication.currentIndexChanged.connect(
                 self.cboApplicationChanged)
 
