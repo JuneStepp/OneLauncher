@@ -382,6 +382,7 @@ class MainWindow(QtCore.QObject):
         self.uiMain.cboRealm.clear()
         self.uiMain.cboLanguage.clear()
         self.ClearLog()
+        self.ClearNews()
 
         self.AddLog("Initialising, please wait...")
 
@@ -507,6 +508,9 @@ class MainWindow(QtCore.QObject):
 
     def ClearLog(self):
         self.uiMain.txtStatus.setText("")
+
+    def ClearNews(self):
+        self.uiMain.txtFeed.setText("")
 
     def AddLog(self, message):
         for line in message.splitlines():
