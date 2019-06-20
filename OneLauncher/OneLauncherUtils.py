@@ -396,12 +396,6 @@ class LanguageConfig():
         self.langFound = False
         self.langList = []
 
-        for name in glob.glob(os.path.join(runDir, "client_local_*.dat")):
-            self.langFound = True
-            # remove "client_local_" (13 chars) and ".dat" (4 chars) from filename
-            temp = os.path.basename(name)[13:-4]
-            self.langList.append(Language(temp))
-        # Handle newer clients where the language is a subdir
         for name in os.listdir(runDir):
             path = os.path.join(runDir, name)
             if os.path.exists(os.path.join(path, "Licenses")):
