@@ -94,6 +94,12 @@ class MainWindow(QtCore.QObject):
                                         "images" + os.sep + "SettingsGear.png")))
         self.uiMain.btnOptions.clicked.connect(self.btnOptionsSelected)
         self.uiMain.btnSwitchGame.clicked.connect(self.btnSwitchGameClicked)
+        self.uiMain.btnSwitchGameMenu = QtWidgets.QMenu()
+        self.uiMain.btnSwitchGameMenu.addAction(self.uiMain.actionLOTROTest)
+        self.uiMain.actionLOTROTest.triggered.connect(self.SwitchToLOTROTest)
+        self.uiMain.btnSwitchGameMenu.addAction(self.uiMain.actionDDOTest)
+        self.uiMain.actionDDOTest.triggered.connect(self.SwitchToDDOTest)
+        self.uiMain.btnSwitchGame.setMenu(self.uiMain.btnSwitchGameMenu)
         #self.uiMain.actionHideWinMain.triggered.connect(self.actionHideWinMainSelected)
 
         self.winMain.ReturnLog = self.ReturnLog
@@ -346,10 +352,6 @@ class MainWindow(QtCore.QObject):
         self.gameDirExists = False
         self.uiMain.txtAccount.setEnabled(False)
         self.uiMain.txtPassword.setEnabled(False)
-        self.uiMain.actionPatch.setEnabled(False)
-        self.uiMain.actionPatch.setVisible(False)
-        self.uiMain.actionCheck_Bottle.setEnabled(False)
-        self.uiMain.actionCheck_Bottle.setVisible(False)
         self.uiMain.btnLogin.setEnabled(False)
         self.uiMain.chkSaveSettings.setEnabled(False)
         self.valHomeDir = self.GetHomeDir()
@@ -391,18 +393,20 @@ class MainWindow(QtCore.QObject):
         self.uiMain.actionHideWinMain.setChecked(self.settings.hideWinMain)
 
         #Set icon and dropdown options of switch game button acording to game running
-        self.uiMain.btnSwitchGameMenu = QtWidgets.QMenu()
-        self.uiMain.btnSwitchGame.setMenu(self.uiMain.btnSwitchGameMenu)
         if self.settings.usingDND:
             self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
                                         "images" + os.sep + "LotROLinuxIcon.png")))
-            DDO_Test = self.uiMain.btnSwitchGameMenu.addAction("Dungeons & Dragons Online (Test)")
-            DDO_Test.triggered.connect(self.SwitchToDDOTest)
+            self.uiMain.actionLOTROTest.setEnabled(False)
+            self.uiMain.actionLOTROTest.setVisible(False)
+            self.uiMain.actionDDOTest.setEnabled(True)
+            self.uiMain.actionDDOTest.setVisible(True)
         else:
             self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
-                                "images" + os.sep + "DDOLinuxIcon.png")))
-            LOTRO_Test = self.uiMain.btnSwitchGameMenu.addAction("Lord of the Rings Online (Test)")
-            LOTRO_Test.triggered.connect(self.SwitchToLOTROTest)
+                                        "images" + os.sep + "DDOLinuxIcon.png")))
+            self.uiMain.actionDDOTest.setEnabled(False)
+            self.uiMain.actionDDOTest.setVisible(False)
+            self.uiMain.actionLOTROTest.setEnabled(True)
+            self.uiMain.actionLOTROTest.setVisible(True)
 
         self.configFile = "%s%s" % (
             self.settings.gameDir, self.gameType.configFile)
@@ -410,22 +414,7 @@ class MainWindow(QtCore.QObject):
             self.settings.gameDir, self.gameType.configFileAlt)
         self.gameDirExists = os.path.exists(self.settings.gameDir)
 
-        if self.gameDirExists:
-            if self.osType.usingWindows:
-                if os.environ.get('WINEPREFIX') != None and os.environ.get('OLDPWD') != None:
-                    self.uiMain.actionCheck_Bottle.setEnabled(True)
-                    self.uiMain.actionCheck_Bottle.setVisible(True)
-            else:
-                self.uiMain.actionCheck_Bottle.setEnabled(True)
-                self.uiMain.actionCheck_Bottle.setVisible(True)
-
-            if self.settings.app == "Wine":
-                self.uiMain.actionCheck_Bottle.setText("Check Prefix")
-            elif self.settings.app == "Native":
-                self.uiMain.actionCheck_Bottle.setText("Check Config")
-            else:
-                self.uiMain.actionCheck_Bottle.setText("Check Bottle")
-        else:
+        if not self.gameDirExists:
             self.AddLog("[E13] Game Directory not found")
 
         self.langConfig = None

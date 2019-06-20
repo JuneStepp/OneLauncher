@@ -342,45 +342,6 @@
     </font>
    </property>
   </action>
-  <action name="actionCheck_Bottle">
-   <property name="text">
-    <string>Check Bottle</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>Verdana</family>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
-  </action>
-  <action name="actionSettings_Wizard">
-   <property name="text">
-    <string>Settings Wizard</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>Verdana</family>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
-  </action>
-  <action name="actionSwitch_Game">
-   <property name="text">
-    <string>Switch Game</string>
-   </property>
-   <property name="iconText">
-    <string>Switch Game</string>
-   </property>
-   <property name="toolTip">
-    <string>Switch Game</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>Verdana</family>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
-  </action>
   <action name="actionPatch">
    <property name="text">
     <string>Patch</string>
@@ -398,67 +359,14 @@
     </font>
    </property>
   </action>
-  <action name="actionAbout">
+  <action name="actionDDOTest">
    <property name="text">
-    <string>About</string>
-   </property>
-   <property name="iconText">
-    <string>About</string>
-   </property>
-   <property name="toolTip">
-    <string>About</string>
-   </property>
-   <property name="statusTip">
-    <string/>
-   </property>
-   <property name="whatsThis">
-    <string/>
-   </property>
-   <property name="font">
-    <font>
-     <family>Verdana</family>
-     <pointsize>12</pointsize>
-    </font>
+    <string>Dungeons &amp; Dragons Online (Test)</string>
    </property>
   </action>
-  <action name="actionOptions">
+  <action name="actionLOTROTest">
    <property name="text">
-    <string>Options</string>
-   </property>
-   <property name="iconText">
-    <string>Options</string>
-   </property>
-   <property name="toolTip">
-    <string>Options</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>Verdana</family>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
-  </action>
-  <action name="actionExit">
-   <property name="text">
-    <string>Exit</string>
-   </property>
-   <property name="iconText">
-    <string>Exit</string>
-   </property>
-   <property name="toolTip">
-    <string>Exit</string>
-   </property>
-   <property name="statusTip">
-    <string/>
-   </property>
-   <property name="whatsThis">
-    <string/>
-   </property>
-   <property name="font">
-    <font>
-     <family>Verdana</family>
-     <pointsize>12</pointsize>
-    </font>
+    <string>Lord of the Rings Online (Test)</string>
    </property>
   </action>
  </widget>
