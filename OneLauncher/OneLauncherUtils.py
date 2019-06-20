@@ -31,10 +31,11 @@ import subprocess
 import sys
 import glob
 import codecs
-from PyQt5 import QtCore
+from qtpy import QtCore
 import xml.dom.minidom
 from xml.sax.saxutils import escape as xml_escape
 import ssl
+from pkg_resources import resource_filename
 
 from codecs import open as uopen
 
@@ -48,13 +49,7 @@ def string_decode(s): return s.decode()
 def QByteArray2str(s): return str(s, encoding="utf8", errors="replace")
 
 # Try to locate the server certificates for HTTPS connections
-certfile = None
-try:
-    from pkg_resources import resource_filename
-    certfile = resource_filename(__name__, "certificates/ca_certs.pem")
-except:
-    if '__path__' in globals():
-        certfile = os.path.join(__path__, "certificates", "ca_certs.pem")
+certfile = resource_filename(__name__, "certificates/ca_certs.pem")
 
 if certfile and not os.access(certfile, os.R_OK):
     print("certificate file expected at '%s' but not found!" % certfile)
@@ -110,7 +105,7 @@ class DetermineGame:
     def __init__(self):
         self.configFile = ""
         self.configFileAlt = ""
-        self.icoFile = ""
+        self.iconFile = ""
         self.pngFile = ""
         self.title = ""
 
@@ -131,14 +126,14 @@ class DetermineGame:
 
         if usingDND:
             self.configFileAlt = os.sep + "ddo.launcherconfig"
-            self.icoFile = os.path.join("images", "DDOLinuxIcon.png")
-            self.pngFile = os.path.join("images", "DDOLinux.png")
+            self.iconFile = os.path.join("images", "DDOIcon.png")
+            self.pngFile = os.path.join("images", "DDO.png")
 
             self.title = "Dungeons & Dragons Online" + self.__test + self.__os
         else:
             self.configFileAlt = (os.sep + "TurbineLauncher.exe.config")
-            self.icoFile = os.path.join("images", "LotROLinuxIcon.png")
-            self.pngFile = os.path.join("images", "LotROLinux.png")
+            self.iconFile = os.path.join("images", "LOTROIcon.png")
+            self.pngFile = os.path.join("images", "LOTRO.png")
 
             self.title = "Lord of the Rings Online" + self.__test + self.__os
 
