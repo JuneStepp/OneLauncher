@@ -295,7 +295,7 @@
      <string>-</string>
     </property>
    </widget>
-   <widget class="QToolButton" name="toolButton">
+   <widget class="QToolButton" name="btnSwitchGame">
     <property name="geometry">
      <rect>
       <x>743</x>

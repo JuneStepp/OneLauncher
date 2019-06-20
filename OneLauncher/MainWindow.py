@@ -94,7 +94,7 @@ class MainWindow(QtCore.QObject):
         self.uiMain.btnOptions.setIcon(QtGui.QIcon(resource_filename(__name__,
                                         "images" + os.sep + "SettingsGear.png")))
         self.uiMain.btnOptions.clicked.connect(self.btnOptionsSelected)
-        #self.uiMain.actionSwitch_Game.triggered.connect(self.actionSwitchSelected)
+        self.uiMain.btnSwitchGame.clicked.connect(self.btnSwitchGameClicked)
         #self.uiMain.actionHideWinMain.triggered.connect(self.actionHideWinMainSelected)
 
         self.winMain.ReturnLog = self.ReturnLog
@@ -200,7 +200,7 @@ class MainWindow(QtCore.QObject):
         else:
             self.resetFocus()
 
-    def actionSwitchSelected(self):
+    def btnSwitchGameClicked(self):
         dlgChooseAccount = QtWidgets.QDialog(self.winMain)
         dlgChooseAccount.setPalette(self.winMain.palette())
 
@@ -408,6 +408,13 @@ class MainWindow(QtCore.QObject):
         self.winMain.setWindowTitle(self.gameType.title)
         self.winMain.setWindowIcon(QtGui.QIcon(icoFile))
         self.uiMain.actionHideWinMain.setChecked(self.settings.hideWinMain)
+
+        #Set icon of switch game icon acording to game running
+        if self.settings.usingDND:
+            self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
+                                        "images" + os.sep + "LotROLinuxIcon.png")))
+        else: self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
+                                "images" + os.sep + "DDOLinuxIcon.png")))
 
         self.configFile = "%s%s" % (
             self.settings.gameDir, self.gameType.configFile)
