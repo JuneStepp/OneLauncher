@@ -100,7 +100,6 @@ class PatchWindow:
 
             self.command = "rundll32.exe"
             self.process.setWorkingDirectory(runDir)
-            self.uiLog.txtLog.append(self.command + " " + patchParams)
 
             for arg in patchParams.split(" "):
                 self.arguments.append(arg)
@@ -113,7 +112,6 @@ class PatchWindow:
 
             self.command = wineProgram
             self.process.setWorkingDirectory(runDir)
-            self.uiLog.txtLog.append(patchParams)
 
             for arg in patchParams.split(" "):
                 self.arguments.append(arg)
@@ -179,6 +177,9 @@ class PatchWindow:
                     self.command = "%s%s" % (
                         self.osType.macPathCX, wineProgram)
 
+        self.file_arguments = self.arguments.copy()
+        self.file_arguments.append("--filesonly")
+
     def readOutput(self):
         line = QByteArray2str(self.process.readAllStandardOutput())
         self.uiLog.txtLog.append(line)
@@ -223,12 +224,11 @@ class PatchWindow:
         # handle remaining patching phases
         if self.phase == 1:
             # run file patching again (to avoid problems when patchclient.dll self-patches)
-            self.process.start(self.command, self.arguments)
+            self.process.start(self.command, self.file_arguments)
         elif self.phase == 2:
             # run data patching
-            data_arguments = []
-            for arg in self.arguments:
-                    data_arguments.append(arg)
+            data_arguments = self.arguments.copy()
+            data_arguments.append("--dataonly")
             self.process.start(self.command, data_arguments)
         else:
             # finished
@@ -244,7 +244,7 @@ class PatchWindow:
         self.uiLog.btnStart.setEnabled(False)
         self.uiLog.btnStop.setText("Abort")
         self.uiLog.btnSave.setEnabled(False)
-        self.process.start(self.command, self.arguments)
+        self.process.start(self.command, self.file_arguments)
 
     def Run(self, app):
         self.__app = app
