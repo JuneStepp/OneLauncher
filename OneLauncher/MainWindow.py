@@ -398,15 +398,11 @@ class MainWindow(QtCore.QObject):
                                         "images" + os.sep + "LotROLinuxIcon.png")))
             DDO_Test = self.uiMain.btnSwitchGameMenu.addAction("Dungeons & Dragons Online (Test)")
             DDO_Test.triggered.connect(self.SwitchToDDOTest)
-            LOTRO_Test = self.uiMain.btnSwitchGameMenu.addAction("Lord of the Rings Online (Test)")
-            LOTRO_Test.triggered.connect(self.SwitchToLOTROTest)
         else:
             self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
                                 "images" + os.sep + "DDOLinuxIcon.png")))
             LOTRO_Test = self.uiMain.btnSwitchGameMenu.addAction("Lord of the Rings Online (Test)")
             LOTRO_Test.triggered.connect(self.SwitchToLOTROTest)
-            DDO_Test = self.uiMain.btnSwitchGameMenu.addAction("Dungeons & Dragons Online (Test)")
-            DDO_Test.triggered.connect(self.SwitchToDDOTest)
 
         self.configFile = "%s%s" % (
             self.settings.gameDir, self.gameType.configFile)
