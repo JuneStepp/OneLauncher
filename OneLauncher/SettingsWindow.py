@@ -29,6 +29,7 @@
 from qtpy import QtCore, QtGui, QtWidgets, uic
 from .OneLauncherUtils import DetermineOS
 from .CheckConfig import CheckConfig
+from .SetupWizard import SetupWizard
 import os.path
 import glob
 from pkg_resources import resource_filename
@@ -36,7 +37,7 @@ from pkg_resources import resource_filename
 
 class SettingsWindow:
     def __init__(self, parent, hiRes, app, x86, wineProg, wineDebug, patchClient, usingDND,
-                 winePrefix, gameDir, homeDir, osType, rootDir):
+                 winePrefix, gameDir, homeDir, osType, rootDir, settings):
 
         self.homeDir = homeDir
         self.osType = osType
@@ -44,6 +45,7 @@ class SettingsWindow:
         self.winePrefix = winePrefix
         self.rootDir = rootDir
         self.parent = parent
+        self.settings = settings
 
         self.winSettings = QtWidgets.QDialog()
         self.winSettings.setPalette(parent.palette())
@@ -116,7 +118,7 @@ class SettingsWindow:
             self.uiSettings.btnCheckPrefix.setText("Check Bottle")
 
         self.uiSettings.btnCheckPrefix.clicked.connect(self.btnCheckPrefixClicked)
-
+        self.uiSettings.btnSetupWizard.clicked.connect(self.btnSetupWizardClicked)
 
         self.uiSettings.btnGameDir.clicked.connect(self.btnGameDirClicked)
         self.uiSettings.txtGameDir.textChanged.connect(self.txtGameDirChanged)
@@ -221,6 +223,23 @@ class SettingsWindow:
 
         if filename != "":
             self.uiSettings.txtPrefix.setText(filename)
+
+    def btnSetupWizardClicked(self):
+        winWizard = SetupWizard(
+            self.parent, self.homeDir, self.osType, self.rootDir)
+
+        if winWizard.Run() == QtWidgets.QDialog.Accepted:
+            self.settings.usingDND = winWizard.getUsingDND()
+            self.settings.usingTest = winWizard.getUsingTest()
+            self.settings.hiResEnabled = winWizard.getHiRes()
+            self.settings.app = winWizard.getApp()
+            self.settings.wineProg = winWizard.getProg()
+            self.settings.wineDebug = winWizard.getDebug()
+            self.settings.patchClient = winWizard.getPatchClient()
+            self.settings.winePrefix = winWizard.getPrefix()
+            self.settings.gameDir = winWizard.getGameDir()
+            self.settings.SaveSettings(self.uiMain.chkSaveSettings.isChecked())
+            self.InitialSetup()
 
     def txtPrefixChanged(self, text):
         self.winePrefix = text

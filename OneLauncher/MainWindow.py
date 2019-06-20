@@ -33,7 +33,6 @@ import zlib
 from qtpy import QtCore, QtGui, QtWidgets, uic
 import qdarkstyle
 from .SettingsWindow import SettingsWindow
-from .SetupWizard import SetupWizard
 from .PatchWindow import PatchWindow
 from .StartGame import StartGame
 from .Settings import Settings
@@ -95,7 +94,6 @@ class MainWindow(QtCore.QObject):
         self.uiMain.btnOptions.setIcon(QtGui.QIcon(resource_filename(__name__,
                                         "images" + os.sep + "SettingsGear.png")))
         self.uiMain.btnOptions.clicked.connect(self.btnOptionsSelected)
-        #self.uiMain.actionSettings_Wizard.triggered.connect(self.actionWizardSelected)
         #self.uiMain.actionSwitch_Game.triggered.connect(self.actionSwitchSelected)
         #self.uiMain.actionHideWinMain.triggered.connect(self.actionHideWinMainSelected)
 
@@ -181,7 +179,7 @@ class MainWindow(QtCore.QObject):
     def btnOptionsSelected(self):
         winSettings = SettingsWindow(self.winMain, self.settings.hiResEnabled, self.settings.app, self.settings.x86Enabled,
                                      self.settings.wineProg, self.settings.wineDebug, self.settings.patchClient, self.settings.usingDND,
-                                     self.settings.winePrefix, self.settings.gameDir, self.valHomeDir, self.osType, self.rootDir)
+                                     self.settings.winePrefix, self.settings.gameDir, self.valHomeDir, self.osType, self.rootDir, self.settings)
 
         self.hideWinMain()
         if winSettings.Run() == QtWidgets.QDialog.Accepted:
@@ -196,27 +194,6 @@ class MainWindow(QtCore.QObject):
                 self.settings.wineDebug = winSettings.getDebug()
                 self.settings.winePrefix = winSettings.getPrefix()
 
-            self.settings.SaveSettings(self.uiMain.chkSaveSettings.isChecked())
-            self.resetFocus()
-            self.InitialSetup()
-        else:
-            self.resetFocus()
-
-    def actionWizardSelected(self):
-        winWizard = SetupWizard(
-            self.winMain, self.valHomeDir, self.osType, self.rootDir)
-
-        self.hideWinMain()
-        if winWizard.Run() == QtWidgets.QDialog.Accepted:
-            self.settings.usingDND = winWizard.getUsingDND()
-            self.settings.usingTest = winWizard.getUsingTest()
-            self.settings.hiResEnabled = winWizard.getHiRes()
-            self.settings.app = winWizard.getApp()
-            self.settings.wineProg = winWizard.getProg()
-            self.settings.wineDebug = winWizard.getDebug()
-            self.settings.patchClient = winWizard.getPatchClient()
-            self.settings.winePrefix = winWizard.getPrefix()
-            self.settings.gameDir = winWizard.getGameDir()
             self.settings.SaveSettings(self.uiMain.chkSaveSettings.isChecked())
             self.resetFocus()
             self.InitialSetup()
