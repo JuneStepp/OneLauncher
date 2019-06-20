@@ -89,7 +89,10 @@ class MainWindow(QtCore.QObject):
         self.uiMain.btnExit.clicked.connect(self.winMain.close)
         self.uiMain.btnMinimize.clicked.connect(self.winMain.showMinimized)
         self.uiMain.btnAbout.clicked.connect(self.btnAboutSelected)
-        #self.uiMain.actionPatch.triggered.connect(self.actionPatchSelected)
+        self.uiMain.btnLoginMenu = QtWidgets.QMenu()
+        self.uiMain.btnLoginMenu.addAction(self.uiMain.actionPatch)
+        self.uiMain.actionPatch.triggered.connect(self.actionPatchSelected)
+        self.uiMain.btnLogin.setMenu(self.uiMain.btnLoginMenu)
         self.uiMain.btnOptions.setIcon(QtGui.QIcon(resource_filename(__name__,
                                         "images" + os.sep + "SettingsGear.png")))
         self.uiMain.btnOptions.clicked.connect(self.btnOptionsSelected)
