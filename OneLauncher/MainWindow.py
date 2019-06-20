@@ -37,7 +37,6 @@ from .SettingsWizard import SettingsWizard
 from .PatchWindow import PatchWindow
 from .StartGame import StartGame
 from .Settings import Settings
-from .CheckConfig import CheckConfig
 from .OneLauncherUtils import DetermineOS, DetermineGame, LanguageConfig, Language
 from .OneLauncherUtils import BaseConfig, GLSDataCentre, WorldQueueConfig
 from .OneLauncherUtils import AuthenticateUser, JoinWorldQueue, GetText, WebConnection
@@ -98,7 +97,6 @@ class MainWindow(QtCore.QObject):
         self.uiMain.btnOptions.clicked.connect(self.btnOptionsSelected)
         #self.uiMain.actionSettings_Wizard.triggered.connect(self.actionWizardSelected)
         #self.uiMain.actionSwitch_Game.triggered.connect(self.actionSwitchSelected)
-        #self.uiMain.actionCheck_Bottle.triggered.connect(self.actionCheckSelected)
         #self.uiMain.actionHideWinMain.triggered.connect(self.actionHideWinMainSelected)
 
         self.winMain.ReturnLog = self.ReturnLog
@@ -146,14 +144,6 @@ class MainWindow(QtCore.QObject):
 
     def actionHideWinMainSelected(self):
         self.settings.hideWinMain = not self.settings.hideWinMain
-
-    def actionCheckSelected(self):
-        confCheck = CheckConfig(
-            self.winMain, self.settings, self.valHomeDir, self.osType, self.rootDir)
-
-        self.hideWinMain()
-        confCheck.Run()
-        self.resetFocus()
 
     def btnAboutSelected(self):
         dlgAbout = QtWidgets.QDialog()

@@ -265,6 +265,19 @@
       </rect>
      </property>
     </widget>
+    <widget class="QPushButton" name="btnCheckPrefix">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>131</y>
+       <width>301</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Check Prefix</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QDialogButtonBox" name="btnBoxOptions">

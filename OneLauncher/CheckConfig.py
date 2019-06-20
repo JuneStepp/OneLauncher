@@ -35,13 +35,15 @@ from .Settings import Settings
 
 
 class CheckConfig:
-    def __init__(self, parent, settings, homeDir, osType, rootDir):
-        self.settings = settings
+    def __init__(self, parent, app, winePrefix, homeDir, osType, rootDir):
+        self.app = app
+        self.winePrefix = winePrefix
         self.homeDir = homeDir
         self.osType = osType
 
-        self.winCheckConfig = QtWidgets.QDialog(parent)
+        self.winCheckConfig = QtWidgets.QDialog()
         self.winCheckConfig.setPalette(parent.palette())
+        self.winCheckConfig.setWindowFlags(QtCore.Qt.FramelessWindowHint)
 
         uifile = resource_filename(__name__, 'ui' + os.sep + 'winCheckConfig.ui')
 
@@ -53,10 +55,8 @@ class CheckConfig:
         self.winCheckConfig.move(
             (screen.width() - size.width()) / 2, (screen.height() - size.height()) / 2)
 
-        if settings.app == "Wine":
+        if self.app == "Wine":
             self.winCheckConfig.setWindowTitle("Prefix Checker")
-        elif settings.app == "Native":
-            self.winCheckConfig.setWindowTitle("Configuration Checker")
         else:
             self.winCheckConfig.setWindowTitle("Bottle Checker")
 
@@ -74,19 +74,19 @@ class CheckConfig:
         try:
             infile = None
 
-            if self.settings.app == "Wine":
-                if self.settings.winePrefix == "":
+            if self.app == "Wine":
+                if self.winePrefix == "":
                     infile = open(self.homeDir + os.sep +
                                   ".wine" + os.sep + "system.reg", "r")
                 else:
-                    infile = open(self.settings.winePrefix +
+                    infile = open(self.winePrefix +
                                   os.sep + "system.reg", "r")
-            elif self.settings.app == "CXGames":
+            elif self.app == "CXGames":
                 infile = open(self.homeDir + os.sep + self.osType.settingsCXG + os.sep +
-                              self.settings.winePrefix + os.sep + "system.reg", "r")
-            elif self.settings.app == "CXOffice":
+                              self.winePrefix + os.sep + "system.reg", "r")
+            elif self.app == "CXOffice":
                 infile = open(self.homeDir + os.sep + self.osType.settingsCXO + os.sep +
-                              self.settings.winePrefix + os.sep + "system.reg", "r")
+                              self.winePrefix + os.sep + "system.reg", "r")
             else:
                 temp = os.environ.get('WINEPREFIX')
 
@@ -117,19 +117,19 @@ class CheckConfig:
         try:
             infile = None
 
-            if self.settings.app == "Wine":
-                if self.settings.winePrefix == "":
+            if self.app == "Wine":
+                if self.winePrefix == "":
                     infile = open(self.homeDir + os.sep +
                                   ".wine" + os.sep + "user.reg", "r")
                 else:
-                    infile = open(self.settings.winePrefix +
+                    infile = open(self.winePrefix +
                                   os.sep + "user.reg", "r")
-            elif self.settings.app == "CXGames":
+            elif self.app == "CXGames":
                 infile = open(self.homeDir + os.sep + self.osType.settingsCXG + os.sep +
-                              self.settings.winePrefix + os.sep + "user.reg", "r")
-            elif self.settings.app == "CXOffice":
+                              self.winePrefix + os.sep + "user.reg", "r")
+            elif self.app == "CXOffice":
                 infile = open(self.homeDir + os.sep + self.osType.settingsCXO + os.sep +
-                              self.settings.winePrefix + os.sep + "user.reg", "r")
+                              self.winePrefix + os.sep + "user.reg", "r")
             else:
                 temp = os.environ.get('WINEPREFIX')
 
@@ -160,19 +160,19 @@ class CheckConfig:
                     index += 1
 
             if version == "Unknown":
-                if self.settings.app == "Wine":
-                    if self.settings.winePrefix == "":
+                if self.app == "Wine":
+                    if self.winePrefix == "":
                         infile = open(self.homeDir + os.sep +
                                       ".wine" + os.sep + "system.reg", "r")
                     else:
-                        infile = open(self.settings.winePrefix +
+                        infile = open(self.winePrefix +
                                       os.sep + "system.reg", "r")
-                elif self.settings.app == "CXGames":
+                elif self.app == "CXGames":
                     infile = open(self.homeDir + os.sep + self.osType.settingsCXG + os.sep +
-                                  self.settings.winePrefix + os.sep + "system.reg", "r")
-                elif self.settings.app == "CXOffice":
+                                  self.winePrefix + os.sep + "system.reg", "r")
+                elif self.app == "CXOffice":
                     infile = open(self.homeDir + os.sep + self.osType.settingsCXO + os.sep +
-                                  self.settings.winePrefix + os.sep + "system.reg", "r")
+                                  self.winePrefix + os.sep + "system.reg", "r")
                 else:
                     temp = os.environ.get('WINEPREFIX')
 
@@ -218,19 +218,19 @@ class CheckConfig:
         try:
             infile = None
 
-            if self.settings.app == "Wine":
-                if self.settings.winePrefix == "":
+            if self.app == "Wine":
+                if self.winePrefix == "":
                     infile = open(self.homeDir + os.sep +
                                   ".wine" + os.sep + "user.reg", "r")
                 else:
-                    infile = open(self.settings.winePrefix +
+                    infile = open(self.winePrefix +
                                   os.sep + "user.reg", "r")
-            elif self.settings.app == "CXGames":
+            elif self.app == "CXGames":
                 infile = open(self.homeDir + os.sep + self.osType.settingsCXG + os.sep +
-                              self.settings.winePrefix + os.sep + "user.reg", "r")
-            elif self.settings.app == "CXOffice":
+                              self.winePrefix + os.sep + "user.reg", "r")
+            elif self.app == "CXOffice":
                 infile = open(self.homeDir + os.sep + self.osType.settingsCXO + os.sep +
-                              self.settings.winePrefix + os.sep + "user.reg", "r")
+                              self.winePrefix + os.sep + "user.reg", "r")
             else:
                 temp = os.environ.get('WINEPREFIX')
 
