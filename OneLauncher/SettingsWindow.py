@@ -118,7 +118,9 @@ class SettingsWindow:
         self.uiSettings.btnCheckPrefix.clicked.connect(self.btnCheckPrefixClicked)
 
         self.uiSettings.btnGameDir.clicked.connect(self.btnGameDirClicked)
+        self.uiSettings.txtGameDir.textChanged.connect(self.txtGameDirChanged)
         self.uiSettings.btnPrefixDir.clicked.connect(self.btnPrefixDirClicked)
+        self.uiSettings.txtPrefix.textChanged.connect(self.txtPrefixChanged)
         self.uiSettings.chkAdvanced.clicked.connect(self.chkAdvancedClicked)
 
         if not self.osType.usingWindows:
@@ -187,8 +189,10 @@ class SettingsWindow:
         if filename != "":
             self.uiSettings.txtGameDir.setText(filename)
 
-            if (os.path.exists(filename + os.sep + "x64" + os.sep + "lotroclient64.exe") and self.usingDND == False or
-                    self.usingDND and os.path.exists(filename + os.sep + "x64" + os.sep + "dndclient64.exe")):
+    def txtGameDirChanged(self, text):
+        if text != "":
+            if (os.path.exists(text + os.sep + "x64" + os.sep + "lotroclient64.exe") and self.usingDND == False or
+                    self.usingDND and os.path.exists(text + os.sep + "x64" + os.sep + "dndclient64.exe")):
                 self.uiSettings.chkx86.setEnabled(True)
             else:
                 self.uiSettings.chkx86.setEnabled(False)
@@ -204,6 +208,9 @@ class SettingsWindow:
 
         if filename != "":
             self.uiSettings.txtPrefix.setText(filename)
+
+    def txtPrefixChanged(self, text):
+        self.winePrefix = text
 
     def btnCheckPrefixClicked(self):
         confCheck = CheckConfig(
