@@ -178,7 +178,7 @@ class MainWindow(QtCore.QObject):
                                self.langConfig.langList[self.uiMain.cboLanguage.currentIndex(
                                )].code,
                                self.settings.gameDir, self.settings.patchClient, self.settings.wineProg,
-                               self.settings.hiResEnabled, self.gameType.icoFile, self.valHomeDir, self.settings.winePrefix,
+                               self.settings.hiResEnabled, self.gameType.iconFile, self.valHomeDir, self.settings.winePrefix,
                                self.settings.app, self.osType, self.rootDir)
 
         self.hideWinMain()
@@ -323,7 +323,7 @@ class MainWindow(QtCore.QObject):
                          )].code,
                          self.settings.gameDir, self.settings.wineProg, self.settings.wineDebug,
                          self.settings.winePrefix, self.settings.hiResEnabled, self.settings.app,
-                         self.osType, self.valHomeDir, self.gameType.icoFile, self.rootDir,
+                         self.osType, self.valHomeDir, self.gameType.iconFile, self.rootDir,
                          self.worldQueueConfig.crashreceiver, self.worldQueueConfig.DefaultUploadThrottleMbps,
                          self.worldQueueConfig.bugurl, self.worldQueueConfig.authserverurl,
                          self.worldQueueConfig.supporturl, self.worldQueueConfig.supportserviceurl,
@@ -396,18 +396,18 @@ class MainWindow(QtCore.QObject):
 
         pngFile = resource_filename(
             __name__, self.gameType.pngFile.replace("\\", "/"))
-        icoFile = resource_filename(
-            __name__, self.gameType.icoFile.replace("\\", "/"))
+        iconFile = resource_filename(
+            __name__, self.gameType.iconFile.replace("\\", "/"))
 
         self.uiMain.imgMain.setPixmap(QtGui.QPixmap(pngFile))
         self.winMain.setWindowTitle(self.gameType.title)
-        self.winMain.setWindowIcon(QtGui.QIcon(icoFile))
+        self.winMain.setWindowIcon(QtGui.QIcon(iconFile))
         self.uiMain.actionHideWinMain.setChecked(self.settings.hideWinMain)
 
         #Set icon and dropdown options of switch game button acording to game running
         if self.settings.usingDND and not self.settings.usingTest:
             self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
-                                        "images" + os.sep + "LotROLinuxIcon.png")))
+                                        "images" + os.sep + "LOTROSwitchIcon.png")))
             self.uiMain.actionLOTROTest.setEnabled(False)
             self.uiMain.actionLOTROTest.setVisible(False)
             self.uiMain.actionDDOTest.setEnabled(True)
@@ -418,7 +418,7 @@ class MainWindow(QtCore.QObject):
             self.uiMain.actionDDO.setVisible(False)
         elif self.settings.usingDND and self.settings.usingTest:
             self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
-                                        "images" + os.sep + "LotROLinuxIcon.png")))
+                                        "images" + os.sep + "LOTROSwitchIcon.png")))
             self.uiMain.actionLOTROTest.setEnabled(False)
             self.uiMain.actionLOTROTest.setVisible(False)
             self.uiMain.actionDDOTest.setEnabled(False)
@@ -429,7 +429,7 @@ class MainWindow(QtCore.QObject):
             self.uiMain.actionDDO.setVisible(True)
         elif not self.settings.usingDND and self.settings.usingTest:
             self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
-                                        "images" + os.sep + "DDOLinuxIcon.png")))
+                                        "images" + os.sep + "DDOSwitchIcon.png")))
             self.uiMain.actionLOTROTest.setEnabled(False)
             self.uiMain.actionLOTROTest.setVisible(False)
             self.uiMain.actionDDOTest.setEnabled(False)
@@ -440,7 +440,7 @@ class MainWindow(QtCore.QObject):
             self.uiMain.actionDDO.setVisible(False)
         else:
             self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
-                                        "images" + os.sep + "DDOLinuxIcon.png")))
+                                        "images" + os.sep + "DDOSwitchIcon.png")))
             self.uiMain.actionDDOTest.setEnabled(False)
             self.uiMain.actionDDOTest.setVisible(False)
             self.uiMain.actionLOTROTest.setEnabled(True)
