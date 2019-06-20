@@ -99,6 +99,10 @@ class MainWindow(QtCore.QObject):
         self.uiMain.actionLOTROTest.triggered.connect(self.SwitchToLOTROTest)
         self.uiMain.btnSwitchGameMenu.addAction(self.uiMain.actionDDOTest)
         self.uiMain.actionDDOTest.triggered.connect(self.SwitchToDDOTest)
+        self.uiMain.btnSwitchGameMenu.addAction(self.uiMain.actionLOTRO)
+        self.uiMain.actionLOTRO.triggered.connect(self.SwitchToLOTRO)
+        self.uiMain.btnSwitchGameMenu.addAction(self.uiMain.actionDDO)
+        self.uiMain.actionDDO.triggered.connect(self.SwitchToDDO)
         self.uiMain.btnSwitchGame.setMenu(self.uiMain.btnSwitchGameMenu)
         #self.uiMain.actionHideWinMain.triggered.connect(self.actionHideWinMainSelected)
 
@@ -217,6 +221,14 @@ class MainWindow(QtCore.QObject):
 
     def SwitchToLOTROTest(self):
         self.currentGame = "LOTRO.Test"
+        self.InitialSetup()
+
+    def SwitchToLOTRO(self):
+        self.currentGame = "LOTRO"
+        self.InitialSetup()
+
+    def SwitchToDDO(self):
+        self.currentGame = "DDO"
         self.InitialSetup()
 
     def btnLoginClicked(self):
@@ -393,13 +405,39 @@ class MainWindow(QtCore.QObject):
         self.uiMain.actionHideWinMain.setChecked(self.settings.hideWinMain)
 
         #Set icon and dropdown options of switch game button acording to game running
-        if self.settings.usingDND:
+        if self.settings.usingDND and not self.settings.usingTest:
             self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
                                         "images" + os.sep + "LotROLinuxIcon.png")))
             self.uiMain.actionLOTROTest.setEnabled(False)
             self.uiMain.actionLOTROTest.setVisible(False)
             self.uiMain.actionDDOTest.setEnabled(True)
             self.uiMain.actionDDOTest.setVisible(True)
+            self.uiMain.actionLOTRO.setEnabled(False)
+            self.uiMain.actionLOTRO.setVisible(False)
+            self.uiMain.actionDDO.setEnabled(False)
+            self.uiMain.actionDDO.setVisible(False)
+        elif self.settings.usingDND and self.settings.usingTest:
+            self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
+                                        "images" + os.sep + "LotROLinuxIcon.png")))
+            self.uiMain.actionLOTROTest.setEnabled(False)
+            self.uiMain.actionLOTROTest.setVisible(False)
+            self.uiMain.actionDDOTest.setEnabled(False)
+            self.uiMain.actionDDOTest.setVisible(False)
+            self.uiMain.actionLOTRO.setEnabled(False)
+            self.uiMain.actionLOTRO.setVisible(False)
+            self.uiMain.actionDDO.setEnabled(True)
+            self.uiMain.actionDDO.setVisible(True)
+        elif not self.settings.usingDND and self.settings.usingTest:
+            self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
+                                        "images" + os.sep + "DDOLinuxIcon.png")))
+            self.uiMain.actionLOTROTest.setEnabled(False)
+            self.uiMain.actionLOTROTest.setVisible(False)
+            self.uiMain.actionDDOTest.setEnabled(False)
+            self.uiMain.actionDDOTest.setVisible(False)
+            self.uiMain.actionLOTRO.setEnabled(True)
+            self.uiMain.actionLOTRO.setVisible(True)
+            self.uiMain.actionDDO.setEnabled(False)
+            self.uiMain.actionDDO.setVisible(False)
         else:
             self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
                                         "images" + os.sep + "DDOLinuxIcon.png")))
@@ -407,6 +445,10 @@ class MainWindow(QtCore.QObject):
             self.uiMain.actionDDOTest.setVisible(False)
             self.uiMain.actionLOTROTest.setEnabled(True)
             self.uiMain.actionLOTROTest.setVisible(True)
+            self.uiMain.actionLOTRO.setEnabled(False)
+            self.uiMain.actionLOTRO.setVisible(False)
+            self.uiMain.actionDDO.setEnabled(False)
+            self.uiMain.actionDDO.setVisible(False)
 
         self.configFile = "%s%s" % (
             self.settings.gameDir, self.gameType.configFile)
