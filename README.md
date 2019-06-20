@@ -31,7 +31,7 @@ to run OneLauncher from source.
 
 -   Python (3.2+)
 -   qtpy (Can be installed with pip)
--   PyQt or Pyside (Can be installed with pip)
+-   PyQt5 (Can be installed with pip)
 -   qdarkstyle (Can be installed with pip)
 -   pkg_resources (Comes with setuptools. You probably have it, but it can be installed with pip)
 
