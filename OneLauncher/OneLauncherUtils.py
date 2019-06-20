@@ -105,7 +105,7 @@ class DetermineGame:
     def __init__(self):
         self.configFile = ""
         self.configFileAlt = ""
-        self.icoFile = ""
+        self.iconFile = ""
         self.pngFile = ""
         self.title = ""
 
@@ -126,14 +126,14 @@ class DetermineGame:
 
         if usingDND:
             self.configFileAlt = os.sep + "ddo.launcherconfig"
-            self.icoFile = os.path.join("images", "DDOLinuxIcon.png")
-            self.pngFile = os.path.join("images", "DDOLinux.png")
+            self.iconFile = os.path.join("images", "DDOIcon.png")
+            self.pngFile = os.path.join("images", "DDO.png")
 
             self.title = "Dungeons & Dragons Online" + self.__test + self.__os
         else:
             self.configFileAlt = (os.sep + "TurbineLauncher.exe.config")
-            self.icoFile = os.path.join("images", "LotROLinuxIcon.png")
-            self.pngFile = os.path.join("images", "LotROLinux.png")
+            self.iconFile = os.path.join("images", "LOTROIcon.png")
+            self.pngFile = os.path.join("images", "LOTRO.png")
 
             self.title = "Lord of the Rings Online" + self.__test + self.__os
 

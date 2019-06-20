@@ -36,7 +36,7 @@ from pkg_resources import resource_filename
 class StartGame:
     def __init__(self, parent, appName, x86, argTemplate, account, server, ticket,
                  chatServer, language, runDir, wineProgram, wineDebug, winePrefix,
-                 hiResEnabled, wineApp, osType, homeDir, icoFileIn, rootDir,
+                 hiResEnabled, wineApp, osType, homeDir, iconFileIn, rootDir,
                  crashreceiver, DefaultUploadThrottleMbps, bugurl, authserverurl,
                  supporturl, supportserviceurl, glsticketlifetime, realmName, accountText):
 
@@ -53,13 +53,13 @@ class StartGame:
         self.accountText = accountText
 
         uifile = resource_filename(__name__, 'ui' + os.sep + 'winLog.ui')
-        icofile = resource_filename(__name__, icoFileIn)
+        iconFile = resource_filename(__name__, iconFileIn)
 
         Ui_winLog, base_class = uic.loadUiType(uifile)
         self.uiLog = Ui_winLog()
         self.uiLog.setupUi(self.winLog)
         self.winLog.setWindowFlags(QtCore.Qt.Dialog)
-        self.winLog.setWindowIcon(QtGui.QIcon(icofile))
+        self.winLog.setWindowIcon(QtGui.QIcon(iconFile))
         screen = QtWidgets.QDesktopWidget().screenGeometry()
         size = self.winLog.geometry()
         self.winLog.move((screen.width() - size.width()) / 2,

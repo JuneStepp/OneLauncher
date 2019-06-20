@@ -36,7 +36,7 @@ from pkg_resources import resource_filename
 
 class PatchWindow:
     def __init__(self, parent, urlPatchServer, prodCode, language, runDir, patchClient,
-                 wineProgram, hiResEnabled, icoFileIn, homeDir, winePrefix, wineApp, osType, rootDir):
+                 wineProgram, hiResEnabled, iconFileIn, homeDir, winePrefix, wineApp, osType, rootDir):
 
         self.winMain = parent
         self.homeDir = homeDir
@@ -45,13 +45,13 @@ class PatchWindow:
         self.osType = osType
 
         uifile = resource_filename(__name__, 'ui' + os.sep + 'winPatch.ui')
-        icofile = resource_filename(__name__, icoFileIn)
+        iconFile = resource_filename(__name__, iconFileIn)
 
         Ui_winLog, base_class = uic.loadUiType(uifile)
         self.uiLog = Ui_winLog()
         self.uiLog.setupUi(self.winLog)
         self.winLog.setWindowFlags(QtCore.Qt.Dialog)
-        self.winLog.setWindowIcon(QtGui.QIcon(icofile))
+        self.winLog.setWindowIcon(QtGui.QIcon(iconFile))
         screen = QtWidgets.QDesktopWidget().screenGeometry()
         size = self.winLog.geometry()
         self.winLog.move((screen.width() - size.width()) / 2,
