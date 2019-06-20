@@ -250,7 +250,7 @@
       <rect>
        <x>150</x>
        <y>91</y>
-       <width>300</width>
+       <width>261</width>
        <height>31</height>
       </rect>
      </property>
@@ -276,6 +276,19 @@
      </property>
      <property name="text">
       <string>Check Prefix</string>
+     </property>
+    </widget>
+    <widget class="QToolButton" name="btnPrefixDir">
+     <property name="geometry">
+      <rect>
+       <x>414</x>
+       <y>92</y>
+       <width>36</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>...</string>
      </property>
     </widget>
    </widget>

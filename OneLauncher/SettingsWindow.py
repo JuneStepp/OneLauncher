@@ -118,6 +118,7 @@ class SettingsWindow:
         self.uiSettings.btnCheckPrefix.clicked.connect(self.btnCheckPrefixClicked)
 
         self.uiSettings.btnGameDir.clicked.connect(self.btnGameDirClicked)
+        self.uiSettings.btnPrefixDir.clicked.connect(self.btnPrefixDirClicked)
         self.uiSettings.chkAdvanced.clicked.connect(self.chkAdvancedClicked)
 
         if not self.osType.usingWindows:
@@ -191,6 +192,18 @@ class SettingsWindow:
                 self.uiSettings.chkx86.setEnabled(True)
             else:
                 self.uiSettings.chkx86.setEnabled(False)
+
+    def btnPrefixDirClicked(self):
+        tempdir = self.uiSettings.txtPrefix.text()
+
+        if tempdir == "":
+            tempdir = self.homeDir
+
+        filename = QtWidgets.QFileDialog.getExistingDirectory(
+            self.winSettings, "Prefix Directory", tempdir)
+
+        if filename != "":
+            self.uiSettings.txtPrefix.setText(filename)
 
     def btnCheckPrefixClicked(self):
         confCheck = CheckConfig(
