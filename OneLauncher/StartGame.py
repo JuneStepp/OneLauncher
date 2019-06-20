@@ -46,7 +46,7 @@ class StartGame:
 
         self.winMain = parent
         self.homeDir = homeDir
-        self.winLog = QtWidgets.QDialog(parent)
+        self.winLog = QtWidgets.QDialog()
         self.winLog.setPalette(parent.palette())
         self.osType = osType
         self.realmName = realmName
@@ -59,6 +59,7 @@ class StartGame:
         self.uiLog = Ui_winLog()
         self.uiLog.setupUi(self.winLog)
         self.winLog.setWindowFlags(QtCore.Qt.Dialog)
+        self.winLog.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.winLog.setWindowIcon(QtGui.QIcon(iconFile))
         screen = QtWidgets.QDesktopWidget().screenGeometry()
         size = self.winLog.geometry()
