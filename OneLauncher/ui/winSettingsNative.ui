@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>460</width>
-    <height>220</height>
+    <height>250</height>
    </rect>
   </property>
   <property name="font">
@@ -29,7 +29,7 @@
    <property name="geometry">
     <rect>
      <x>5</x>
-     <y>180</y>
+     <y>212</y>
      <width>450</width>
      <height>32</height>
     </rect>
@@ -73,6 +73,9 @@
      <height>23</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Where lotrolauncher is&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
    <property name="text">
     <string>Game Directory</string>
    </property>
@@ -103,11 +106,14 @@
   <widget class="QCheckBox" name="chkAdvanced">
    <property name="geometry">
     <rect>
-     <x>5</x>
-     <y>110</y>
+     <x>11</x>
+     <y>142</y>
      <width>280</width>
      <height>28</height>
     </rect>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable advanced options&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="text">
     <string>Advanced Options</string>
@@ -120,7 +126,7 @@
    <property name="geometry">
     <rect>
      <x>155</x>
-     <y>143</y>
+     <y>175</y>
      <width>300</width>
      <height>31</height>
     </rect>
@@ -130,7 +136,7 @@
    <property name="geometry">
     <rect>
      <x>5</x>
-     <y>147</y>
+     <y>179</y>
      <width>150</width>
      <height>23</height>
     </rect>
@@ -150,6 +156,19 @@
    </property>
    <property name="text">
     <string>64-bit Client</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnSetupWizard">
+   <property name="geometry">
+    <rect>
+     <x>155</x>
+     <y>100</y>
+     <width>301</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Run Setup Wizard</string>
    </property>
   </widget>
  </widget>

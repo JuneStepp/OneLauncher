@@ -27,38 +27,32 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from qtpy import QtCore, QtGui, QtWidgets, uic
 from .OneLauncherUtils import DetermineOS, QByteArray2str
 from .ProgressMonitor import ProgressMonitor
 import os.path
+from pkg_resources import resource_filename
 
 
 class PatchWindow:
     def __init__(self, parent, urlPatchServer, prodCode, language, runDir, patchClient,
-                 wineProgram, hiResEnabled, icoFileIn, homeDir, winePrefix, wineApp, osType, rootDir):
+                 wineProgram, hiResEnabled, iconFileIn, homeDir, winePrefix, wineApp, osType, rootDir):
 
         self.winMain = parent
         self.homeDir = homeDir
-        self.winLog = QtWidgets.QDialog(parent)
+        self.winLog = QtWidgets.QDialog()
         self.winLog.setPalette(parent.palette())
         self.osType = osType
 
-        uifile = None
-        icofile = None
-
-        try:
-            from pkg_resources import resource_filename
-            uifile = resource_filename(__name__, 'ui' + os.sep + 'winPatch.ui')
-            icofile = resource_filename(__name__, icoFileIn)
-        except:
-            uifile = os.path.join(rootDir, "ui", "winPatch.ui")
-            icofile = os.path.join(rootDir, icoFileIn)
+        uifile = resource_filename(__name__, 'ui' + os.sep + 'winPatch.ui')
+        iconFile = resource_filename(__name__, iconFileIn)
 
         Ui_winLog, base_class = uic.loadUiType(uifile)
         self.uiLog = Ui_winLog()
         self.uiLog.setupUi(self.winLog)
         self.winLog.setWindowFlags(QtCore.Qt.Dialog)
-        self.winLog.setWindowIcon(QtGui.QIcon(icofile))
+        self.winLog.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        self.winLog.setWindowIcon(QtGui.QIcon(iconFile))
         screen = QtWidgets.QDesktopWidget().screenGeometry()
         size = self.winLog.geometry()
         self.winLog.move((screen.width() - size.width()) / 2,

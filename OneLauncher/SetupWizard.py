@@ -26,13 +26,11 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from qtpy import QtCore, QtGui, QtWidgets, uic
 from .OneLauncherUtils import DetermineOS
 import os.path
 import glob
-
-# small Python 2.x + PyQt4 backwards-compatibility function for QVariant
-
+from pkg_resources import resource_filename
 
 def toString(val):
     if isinstance(val, str):
@@ -41,7 +39,7 @@ def toString(val):
         return val.toString()
 
 
-class SettingsWizard:
+class SetupWizard:
     def __init__(self, parent, homeDir, osType, rootDir):
 
         self.homeDir = homeDir
@@ -49,35 +47,26 @@ class SettingsWizard:
         self.prefix = ""
         self.gameDir = ""
 
-        self.winSettings = QtWidgets.QDialog(parent)
-        self.winSettings.setPalette(parent.palette())
-
-        uifile = None
+        self.winSetupWizard = QtWidgets.QDialog()
+        self.winSetupWizard.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        self.winSetupWizard.setPalette(parent.palette())
 
         if self.osType.usingWindows:
-            try:
-                from pkg_resources import resource_filename
-                uifile = resource_filename(
-                    __name__, 'ui' + os.sep + 'winGameWizardNative.ui')
-            except:
-                uifile = os.path.join(rootDir, "ui", "winGameWizardNative.ui")
+            uifile = resource_filename(
+                __name__, 'ui' + os.sep + 'winSetupWizardNative.ui')
         else:
-            try:
-                from pkg_resources import resource_filename
-                uifile = resource_filename(__name__, 'ui' + os.sep + 'winGameWizard.ui')
-            except:
-                uifile = os.path.join(rootDir, "ui", "winGameWizard.ui")
+            uifile = resource_filename(__name__, 'ui' + os.sep + 'winSetupWizard.ui')
 
-        Ui_winGameWizard, base_class = uic.loadUiType(uifile)
-        self.uiWizard = Ui_winGameWizard()
-        self.uiWizard.setupUi(self.winSettings)
+        Ui_winSetupWizard, base_class = uic.loadUiType(uifile)
+        self.uiWizard = Ui_winSetupWizard()
+        self.uiWizard.setupUi(self.winSetupWizard)
         screen = QtWidgets.QDesktopWidget().screenGeometry()
-        size = self.winSettings.geometry()
-        self.winSettings.move(
+        size = self.winSetupWizard.geometry()
+        self.winSetupWizard.move(
             (screen.width() - size.width()) / 2, (screen.height() - size.height()) / 2)
-        self.winSettings.setWindowTitle("Game Settings")
+        self.winSetupWizard.setWindowTitle("Setup Wizard")
 
-        self.model = QtGui.QStandardItemModel(0, 3, self.winSettings)
+        self.model = QtGui.QStandardItemModel(0, 3, self.winSetupWizard)
         self.model.setHeaderData(0, QtCore.Qt.Horizontal, "Prefix")
         self.model.setHeaderData(1, QtCore.Qt.Horizontal, "Game Directory")
         self.model.setHeaderData(2, QtCore.Qt.Horizontal, "Game Directory")
@@ -235,4 +224,4 @@ class SettingsWizard:
             return False
 
     def Run(self):
-        return self.winSettings.exec_()
+        return self.winSetupWizard.exec_()
