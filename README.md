@@ -36,7 +36,7 @@ to run OneLauncher from source.
 -   pkg_resources (Comes with setuptools. You probably have it, but it can be installed with pip)
 
 -   PyInstaller (Needed to build. Can be installed with pip.
-    Currently [development version](https://github.com/pyinstaller/pyinstaller/archive/develop.zip) is needed
+    Currently [development version](https://github.com/pyinstaller/pyinstaller/archive/develop.zip) is needed)
 -   pypiwin32 (Needed for Windows building. Can be installed with pip)
 
 # To run
