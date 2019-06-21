@@ -177,7 +177,7 @@ class MainWindow(QtCore.QObject):
         self.resetFocus()
 
     def actionPatchSelected(self):
-        winPatch = PatchWindow(self.winMain, self.dataCentre.patchServer, self.worldQueueConfig.patchProductCode,
+        winPatch = PatchWindow(self.dataCentre.patchServer, self.worldQueueConfig.patchProductCode,
                                self.langConfig.langList[self.uiMain.cboLanguage.currentIndex(
                                )].code,
                                self.settings.gameDir, self.settings.patchClient, self.settings.wineProg,
@@ -189,7 +189,7 @@ class MainWindow(QtCore.QObject):
         self.resetFocus()
 
     def btnOptionsSelected(self):
-        winSettings = SettingsWindow(self.winMain, self.settings.hiResEnabled, self.settings.app, self.settings.x86Enabled,
+        winSettings = SettingsWindow(self.settings.hiResEnabled, self.settings.app, self.settings.x86Enabled,
                                      self.settings.wineProg, self.settings.wineDebug, self.settings.patchClient, self.settings.usingDND,
                                      self.settings.winePrefix, self.settings.gameDir, self.valHomeDir, self.osType, self.rootDir, self.settings)
 
@@ -319,7 +319,7 @@ class MainWindow(QtCore.QObject):
             self.AddLog(self.account.messError)
 
     def LaunchGame(self):
-        game = StartGame(self.winMain, self.worldQueueConfig.gameClientFilename, self.settings.x86Enabled,
+        game = StartGame(self.worldQueueConfig.gameClientFilename, self.settings.x86Enabled,
                          self.worldQueueConfig.gameClientArgTemplate, self.accNumber, self.urlLoginServer,
                          self.account.ticket, self.urlChatServer,
                          self.langConfig.langList[self.uiMain.cboLanguage.currentIndex(

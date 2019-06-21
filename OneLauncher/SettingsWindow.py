@@ -36,7 +36,7 @@ from pkg_resources import resource_filename
 
 
 class SettingsWindow:
-    def __init__(self, parent, hiRes, app, x86, wineProg, wineDebug, patchClient, usingDND,
+    def __init__(self, hiRes, app, x86, wineProg, wineDebug, patchClient, usingDND,
                  winePrefix, gameDir, homeDir, osType, rootDir, settings):
 
         self.homeDir = homeDir
@@ -44,11 +44,9 @@ class SettingsWindow:
         self.app = app
         self.winePrefix = winePrefix
         self.rootDir = rootDir
-        self.parent = parent
         self.settings = settings
 
         self.winSettings = QtWidgets.QDialog()
-        self.winSettings.setPalette(parent.palette())
         self.winSettings.setWindowFlags(QtCore.Qt.FramelessWindowHint)
 
         if self.osType.usingWindows:
@@ -225,8 +223,7 @@ class SettingsWindow:
             self.uiSettings.txtPrefix.setText(filename)
 
     def btnSetupWizardClicked(self):
-        winWizard = SetupWizard(
-            self.parent, self.homeDir, self.osType, self.rootDir)
+        winWizard = SetupWizard(self.homeDir, self.osType, self.rootDir)
 
         if winWizard.Run() == QtWidgets.QDialog.Accepted:
             self.settings.usingDND = winWizard.getUsingDND()
@@ -246,7 +243,7 @@ class SettingsWindow:
 
     def btnCheckPrefixClicked(self):
         confCheck = CheckConfig(
-            self.parent, self.app, self.winePrefix, self.homeDir, self.osType, self.rootDir)
+            self.app, self.winePrefix, self.homeDir, self.osType, self.rootDir)
 
         confCheck.Run()
 

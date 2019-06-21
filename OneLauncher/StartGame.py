@@ -34,7 +34,7 @@ from pkg_resources import resource_filename
 
 
 class StartGame:
-    def __init__(self, parent, appName, x86, argTemplate, account, server, ticket,
+    def __init__(self, appName, x86, argTemplate, account, server, ticket,
                  chatServer, language, runDir, wineProgram, wineDebug, winePrefix,
                  hiResEnabled, wineApp, osType, homeDir, iconFileIn, rootDir,
                  crashreceiver, DefaultUploadThrottleMbps, bugurl, authserverurl,
@@ -44,10 +44,8 @@ class StartGame:
         if x86:
             appName = ("x64" + os.sep + appName)
 
-        self.winMain = parent
         self.homeDir = homeDir
         self.winLog = QtWidgets.QDialog()
-        self.winLog.setPalette(parent.palette())
         self.osType = osType
         self.realmName = realmName
         self.accountText = accountText

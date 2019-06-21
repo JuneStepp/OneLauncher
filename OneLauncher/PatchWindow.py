@@ -35,13 +35,11 @@ from pkg_resources import resource_filename
 
 
 class PatchWindow:
-    def __init__(self, parent, urlPatchServer, prodCode, language, runDir, patchClient,
+    def __init__(self, urlPatchServer, prodCode, language, runDir, patchClient,
                  wineProgram, hiResEnabled, iconFileIn, homeDir, winePrefix, wineApp, osType, rootDir):
 
-        self.winMain = parent
         self.homeDir = homeDir
         self.winLog = QtWidgets.QDialog()
-        self.winLog.setPalette(parent.palette())
         self.osType = osType
 
         uifile = resource_filename(__name__, 'ui' + os.sep + 'winPatch.ui')

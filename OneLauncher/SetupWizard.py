@@ -40,7 +40,7 @@ def toString(val):
 
 
 class SetupWizard:
-    def __init__(self, parent, homeDir, osType, rootDir):
+    def __init__(self, homeDir, osType, rootDir):
 
         self.homeDir = homeDir
         self.osType = osType
@@ -49,7 +49,6 @@ class SetupWizard:
 
         self.winSetupWizard = QtWidgets.QDialog()
         self.winSetupWizard.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-        self.winSetupWizard.setPalette(parent.palette())
 
         if self.osType.usingWindows:
             uifile = resource_filename(
