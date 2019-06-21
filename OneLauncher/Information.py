@@ -1,5 +1,5 @@
 # coding=utf-8
-Version = "0.2.6"
+Version = "1.0.0"
 Description = "LOTRO/DDO Custom Launcher"
 Author = "June Stepp"
 Email = "git@junestepp.me"

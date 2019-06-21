@@ -106,3 +106,5 @@ Changes
 
 0.2.6	Updated certificate chain to new SSL certificates after recent update (22.0.1 or possibly 22) update
 		by SSG broke authentication using the old certs.
+
+1.0.0 Renamed to OneLauncher, updated, improved, and redid ui. (Basically a lot of stuff)
