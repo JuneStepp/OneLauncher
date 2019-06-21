@@ -42,7 +42,9 @@ from .OneLauncherUtils import AuthenticateUser, JoinWorldQueue, GetText, WebConn
 from . import Information
 from pkg_resources import resource_filename
 
-class MainWindow(QtCore.QObject):
+class MainWindow(QtWidgets.QMainWindow):
+    app = QtWidgets.QApplication(sys.argv)
+
     ReturnLog = QtCore.Signal("QString")
     ReturnLangConfig = QtCore.Signal("PyQt_PyObject")
     ReturnBaseConfig = QtCore.Signal("PyQt_PyObject")
@@ -50,7 +52,7 @@ class MainWindow(QtCore.QObject):
     ReturnWorldQueueConfig = QtCore.Signal("PyQt_PyObject")
     ReturnNews = QtCore.Signal("QString")
     def __init__(self):
-        super(MainWindow, self).__init__()
+        super().__init__()
         # Determine where module is located (needed for finding ICO & PNG files)
         try:
             test = sys.frozen
@@ -63,31 +65,32 @@ class MainWindow(QtCore.QObject):
 
         uifile = resource_filename(__name__, 'ui' + os.sep + 'winMain.ui')
 
-        self.app = QtWidgets.QApplication(sys.argv)
-
         # Create the main window and set all text so that translations are handled via gettext
         Ui_winMain, base_class = uic.loadUiType(uifile)
-        self.winMain = QtWidgets.QMainWindow()
-        self.winMain.setWindowFlags(QtCore.Qt.Dialog)
-        self.winMain.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        self.winMain = QtWidgets.QMainWindow(self)
+        self.setWindowFlags(QtCore.Qt.Dialog)
+        self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.uiMain = Ui_winMain()
-        self.uiMain.setupUi(self.winMain)
+        self.uiMain.setupUi(self)
 
-        # Set window palette
+        # Set window style
         self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
         # Centre window on screen
         screen = QtWidgets.QDesktopWidget().screenGeometry()
-        size = self.winMain.geometry()
-        self.winMain.move((screen.width() - size.width()) / 2,
+        size = self.geometry()
+        self.move((screen.width() - size.width()) / 2,
                           (screen.height() - size.height()) / 2)
+
+        self.center()
+        self.oldPos = self.pos()
 
         # Connect signals to functions
         self.uiMain.btnLogin.clicked.connect(self.btnLoginClicked)
         self.uiMain.txtAccount.returnPressed.connect(self.txtAccountEnter)
         self.uiMain.txtPassword.returnPressed.connect(self.txtPasswordEnter)
-        self.uiMain.btnExit.clicked.connect(self.winMain.close)
-        self.uiMain.btnMinimize.clicked.connect(self.winMain.showMinimized)
+        self.uiMain.btnExit.clicked.connect(self.close)
+        self.uiMain.btnMinimize.clicked.connect(self.showMinimized)
         self.uiMain.btnAbout.clicked.connect(self.btnAboutSelected)
         self.uiMain.btnLoginMenu = QtWidgets.QMenu()
         self.uiMain.btnLoginMenu.addAction(self.uiMain.actionPatch)
@@ -109,18 +112,18 @@ class MainWindow(QtCore.QObject):
         self.uiMain.btnSwitchGame.setMenu(self.uiMain.btnSwitchGameMenu)
         #self.uiMain.actionHideWinMain.triggered.connect(self.actionHideWinMainSelected)
 
-        self.winMain.ReturnLog = self.ReturnLog
-        self.winMain.ReturnLog.connect(self.AddLog)
-        self.winMain.ReturnLangConfig = self.ReturnLangConfig
-        self.winMain.ReturnLangConfig.connect(self.GetLanguageConfig)
-        self.winMain.ReturnBaseConfig = self.ReturnBaseConfig
-        self.winMain.ReturnBaseConfig.connect(self.GetBaseConfig)
-        self.winMain.ReturnGLSDataCentre = self.ReturnGLSDataCentre
-        self.winMain.ReturnGLSDataCentre.connect(self.GetGLSDataCentre)
-        self.winMain.ReturnWorldQueueConfig = self.ReturnWorldQueueConfig
-        self.winMain.ReturnWorldQueueConfig.connect(self.GetWorldQueueConfig)
-        self.winMain.ReturnNews = self.ReturnNews
-        self.winMain.ReturnNews.connect(self.GetNews)
+        self.ReturnLog = self.ReturnLog
+        self.ReturnLog.connect(self.AddLog)
+        self.ReturnLangConfig = self.ReturnLangConfig
+        self.ReturnLangConfig.connect(self.GetLanguageConfig)
+        self.ReturnBaseConfig = self.ReturnBaseConfig
+        self.ReturnBaseConfig.connect(self.GetBaseConfig)
+        self.ReturnGLSDataCentre = self.ReturnGLSDataCentre
+        self.ReturnGLSDataCentre.connect(self.GetGLSDataCentre)
+        self.ReturnWorldQueueConfig = self.ReturnWorldQueueConfig
+        self.ReturnWorldQueueConfig.connect(self.GetWorldQueueConfig)
+        self.ReturnNews = self.ReturnNews
+        self.ReturnNews.connect(self.GetNews)
 
         # Disable login and save settings buttons
         self.uiMain.btnLogin.setEnabled(False)
@@ -136,21 +139,37 @@ class MainWindow(QtCore.QObject):
         self.InitialSetup()
 
     def run(self):
-        self.winMain.show()
+        self.show()
         sys.exit(self.app.exec_())
 
     def hideWinMain(self):
         if self.settings.hideWinMain:
-            self.winMain.hide()
+            self.hide()
 
     def resetFocus(self):
         if self.settings.hideWinMain:
-            self.winMain.show()
+            self.show()
 
             if self.uiMain.txtAccount.text() == "":
                 self.uiMain.txtAccount.setFocus()
             elif self.uiMain.txtPassword.text() == "":
                 self.uiMain.txtPassword.setFocus()
+
+    #The three functions below handle dragging the window
+    def center(self):
+        qr = self.frameGeometry()
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
+
+    def mousePressEvent(self, event):
+        self.oldPos = event.globalPos()
+
+    def mouseMoveEvent(self, event):
+        delta = QtCore.QPoint (event.globalPos() - self.oldPos)
+        self.move(self.x() + delta.x(), self.y() + delta.y())
+        self.oldPos = event.globalPos()
+
 
     def actionHideWinMainSelected(self):
         self.settings.hideWinMain = not self.settings.hideWinMain
@@ -158,7 +177,6 @@ class MainWindow(QtCore.QObject):
     def btnAboutSelected(self):
         dlgAbout = QtWidgets.QDialog()
         dlgAbout.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-        dlgAbout.setPalette(self.winMain.palette())
 
         uifile = resource_filename(__name__, 'ui' + os.sep + 'winAbout.ui')
 
@@ -274,7 +292,8 @@ class MainWindow(QtCore.QObject):
             tempRealm = ""
 
             if len(self.account.gameList) > 1:
-                dlgChooseAccount = QtWidgets.QDialog(self.winMain)
+                dlgChooseAccount = QtWidgets.QDialog()
+                dlgChooseAccount.setWindowFlags(QtCore.Qt.FramelessWindowHint)
 
                 uifile = resource_filename(
                     __name__, 'ui' + os.sep + 'winSelectAccount.ui')
@@ -334,7 +353,7 @@ class MainWindow(QtCore.QObject):
                          self.uiMain.cboRealm.currentText(),
                          self.uiMain.txtAccount.text())
 
-        self.winMain.hide()
+        self.hide()
         game.Run()
 
     def EnterWorldQueue(self, queueURL):
@@ -403,8 +422,8 @@ class MainWindow(QtCore.QObject):
             __name__, self.gameType.iconFile.replace("\\", "/"))
 
         self.uiMain.imgMain.setPixmap(QtGui.QPixmap(pngFile))
-        self.winMain.setWindowTitle(self.gameType.title)
-        self.winMain.setWindowIcon(QtGui.QIcon(iconFile))
+        self.setWindowTitle(self.gameType.title)
+        self.setWindowIcon(QtGui.QIcon(iconFile))
         self.uiMain.actionHideWinMain.setChecked(self.settings.hideWinMain)
 
         #Set icon and dropdown options of switch game button acording to game running
@@ -465,8 +484,10 @@ class MainWindow(QtCore.QObject):
         self.langConfig = None
 
         self.configThread = MainWindowThread()
-        self.configThread.SetUp(self.winMain, self.settings, self.configFile, self.configFileAlt,
-                                self.valHomeDir, self.osType)
+        self.configThread.SetUp(self.settings, self.configFile, self.configFileAlt,
+                                self.valHomeDir, self.osType, self.ReturnLog, self.ReturnLangConfig,
+                                self.ReturnBaseConfig, self.ReturnGLSDataCentre,
+                                self.ReturnWorldQueueConfig, self.ReturnNews)
         self.configThread.start()
 
     def GetLanguageConfig(self, langConfig):
@@ -540,13 +561,22 @@ class MainWindow(QtCore.QObject):
             self.uiMain.txtStatus.append(line)
 
 class MainWindowThread(QtCore.QThread):
-    def SetUp(self, winMain, settings, configFile, configFileAlt, baseDir, osType):
-        self.winMain = winMain
+    def SetUp(self, settings, configFile, configFileAlt, baseDir,
+            osType, ReturnLog, ReturnLangConfig, ReturnBaseConfig,
+            ReturnGLSDataCentre, ReturnWorldQueueConfig, ReturnNews):
+
         self.settings = settings
         self.configFile = configFile
         self.configFileAlt = configFileAlt
         self.osType = osType
         self.baseDir = baseDir
+
+        self.ReturnLog = ReturnLog
+        self.ReturnLangConfig = ReturnLangConfig
+        self.ReturnBaseConfig = ReturnBaseConfig
+        self.ReturnGLSDataCentre = ReturnGLSDataCentre
+        self.ReturnWorldQueueConfig = ReturnWorldQueueConfig
+        self.ReturnNews = ReturnNews
 
     def run(self):
         self.LoadLanguageList()
@@ -556,8 +586,8 @@ class MainWindowThread(QtCore.QThread):
             self.langConfig = LanguageConfig(self.settings.gameDir)
 
             if self.langConfig.langFound:
-                self.winMain.ReturnLog.emit("Available languages checked.")
-                self.winMain.ReturnLangConfig.emit(self.langConfig)
+                self.ReturnLog.emit("Available languages checked.")
+                self.ReturnLangConfig.emit(self.langConfig)
 
                 self.langPos = 0
                 setPos = 0
@@ -569,13 +599,13 @@ class MainWindowThread(QtCore.QThread):
 
                 self.LoadLauncherConfig()
             else:
-                self.winMain.ReturnLog.emit("[E02] No language files found.")
+                self.ReturnLog.emit("[E02] No language files found.")
 
     def LoadLauncherConfig(self):
         self.baseConfig = BaseConfig(self.configFile)
 
         if self.baseConfig.isConfigOK:
-            self.winMain.ReturnBaseConfig.emit(self.baseConfig)
+            self.ReturnBaseConfig.emit(self.baseConfig)
 
             self.AccessGLSDataCentre(
                 self.baseConfig.GLSDataCentreService, self.baseConfig.gameName)
@@ -583,25 +613,25 @@ class MainWindowThread(QtCore.QThread):
             self.baseConfig = BaseConfig(self.configFileAlt)
 
             if self.baseConfig.isConfigOK:
-                self.winMain.ReturnBaseConfig.emit(self.baseConfig)
+                self.ReturnBaseConfig.emit(self.baseConfig)
 
                 self.AccessGLSDataCentre(
                     self.baseConfig.GLSDataCentreService, self.baseConfig.gameName)
             else:
-                self.winMain.ReturnLog.emit("[E03] Error reading launcher configuration file.")
+                self.ReturnLog.emit("[E03] Error reading launcher configuration file.")
 
     def AccessGLSDataCentre(self, urlGLS, gameName):
         self.dataCentre = GLSDataCentre(
             urlGLS, gameName, self.baseDir, self.osType)
 
         if self.dataCentre.loadSuccess:
-            self.winMain.ReturnLog.emit("Fetched details from GLS data centre.")
-            self.winMain.ReturnGLSDataCentre.emit(self.dataCentre)
-            self.winMain.ReturnLog.emit("Realm list obtained.")
+            self.ReturnLog.emit("Fetched details from GLS data centre.")
+            self.ReturnGLSDataCentre.emit(self.dataCentre)
+            self.ReturnLog.emit("Realm list obtained.")
 
             self.GetWorldQueueConfig(self.dataCentre.launchConfigServer)
         else:
-            self.winMain.ReturnLog.emit("[E04] Error accessing GLS data centre.")
+            self.ReturnLog.emit("[E04] Error accessing GLS data centre.")
 
     def GetWorldQueueConfig(self, urlWorldQueueServer):
         self.worldQueueConfig = WorldQueueConfig(
@@ -609,15 +639,15 @@ class MainWindowThread(QtCore.QThread):
             self.settings.x86Enabled)
 
         if self.worldQueueConfig.message:
-            self.winMain.ReturnLog.emit(self.worldQueueConfig.message)
+            self.ReturnLog.emit(self.worldQueueConfig.message)
 
         if self.worldQueueConfig.loadSuccess:
-            self.winMain.ReturnLog.emit("World queue configuration read")
-            self.winMain.ReturnWorldQueueConfig.emit(self.worldQueueConfig)
+            self.ReturnLog.emit("World queue configuration read")
+            self.ReturnWorldQueueConfig.emit(self.worldQueueConfig)
 
             self.GetNews()
         else:
-            self.winMain.ReturnLog.emit("[E05] Error getting world queue configuration")
+            self.ReturnLog.emit("[E05] Error getting world queue configuration")
 
     def GetNews(self):
         try:
@@ -720,6 +750,6 @@ class MainWindowThread(QtCore.QThread):
 
             result += "</div></body></html>"
 
-            self.winMain.ReturnNews.emit(result)
+            self.ReturnNews.emit(result)
         except:
-            self.winMain.ReturnLog.emit("[E12] Error gettings news")
+            self.ReturnLog.emit("[E12] Error gettings news")
