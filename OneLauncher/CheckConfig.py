@@ -35,14 +35,13 @@ from .Settings import Settings
 
 
 class CheckConfig:
-    def __init__(self, parent, app, winePrefix, homeDir, osType, rootDir):
+    def __init__(self, app, winePrefix, homeDir, osType, rootDir):
         self.app = app
         self.winePrefix = winePrefix
         self.homeDir = homeDir
         self.osType = osType
 
         self.winCheckConfig = QtWidgets.QDialog()
-        self.winCheckConfig.setPalette(parent.palette())
         self.winCheckConfig.setWindowFlags(QtCore.Qt.FramelessWindowHint)
 
         uifile = resource_filename(__name__, 'ui' + os.sep + 'winCheckConfig.ui')
