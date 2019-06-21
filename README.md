@@ -37,7 +37,7 @@ to run OneLauncher from source.
 
 -   PyInstaller (Needed to build. Can be installed with pip.
     Currently [development version](https://github.com/pyinstaller/pyinstaller/archive/develop.zip) is needed)
--   pypiwin32 (Needed for Windows building. Can be installed with pip)
+-   pywin32 (Needed for Windows building. Can be installed with pip)
 
 # To run
 
