@@ -26,8 +26,9 @@ LOTRO (C) 2007-2009 SNy
 
 # Development Install
 
-The following items are required
-to run OneLauncher from source.
+The following items are required to run OneLauncher from source.
+It is recomended to use a virtual enviroment for development and
+building like venv, conda, or virtualenv.
 
 -   Python (3.2+)
 -   qtpy (Can be installed with pip)
