@@ -404,7 +404,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.AddLog("Initialising, please wait...")
 
-        if not self.settings.LoadSettings(self.currentGame):
+        settings_load_success = self.settings.LoadSettings(self.currentGame)
+        if settings_load_success and settings_load_success != True:
+            self.AddLog(settings_load_success)
+        elif not settings_load_success:
             self.AddLog("[E01] Error loading settings")
         else:
             if self.settings.focusAccount:
