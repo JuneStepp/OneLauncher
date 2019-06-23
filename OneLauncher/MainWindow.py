@@ -177,8 +177,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.settings.hideWinMain = not self.settings.hideWinMain
 
     def btnAboutSelected(self):
-        dlgAbout = QtWidgets.QDialog()
-        dlgAbout.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        dlgAbout = QtWidgets.QDialog(self, QtCore.Qt.FramelessWindowHint)
 
         uifile = resource_filename(__name__, 'ui' + os.sep + 'winAbout.ui')
 
@@ -203,7 +202,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                )].code,
                                self.settings.gameDir, self.settings.patchClient, self.settings.wineProg,
                                self.settings.hiResEnabled, self.gameType.iconFile, self.valHomeDir, self.settings.winePrefix,
-                               self.settings.app, self.osType, self.rootDir)
+                               self.settings.app, self.osType, self.rootDir, self)
 
         self.hideWinMain()
         winPatch.Run(self.app)
@@ -211,8 +210,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def btnOptionsSelected(self):
         winSettings = SettingsWindow(self.settings.hiResEnabled, self.settings.app, self.settings.x86Enabled,
-                                     self.settings.wineProg, self.settings.wineDebug, self.settings.patchClient, self.settings.usingDND,
-                                     self.settings.winePrefix, self.settings.gameDir, self.valHomeDir, self.osType, self.rootDir, self.settings)
+                                     self.settings.wineProg, self.settings.wineDebug, self.settings.patchClient,
+                                     self.settings.usingDND, self.settings.winePrefix, self.settings.gameDir,
+                                     self.valHomeDir, self.osType, self.rootDir, self.settings, self)
 
         self.hideWinMain()
         if winSettings.Run() == QtWidgets.QDialog.Accepted:
@@ -354,10 +354,10 @@ class MainWindow(QtWidgets.QMainWindow):
                          self.worldQueueConfig.supporturl, self.worldQueueConfig.supportserviceurl,
                          self.worldQueueConfig.glsticketlifetime,
                          self.uiMain.cboRealm.currentText(),
-                         self.uiMain.txtAccount.text())
-
+                         self.uiMain.txtAccount.text(), self)
         self.hide()
         game.Run()
+        self.show()
 
     def EnterWorldQueue(self, queueURL):
         self.worldQueue = JoinWorldQueue(self.worldQueueConfig.worldQueueParam,

@@ -40,15 +40,14 @@ def toString(val):
 
 
 class SetupWizard:
-    def __init__(self, homeDir, osType, rootDir):
+    def __init__(self, homeDir, osType, rootDir, parent):
 
         self.homeDir = homeDir
         self.osType = osType
         self.prefix = ""
         self.gameDir = ""
 
-        self.winSetupWizard = QtWidgets.QDialog()
-        self.winSetupWizard.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        self.winSetupWizard = QtWidgets.QDialog(parent, QtCore.Qt.FramelessWindowHint)
 
         if self.osType.usingWindows:
             uifile = resource_filename(
@@ -59,10 +58,6 @@ class SetupWizard:
         Ui_winSetupWizard, base_class = uic.loadUiType(uifile)
         self.uiWizard = Ui_winSetupWizard()
         self.uiWizard.setupUi(self.winSetupWizard)
-        screen = QtWidgets.QDesktopWidget().screenGeometry()
-        size = self.winSetupWizard.geometry()
-        self.winSetupWizard.move(
-            (screen.width() - size.width()) / 2, (screen.height() - size.height()) / 2)
         self.winSetupWizard.setWindowTitle("Setup Wizard")
 
         self.model = QtGui.QStandardItemModel(0, 3, self.winSetupWizard)

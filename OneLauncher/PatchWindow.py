@@ -36,25 +36,19 @@ from pkg_resources import resource_filename
 
 class PatchWindow:
     def __init__(self, urlPatchServer, prodCode, language, runDir, patchClient,
-                 wineProgram, hiResEnabled, iconFileIn, homeDir, winePrefix, wineApp, osType, rootDir):
+                 wineProgram, hiResEnabled, iconFileIn, homeDir, winePrefix, wineApp,
+                 osType, rootDir, parent):
 
         self.homeDir = homeDir
         self.winLog = QtWidgets.QDialog()
         self.osType = osType
 
-        uifile = resource_filename(__name__, 'ui' + os.sep + 'winPatch.ui')
-        iconFile = resource_filename(__name__, iconFileIn)
+        self.winLog = QtWidgets.QDialog(parent, QtCore.Qt.FramelessWindowHint)
 
+        uifile = resource_filename(__name__, 'ui' + os.sep + 'winPatch.ui')
         Ui_winLog, base_class = uic.loadUiType(uifile)
         self.uiLog = Ui_winLog()
         self.uiLog.setupUi(self.winLog)
-        self.winLog.setWindowFlags(QtCore.Qt.Dialog)
-        self.winLog.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-        self.winLog.setWindowIcon(QtGui.QIcon(iconFile))
-        screen = QtWidgets.QDesktopWidget().screenGeometry()
-        size = self.winLog.geometry()
-        self.winLog.move((screen.width() - size.width()) / 2,
-                         (screen.height() - size.height()) / 2)
 
         if self.osType.usingWindows:
             self.winLog.setWindowTitle("Output")
