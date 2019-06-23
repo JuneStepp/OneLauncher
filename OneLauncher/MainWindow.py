@@ -357,7 +357,6 @@ class MainWindow(QtWidgets.QMainWindow):
                          self.uiMain.txtAccount.text(), self)
         self.hide()
         game.Run()
-        self.show()
 
     def EnterWorldQueue(self, queueURL):
         self.worldQueue = JoinWorldQueue(self.worldQueueConfig.worldQueueParam,
