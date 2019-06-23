@@ -130,6 +130,9 @@ class Settings:
                     self.x86Enabled = False
 
                 success = True
+
+                if self.app == "Wine" and not os.path.exists(self.wineProg) and self.wineProg != "wine":
+                    success = "[E16] Wine executable set does not exist"
         except:
             success = False
 
