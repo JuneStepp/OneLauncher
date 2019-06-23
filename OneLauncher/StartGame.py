@@ -50,6 +50,7 @@ class StartGame:
         self.osType = osType
         self.realmName = realmName
         self.accountText = accountText
+        self.parent = parent
 
         uifile = resource_filename(__name__, 'ui' + os.sep + 'winLog.ui')
 
@@ -206,6 +207,7 @@ class StartGame:
 
     def btnStartClicked(self):
         if self.finished:
+            self.parent.show()
             self.winLog.close()
 
     def btnStopClicked(self):
