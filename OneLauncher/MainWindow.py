@@ -184,6 +184,7 @@ class MainWindow(QtWidgets.QMainWindow):
         ui = Ui_dlgAbout()
         ui.setupUi(dlgAbout)
         ui.lblDescription.setText(Information.LongDescription)
+        ui.lblWebsite.setText(Information.Website)
         ui.lblCopyright.setText(Information.Copyright)
         ui.lblVersion.setText("<b>Version:</b> " + Information.Version)
         ui.lblPyLotROReference.setText(Information.PyLotROReference)
