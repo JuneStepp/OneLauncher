@@ -77,13 +77,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
         # Centre window on screen
-        screen = QtWidgets.QDesktopWidget().screenGeometry()
-        size = self.geometry()
-        self.move((screen.width() - size.width()) / 2,
-                          (screen.height() - size.height()) / 2)
-
         self.center()
-        self.oldPos = self.pos()
+
+        self.dragPos = self.pos()
 
         # Connect signals to functions
         self.uiMain.btnLogin.clicked.connect(self.btnLoginClicked)
@@ -155,20 +151,21 @@ class MainWindow(QtWidgets.QMainWindow):
             elif self.uiMain.txtPassword.text() == "":
                 self.uiMain.txtPassword.setFocus()
 
-    #The three functions below handle dragging the window
     def center(self):
         qr = self.frameGeometry()
         cp = QtWidgets.QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
+    # The two functions below handle dragging the window
     def mousePressEvent(self, event):
-        self.oldPos = event.globalPos()
+        self.dragPos = event.globalPos()
+        event.accept()
 
     def mouseMoveEvent(self, event):
-        delta = QtCore.QPoint (event.globalPos() - self.oldPos)
-        self.move(self.x() + delta.x(), self.y() + delta.y())
-        self.oldPos = event.globalPos()
+        self.move(self.pos() + event.globalPos() - self.dragPos)
+        self.dragPos = event.globalPos()
+        event.accept()
 
 
     def actionHideWinMainSelected(self):
