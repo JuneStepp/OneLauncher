@@ -37,7 +37,7 @@ from pkg_resources import resource_filename
 
 class SettingsWindow:
     def __init__(self, hiRes, app, x86, wineProg, wineDebug, patchClient, usingDND,
-                 winePrefix, gameDir, homeDir, osType, rootDir, settings):
+                 winePrefix, gameDir, homeDir, osType, rootDir, settings, parent):
 
         self.homeDir = homeDir
         self.osType = osType
@@ -45,9 +45,9 @@ class SettingsWindow:
         self.winePrefix = winePrefix
         self.rootDir = rootDir
         self.settings = settings
+        self.parent = parent
 
-        self.winSettings = QtWidgets.QDialog()
-        self.winSettings.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        self.winSettings = QtWidgets.QDialog(parent, QtCore.Qt.FramelessWindowHint)
 
         if self.osType.usingWindows:
             uifile = resource_filename(__name__, 'ui' + os.sep + 'winSettingsNative.ui')
@@ -57,11 +57,6 @@ class SettingsWindow:
         Ui_dlgSettings, base_class = uic.loadUiType(uifile)
         self.uiSettings = Ui_dlgSettings()
         self.uiSettings.setupUi(self.winSettings)
-        screen = QtWidgets.QDesktopWidget().screenGeometry()
-        size = self.winSettings.geometry()
-        self.winSettings.move(
-            (screen.width() - size.width()) / 2, (screen.height() - size.height()) / 2)
-        self.winSettings.setWindowTitle("Game Settings")
 
         if not self.osType.usingWindows:
             self.uiSettings.cboApplication.addItem("Wine")
@@ -223,7 +218,7 @@ class SettingsWindow:
             self.uiSettings.txtPrefix.setText(filename)
 
     def btnSetupWizardClicked(self):
-        winWizard = SetupWizard(self.homeDir, self.osType, self.rootDir)
+        winWizard = SetupWizard(self.homeDir, self.osType, self.rootDir, self.parent)
 
         if winWizard.Run() == QtWidgets.QDialog.Accepted:
             self.settings.usingDND = winWizard.getUsingDND()
@@ -242,8 +237,8 @@ class SettingsWindow:
         self.winePrefix = text
 
     def btnCheckPrefixClicked(self):
-        confCheck = CheckConfig(
-            self.app, self.winePrefix, self.homeDir, self.osType, self.rootDir)
+        confCheck = CheckConfig(self.app, self.winePrefix, self.homeDir,
+                                self.osType, self.rootDir, self.parent)
 
         confCheck.Run()
 

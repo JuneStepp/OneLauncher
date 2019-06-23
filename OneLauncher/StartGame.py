@@ -38,7 +38,8 @@ class StartGame:
                  chatServer, language, runDir, wineProgram, wineDebug, winePrefix,
                  hiResEnabled, wineApp, osType, homeDir, iconFileIn, rootDir,
                  crashreceiver, DefaultUploadThrottleMbps, bugurl, authserverurl,
-                 supporturl, supportserviceurl, glsticketlifetime, realmName, accountText):
+                 supporturl, supportserviceurl, glsticketlifetime, realmName,
+                 accountText, parent):
 
         #Fixes binary path for 64-bit client
         if x86:
@@ -51,18 +52,11 @@ class StartGame:
         self.accountText = accountText
 
         uifile = resource_filename(__name__, 'ui' + os.sep + 'winLog.ui')
-        iconFile = resource_filename(__name__, iconFileIn)
 
+        self.winLog = QtWidgets.QDialog(parent, QtCore.Qt.FramelessWindowHint)
         Ui_winLog, base_class = uic.loadUiType(uifile)
         self.uiLog = Ui_winLog()
         self.uiLog.setupUi(self.winLog)
-        self.winLog.setWindowFlags(QtCore.Qt.Dialog)
-        self.winLog.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-        self.winLog.setWindowIcon(QtGui.QIcon(iconFile))
-        screen = QtWidgets.QDesktopWidget().screenGeometry()
-        size = self.winLog.geometry()
-        self.winLog.move((screen.width() - size.width()) / 2,
-                         (screen.height() - size.height()) / 2)
 
         if self.osType.usingWindows:
             self.winLog.setWindowTitle("Output")
@@ -212,7 +206,6 @@ class StartGame:
 
     def btnStartClicked(self):
         if self.finished:
-            self.winMain.show()
             self.winLog.close()
 
     def btnStopClicked(self):
@@ -237,5 +230,4 @@ class StartGame:
         self.uiLog.btnStop.setText("Abort")
         self.process.start(self.command, self.arguments)
 
-        self.winMain.hide()
         return self.winLog.exec_()

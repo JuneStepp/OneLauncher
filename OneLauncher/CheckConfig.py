@@ -35,24 +35,19 @@ from .Settings import Settings
 
 
 class CheckConfig:
-    def __init__(self, app, winePrefix, homeDir, osType, rootDir):
+    def __init__(self, app, winePrefix, homeDir, osType, rootDir, parent):
         self.app = app
         self.winePrefix = winePrefix
         self.homeDir = homeDir
         self.osType = osType
 
-        self.winCheckConfig = QtWidgets.QDialog()
-        self.winCheckConfig.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        self.winCheckConfig = QtWidgets.QDialog(parent, QtCore.Qt.FramelessWindowHint)
 
         uifile = resource_filename(__name__, 'ui' + os.sep + 'winCheckConfig.ui')
 
         Ui_dlgCheckConfig, base_class = uic.loadUiType(uifile)
         self.uiSettings = Ui_dlgCheckConfig()
         self.uiSettings.setupUi(self.winCheckConfig)
-        screen = QtWidgets.QDesktopWidget().screenGeometry()
-        size = self.winCheckConfig.geometry()
-        self.winCheckConfig.move(
-            (screen.width() - size.width()) / 2, (screen.height() - size.height()) / 2)
 
         if self.app == "Wine":
             self.winCheckConfig.setWindowTitle("Prefix Checker")
