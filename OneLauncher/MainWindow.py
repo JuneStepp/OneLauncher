@@ -81,6 +81,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.dragPos = self.pos()
 
+        # Sets some widgets to WA_NoMousePropagation to avoid window dragging issues
+        mouse_ignore_list = [self.uiMain.btnAbout, self.uiMain.btnExit, self.uiMain.btnLogin,
+                            self.uiMain.btnMinimize, self.uiMain.btnOptions,
+                            self.uiMain.btnSwitchGame, self.uiMain.cboLanguage,
+                             self.uiMain.cboRealm, self.uiMain.chkSaveSettings]
+        for widget in mouse_ignore_list:
+            widget.setAttribute(QtCore.Qt.WA_NoMousePropagation)
+
         # Connect signals to functions
         self.uiMain.btnLogin.clicked.connect(self.btnLoginClicked)
         self.uiMain.txtAccount.returnPressed.connect(self.txtAccountEnter)
@@ -160,13 +168,10 @@ class MainWindow(QtWidgets.QMainWindow):
     # The two functions below handle dragging the window
     def mousePressEvent(self, event):
         self.dragPos = event.globalPos()
-        event.accept()
 
     def mouseMoveEvent(self, event):
         self.move(self.pos() + event.globalPos() - self.dragPos)
         self.dragPos = event.globalPos()
-        event.accept()
-
 
     def actionHideWinMainSelected(self):
         self.settings.hideWinMain = not self.settings.hideWinMain
