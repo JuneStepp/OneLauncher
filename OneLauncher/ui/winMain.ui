@@ -53,7 +53,7 @@
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Game server&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
-     <string>Realm</string>
+     <string>World</string>
     </property>
    </widget>
    <widget class="QLabel" name="lblLanguage">
