@@ -195,10 +195,10 @@
    <widget class="QToolButton" name="btnLogin">
     <property name="geometry">
      <rect>
-      <x>415</x>
-      <y>209</y>
-      <width>90</width>
-      <height>34</height>
+      <x>430</x>
+      <y>220</y>
+      <width>81</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="font">
@@ -219,7 +219,7 @@
    <widget class="QCheckBox" name="chkSaveSettings">
     <property name="geometry">
      <rect>
-      <x>515</x>
+      <x>530</x>
       <y>211</y>
       <width>260</width>
       <height>29</height>
@@ -230,6 +230,9 @@
       <family>Verdana</family>
      </font>
     </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save last used realm, account name, and language&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
     <property name="text">
      <string>Remember these settings</string>
     </property>
@@ -238,9 +241,9 @@
     <property name="geometry">
      <rect>
       <x>400</x>
-      <y>248</y>
+      <y>270</y>
       <width>385</width>
-      <height>213</height>
+      <height>191</height>
      </rect>
     </property>
     <property name="font">
@@ -361,6 +364,27 @@
     </property>
     <property name="text">
      <string/>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="chkSavePassword">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>240</y>
+      <width>260</width>
+      <height>29</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Verdana</family>
+     </font>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save last used password&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+    <property name="text">
+     <string>Remember password</string>
     </property>
    </widget>
   </widget>

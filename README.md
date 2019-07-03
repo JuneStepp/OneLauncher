@@ -35,6 +35,7 @@ building like venv, conda, or virtualenv.
 -   PyQt5 (Can be installed with pip)
 -   qdarkstyle (Can be installed with pip)
 -   pkg_resources (Comes with setuptools. You probably have it, but it can be installed with pip)
+-   keyring (Can be installed with pip)
 
 -   PyInstaller (Needed to build. Can be installed with pip.
     Currently [development version](https://github.com/pyinstaller/pyinstaller/archive/develop.zip) is needed)
