@@ -41,6 +41,7 @@ from .OneLauncherUtils import BaseConfig, GLSDataCentre, WorldQueueConfig
 from .OneLauncherUtils import AuthenticateUser, JoinWorldQueue, GetText, WebConnection
 from . import Information
 from pkg_resources import resource_filename
+import keyring
 
 class MainWindow(QtWidgets.QMainWindow):
     app = QtWidgets.QApplication(sys.argv)
@@ -227,7 +228,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.settings.wineDebug = winSettings.getDebug()
                 self.settings.winePrefix = winSettings.getPrefix()
 
-            self.settings.SaveSettings(self.uiMain.chkSaveSettings.isChecked())
+            self.settings.SaveSettings(self.uiMain.chkSaveSettings.isChecked(),
+                                        self.uiMain.chkSavePassword.isChecked())
             self.resetFocus()
             self.InitialSetup()
         else:
@@ -264,8 +266,18 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.settings.realm = self.uiMain.cboRealm.currentText()
                 self.settings.language = self.langConfig.langList[self.uiMain.cboLanguage.currentIndex(
                 )].code
-                self.settings.SaveSettings(
-                    self.uiMain.chkSaveSettings.isChecked())
+
+                self.settings.SaveSettings(self.uiMain.chkSaveSettings.isChecked(),
+                        self.uiMain.chkSavePassword.isChecked())
+
+                if self.uiMain.chkSavePassword.isChecked():
+                    keyring.set_password("OneLauncher", self.uiMain.txtAccount.text(),
+                                            self.uiMain.txtPassword.text())
+                else:
+                    try:
+                        keyring.delete_password("OneLauncher", self.uiMain.txtAccount.text())
+                    except:
+                        pass
 
             self.AuthAccount()
 
@@ -287,7 +299,8 @@ class MainWindow(QtWidgets.QMainWindow):
                                         self.uiMain.txtPassword.text(), self.baseConfig.gameName, self.valHomeDir, self.osType)
 
         # don't keep password longer in memory than required
-        self.uiMain.txtPassword.clear()
+        if not self.uiMain.chkSavePassword.isChecked():
+            self.uiMain.txtPassword.clear()
 
         if self.account.authSuccess:
             self.AddLog("Account authenticated")
@@ -390,6 +403,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.uiMain.txtPassword.setEnabled(False)
         self.uiMain.btnLogin.setEnabled(False)
         self.uiMain.chkSaveSettings.setEnabled(False)
+        self.uiMain.chkSavePassword.setEnabled(False)
         self.valHomeDir = self.GetHomeDir()
 
         if self.settings is None:
@@ -417,6 +431,15 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.uiMain.txtAccount.setText(self.settings.account)
                 self.uiMain.chkSaveSettings.setChecked(True)
                 self.uiMain.txtPassword.setFocus()
+
+        if self.uiMain.chkSaveSettings.isChecked():
+            self.uiMain.chkSavePassword.setChecked(False)
+            self.uiMain.chkSavePassword.setEnabled(True)
+
+            if self.settings.savePassword:
+                self.uiMain.chkSavePassword.setChecked(True)
+                self.uiMain.txtPassword.setText(keyring.get_password("OneLauncher",
+                                                            self.settings.account))
 
         self.gameType.GetSettings(
             self.settings.usingDND, self.settings.usingTest)

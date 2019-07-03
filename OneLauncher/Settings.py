@@ -54,6 +54,7 @@ class Settings:
         self.gameDir = ""
         self.hideWinMain = False
         self.x86Enabled = False
+        self.savePassword = False
         success = False
 
         if self.winePrefix is None:
@@ -102,6 +103,11 @@ class Settings:
                             self.x86Enabled = True
                         else:
                             self.x86Enabled = False
+                    elif node.nodeName == "Save.Password":
+                        if GetText(node.childNodes) == "True":
+                            self.savePassword = True
+                        else:
+                            self.savePassword = False
                     elif node.nodeName == "Game.Directory":
                         self.gameDir = GetText(node.childNodes)
                     elif node.nodeName == "Realm":
@@ -138,7 +144,7 @@ class Settings:
 
         return success
 
-    def SaveSettings(self, saveAccountDetails):
+    def SaveSettings(self, saveAccountDetails, savePassword):
         doc = None
 
         # Check if settings directory exists if not create
@@ -242,6 +248,11 @@ class Settings:
             tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Account")
             tempNode.appendChild(doc.createTextNode("%s" % (self.account)))
             gameConfigNode.appendChild(tempNode)
+
+            if savePassword:
+                tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Save.Password")
+                tempNode.appendChild(doc.createTextNode("True"))
+                gameConfigNode.appendChild(tempNode)
 
         # write new settings file
         f = open(self.settingsFile, 'w')
