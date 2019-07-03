@@ -59,3 +59,13 @@ for Linux can only be run on systems as up to date or more as the system it
 is built on, so an old os may want to be built on. The binary for is
 also not cross architecture compatible. Wine can be used for Windows builds
 though.
+
+# Roadmap
+None of this is set in stone, but it gives a basic idea of some of the major
+ features I plan to implement. Requests, contributions, and critiques, on anything
+ are always welcome.
+
+-  1.1 -- Fix up setup wizard, have it come up at first start, and add auto updater for OneLauncher
+-  1.2 -- Add addon manager (plugins, themes, and abc files)
+-  1.3 -- Implement extended lua plugin api (More keyboard action interupts, ect)
+-  1.4 -- Add Lutris integration, full game install from OneLauncher, and stuff like dxvk support/auto setup in own prefixes
