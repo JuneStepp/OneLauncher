@@ -430,16 +430,15 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 self.uiMain.txtAccount.setText(self.settings.account)
                 self.uiMain.chkSaveSettings.setChecked(True)
-                self.uiMain.txtPassword.setFocus()
 
-        if self.uiMain.chkSaveSettings.isChecked():
-            self.uiMain.chkSavePassword.setChecked(False)
-            self.uiMain.chkSavePassword.setEnabled(True)
+                self.uiMain.chkSavePassword.setChecked(False)
+                self.uiMain.chkSavePassword.setEnabled(True)
 
-            if self.settings.savePassword:
-                self.uiMain.chkSavePassword.setChecked(True)
-                self.uiMain.txtPassword.setText(keyring.get_password("OneLauncher",
-                                                            self.settings.account))
+                if self.settings.savePassword:
+                    self.uiMain.chkSavePassword.setChecked(True)
+                    self.uiMain.txtPassword.setText(keyring.get_password("OneLauncher",
+                                                    self.settings.account))
+                else: self.uiMain.txtPassword.setFocus()
 
         self.gameType.GetSettings(
             self.settings.usingDND, self.settings.usingTest)
@@ -560,7 +559,8 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.uiMain.txtAccount.setText(self.settings.account)
             self.uiMain.chkSaveSettings.setChecked(True)
-            self.uiMain.txtPassword.setFocus()
+            if not self.uiMain.chkSavePassword.isChecked():
+                self.uiMain.txtPassword.setFocus()
 
     def GetNews(self, news):
         self.uiMain.txtFeed.setHtml(news)
