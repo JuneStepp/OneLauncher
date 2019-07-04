@@ -36,7 +36,7 @@ from .SettingsWindow import SettingsWindow
 from .PatchWindow import PatchWindow
 from .StartGame import StartGame
 from .Settings import Settings
-from .OneLauncherUtils import DetermineOS, DetermineGame, LanguageConfig, Language
+from .OneLauncherUtils import DetermineOS, DetermineGame, LanguageConfig
 from .OneLauncherUtils import BaseConfig, GLSDataCentre, WorldQueueConfig
 from .OneLauncherUtils import AuthenticateUser, JoinWorldQueue, GetText, WebConnection
 from . import Information
@@ -47,7 +47,6 @@ class MainWindow(QtWidgets.QMainWindow):
     app = QtWidgets.QApplication(sys.argv)
 
     ReturnLog = QtCore.Signal("QString")
-    ReturnLangConfig = QtCore.Signal("PyQt_PyObject")
     ReturnBaseConfig = QtCore.Signal("PyQt_PyObject")
     ReturnGLSDataCentre = QtCore.Signal("PyQt_PyObject")
     ReturnWorldQueueConfig = QtCore.Signal("PyQt_PyObject")
@@ -85,7 +84,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Sets some widgets to WA_NoMousePropagation to avoid window dragging issues
         mouse_ignore_list = [self.uiMain.btnAbout, self.uiMain.btnExit, self.uiMain.btnLogin,
                             self.uiMain.btnMinimize, self.uiMain.btnOptions,
-                            self.uiMain.btnSwitchGame, self.uiMain.cboLanguage,
+                            self.uiMain.btnSwitchGame,
                              self.uiMain.cboRealm, self.uiMain.chkSaveSettings]
         for widget in mouse_ignore_list:
             widget.setAttribute(QtCore.Qt.WA_NoMousePropagation)
@@ -119,8 +118,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ReturnLog = self.ReturnLog
         self.ReturnLog.connect(self.AddLog)
-        self.ReturnLangConfig = self.ReturnLangConfig
-        self.ReturnLangConfig.connect(self.GetLanguageConfig)
         self.ReturnBaseConfig = self.ReturnBaseConfig
         self.ReturnBaseConfig.connect(self.GetBaseConfig)
         self.ReturnGLSDataCentre = self.ReturnGLSDataCentre
@@ -199,10 +196,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def actionPatchSelected(self):
         winPatch = PatchWindow(self.dataCentre.patchServer, self.worldQueueConfig.patchProductCode,
-                               self.langConfig.langList[self.uiMain.cboLanguage.currentIndex(
-                               )].code,
-                               self.settings.gameDir, self.settings.patchClient, self.settings.wineProg,
-                               self.settings.hiResEnabled, self.gameType.iconFile, self.valHomeDir, self.settings.winePrefix,
+                               self.settings.language, self.settings.gameDir, self.settings.patchClient,
+                               self.settings.wineProg, self.settings.hiResEnabled, self.gameType.iconFile,
+                               self.valHomeDir, self.settings.winePrefix,
                                self.settings.app, self.osType, self.rootDir, self)
 
         self.hideWinMain()
@@ -213,7 +209,8 @@ class MainWindow(QtWidgets.QMainWindow):
         winSettings = SettingsWindow(self.settings.hiResEnabled, self.settings.app, self.settings.x86Enabled,
                                      self.settings.wineProg, self.settings.wineDebug, self.settings.patchClient,
                                      self.settings.usingDND, self.settings.winePrefix, self.settings.gameDir,
-                                     self.valHomeDir, self.osType, self.rootDir, self.settings, self)
+                                     self.valHomeDir, self.osType, self.rootDir, self.settings, LanguageConfig,
+                                      self)
 
         self.hideWinMain()
         if winSettings.Run() == QtWidgets.QDialog.Accepted:
@@ -222,6 +219,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.settings.x86Enabled = winSettings.getx86()
             self.settings.patchClient = winSettings.getPatchClient()
             self.settings.gameDir = winSettings.getGameDir()
+            self.settings.language = winSettings.getLanguage()
 
             if not self.osType.usingWindows:
                 self.settings.wineProg = winSettings.getProg()
@@ -264,8 +262,6 @@ class MainWindow(QtWidgets.QMainWindow):
             if self.uiMain.chkSaveSettings.isChecked():
                 self.settings.account = self.uiMain.txtAccount.text()
                 self.settings.realm = self.uiMain.cboRealm.currentText()
-                self.settings.language = self.langConfig.langList[self.uiMain.cboLanguage.currentIndex(
-                )].code
 
                 self.settings.SaveSettings(self.uiMain.chkSaveSettings.isChecked(),
                         self.uiMain.chkSavePassword.isChecked())
@@ -356,9 +352,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def LaunchGame(self):
         game = StartGame(self.worldQueueConfig.gameClientFilename, self.settings.x86Enabled,
                          self.worldQueueConfig.gameClientArgTemplate, self.accNumber, self.urlLoginServer,
-                         self.account.ticket, self.urlChatServer,
-                         self.langConfig.langList[self.uiMain.cboLanguage.currentIndex(
-                         )].code,
+                         self.account.ticket, self.urlChatServer, self.settings.language,
                          self.settings.gameDir, self.settings.wineProg, self.settings.wineDebug,
                          self.settings.winePrefix, self.settings.hiResEnabled, self.settings.app,
                          self.osType, self.valHomeDir, self.gameType.iconFile, self.rootDir,
@@ -412,7 +406,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.uiMain.txtAccount.setText("")
         self.uiMain.txtPassword.setText("")
         self.uiMain.cboRealm.clear()
-        self.uiMain.cboLanguage.clear()
         self.ClearLog()
         self.ClearNews()
 
@@ -508,25 +501,12 @@ class MainWindow(QtWidgets.QMainWindow):
         if not self.gameDirExists:
             self.AddLog("[E13] Game Directory not found")
 
-        self.langConfig = None
-
         self.configThread = MainWindowThread()
         self.configThread.SetUp(self.settings, self.configFile, self.configFileAlt,
-                                self.valHomeDir, self.osType, self.ReturnLog, self.ReturnLangConfig,
+                                self.valHomeDir, self.osType, self.ReturnLog,
                                 self.ReturnBaseConfig, self.ReturnGLSDataCentre,
                                 self.ReturnWorldQueueConfig, self.ReturnNews)
         self.configThread.start()
-
-    def GetLanguageConfig(self, langConfig):
-        self.langConfig = langConfig
-
-        setPos = 0
-        for lang in self.langConfig.langList:
-            self.uiMain.cboLanguage.addItem(lang.name)
-            if lang.code == self.settings.language:
-                self.uiMain.cboLanguage.setCurrentIndex(setPos)
-
-            setPos += 1
 
     def GetBaseConfig(self, baseConfig):
         self.baseConfig = baseConfig
@@ -590,7 +570,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 class MainWindowThread(QtCore.QThread):
     def SetUp(self, settings, configFile, configFileAlt, baseDir,
-            osType, ReturnLog, ReturnLangConfig, ReturnBaseConfig,
+            osType, ReturnLog, ReturnBaseConfig,
             ReturnGLSDataCentre, ReturnWorldQueueConfig, ReturnNews):
 
         self.settings = settings
@@ -600,7 +580,6 @@ class MainWindowThread(QtCore.QThread):
         self.baseDir = baseDir
 
         self.ReturnLog = ReturnLog
-        self.ReturnLangConfig = ReturnLangConfig
         self.ReturnBaseConfig = ReturnBaseConfig
         self.ReturnGLSDataCentre = ReturnGLSDataCentre
         self.ReturnWorldQueueConfig = ReturnWorldQueueConfig
@@ -611,19 +590,10 @@ class MainWindowThread(QtCore.QThread):
 
     def LoadLanguageList(self):
         if os.path.exists(self.settings.gameDir):
-            self.langConfig = LanguageConfig(self.settings.gameDir)
+            langConfig = LanguageConfig(self.settings.gameDir)
 
-            if self.langConfig.langFound:
+            if langConfig.langFound:
                 self.ReturnLog.emit("Available languages checked.")
-                self.ReturnLangConfig.emit(self.langConfig)
-
-                self.langPos = 0
-                setPos = 0
-
-                for lang in self.langConfig.langList:
-                    if lang.code == self.settings.language:
-                        self.langPos = setPos
-                    setPos += 1
 
                 self.LoadLauncherConfig()
             else:
@@ -719,8 +689,7 @@ class MainWindowThread(QtCore.QThread):
             HTMLTEMPLATE += href.value
             HTMLTEMPLATE += '"/><base target="_blank"/></head><body><div class="launcherNewsItemsContainer" style="width:auto">'
 
-            urlNewsFeed = self.worldQueueConfig.newsFeedURL.replace("{lang}",
-                                                                    self.langConfig.langList[self.langPos].news)
+            urlNewsFeed = self.worldQueueConfig.newsFeedURL.replace("{lang}", self.settings.language.lower())
 
             webservice, post = WebConnection(urlNewsFeed)
 

@@ -44,7 +44,7 @@ class Settings:
         self.hiResEnabled = True
         self.app = "Wine"
         self.realm = ""
-        self.language = ""
+        self.language = "EN"
         self.account = ""
         self.wineProg = "wine"
         self.wineDebug = "fixme-all"
@@ -229,6 +229,10 @@ class Settings:
         tempNode.appendChild(doc.createTextNode("%s" % (self.patchClient)))
         gameConfigNode.appendChild(tempNode)
 
+        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Language")
+        tempNode.appendChild(doc.createTextNode("%s" % (self.language)))
+        gameConfigNode.appendChild(tempNode)
+
         tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Hide.Main.Window")
         if self.hideWinMain:
             tempNode.appendChild(doc.createTextNode("True"))
@@ -239,10 +243,6 @@ class Settings:
         if saveAccountDetails:
             tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Realm")
             tempNode.appendChild(doc.createTextNode("%s" % (self.realm)))
-            gameConfigNode.appendChild(tempNode)
-
-            tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Language")
-            tempNode.appendChild(doc.createTextNode("%s" % (self.language)))
             gameConfigNode.appendChild(tempNode)
 
             tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Account")

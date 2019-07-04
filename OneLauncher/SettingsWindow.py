@@ -37,7 +37,7 @@ from pkg_resources import resource_filename
 
 class SettingsWindow:
     def __init__(self, hiRes, app, x86, wineProg, wineDebug, patchClient, usingDND,
-                 winePrefix, gameDir, homeDir, osType, rootDir, settings, parent):
+                 winePrefix, gameDir, homeDir, osType, rootDir, settings, LanguageConfig, parent):
 
         self.homeDir = homeDir
         self.osType = osType
@@ -49,10 +49,7 @@ class SettingsWindow:
 
         self.winSettings = QtWidgets.QDialog(parent, QtCore.Qt.FramelessWindowHint)
 
-        if self.osType.usingWindows:
-            uifile = resource_filename(__name__, 'ui' + os.sep + 'winSettingsNative.ui')
-        else:
-            uifile = resource_filename(__name__, 'ui' + os.sep + 'winSettings.ui')
+        uifile = resource_filename(__name__, 'ui' + os.sep + 'winSettings.ui')
 
         Ui_dlgSettings, base_class = uic.loadUiType(uifile)
         self.uiSettings = Ui_dlgSettings()
@@ -67,14 +64,6 @@ class SettingsWindow:
             self.uiSettings.txtProgram.setText(wineProg)
             self.uiSettings.txtProgram.setEnabled(False)
 
-        self.uiSettings.txtGameDir.setText(gameDir)
-        self.uiSettings.cboGraphics.addItem("Enabled")
-        self.uiSettings.cboGraphics.addItem("Disabled")
-        self.uiSettings.chkAdvanced.setChecked(False)
-        self.uiSettings.txtPatchClient.setText(patchClient)
-        self.uiSettings.txtPatchClient.setEnabled(False)
-
-        if not self.osType.usingWindows:
             if app == "Wine":
                 self.uiSettings.lblPrefix.setText("WINEPREFIX")
                 self.uiSettings.txtPrefix.setVisible(True)
@@ -89,6 +78,14 @@ class SettingsWindow:
                 self.uiSettings.txtPrefix.setVisible(False)
                 self.uiSettings.cboBottle.setVisible(True)
                 self.ShowBottles(winePrefix)
+        else: self.uiSettings.tabWidget.removeTab(1)
+
+        self.uiSettings.txtGameDir.setText(gameDir)
+        self.uiSettings.cboGraphics.addItem("Enabled")
+        self.uiSettings.cboGraphics.addItem("Disabled")
+        self.uiSettings.chkAdvanced.setChecked(False)
+        self.uiSettings.txtPatchClient.setText(patchClient)
+        self.uiSettings.txtPatchClient.setEnabled(False)
 
         if hiRes:
             self.uiSettings.cboGraphics.setCurrentIndex(0)
@@ -104,6 +101,35 @@ class SettingsWindow:
                 self.uiSettings.chkx86.setChecked(False)
         else:
             self.uiSettings.chkx86.setEnabled(False)
+
+        self.uiSettings.btnEN.setIcon(QtGui.QIcon(resource_filename(__name__,
+                                            "images" + os.sep + "EN.png")))
+
+        self.uiSettings.btnDE.setIcon(QtGui.QIcon(resource_filename(__name__,
+                                            "images" + os.sep + "DE.png")))
+
+        self.uiSettings.btnFR.setIcon(QtGui.QIcon(resource_filename(__name__,
+                                            "images" + os.sep + "FR.png")))
+
+        #Sets up language buttons. Only buttons for available languages are enabled.
+        for lang in LanguageConfig(self.settings.gameDir).langList:
+            if lang == "EN":
+                self.uiSettings.btnEN.setEnabled(True)
+                self.uiSettings.btnEN.setToolTip("English")
+            elif lang == "DE":
+                self.uiSettings.btnDE.setEnabled(True)
+                self.uiSettings.btnDE.setToolTip("Deutsch")
+            elif lang == "FR":
+                self.uiSettings.btnFR.setEnabled(True)
+                self.uiSettings.btnFR.setToolTip("Français")
+
+            if lang == self.settings.language:
+                if lang == "EN":
+                    self.uiSettings.btnEN.setChecked(True)
+                elif lang == "DE":
+                    self.uiSettings.btnDE.setChecked(True)
+                elif lang == "FR":
+                    self.uiSettings.btnFR.setChecked(True)
 
         self.uiSettings.btnSetupWizard.clicked.connect(self.btnSetupWizardClicked)
         self.uiSettings.btnGameDir.clicked.connect(self.btnGameDirClicked)
@@ -252,6 +278,13 @@ class SettingsWindow:
                 return "CXGames"
             else:
                 return "CXOffice"
+    def getLanguage(self):
+            if self.uiSettings.btnEN.isChecked():
+                return "EN"
+            elif self.uiSettings.btnDE.isChecked():
+                return "DE"
+            elif self.uiSettings.btnFR.isChecked():
+                return "FR"
 
     def getPrefix(self):
         if self.uiSettings.cboApplication.currentIndex() == 0:
