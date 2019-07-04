@@ -56,29 +56,11 @@
      <string>World</string>
     </property>
    </widget>
-   <widget class="QLabel" name="lblLanguage">
-    <property name="geometry">
-     <rect>
-      <x>400</x>
-      <y>99</y>
-      <width>120</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Verdana</family>
-     </font>
-    </property>
-    <property name="text">
-     <string>Language</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="lblAccount">
     <property name="geometry">
      <rect>
       <x>400</x>
-      <y>138</y>
+      <y>99</y>
       <width>120</width>
       <height>24</height>
      </rect>
@@ -96,7 +78,7 @@
     <property name="geometry">
      <rect>
       <x>400</x>
-      <y>174</y>
+      <y>135</y>
       <width>120</width>
       <height>24</height>
      </rect>
@@ -128,29 +110,11 @@
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select game server&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
-   <widget class="QComboBox" name="cboLanguage">
-    <property name="geometry">
-     <rect>
-      <x>525</x>
-      <y>94</y>
-      <width>260</width>
-      <height>34</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Verdana</family>
-     </font>
-    </property>
-    <property name="toolTip">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select game language&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-    </property>
-   </widget>
    <widget class="QLineEdit" name="txtAccount">
     <property name="geometry">
      <rect>
       <x>525</x>
-      <y>134</y>
+      <y>95</y>
       <width>260</width>
       <height>32</height>
      </rect>
@@ -165,7 +129,7 @@
     <property name="geometry">
      <rect>
       <x>525</x>
-      <y>172</y>
+      <y>133</y>
       <width>260</width>
       <height>32</height>
      </rect>
@@ -196,7 +160,7 @@
     <property name="geometry">
      <rect>
       <x>430</x>
-      <y>220</y>
+      <y>181</y>
       <width>81</width>
       <height>31</height>
      </rect>
@@ -220,7 +184,7 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>211</y>
+      <y>172</y>
       <width>260</width>
       <height>29</height>
      </rect>
@@ -231,7 +195,7 @@
      </font>
     </property>
     <property name="toolTip">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save last used realm, account name, and language&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save last used world and account name&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
      <string>Remember these settings</string>
@@ -241,9 +205,9 @@
     <property name="geometry">
      <rect>
       <x>400</x>
-      <y>270</y>
+      <y>240</y>
       <width>385</width>
-      <height>191</height>
+      <height>221</height>
      </rect>
     </property>
     <property name="font">
@@ -370,7 +334,7 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>240</y>
+      <y>201</y>
       <width>260</width>
       <height>29</height>
      </rect>
