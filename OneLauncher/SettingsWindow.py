@@ -62,7 +62,8 @@ class SettingsWindow:
             self.uiSettings.txtPrefix.setText(winePrefix)
             self.uiSettings.txtDebug.setText(wineDebug)
             self.uiSettings.txtProgram.setText(wineProg)
-            self.uiSettings.txtProgram.setEnabled(False)
+            self.uiSettings.txtProgram.setVisible(False)
+            self.uiSettings.lblProgram.setVisible(False)
 
             if app == "Wine":
                 self.uiSettings.lblPrefix.setText("WINEPREFIX")
@@ -85,7 +86,8 @@ class SettingsWindow:
         self.uiSettings.cboGraphics.addItem("Disabled")
         self.uiSettings.chkAdvanced.setChecked(False)
         self.uiSettings.txtPatchClient.setText(patchClient)
-        self.uiSettings.txtPatchClient.setEnabled(False)
+        self.uiSettings.txtPatchClient.setVisible(False)
+        self.uiSettings.lblPatchClient.setVisible(False)
 
         if hiRes:
             self.uiSettings.cboGraphics.setCurrentIndex(0)
@@ -197,16 +199,22 @@ class SettingsWindow:
     def chkAdvancedClicked(self):
         if self.osType.usingWindows:
             if self.uiSettings.chkAdvanced.isChecked():
-                self.uiSettings.txtPatchClient.setEnabled(True)
+                self.uiSettings.txtPatchClient.setVisible(True)
+                self.uiSettings.lblPatchClient.setVisible(True)
             else:
-                self.uiSettings.txtPatchClient.setEnabled(False)
+                self.uiSettings.txtPatchClient.setVisible(False)
+                self.uiSettings.lblPatchClient.setVisible(False)
         else:
             if self.uiSettings.chkAdvanced.isChecked():
-                self.uiSettings.txtProgram.setEnabled(True)
-                self.uiSettings.txtPatchClient.setEnabled(True)
+                self.uiSettings.txtProgram.setVisible(True)
+                self.uiSettings.txtPatchClient.setVisible(True)
+                self.uiSettings.lblProgram.setVisible(True)
+                self.uiSettings.lblPatchClient.setVisible(True)
             else:
-                self.uiSettings.txtProgram.setEnabled(False)
-                self.uiSettings.txtPatchClient.setEnabled(False)
+                self.uiSettings.txtProgram.setVisible(False)
+                self.uiSettings.txtPatchClient.setVisible(False)
+                self.uiSettings.lblProgram.setVisible(False)
+                self.uiSettings.lblPatchClient.setVisible(False)
 
     def btnGameDirClicked(self):
         tempdir = self.uiSettings.txtGameDir.text()
