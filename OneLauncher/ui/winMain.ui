@@ -159,10 +159,10 @@
    <widget class="QToolButton" name="btnLogin">
     <property name="geometry">
      <rect>
-      <x>430</x>
+      <x>410</x>
       <y>181</y>
-      <width>81</width>
-      <height>31</height>
+      <width>101</width>
+      <height>41</height>
      </rect>
     </property>
     <property name="font">
