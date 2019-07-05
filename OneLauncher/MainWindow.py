@@ -304,8 +304,7 @@ class MainWindow(QtWidgets.QMainWindow):
             tempRealm = ""
 
             if len(self.account.gameList) > 1:
-                dlgChooseAccount = QtWidgets.QDialog()
-                dlgChooseAccount.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+                dlgChooseAccount = QtWidgets.QDialog(self, QtCore.Qt.FramelessWindowHint)
 
                 uifile = resource_filename(
                     __name__, 'ui' + os.sep + 'winSelectAccount.ui')
