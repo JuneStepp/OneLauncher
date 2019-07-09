@@ -33,14 +33,12 @@ from .ProgressMonitor import ProgressMonitor
 import os.path
 from pkg_resources import resource_filename
 
-
 class PatchWindow:
     def __init__(self, urlPatchServer, prodCode, language, runDir, patchClient,
                  wineProgram, hiResEnabled, iconFileIn, homeDir, winePrefix, wineApp,
                  osType, rootDir, parent):
 
         self.homeDir = homeDir
-        self.winLog = QtWidgets.QDialog()
         self.osType = osType
 
         self.winLog = QtWidgets.QDialog(parent, QtCore.Qt.FramelessWindowHint)
@@ -82,7 +80,6 @@ class PatchWindow:
         self.process.readyReadStandardOutput.connect(self.readOutput)
         self.process.readyReadStandardError.connect(self.readErrors)
         self.process.finished.connect(self.processFinished)
-
 
         if wineApp == "Native":
             patchParams = "%s,Patch %s --language %s --productcode %s" % (patchClient, urlPatchServer, language, prodCode)
