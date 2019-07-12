@@ -46,6 +46,7 @@ class SettingsWindow:
         self.rootDir = rootDir
         self.settings = settings
         self.parent = parent
+        self.LanguageConfig = LanguageConfig
 
         self.winSettings = QtWidgets.QDialog(parent, QtCore.Qt.FramelessWindowHint)
 
@@ -113,25 +114,7 @@ class SettingsWindow:
         self.uiSettings.btnFR.setIcon(QtGui.QIcon(resource_filename(__name__,
                                             "images" + os.sep + "FR.png")))
 
-        #Sets up language buttons. Only buttons for available languages are enabled.
-        for lang in LanguageConfig(self.settings.gameDir).langList:
-            if lang == "EN":
-                self.uiSettings.btnEN.setEnabled(True)
-                self.uiSettings.btnEN.setToolTip("English")
-            elif lang == "DE":
-                self.uiSettings.btnDE.setEnabled(True)
-                self.uiSettings.btnDE.setToolTip("Deutsch")
-            elif lang == "FR":
-                self.uiSettings.btnFR.setEnabled(True)
-                self.uiSettings.btnFR.setToolTip("Français")
-
-            if lang == self.settings.language:
-                if lang == "EN":
-                    self.uiSettings.btnEN.setChecked(True)
-                elif lang == "DE":
-                    self.uiSettings.btnDE.setChecked(True)
-                elif lang == "FR":
-                    self.uiSettings.btnFR.setChecked(True)
+        self.setLanguageButtons()
 
         self.uiSettings.btnSetupWizard.clicked.connect(self.btnSetupWizardClicked)
         self.uiSettings.btnGameDir.clicked.connect(self.btnGameDirClicked)
@@ -239,6 +222,8 @@ class SettingsWindow:
             else:
                 self.uiSettings.chkx86.setEnabled(False)
 
+            self.setLanguageButtons()
+
     def btnPrefixDirClicked(self):
         tempdir = self.uiSettings.txtPrefix.text()
 
@@ -275,6 +260,31 @@ class SettingsWindow:
                                 self.osType, self.rootDir, self.parent)
 
         confCheck.Run()
+
+    def setLanguageButtons(self):
+        #Sets up language buttons. Only buttons for available languages are enabled.
+        if os.path.exists(self.uiSettings.txtGameDir.text()):
+            gameDir = self.uiSettings.txtGameDir.text()
+        else: gameDir = self.settings.gameDir
+
+        for lang in self.LanguageConfig(gameDir).langList:
+            if lang == "EN":
+                self.uiSettings.btnEN.setEnabled(True)
+                self.uiSettings.btnEN.setToolTip("English")
+            elif lang == "DE":
+                self.uiSettings.btnDE.setEnabled(True)
+                self.uiSettings.btnDE.setToolTip("Deutsch")
+            elif lang == "FR":
+                self.uiSettings.btnFR.setEnabled(True)
+                self.uiSettings.btnFR.setToolTip("Français")
+
+            if lang == self.settings.language:
+                if lang == "EN":
+                    self.uiSettings.btnEN.setChecked(True)
+                elif lang == "DE":
+                    self.uiSettings.btnDE.setChecked(True)
+                elif lang == "FR":
+                    self.uiSettings.btnFR.setChecked(True)
 
     def getApp(self):
         if self.osType.usingWindows:

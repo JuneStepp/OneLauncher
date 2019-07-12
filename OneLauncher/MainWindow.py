@@ -219,7 +219,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.settings.x86Enabled = winSettings.getx86()
             self.settings.patchClient = winSettings.getPatchClient()
             self.settings.gameDir = winSettings.getGameDir()
-            self.settings.language = winSettings.getLanguage()
+            if winSettings.getLanguage():
+                self.settings.language = winSettings.getLanguage()
 
             if not self.osType.usingWindows:
                 self.settings.wineProg = winSettings.getProg()
