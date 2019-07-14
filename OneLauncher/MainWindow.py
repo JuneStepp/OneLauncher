@@ -268,11 +268,18 @@ class MainWindow(QtWidgets.QMainWindow):
                         self.uiMain.chkSavePassword.isChecked())
 
                 if self.uiMain.chkSavePassword.isChecked():
-                    keyring.set_password("OneLauncher", self.uiMain.txtAccount.text(),
-                                            self.uiMain.txtPassword.text())
+                    if self.settings.usingDND:
+                        keyring.set_password("OneLauncherDDO", self.uiMain.txtAccount.text(),
+                                                self.uiMain.txtPassword.text())
+                    else:
+                        keyring.set_password("OneLauncherLOTRO", self.uiMain.txtAccount.text(),
+                                                self.uiMain.txtPassword.text())
                 else:
                     try:
-                        keyring.delete_password("OneLauncher", self.uiMain.txtAccount.text())
+                        if self.settings.usingDND:
+                            keyring.delete_password("OneLauncherDDO", self.uiMain.txtAccount.text())
+                        else:
+                            keyring.delete_password("OneLauncherLOTRO", self.uiMain.txtAccount.text())
                     except:
                         pass
 
@@ -429,8 +436,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
                 if self.settings.savePassword:
                     self.uiMain.chkSavePassword.setChecked(True)
-                    self.uiMain.txtPassword.setText(keyring.get_password("OneLauncher",
-                                                    self.settings.account))
+                    if self.settings.usingDND:
+                        self.uiMain.txtPassword.setText(keyring.get_password(
+                                        "OneLauncherDDO", self.settings.account))
+                    else:
+                        self.uiMain.txtPassword.setText(keyring.get_password(
+                                        "OneLauncherLOTRO", self.settings.account))
                 else: self.uiMain.txtPassword.setFocus()
 
         self.gameType.GetSettings(
