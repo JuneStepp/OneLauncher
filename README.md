@@ -38,7 +38,7 @@ building like venv, conda, or virtualenv.
 -   keyring (Can be installed with pip)
 
 -   PyInstaller (Needed to build. Can be installed with pip.
-    Currently [development version](https://github.com/pyinstaller/pyinstaller/archive/develop.zip) is needed)
+    Currently [custom development version](https://github.com/JeremyStepp/pyinstaller/archive/develop.zip) is needed)
 -   pywin32 (Needed for Windows building. Can be installed with pip)
 
 # To run
