@@ -40,7 +40,7 @@ def toString(val):
 
 
 class SetupWizard:
-    def __init__(self, homeDir, osType, rootDir, parent):
+    def __init__(self, parent, homeDir, osType, rootDir):
 
         self.homeDir = homeDir
         self.osType = osType
@@ -69,10 +69,10 @@ class SetupWizard:
         if self.osType.usingWindows:
             self.uiWizard.tblGame.setColumnWidth(0, 0)
             self.uiWizard.tblGame.setColumnWidth(1, 0)
-            self.uiWizard.tblGame.setColumnWidth(2, 650)
+            self.uiWizard.tblGame.setColumnWidth(2, 581)
         else:
-            self.uiWizard.tblGame.setColumnWidth(0, 260)
-            self.uiWizard.tblGame.setColumnWidth(1, 390)
+            self.uiWizard.tblGame.setColumnWidth(0, 230)
+            self.uiWizard.tblGame.setColumnWidth(1, 330)
             self.uiWizard.tblGame.setColumnWidth(2, 0)
             self.uiWizard.cboApplication.addItem("Wine")
             self.uiWizard.cboApplication.addItem("Crossover Games")
@@ -92,6 +92,15 @@ class SetupWizard:
 
         self.uiWizard.cboGame.currentIndexChanged.connect(self.ClearGameTable)
         self.uiWizard.tblGame.clicked.connect(self.GameSelected)
+
+        self.uiWizard.btnBxIntro.accepted.connect(self.btnBxIntroAccepted)
+        self.uiWizard.btnBxIntro.rejected.connect(self.btnBxIntroRejected)
+
+    def btnBxIntroAccepted(self):
+        self.uiWizard.stackedWidget.setCurrentWidget(self.uiWizard.GameFinder)
+
+    def btnBxIntroRejected(self):
+        self.winSetupWizard.reject()
 
     def GameSelected(self):
         self.uiWizard.btnBoxOptions.setStandardButtons(
