@@ -239,6 +239,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def settings_wizard_called(self):
         winWizard = SetupWizard(self.winMain, self.valHomeDir, self.osType, self.rootDir)
+        self.hide()
 
         if winWizard.Run() == QtWidgets.QDialog.Accepted:
             self.settings.usingDND = winWizard.getUsingDND()
@@ -253,6 +254,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.settings.SaveSettings(self.uiMain.chkSaveSettings.isChecked(),
                                         self.uiMain.chkSavePassword.isChecked())
             self.InitialSetup()
+        self.show()
 
     def btnSwitchGameClicked(self):
         if self.settings.usingDND:
