@@ -115,7 +115,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.uiMain.btnSwitchGameMenu.addAction(self.uiMain.actionDDO)
         self.uiMain.actionDDO.triggered.connect(self.SwitchToDDO)
         self.uiMain.btnSwitchGame.setMenu(self.uiMain.btnSwitchGameMenu)
-        #self.uiMain.actionHideWinMain.triggered.connect(self.actionHideWinMainSelected)
 
         self.ReturnLog = self.ReturnLog
         self.ReturnLog.connect(self.AddLog)
@@ -145,18 +144,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.show()
         sys.exit(self.app.exec_())
 
-    def hideWinMain(self):
-        if self.settings.hideWinMain:
-            self.hide()
-
     def resetFocus(self):
-        if self.settings.hideWinMain:
-            self.show()
-
-            if self.uiMain.txtAccount.text() == "":
-                self.uiMain.txtAccount.setFocus()
-            elif self.uiMain.txtPassword.text() == "":
-                self.uiMain.txtPassword.setFocus()
+        if self.uiMain.txtAccount.text() == "":
+            self.uiMain.txtAccount.setFocus()
+        elif self.uiMain.txtPassword.text() == "":
+            self.uiMain.txtPassword.setFocus()
 
     def center(self):
         qr = self.frameGeometry()
@@ -171,9 +163,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def mouseMoveEvent(self, event):
         self.move(self.pos() + event.globalPos() - self.dragPos)
         self.dragPos = event.globalPos()
-
-    def actionHideWinMainSelected(self):
-        self.settings.hideWinMain = not self.settings.hideWinMain
 
     def btnAboutSelected(self):
         dlgAbout = QtWidgets.QDialog(self, QtCore.Qt.FramelessWindowHint)
@@ -191,7 +180,6 @@ class MainWindow(QtWidgets.QMainWindow):
         ui.lblCLIReference.setText(Information.CLIReference)
         ui.lblLotROLinuxReference.setText(Information.LotROLinuxReference)
 
-        self.hideWinMain()
         dlgAbout.exec_()
         self.resetFocus()
 
@@ -202,7 +190,6 @@ class MainWindow(QtWidgets.QMainWindow):
                                self.valHomeDir, self.settings.winePrefix,
                                self.settings.app, self.osType, self.rootDir, self)
 
-        self.hideWinMain()
         winPatch.Run(self.app)
         self.resetFocus()
 
@@ -213,7 +200,6 @@ class MainWindow(QtWidgets.QMainWindow):
                                      self.valHomeDir, self.osType, self.rootDir, self.settings, LanguageConfig,
                                       self)
 
-        self.hideWinMain()
         if winSettings.Run() == QtWidgets.QDialog.Accepted:
             self.settings.hiResEnabled = winSettings.getHiRes()
             self.settings.app = winSettings.getApp()
@@ -348,7 +334,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 for game in self.account.gameList:
                     ui.comboBox.addItem(game.description)
 
-                self.hideWinMain()
                 if dlgChooseAccount.exec_() == QtWidgets.QDialog.Accepted:
                     self.accNumber = self.account.gameList[ui.comboBox.currentIndex(
                     )].name
@@ -476,7 +461,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.uiMain.imgMain.setPixmap(QtGui.QPixmap(pngFile))
         self.setWindowTitle(self.gameType.title)
         self.setWindowIcon(QtGui.QIcon(iconFile))
-        self.uiMain.actionHideWinMain.setChecked(self.settings.hideWinMain)
 
         #Set icon and dropdown options of switch game button acording to game running
         if self.settings.usingDND and not self.settings.usingTest:
