@@ -429,7 +429,11 @@ class MainWindow(QtWidgets.QMainWindow):
         if settings_load_success and settings_load_success != True:
             self.AddLog(settings_load_success)
         elif not settings_load_success:
-            self.AddLog("[E01] Error loading settings")
+            #Checks if the user is running OneLauncher for the first time and calls the setup Wizard
+            if not os.path.exists(self.settings.settingsDir):
+                self.settings_wizard_called()
+            else:
+                self.AddLog("[E01] Error loading settings")
         else:
             if self.settings.focusAccount:
                 self.uiMain.txtAccount.setFocus()
