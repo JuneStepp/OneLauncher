@@ -60,6 +60,11 @@ class SetupWizard:
         self.uiWizard.setupUi(self.winSetupWizard)
         self.winSetupWizard.setWindowTitle("Setup Wizard")
 
+        qr = self.winSetupWizard.frameGeometry()
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.winSetupWizard.move(qr.topLeft())
+
         self.model = QtGui.QStandardItemModel(0, 3, self.winSetupWizard)
         self.model.setHeaderData(0, QtCore.Qt.Horizontal, "Prefix")
         self.model.setHeaderData(1, QtCore.Qt.Horizontal, "Game Directory")
