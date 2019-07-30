@@ -52,7 +52,6 @@ class Settings:
         self.focusAccount = True
         self.winePrefix = os.environ.get('WINEPREFIX')
         self.gameDir = ""
-        self.hideWinMain = False
         self.x86Enabled = False
         self.savePassword = False
         success = False
@@ -119,11 +118,6 @@ class Settings:
                         self.focusAccount = False
                     elif node.nodeName == "PatchClient":
                         self.patchClient = GetText(node.childNodes)
-                    elif node.nodeName == "Hide.Main.Window":
-                        if GetText(node.childNodes) == "True":
-                            self.hideWinMain = True
-                        else:
-                            self.hideWinMain = False
 
                 # Disables 64-bit client if it is unavailable for LOTRO
                 if (os.path.exists(self.gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe") == False
@@ -231,13 +225,6 @@ class Settings:
 
         tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Language")
         tempNode.appendChild(doc.createTextNode("%s" % (self.language)))
-        gameConfigNode.appendChild(tempNode)
-
-        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Hide.Main.Window")
-        if self.hideWinMain:
-            tempNode.appendChild(doc.createTextNode("True"))
-        else:
-            tempNode.appendChild(doc.createTextNode("False"))
         gameConfigNode.appendChild(tempNode)
 
         if saveAccountDetails:
