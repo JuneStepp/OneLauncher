@@ -33,6 +33,7 @@ import zlib
 from qtpy import QtCore, QtGui, QtWidgets, uic
 import qdarkstyle
 from .SettingsWindow import SettingsWindow
+from .SetupWizard import SetupWizard
 from .PatchWindow import PatchWindow
 from .StartGame import StartGame
 from .Settings import Settings
@@ -232,7 +233,26 @@ class MainWindow(QtWidgets.QMainWindow):
             self.resetFocus()
             self.InitialSetup()
         else:
-            self.resetFocus()
+            if winSettings.getSetupWizardClicked():
+                self.settings_wizard_called()
+            else: self.resetFocus()
+
+    def settings_wizard_called(self):
+        winWizard = SetupWizard(self.winMain, self.valHomeDir, self.osType, self.rootDir)
+
+        if winWizard.Run() == QtWidgets.QDialog.Accepted:
+            self.settings.usingDND = winWizard.getUsingDND()
+            self.settings.usingTest = winWizard.getUsingTest()
+            self.settings.hiResEnabled = winWizard.getHiRes()
+            self.settings.app = winWizard.getApp()
+            self.settings.wineProg = winWizard.getProg()
+            self.settings.wineDebug = winWizard.getDebug()
+            self.settings.patchClient = winWizard.getPatchClient()
+            self.settings.winePrefix = winWizard.getPrefix()
+            self.settings.gameDir = winWizard.getGameDir()
+            self.settings.SaveSettings(self.uiMain.chkSaveSettings.isChecked(),
+                                        self.uiMain.chkSavePassword.isChecked())
+            self.InitialSetup()
 
     def btnSwitchGameClicked(self):
         if self.settings.usingDND:
@@ -432,7 +452,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.uiMain.chkSaveSettings.setChecked(True)
 
                 self.uiMain.chkSavePassword.setChecked(False)
-                self.uiMain.chkSavePassword.setEnabled(True)
 
                 if self.settings.savePassword:
                     self.uiMain.chkSavePassword.setChecked(True)
@@ -541,6 +560,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.uiMain.actionPatch.setVisible(True)
         self.uiMain.btnLogin.setEnabled(True)
         self.uiMain.chkSaveSettings.setEnabled(True)
+        self.uiMain.chkSavePassword.setEnabled(True)
         self.uiMain.txtAccount.setEnabled(True)
         self.uiMain.txtPassword.setEnabled(True)
 

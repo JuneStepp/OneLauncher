@@ -29,7 +29,6 @@
 from qtpy import QtCore, QtGui, QtWidgets, uic
 from .OneLauncherUtils import DetermineOS
 from .CheckConfig import CheckConfig
-from .SetupWizard import SetupWizard
 import os.path
 import glob
 from pkg_resources import resource_filename
@@ -117,6 +116,7 @@ class SettingsWindow:
         self.setLanguageButtons()
 
         self.uiSettings.btnSetupWizard.clicked.connect(self.btnSetupWizardClicked)
+        self.start_setup_wizard = False
         self.uiSettings.btnGameDir.clicked.connect(self.btnGameDirClicked)
         self.uiSettings.txtGameDir.textChanged.connect(self.txtGameDirChanged)
         self.uiSettings.chkAdvanced.clicked.connect(self.chkAdvancedClicked)
@@ -237,20 +237,13 @@ class SettingsWindow:
             self.uiSettings.txtPrefix.setText(filename)
 
     def btnSetupWizardClicked(self):
-        winWizard = SetupWizard(self.homeDir, self.osType, self.rootDir, self.parent)
+        self.start_setup_wizard = True
+        self.winSettings.reject()
 
-        if winWizard.Run() == QtWidgets.QDialog.Accepted:
-            self.settings.usingDND = winWizard.getUsingDND()
-            self.settings.usingTest = winWizard.getUsingTest()
-            self.settings.hiResEnabled = winWizard.getHiRes()
-            self.settings.app = winWizard.getApp()
-            self.settings.wineProg = winWizard.getProg()
-            self.settings.wineDebug = winWizard.getDebug()
-            self.settings.patchClient = winWizard.getPatchClient()
-            self.settings.winePrefix = winWizard.getPrefix()
-            self.settings.gameDir = winWizard.getGameDir()
-            self.settings.SaveSettings(self.uiMain.chkSaveSettings.isChecked())
-            self.InitialSetup()
+    def getSetupWizardClicked(self):
+        if self.start_setup_wizard:
+            return True
+        else: return False
 
     def txtPrefixChanged(self, text):
         self.winePrefix = text
