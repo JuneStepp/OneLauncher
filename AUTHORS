@@ -1,16 +1,20 @@
 Lord of the Rings Online and Dungeons & Dragons Online
-Launcher for Linux and Mac OS X.
+Launcher for Linux, Mac OS X, and Windows.
 
 OneLauncher
 (c) 2019 Jeremy Stepp
+    -- Cool people of the Lotro Discord
 
 Based on PyLotRO
 (C) 2009 AJackson
-    Many thanks to the many users at Ubuntu Forums,
-    CodeWeavers forums and the official game forums
-    for helping to test and improve LotROLinux and
-    providing ideas that have lead to the development
-    of PyLotRO.
+    --Many thanks to the many users at Ubuntu Forums,
+      CodeWeavers forums and the official game forums
+      for helping to test and improve LotROLinux and
+      providing ideas that have lead to the development
+      of PyLotRO.
+    -- The various Github users who kept PyLotRO up
+       to date for a while after it was no longer
+       maintained by AJackson
 
 Based on LotROLinux
 (C) 2007-2008 AJackson
