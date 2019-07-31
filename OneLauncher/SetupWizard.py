@@ -141,6 +141,9 @@ class SetupWizard:
             prefix = ""
             self.trawl(os.path.join(startDir, "Program Files"),
                        prefix, os.path.join(startDir, "Program Files"))
+            if os.path.exists(os.path.join(startDir, "Program Files (x86)")):
+                self.trawl(os.path.join(startDir, "Program Files (x86)"),
+                        prefix, os.path.join(startDir, "Program Files (x86)"))
         else:
             if self.uiWizard.cboApplication.currentIndex() == 0:
                 startDir = self.homeDir + ".*"
@@ -153,7 +156,6 @@ class SetupWizard:
                 if os.path.isdir(name):
                     if os.path.exists(os.path.join(name, "drive_c")):
                         prefix = ""
-                        path = os.path.join(name, "drive_c", "Program Files")
 
                         if self.osType.usingWindows:
                             prefix = name
@@ -166,8 +168,12 @@ class SetupWizard:
                             prefix = name.replace(
                                 self.homeDir + self.osType.settingsCXO + "/", "")
 
-                        self.trawl(path, prefix, os.path.join(
-                            name, "drive_c", "Program Files"))
+                        self.trawl(os.path.join(name, "drive_c", "Program Files"),
+                            prefix, os.path.join(name, "drive_c", "Program Files"))
+
+                        if os.path.exists(os.path.join(name, "drive_c", "Program Files (x86)")):
+                            self.trawl(os.path.join(name, "drive_c", "Program Files (x86)"),
+                                prefix, os.path.join(name, "drive_c", "Program Files (x86)"))
 
     def trawl(self, path, prefix, directory):
         for name in glob.glob(directory + os.sep + "*"):
