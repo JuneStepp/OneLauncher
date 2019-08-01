@@ -22,7 +22,7 @@ LOTRO (C) 2007-2009 SNy
 
 # Basic Use
 
- Simply download the appropriate executable for you operating system and double click it!
+ Simply download the appropriate executable for your operating system and double click it!
 
 # Development Install
 
@@ -39,7 +39,7 @@ building like venv, conda, or virtualenv.
 
 -   PyInstaller (Needed to build. Can be installed with pip.
     Currently [custom development version](https://github.com/JeremyStepp/pyinstaller/archive/develop.zip) is needed)
--   pywin32 (Needed for Windows building. Can be installed with pip)
+-   pywin32-ctypes (Needed for Windows building. Can be installed with pip)
 
 # To run
 
