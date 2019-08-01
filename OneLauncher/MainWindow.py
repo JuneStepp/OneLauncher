@@ -232,9 +232,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.settings.usingTest = winWizard.getUsingTest()
             self.settings.hiResEnabled = winWizard.getHiRes()
             self.settings.app = winWizard.getApp()
-            self.settings.wineProg = winWizard.getProg()
-            self.settings.wineDebug = winWizard.getDebug()
-            self.settings.patchClient = winWizard.getPatchClient()
             self.settings.winePrefix = winWizard.getPrefix()
             self.settings.gameDir = winWizard.getGameDir()
             self.settings.SaveSettings(self.uiMain.chkSaveSettings.isChecked(),

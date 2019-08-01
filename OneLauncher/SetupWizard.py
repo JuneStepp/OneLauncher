@@ -44,16 +44,11 @@ class SetupWizard:
 
         self.homeDir = homeDir
         self.osType = osType
-        self.prefix = ""
         self.gameDir = ""
 
         self.winSetupWizard = QtWidgets.QDialog(parent, QtCore.Qt.FramelessWindowHint)
 
-        if self.osType.usingWindows:
-            uifile = resource_filename(
-                __name__, 'ui' + os.sep + 'winSetupWizardNative.ui')
-        else:
-            uifile = resource_filename(__name__, 'ui' + os.sep + 'winSetupWizard.ui')
+        uifile = resource_filename(__name__, 'ui' + os.sep + 'winSetupWizard.ui')
 
         Ui_winSetupWizard, base_class = uic.loadUiType(uifile)
         self.uiWizard = Ui_winSetupWizard()
@@ -65,134 +60,93 @@ class SetupWizard:
         qr.moveCenter(cp)
         self.winSetupWizard.move(qr.topLeft())
 
-        self.model = QtGui.QStandardItemModel(0, 3, self.winSetupWizard)
-        self.model.setHeaderData(0, QtCore.Qt.Horizontal, "Prefix")
-        self.model.setHeaderData(1, QtCore.Qt.Horizontal, "Game Directory")
-        self.model.setHeaderData(2, QtCore.Qt.Horizontal, "Game Directory")
-        self.uiWizard.tblGame.setModel(self.model)
-
-        if self.osType.usingWindows:
-            self.uiWizard.tblGame.setColumnWidth(0, 0)
-            self.uiWizard.tblGame.setColumnWidth(1, 0)
-            self.uiWizard.tblGame.setColumnWidth(2, 581)
-        else:
-            self.uiWizard.tblGame.setColumnWidth(0, 230)
-            self.uiWizard.tblGame.setColumnWidth(1, 330)
-            self.uiWizard.tblGame.setColumnWidth(2, 0)
-            self.uiWizard.cboApplication.addItem("Wine")
-            self.uiWizard.cboApplication.addItem("Crossover Games")
-            self.uiWizard.cboApplication.addItem("Crossover Office")
-
-        self.uiWizard.cboGame.addItem("Lord of the Rings Online")
-        self.uiWizard.cboGame.addItem("Lord of the Rings Online (Test)")
-        self.uiWizard.cboGame.addItem("Dungeons & Dragons Online")
-        self.uiWizard.cboGame.addItem("Dungeons & Dragons Online (Test)")
-
-        self.ClearGameTable()
+        self.uiWizard.btnFindMenu = QtWidgets.QMenu()
+        self.uiWizard.btnFindMenu.addAction(self.uiWizard.actionShowTest)
+        self.uiWizard.btnFindMenu.addAction(self.uiWizard.actionShowNormal)
+        self.uiWizard.actionShowTest.triggered.connect(self.actionShowTestSelected)
+        self.uiWizard.actionShowNormal.triggered.connect(self.actionShowNormalSelected)
+        self.uiWizard.btnFind.setMenu(self.uiWizard.btnFindMenu)
+        self.uiWizard.btnFind_2.setMenu(self.uiWizard.btnFindMenu)
 
         self.uiWizard.btnFind.clicked.connect(self.btnFindClicked)
+        self.uiWizard.btnFind_2.clicked.connect(self.btnFindClicked)
 
-        if not self.osType.usingWindows:
-            self.uiWizard.cboApplication.currentIndexChanged.connect(self.ClearGameTable)
+        self.uiWizard.btnBoxIntro.accepted.connect(self.btnBoxIntroAccepted)
+        self.uiWizard.btnBoxOptions.accepted.connect(self.btnBoxOptionsAccepted)
+        self.uiWizard.btnBoxOptions_2.accepted.connect(self.btnBoxOptionsAccepted)
 
-        self.uiWizard.cboGame.currentIndexChanged.connect(self.ClearGameTable)
-        self.uiWizard.tblGame.clicked.connect(self.GameSelected)
+        self.uiWizard.btnBoxIntro.rejected.connect(self.btnBoxRejected)
+        self.uiWizard.btnBoxOptions.rejected.connect(self.btnBoxRejected)
+        self.uiWizard.btnBoxOptions_2.rejected.connect(self.btnBoxRejected)
 
-        self.uiWizard.btnBxIntro.accepted.connect(self.btnBxIntroAccepted)
-        self.uiWizard.btnBxIntro.rejected.connect(self.btnBxIntroRejected)
-
-    def btnBxIntroAccepted(self):
+    def btnBoxIntroAccepted(self):
+        self.uiWizard.actionShowNormal.setVisible(False)
         self.uiWizard.stackedWidget.setCurrentWidget(self.uiWizard.GameFinder)
 
-    def btnBxIntroRejected(self):
+    def btnBoxOptionsAccepted(self):
+        self.winSetupWizard.accept()
+
+    def btnBoxRejected(self):
         self.winSetupWizard.reject()
 
-    def GameSelected(self):
-        self.uiWizard.btnBoxOptions.setStandardButtons(
-            QtWidgets.QDialogButtonBox.Apply | QtWidgets.QDialogButtonBox.Cancel)
+    def actionShowTestSelected(self):
+        self.uiWizard.stackedWidget.setCurrentWidget(self.uiWizard.GameFinder2)
+        self.uiWizard.actionShowNormal.setVisible(True)
+        self.uiWizard.actionShowTest.setVisible(False)
 
-        currIndex = self.uiWizard.tblGame.currentIndex()
-
-        self.prefix = toString(self.model.data(currIndex.sibling(
-            self.uiWizard.tblGame.currentIndex().row(), 0)))
-
-        gameDir1 = toString(self.model.data(currIndex.sibling(
-            self.uiWizard.tblGame.currentIndex().row(), 1)))
-        gameDir2 = toString(self.model.data(currIndex.sibling(
-            self.uiWizard.tblGame.currentIndex().row(), 2)))
-        self.gameDir = gameDir2
-
-    def ClearGameTable(self):
-        self.uiWizard.btnBoxOptions.setStandardButtons(
-            QtWidgets.QDialogButtonBox.Cancel)
-        self.model.removeRows(0, self.model.rowCount(
-            QtCore.QModelIndex()), QtCore.QModelIndex())
+    def actionShowNormalSelected(self):
+        self.uiWizard.stackedWidget.setCurrentWidget(self.uiWizard.GameFinder)
+        self.uiWizard.actionShowTest.setVisible(True)
+        self.uiWizard.actionShowNormal.setVisible(False)
 
     def btnFindClicked(self):
-        self.ClearGameTable()
-
-        if self.uiWizard.cboGame.currentIndex() == 0 or self.uiWizard.cboGame.currentIndex() == 1:
-            self.client = "lotroclient.exe"
-        else:
-            self.client = "dndclient.exe"
-
         if self.osType.usingWindows:
             startDir = "C:\\"
-            prefix = ""
-            self.trawl(os.path.join(startDir, "Program Files"),
-                       prefix, os.path.join(startDir, "Program Files"))
-            if os.path.exists(os.path.join(startDir, "Program Files (x86)")):
-                self.trawl(os.path.join(startDir, "Program Files (x86)"),
-                        prefix, os.path.join(startDir, "Program Files (x86)"))
+            for client in ["lotroclient.exe", "dndclient.exe"]:
+                self.client = client
+
+                self.trawl(os.path.join(startDir, "Program Files"),
+                           os.path.join(startDir, "Program Files"))
+                if os.path.exists(os.path.join(startDir, "Program Files (x86)")):
+                    self.trawl(os.path.join(startDir, "Program Files (x86)"),
+                            os.path.join(startDir, "Program Files (x86)"))
         else:
-            if self.uiWizard.cboApplication.currentIndex() == 0:
-                startDir = self.homeDir + ".*"
-            elif self.uiWizard.cboApplication.currentIndex() == 1:
-                startDir = self.homeDir + self.osType.settingsCXG + "/*"
-            else:
-                startDir = self.homeDir + self.osType.settingsCXO + "/*"
+            for dir in [self.homeDir + ".*", self.homeDir + self.osType.settingsCXG + "/*",
+                    self.homeDir + self.osType.settingsCXO + "/*"]:
+                startDir = dir
 
-            for name in glob.glob(startDir):
-                if os.path.isdir(name):
-                    if os.path.exists(os.path.join(name, "drive_c")):
-                        prefix = ""
+                for name in glob.glob(startDir):
+                    if os.path.isdir(name):
+                        if os.path.exists(os.path.join(name, "drive_c")):
+                            for client in ["lotroclient.exe", "dndclient.exe"]:
+                                self.client = client
 
-                        if self.osType.usingWindows:
-                            prefix = name
-                        elif self.uiWizard.cboApplication.currentIndex() == 0:
-                            prefix = name
-                        elif self.uiWizard.cboApplication.currentIndex() == 1:
-                            prefix = name.replace(
-                                self.homeDir + self.osType.settingsCXG + "/", "")
-                        else:
-                            prefix = name.replace(
-                                self.homeDir + self.osType.settingsCXO + "/", "")
+                                self.trawl(os.path.join(name, "drive_c", "Program Files"),
+                                    os.path.join(name, "drive_c", "Program Files"))
 
-                        self.trawl(os.path.join(name, "drive_c", "Program Files"),
-                            prefix, os.path.join(name, "drive_c", "Program Files"))
+                                if os.path.exists(os.path.join(name, "drive_c", "Program Files (x86)")):
+                                    self.trawl(os.path.join(name, "drive_c", "Program Files (x86)"),
+                                        os.path.join(name, "drive_c", "Program Files (x86)"))
 
-                        if os.path.exists(os.path.join(name, "drive_c", "Program Files (x86)")):
-                            self.trawl(os.path.join(name, "drive_c", "Program Files (x86)"),
-                                prefix, os.path.join(name, "drive_c", "Program Files (x86)"))
-
-    def trawl(self, path, prefix, directory):
+    def trawl(self, path, directory):
         for name in glob.glob(directory + os.sep + "*"):
             if name.lower().find(self.client) >= 0:
-                row = self.model.rowCount(QtCore.QModelIndex())
-                self.model.insertRows(row, 1, QtCore.QModelIndex())
-                self.model.setData(self.model.index(
-                    row, 0, QtCore.QModelIndex()), prefix)
-
                 dirName = os.path.dirname(name.replace(path + os.sep, ""))
 
-                self.model.setData(self.model.index(
-                    row, 1, QtCore.QModelIndex()), dirName)
-                self.model.setData(self.model.index(
-                    row, 2, QtCore.QModelIndex()), (path + os.sep + dirName))
+                if self.client == "lotroclient.exe":
+                    if "Bullroarer" in dirName:
+                        self.uiWizard.lstLOTROTest.addItem(path + os.sep + dirName)
+                    else:
+                        self.uiWizard.lstLOTRO.addItem(path + os.sep + dirName)
+                elif self.client == "dndclient.exe":
+                    if "(Preview)" in dirName:
+                        self.uiWizard.lstDDOTest.addItem(path + os.sep + dirName)
+                    else:
+                        self.uiWizard.lstDDO.addItem(path + os.sep + dirName)
 
             if os.path.isdir(name):
                 if not name.upper().endswith(os.sep + "BACKUP"):
-                    self.trawl(path, prefix, name)
+                    self.trawl(path, name)
 
     def getApp(self):
         if self.osType.usingWindows:
@@ -218,15 +172,6 @@ class SetupWizard:
 
     def getPrefix(self):
         return self.prefix
-
-    def getProg(self):
-        return "wine"
-
-    def getDebug(self):
-        return "fixme-all"
-
-    def getPatchClient(self):
-        return "patchclient.dll"
 
     def getGameDir(self):
         return self.gameDir
