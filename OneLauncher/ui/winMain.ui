@@ -352,20 +352,6 @@
     </property>
    </widget>
   </widget>
-  <action name="actionHideWinMain">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Hide Main Window</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>Verdana</family>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
-  </action>
   <action name="actionPatch">
    <property name="text">
     <string>Patch</string>

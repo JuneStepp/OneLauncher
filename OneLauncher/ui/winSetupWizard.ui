@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>621</width>
-    <height>404</height>
+    <height>411</height>
    </rect>
   </property>
   <property name="font">
@@ -28,21 +28,21 @@
   <widget class="QStackedWidget" name="stackedWidget">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>20</y>
-     <width>591</width>
-     <height>371</height>
+     <x>10</x>
+     <y>10</y>
+     <width>601</width>
+     <height>401</height>
     </rect>
    </property>
    <property name="currentIndex">
     <number>0</number>
    </property>
    <widget class="QWidget" name="Introduction">
-    <widget class="QDialogButtonBox" name="btnBxIntro">
+    <widget class="QDialogButtonBox" name="btnBoxIntro">
      <property name="geometry">
       <rect>
        <x>390</x>
-       <y>335</y>
+       <y>354</y>
        <width>171</width>
        <height>25</height>
       </rect>
@@ -51,7 +51,7 @@
       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
     </widget>
-    <widget class="QLabel" name="label">
+    <widget class="QLabel" name="lblIntro">
      <property name="geometry">
       <rect>
        <x>16</x>
@@ -61,58 +61,35 @@
       </rect>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;OneLauncher Setup Wizard:&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;This wizard will quickly take you through the steps&lt;/p&gt;&lt;p&gt;needed to get up and running with OneLauncher. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;OneLauncher Setup Wizard:&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;This wizard will quickly take you through the steps needed to get up and running with OneLauncher. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
    </widget>
    <widget class="QWidget" name="GameFinder">
-    <widget class="QComboBox" name="cboGame">
+    <widget class="QToolButton" name="btnFind">
      <property name="geometry">
       <rect>
-       <x>0</x>
-       <y>40</y>
-       <width>350</width>
-       <height>31</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QTableView" name="tblGame">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>90</y>
-       <width>581</width>
-       <height>231</height>
-      </rect>
-     </property>
-     <property name="editTriggers">
-      <set>QAbstractItemView::NoEditTriggers</set>
-     </property>
-     <property name="selectionMode">
-      <enum>QAbstractItemView::SingleSelection</enum>
-     </property>
-     <property name="selectionBehavior">
-      <enum>QAbstractItemView::SelectRows</enum>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="btnFind">
-     <property name="geometry">
-      <rect>
-       <x>395</x>
-       <y>22</y>
-       <width>130</width>
-       <height>30</height>
+       <x>409</x>
+       <y>82</y>
+       <width>141</width>
+       <height>51</height>
       </rect>
      </property>
      <property name="text">
       <string>Find Games</string>
+     </property>
+     <property name="popupMode">
+      <enum>QToolButton::MenuButtonPopup</enum>
      </property>
     </widget>
     <widget class="QDialogButtonBox" name="btnBoxOptions">
      <property name="geometry">
       <rect>
        <x>390</x>
-       <y>335</y>
+       <y>350</y>
        <width>171</width>
        <height>32</height>
       </rect>
@@ -121,47 +98,204 @@
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel</set>
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
     </widget>
-    <widget class="QLabel" name="lblGame">
+    <widget class="QListWidget" name="lstLOTRO">
      <property name="geometry">
       <rect>
-       <x>-125</x>
-       <y>36</y>
-       <width>120</width>
-       <height>20</height>
+       <x>80</x>
+       <y>176</y>
+       <width>491</width>
+       <height>71</height>
       </rect>
      </property>
-     <property name="text">
-      <string>Game</string>
-     </property>
     </widget>
-    <widget class="QLabel" name="lblApplication">
-     <property name="geometry">
-      <rect>
-       <x>-125</x>
-       <y>0</y>
-       <width>120</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Application</string>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="cboApplication">
+    <widget class="QLabel" name="lblGameDetection">
      <property name="geometry">
       <rect>
        <x>0</x>
-       <y>4</y>
-       <width>350</width>
-       <height>31</height>
+       <y>0</y>
+       <width>381</width>
+       <height>171</height>
       </rect>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;Game Detection:&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;This should detect any standard installations of LOTRO or DDO. Select the installations that you want to use with OneLauncher. If yours doesn't show up you can always add it manually in the settings.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+     <property name="margin">
+      <number>7</number>
+     </property>
+    </widget>
+    <widget class="QListWidget" name="lstDDO">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>266</y>
+       <width>491</width>
+       <height>71</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblLOTRO">
+     <property name="geometry">
+      <rect>
+       <x>-10</x>
+       <y>176</y>
+       <width>91</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>LOTRO</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblDDO">
+     <property name="geometry">
+      <rect>
+       <x>-10</x>
+       <y>266</y>
+       <width>91</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>DDO</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <zorder>btnFind</zorder>
+    <zorder>btnBoxOptions</zorder>
+    <zorder>lblLOTRO</zorder>
+    <zorder>lblDDO</zorder>
+    <zorder>lstLOTRO</zorder>
+    <zorder>lstDDO</zorder>
+    <zorder>lblGameDetection</zorder>
+   </widget>
+   <widget class="QWidget" name="GameFinder2">
+    <widget class="QLabel" name="lblGameDetection_2">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>381</width>
+       <height>171</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;Test Client Detection:&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;This should detect any standard test installations of LOTRO or DDO. Select the installations that you want to use with OneLauncher. If yours doesn't show up you can always add it manually in the settings.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+     <property name="margin">
+      <number>7</number>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblLOTRO_2">
+     <property name="geometry">
+      <rect>
+       <x>-10</x>
+       <y>176</y>
+       <width>91</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>LOTRO</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblDDO_2">
+     <property name="geometry">
+      <rect>
+       <x>-10</x>
+       <y>266</y>
+       <width>91</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>DDO</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QListWidget" name="lstLOTROTest">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>176</y>
+       <width>491</width>
+       <height>71</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QListWidget" name="lstDDOTest">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>266</y>
+       <width>491</width>
+       <height>71</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QToolButton" name="btnFind_2">
+     <property name="geometry">
+      <rect>
+       <x>409</x>
+       <y>82</y>
+       <width>141</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Find Games</string>
+     </property>
+     <property name="popupMode">
+      <enum>QToolButton::MenuButtonPopup</enum>
+     </property>
+    </widget>
+    <widget class="QDialogButtonBox" name="btnBoxOptions_2">
+     <property name="geometry">
+      <rect>
+       <x>390</x>
+       <y>350</y>
+       <width>171</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
     </widget>
    </widget>
   </widget>
+  <action name="actionShowTest">
+   <property name="text">
+    <string>Show test clients</string>
+   </property>
+  </action>
+  <action name="actionShowNormal">
+   <property name="text">
+    <string>Show normal clients</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
