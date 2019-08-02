@@ -109,7 +109,7 @@ class DetermineGame:
         self.pngFile = ""
         self.title = ""
 
-    def GetSettings(self, usingDND, usingTest):
+    def GetSettings(self, currentGame):
         self.configFile = os.sep + "lotro.launcherconfig"
 
         if os.name == 'mac':
@@ -119,12 +119,12 @@ class DetermineGame:
         else:
             self.__os = " - Launcher for Linux"
 
-        if usingTest:
+        if currentGame.endswith(".Test"):
             self.__test = " (Test)"
         else:
             self.__test = ""
 
-        if usingDND:
+        if currentGame.startswith("DDO"):
             self.configFileAlt = os.sep + "ddo.launcherconfig"
             self.iconFile = os.path.join("images", "DDOIcon.png")
             self.pngFile = os.path.join("images", "DDO.png")
@@ -386,7 +386,7 @@ class Realm:
         self.loginServer = ""
         self.queueURL = ""
 
-    def CheckRealm(self, useDND, baseDir, osType):
+    def CheckRealm(self, baseDir, osType):
         try:
             webservice, post = WebConnection(self.urlServerStatus)
 
@@ -428,7 +428,7 @@ class Realm:
 
 
 class WorldQueueConfig:
-    def __init__(self, urlConfigServer, usingDND, baseDir, osType, gameDir, x86):
+    def __init__(self, urlConfigServer, baseDir, osType, gameDir, x86):
         self.gameClientFilename = ""
         self.gameClientArgTemplate = ""
         self.crashreceiver = ""

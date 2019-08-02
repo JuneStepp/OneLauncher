@@ -196,7 +196,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def btnOptionsSelected(self):
         winSettings = SettingsWindow(self.settings.hiResEnabled, self.settings.app, self.settings.x86Enabled,
                                      self.settings.wineProg, self.settings.wineDebug, self.settings.patchClient,
-                                     self.settings.usingDND, self.settings.winePrefix, self.settings.gameDir,
+                                     self.settings.winePrefix, self.settings.gameDir,
                                      self.valHomeDir, self.osType, self.rootDir, self.settings, LanguageConfig,
                                       self)
 
@@ -243,7 +243,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.show()
 
     def btnSwitchGameClicked(self):
-        if self.settings.usingDND:
+        if self.settings.currentGame == "DDO":
             self.currentGame = "LOTRO"
         else: self.currentGame = "DDO"
         self.InitialSetup()
@@ -276,7 +276,7 @@ class MainWindow(QtWidgets.QMainWindow):
                         savePassword=self.uiMain.chkSavePassword.isChecked())
 
                 if self.uiMain.chkSavePassword.isChecked():
-                    if self.settings.usingDND:
+                    if self.settings.currentGame.startswith("DDO"):
                         keyring.set_password("OneLauncherDDO", self.uiMain.txtAccount.text(),
                                                 self.uiMain.txtPassword.text())
                     else:
@@ -284,7 +284,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                                 self.uiMain.txtPassword.text())
                 else:
                     try:
-                        if self.settings.usingDND:
+                        if self.settings.currentGame.startswith("DDO"):
                             keyring.delete_password("OneLauncherDDO", self.uiMain.txtAccount.text())
                         else:
                             keyring.delete_password("OneLauncherLOTRO", self.uiMain.txtAccount.text())
@@ -347,8 +347,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             tempRealm = self.dataCentre.realmList[self.uiMain.cboRealm.currentIndex(
             )]
-            tempRealm.CheckRealm(self.settings.usingDND,
-                                 self.valHomeDir, self.osType)
+            tempRealm.CheckRealm(self.valHomeDir, self.osType)
 
             if tempRealm.realmAvailable:
                 self.urlChatServer = tempRealm.urlChatServer
@@ -447,7 +446,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
                 if self.settings.savePassword:
                     self.uiMain.chkSavePassword.setChecked(True)
-                    if self.settings.usingDND:
+                    if self.settings.currentGame.startswith(DDO):
                         self.uiMain.txtPassword.setText(keyring.get_password(
                                         "OneLauncherDDO", self.settings.account))
                     else:
@@ -455,8 +454,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                         "OneLauncherLOTRO", self.settings.account))
                 else: self.uiMain.txtPassword.setFocus()
 
-        self.gameType.GetSettings(
-            self.settings.usingDND, self.settings.usingTest)
+        self.gameType.GetSettings(self.settings.currentGame)
 
         pngFile = resource_filename(
             __name__, self.gameType.pngFile.replace("\\", "/"))
@@ -468,7 +466,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowIcon(QtGui.QIcon(iconFile))
 
         #Set icon and dropdown options of switch game button acording to game running
-        if self.settings.usingDND and not self.settings.usingTest:
+        if self.settings.currentGame == "DDO":
             self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
                                         "images" + os.sep + "LOTROSwitchIcon.png")))
             self.uiMain.actionLOTROTest.setEnabled(False)
@@ -479,7 +477,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.uiMain.actionLOTRO.setVisible(False)
             self.uiMain.actionDDO.setEnabled(False)
             self.uiMain.actionDDO.setVisible(False)
-        elif self.settings.usingDND and self.settings.usingTest:
+        elif self.settings.currentGame == "DDO.Test":
             self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
                                         "images" + os.sep + "LOTROSwitchIcon.png")))
             self.uiMain.actionLOTROTest.setEnabled(False)
@@ -490,7 +488,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.uiMain.actionLOTRO.setVisible(False)
             self.uiMain.actionDDO.setEnabled(True)
             self.uiMain.actionDDO.setVisible(True)
-        elif not self.settings.usingDND and self.settings.usingTest:
+        elif self.settings.currentGame == "LOTRO.Test":
             self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
                                         "images" + os.sep + "DDOSwitchIcon.png")))
             self.uiMain.actionLOTROTest.setEnabled(False)
@@ -655,8 +653,8 @@ class MainWindowThread(QtCore.QThread):
 
     def GetWorldQueueConfig(self, urlWorldQueueServer):
         self.worldQueueConfig = WorldQueueConfig(
-            urlWorldQueueServer, self.settings.usingDND, self.baseDir, self.osType, self.settings.gameDir,
-            self.settings.x86Enabled)
+            urlWorldQueueServer, self.baseDir, self.osType,
+            self.settings.gameDir, self.settings.x86Enabled)
 
         if self.worldQueueConfig.message:
             self.ReturnLog.emit(self.worldQueueConfig.message)

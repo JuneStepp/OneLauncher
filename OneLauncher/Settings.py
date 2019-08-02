@@ -35,8 +35,7 @@ import xml.dom.minidom
 
 class Settings:
     def __init__(self, baseDir, osType):
-        self.usingDND = False
-        self.usingTest = False
+        self.currentGame = "LOTRO"
         self.settingsDir = "%s%s" % (baseDir, osType.appDir)
         self.settingsFile = "%sOneLauncher.config" % (self.settingsDir)
 
@@ -69,18 +68,7 @@ class Settings:
                 else:
                     defaultGame = useGame
 
-                if defaultGame == "LOTRO":
-                    self.usingDND = False
-                    self.usingTest = False
-                elif defaultGame == "LOTRO.Test":
-                    self.usingDND = False
-                    self.usingTest = True
-                elif defaultGame == "DDO":
-                    self.usingDND = True
-                    self.usingTest = False
-                elif defaultGame == "DDO.Test":
-                    self.usingDND = True
-                    self.usingTest = True
+                self.currentGame = defaultGame
 
                 nodes = doc.getElementsByTagName(defaultGame)[0].childNodes
                 for node in nodes:
@@ -120,13 +108,11 @@ class Settings:
                         self.patchClient = GetText(node.childNodes)
 
                 # Disables 64-bit client if it is unavailable for LOTRO
-                if (os.path.exists(self.gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe") == False
-                        and self.usingDND == False):
+                if not os.path.exists(self.gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe"):
                     self.x86Enabled = False
 
                 # Disables 64-bit client if it is unavailable for DDO
-                if (os.path.exists(self.gameDir + os.sep + "x64" + os.sep + "dndclient64.exe") == False
-                        and self.usingDND):
+                if not os.path.exists(self.gameDir + os.sep + "x64" + os.sep + "dndclient64.exe"):
                     self.x86Enabled = False
 
                 success = True
@@ -156,14 +142,7 @@ class Settings:
         if game:
             currGame = game
         else:
-            if self.usingDND:
-                currGame = "DDO"
-                if self.usingTest:
-                    currGame += ".Test"
-            else:
-                currGame = "LOTRO"
-                if self.usingTest:
-                    currGame += ".Test"
+            currGame = self.currentGame
 
         # Set default game to current game
         defaultGameNode = doc.getElementsByTagName("Default.Game")
