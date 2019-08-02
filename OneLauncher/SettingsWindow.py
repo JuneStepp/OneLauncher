@@ -35,8 +35,8 @@ from pkg_resources import resource_filename
 
 
 class SettingsWindow:
-    def __init__(self, hiRes, app, x86, wineProg, wineDebug, patchClient, usingDND,
-                 winePrefix, gameDir, homeDir, osType, rootDir, settings, LanguageConfig, parent):
+    def __init__(self, hiRes, app, x86, wineProg, wineDebug, patchClient, winePrefix, 
+                 gameDir, homeDir, osType, rootDir, settings, LanguageConfig, parent):
 
         self.homeDir = homeDir
         self.osType = osType
@@ -95,8 +95,8 @@ class SettingsWindow:
             self.uiSettings.cboGraphics.setCurrentIndex(1)
 
         # Only enables and sets up check box if 64-bit client is available
-        if (os.path.exists(gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe") and usingDND == False or
-                usingDND and os.path.exists(gameDir + os.sep + "x64" + os.sep + "dndclient64.exe")):
+        if (os.path.exists(gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe") or
+                os.path.exists(gameDir + os.sep + "x64" + os.sep + "dndclient64.exe")):
             if x86:
                 self.uiSettings.chkx86.setChecked(True)
             else:
@@ -134,8 +134,6 @@ class SettingsWindow:
             self.uiSettings.cboBottle.currentIndexChanged.connect(self.cboBottleChanged)
             self.uiSettings.cboApplication.currentIndexChanged.connect(
                 self.cboApplicationChanged)
-
-        self.usingDND = usingDND
 
     def ShowBottles(self, defaultBottle=None):
         self.uiSettings.cboBottle.clear()
@@ -216,8 +214,8 @@ class SettingsWindow:
 
     def txtGameDirChanged(self, text):
         if text != "":
-            if (os.path.exists(text + os.sep + "x64" + os.sep + "lotroclient64.exe") and self.usingDND == False or
-                    self.usingDND and os.path.exists(text + os.sep + "x64" + os.sep + "dndclient64.exe")):
+            if (os.path.exists(text + os.sep + "x64" + os.sep + "lotroclient64.exe") or
+                    os.path.exists(text + os.sep + "x64" + os.sep + "dndclient64.exe")):
                 self.uiSettings.chkx86.setEnabled(True)
             else:
                 self.uiSettings.chkx86.setEnabled(False)
