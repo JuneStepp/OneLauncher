@@ -138,7 +138,7 @@ class Settings:
 
         return success
 
-    def SaveSettings(self, saveAccountDetails, savePassword):
+    def SaveSettings(self, saveAccountDetails=None, savePassword=None, game=None):
         doc = None
 
         # Check if settings directory exists if not create
@@ -153,16 +153,17 @@ class Settings:
             settingsNode = doc.createElementNS(EMPTY_NAMESPACE, "Settings")
             doc.appendChild(settingsNode)
 
-        currGame = ""
-
-        if self.usingDND:
-            currGame = "DDO"
-            if self.usingTest:
-                currGame += ".Test"
+        if game:
+            currGame = game
         else:
-            currGame = "LOTRO"
-            if self.usingTest:
-                currGame += ".Test"
+            if self.usingDND:
+                currGame = "DDO"
+                if self.usingTest:
+                    currGame += ".Test"
+            else:
+                currGame = "LOTRO"
+                if self.usingTest:
+                    currGame += ".Test"
 
         # Set default game to current game
         defaultGameNode = doc.getElementsByTagName("Default.Game")

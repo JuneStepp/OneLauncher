@@ -109,7 +109,9 @@ Changes
 
 1.0.0 Renamed to OneLauncher, updated, improved, and redid ui. (Basically a lot of stuff)
 
-1.1 (Not finished yet)
-  -- Added window dragging
-  -- Added option to securely remember account password
-  -- Redid language selection
+1.1 (Unfinished)
+  -- Window dragging
+  -- Option to securely remember account password
+  -- Redone language selection
+  -- Redone setup wizard
+  -- Many more smaller improvements
