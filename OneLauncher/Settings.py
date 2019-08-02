@@ -41,7 +41,6 @@ class Settings:
 
     def LoadSettings(self, useGame=None):
         self.hiResEnabled = True
-        self.app = "Wine"
         self.realm = ""
         self.language = "EN"
         self.account = ""
@@ -72,9 +71,7 @@ class Settings:
 
                 nodes = doc.getElementsByTagName(defaultGame)[0].childNodes
                 for node in nodes:
-                    if node.nodeName == "Wine.Application":
-                        self.app = GetText(node.childNodes)
-                    elif node.nodeName == "Wine.Program":
+                    if node.nodeName == "Wine.Program":
                         self.wineProg = GetText(node.childNodes)
                     elif node.nodeName == "Wine.Debug":
                         self.wineDebug = GetText(node.childNodes)
@@ -117,7 +114,7 @@ class Settings:
 
                 success = True
 
-                if self.app == "Wine" and not os.path.exists(self.wineProg) and self.wineProg != "wine":
+                if not os.path.exists(self.wineProg) and self.wineProg != "wine":
                     success = "[E16] Wine executable set does not exist"
         except:
             success = False
@@ -163,10 +160,6 @@ class Settings:
         settingsNode = doc.getElementsByTagName("Settings")[0]
         gameConfigNode = doc.createElementNS(EMPTY_NAMESPACE, currGame)
         settingsNode.appendChild(gameConfigNode)
-
-        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Application")
-        tempNode.appendChild(doc.createTextNode("%s" % (self.app)))
-        gameConfigNode.appendChild(tempNode)
 
         tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Program")
         tempNode.appendChild(doc.createTextNode("%s" % (self.wineProg)))

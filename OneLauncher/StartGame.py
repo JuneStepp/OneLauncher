@@ -36,7 +36,7 @@ from pkg_resources import resource_filename
 class StartGame:
     def __init__(self, appName, x86, argTemplate, account, server, ticket,
                  chatServer, language, runDir, wineProgram, wineDebug, winePrefix,
-                 hiResEnabled, wineApp, osType, homeDir, iconFileIn, rootDir,
+                 hiResEnabled, osType, homeDir, iconFileIn, rootDir,
                  crashreceiver, DefaultUploadThrottleMbps, bugurl, authserverurl,
                  supporturl, supportserviceurl, glsticketlifetime, realmName,
                  accountText, parent):
@@ -62,10 +62,7 @@ class StartGame:
         if self.osType.usingWindows:
             self.winLog.setWindowTitle("Output")
         else:
-            if wineApp == "Wine":
-                self.winLog.setWindowTitle("Launch Game - Wine output")
-            else:
-                self.winLog.setWindowTitle("Launch Game - Crossover output")
+            self.winLog.setWindowTitle("Launch Game - Wine output")
 
         # self.uiLog.btnStart.setVisible(False)
         self.uiLog.btnStart.setText("Launcher")
@@ -95,7 +92,7 @@ class StartGame:
         if wineDebug != "":
             os.environ["WINEDEBUG"] = wineDebug
 
-        if winePrefix != "" and wineApp == "Wine":
+        if winePrefix != "":
             os.environ["WINEPREFIX"] = winePrefix
 
         self.process = QtCore.QProcess()
@@ -103,7 +100,7 @@ class StartGame:
         self.process.readyReadStandardError.connect(self.readErrors)
         self.process.finished.connect(self.resetButtons)
 
-        if wineApp == "Native":
+        if self.osType.usingWindows:
             self.command = appName
             self.process.setWorkingDirectory(runDir)
 
@@ -112,74 +109,13 @@ class StartGame:
             for arg in gameParams.split(" "):
                 self.arguments.append(arg)
 
-        elif wineApp == "Wine":
+        else:
             self.command = wineProgram
             self.process.setWorkingDirectory(runDir)
 
             self.arguments.append(appName)
 
             for arg in gameParams.split(" "):
-                self.arguments.append(arg)
-
-        elif wineApp == "CXGames":
-            if not self.osType.startCXG():
-                self.uiLog.txtLog.append(
-                    "<b>Error: Couldn't start Crossover Games</b>")
-                self.uiLog.btnSave.setEnabled(False)
-                self.uiLog.btnStart.setEnabled(False)
-
-            if self.osType.macPathCX == "":
-                tempFile = "%s%s%s" % (
-                    self.osType.globalDir, self.osType.directoryCXG, wineProgram)
-
-                if os.path.isfile(tempFile):
-                    self.command = tempFile
-                else:
-                    tempFile = "%s%s%s" % (
-                        homeDir, self.osType.directoryCXG, wineProgram)
-
-                    if os.path.isfile(tempFile):
-                        self.command = tempFile
-                    else:
-                        self.command = wineProgram
-            else:
-                self.command = "%s%s" % (self.osType.macPathCX, wineProgram)
-
-            self.process.setWorkingDirectory(runDir)
-
-            tempArg = "--bottle %s --verbose -- %s %s" % (
-                winePrefix, appName, gameParams)
-            for arg in tempArg.split(" "):
-                self.arguments.append(arg)
-        elif wineApp == "CXOffice":
-            if not self.osType.startCXO():
-                self.uiLog.txtLog.append(
-                    "<b>Error: Couldn't start Crossover</b>")
-                self.uiLog.btnSave.setEnabled(False)
-                self.uiLog.btnStart.setEnabled(False)
-
-            if self.osType.macPathCX == "":
-                tempFile = "%s%s%s" % (
-                    self.osType.globalDir, self.osType.directoryCXO, wineProgram)
-
-                if os.path.isfile(tempFile):
-                    self.command = tempFile
-                else:
-                    tempFile = "%s%s%s" % (
-                        homeDir, self.osType.directoryCXO, wineProgram)
-
-                    if os.path.isfile(tempFile):
-                        self.command = tempFile
-                    else:
-                        self.command = wineProgram
-            else:
-                self.command = "%s%s" % (self.osType.macPathCX, wineProgram)
-
-            self.process.setWorkingDirectory(runDir)
-
-            tempArg = "--bottle %s --verbose -- %s %s" % (
-                winePrefix, appName, gameParams)
-            for arg in tempArg.split(" "):
                 self.arguments.append(arg)
 
         self.uiLog.txtLog.append("Connecting to server: " + realmName)

@@ -35,7 +35,7 @@ from pkg_resources import resource_filename
 
 class PatchWindow:
     def __init__(self, urlPatchServer, prodCode, language, runDir, patchClient,
-                 wineProgram, hiResEnabled, iconFileIn, homeDir, winePrefix, wineApp,
+                 wineProgram, hiResEnabled, iconFileIn, homeDir, winePrefix,
                  osType, rootDir, parent):
 
         self.homeDir = homeDir
@@ -51,10 +51,7 @@ class PatchWindow:
         if self.osType.usingWindows:
             self.winLog.setWindowTitle("Output")
         else:
-            if wineApp == "Wine":
-                self.winLog.setWindowTitle("Patch - Wine output")
-            else:
-                self.winLog.setWindowTitle("Patch - Crossover output")
+            self.winLog.setWindowTitle("Patch - Wine output")
 
         self.uiLog.btnSave.setText("Save Log")
         self.uiLog.btnSave.setEnabled(False)
@@ -73,7 +70,7 @@ class PatchWindow:
 
         self.progressMonitor = ProgressMonitor(self.uiLog)
 
-        if winePrefix != "" and wineApp == "Wine":
+        if winePrefix != "":
             os.environ["WINEPREFIX"] = winePrefix
 
         self.process = QtCore.QProcess()
@@ -81,7 +78,7 @@ class PatchWindow:
         self.process.readyReadStandardError.connect(self.readErrors)
         self.process.finished.connect(self.processFinished)
 
-        if wineApp == "Native":
+        if self.osType.usingWindows:
             patchParams = "%s,Patch %s --language %s --productcode %s" % (patchClient, urlPatchServer, language, prodCode)
 
             if hiResEnabled:
@@ -93,7 +90,7 @@ class PatchWindow:
             for arg in patchParams.split(" "):
                 self.arguments.append(arg)
 
-        elif wineApp == "Wine":
+        else:
             patchParams = "rundll32.exe %s,Patch %s --language %s --productcode %s" % (patchClient, urlPatchServer, language, prodCode)
 
             if hiResEnabled:
@@ -104,67 +101,6 @@ class PatchWindow:
 
             for arg in patchParams.split(" "):
                 self.arguments.append(arg)
-
-        else:
-            tempArg = ("--bottle %s --cx-app rundll32.exe --verbose " +
-                       "%s,Patch %s --language %s --productcode %s") % (winePrefix, patchClient, urlPatchServer, language, prodCode)
-
-            if hiResEnabled:
-                tempArg = tempArg + " --highres"
-
-            for arg in tempArg.split(" "):
-                self.arguments.append(arg)
-
-            self.process.setWorkingDirectory(runDir)
-
-            if wineApp == "CXGames":
-                if not self.osType.startCXG():
-                    self.uiLog.txtLog.append(
-                        "<b>Error: Couldn't start Crossover Games</b>")
-                    self.uiLog.btnSave.setEnabled(False)
-                    self.uiLog.btnStart.setEnabled(False)
-
-                if self.osType.macPathCX == "":
-                    tempFile = "%s%s%s" % (
-                        self.osType.globalDir, self.osType.directoryCXG, wineProgram)
-
-                    if os.path.isfile(tempFile):
-                        self.command = tempFile
-                    else:
-                        tempFile = "%s%s%s" % (
-                            homeDir, self.osType.directoryCXG, wineProgram)
-
-                        if os.path.isfile(tempFile):
-                            self.command = tempFile
-                        else:
-                            self.command = wineProgram
-                else:
-                    self.command = "%s%s" % (
-                        self.osType.macPathCX, wineProgram)
-            elif wineApp == "CXOffice":
-                if not self.osType.startCXO():
-                    self.uiLog.txtLog.append(
-                        "<b>Error: Couldn't start Crossover</b>")
-                    self.uiLog.btnSave.setEnabled(False)
-                    self.uiLog.btnStart.setEnabled(False)
-
-                if self.osType.macPathCX == "":
-                    tempFile = "%s%s%s" % (
-                        self.osType.globalDir, self.osType.directoryCXO, wineProgram)
-
-                    if os.path.isfile(tempFile):
-                        self.command = tempFile
-                    else:
-                        tempFile = "%s%s%s" % (
-                            homeDir, self.osType.directoryCXO, wineProgram)
-
-                        if os.path.isfile(tempFile):
-                            self.command = tempFile
-                        else:
-                            self.command = wineProgram
-                else:
-                    self.command = "%s%s" % (
-                        self.osType.macPathCX, wineProgram)
 
         self.file_arguments = self.arguments.copy()
         self.file_arguments.append("--filesonly")
