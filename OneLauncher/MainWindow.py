@@ -446,7 +446,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
                 if self.settings.savePassword:
                     self.uiMain.chkSavePassword.setChecked(True)
-                    if self.settings.currentGame.startswith(DDO):
+                    if self.settings.currentGame.startswith("DDO"):
                         self.uiMain.txtPassword.setText(keyring.get_password(
                                         "OneLauncherDDO", self.settings.account))
                     else:
