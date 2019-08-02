@@ -187,22 +187,20 @@ class MainWindow(QtWidgets.QMainWindow):
         winPatch = PatchWindow(self.dataCentre.patchServer, self.worldQueueConfig.patchProductCode,
                                self.settings.language, self.settings.gameDir, self.settings.patchClient,
                                self.settings.wineProg, self.settings.hiResEnabled, self.gameType.iconFile,
-                               self.valHomeDir, self.settings.winePrefix,
-                               self.settings.app, self.osType, self.rootDir, self)
+                               self.valHomeDir, self.settings.winePrefix, self.osType, self.rootDir, self)
 
         winPatch.Run(self.app)
         self.resetFocus()
 
     def btnOptionsSelected(self):
-        winSettings = SettingsWindow(self.settings.hiResEnabled, self.settings.app, self.settings.x86Enabled,
+        winSettings = SettingsWindow(self.settings.hiResEnabled, self.settings.x86Enabled,
                                      self.settings.wineProg, self.settings.wineDebug, self.settings.patchClient,
                                      self.settings.winePrefix, self.settings.gameDir,
-                                     self.valHomeDir, self.osType, self.rootDir, self.settings, LanguageConfig,
+                                     self.valHomeDir, self.osType, self.settings, LanguageConfig,
                                       self)
 
         if winSettings.Run() == QtWidgets.QDialog.Accepted:
             self.settings.hiResEnabled = winSettings.getHiRes()
-            self.settings.app = winSettings.getApp()
             self.settings.x86Enabled = winSettings.getx86()
             self.settings.patchClient = winSettings.getPatchClient()
             self.settings.gameDir = winSettings.getGameDir()
@@ -367,7 +365,7 @@ class MainWindow(QtWidgets.QMainWindow):
                          self.worldQueueConfig.gameClientArgTemplate, self.accNumber, self.urlLoginServer,
                          self.account.ticket, self.urlChatServer, self.settings.language,
                          self.settings.gameDir, self.settings.wineProg, self.settings.wineDebug,
-                         self.settings.winePrefix, self.settings.hiResEnabled, self.settings.app,
+                         self.settings.winePrefix, self.settings.hiResEnabled,
                          self.osType, self.valHomeDir, self.gameType.iconFile, self.rootDir,
                          self.worldQueueConfig.crashreceiver, self.worldQueueConfig.DefaultUploadThrottleMbps,
                          self.worldQueueConfig.bugurl, self.worldQueueConfig.authserverurl,

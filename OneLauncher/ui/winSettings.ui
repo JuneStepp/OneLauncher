@@ -176,24 +176,11 @@
     <attribute name="title">
      <string>Wine</string>
     </attribute>
-    <widget class="QLabel" name="lblApplication">
-     <property name="geometry">
-      <rect>
-       <x>40</x>
-       <y>20</y>
-       <width>120</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Application</string>
-     </property>
-    </widget>
     <widget class="QLabel" name="lblPrefix">
      <property name="geometry">
       <rect>
        <x>41</x>
-       <y>95</y>
+       <y>50</y>
        <width>101</width>
        <height>23</height>
       </rect>
@@ -218,36 +205,13 @@
       <string>Wine Program</string>
      </property>
     </widget>
-    <widget class="QComboBox" name="cboApplication">
-     <property name="geometry">
-      <rect>
-       <x>150</x>
-       <y>10</y>
-       <width>300</width>
-       <height>33</height>
-      </rect>
-     </property>
-    </widget>
     <widget class="QLineEdit" name="txtDebug">
      <property name="geometry">
       <rect>
        <x>150</x>
-       <y>50</y>
+       <y>5</y>
        <width>300</width>
        <height>31</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="cboBottle">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>150</x>
-       <y>90</y>
-       <width>300</width>
-       <height>33</height>
       </rect>
      </property>
     </widget>
@@ -255,7 +219,7 @@
      <property name="geometry">
       <rect>
        <x>39</x>
-       <y>57</y>
+       <y>12</y>
        <width>101</width>
        <height>23</height>
       </rect>
@@ -271,7 +235,7 @@
      <property name="geometry">
       <rect>
        <x>150</x>
-       <y>91</y>
+       <y>46</y>
        <width>261</width>
        <height>31</height>
       </rect>
@@ -287,24 +251,11 @@
       </rect>
      </property>
     </widget>
-    <widget class="QPushButton" name="btnCheckPrefix">
-     <property name="geometry">
-      <rect>
-       <x>150</x>
-       <y>131</y>
-       <width>301</width>
-       <height>25</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Check Prefix</string>
-     </property>
-    </widget>
     <widget class="QToolButton" name="btnPrefixDir">
      <property name="geometry">
       <rect>
        <x>414</x>
-       <y>92</y>
+       <y>47</y>
        <width>36</width>
        <height>30</height>
       </rect>

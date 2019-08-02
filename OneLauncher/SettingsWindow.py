@@ -28,23 +28,19 @@
 ###########################################################################
 from qtpy import QtCore, QtGui, QtWidgets, uic
 from .OneLauncherUtils import DetermineOS
-from .CheckConfig import CheckConfig
 import os.path
 import glob
 from pkg_resources import resource_filename
 
 
 class SettingsWindow:
-    def __init__(self, hiRes, app, x86, wineProg, wineDebug, patchClient, winePrefix, 
-                 gameDir, homeDir, osType, rootDir, settings, LanguageConfig, parent):
+    def __init__(self, hiRes, x86, wineProg, wineDebug, patchClient, winePrefix,
+                 gameDir, homeDir, osType, settings, LanguageConfig, parent):
 
         self.homeDir = homeDir
         self.osType = osType
-        self.app = app
         self.winePrefix = winePrefix
-        self.rootDir = rootDir
         self.settings = settings
-        self.parent = parent
         self.LanguageConfig = LanguageConfig
 
         self.winSettings = QtWidgets.QDialog(parent, QtCore.Qt.FramelessWindowHint)
@@ -56,29 +52,11 @@ class SettingsWindow:
         self.uiSettings.setupUi(self.winSettings)
 
         if not self.osType.usingWindows:
-            self.uiSettings.cboApplication.addItem("Wine")
-            self.uiSettings.cboApplication.addItem("Crossover Games")
-            self.uiSettings.cboApplication.addItem("Crossover Office")
             self.uiSettings.txtPrefix.setText(winePrefix)
             self.uiSettings.txtDebug.setText(wineDebug)
             self.uiSettings.txtProgram.setText(wineProg)
             self.uiSettings.txtProgram.setVisible(False)
             self.uiSettings.lblProgram.setVisible(False)
-
-            if app == "Wine":
-                self.uiSettings.lblPrefix.setText("WINEPREFIX")
-                self.uiSettings.txtPrefix.setVisible(True)
-                self.uiSettings.cboBottle.setVisible(False)
-                self.uiSettings.cboApplication.setCurrentIndex(0)
-            else:
-                self.uiSettings.lblPrefix.setText("Bottle")
-                if app == "CXGames":
-                    self.uiSettings.cboApplication.setCurrentIndex(1)
-                else:
-                    self.uiSettings.cboApplication.setCurrentIndex(2)
-                self.uiSettings.txtPrefix.setVisible(False)
-                self.uiSettings.cboBottle.setVisible(True)
-                self.ShowBottles(winePrefix)
         else: self.uiSettings.tabWidget.removeTab(1)
 
         self.uiSettings.txtGameDir.setText(gameDir)
@@ -122,60 +100,8 @@ class SettingsWindow:
         self.uiSettings.chkAdvanced.clicked.connect(self.chkAdvancedClicked)
 
         if not self.osType.usingWindows:
-            if self.app == "Wine":
-                self.uiSettings.btnCheckPrefix.setText("Check Prefix")
-            else:
-                self.uiSettings.btnCheckPrefix.setText("Check Bottle")
-
-            self.uiSettings.btnCheckPrefix.clicked.connect(self.btnCheckPrefixClicked)
             self.uiSettings.btnPrefixDir.clicked.connect(self.btnPrefixDirClicked)
             self.uiSettings.txtPrefix.textChanged.connect(self.txtPrefixChanged)
-            self.uiSettings.cboBottle.currentIndexChanged.connect(self.cboBottleChanged)
-            self.uiSettings.cboBottle.currentIndexChanged.connect(self.cboBottleChanged)
-            self.uiSettings.cboApplication.currentIndexChanged.connect(
-                self.cboApplicationChanged)
-
-    def ShowBottles(self, defaultBottle=None):
-        self.uiSettings.cboBottle.clear()
-
-        tempdir = self.homeDir
-
-        if self.uiSettings.cboApplication.currentIndex() == 1:
-            tempdir += self.osType.settingsCXG
-        else:
-            tempdir += self.osType.settingsCXO
-
-        currPos = 0
-
-        for name in glob.glob("%s/*" % (tempdir)):
-            if os.path.exists(name + "/drive_c"):
-                tempBottle = name.replace(tempdir + "/", "")
-                self.uiSettings.cboBottle.addItem(tempBottle)
-                if tempBottle == defaultBottle:
-                    self.uiSettings.cboBottle.setCurrentIndex(currPos)
-                currPos += 1
-
-    def cboApplicationChanged(self):
-        if self.uiSettings.cboApplication.currentIndex() == 0:
-            self.uiSettings.lblPrefix.setText("WINEPREFIX")
-            self.uiSettings.txtPrefix.setVisible(True)
-            self.uiSettings.btnPrefixDir.setVisible(True)
-            self.uiSettings.cboBottle.setVisible(False)
-            self.uiSettings.btnCheckPrefix.setText("Check Prefix")
-            self.winePrefix = self.uiSettings.txtPrefix.text()
-
-        else:
-            self.uiSettings.lblPrefix.setText("Bottle")
-            self.uiSettings.txtPrefix.setVisible(False)
-            self.uiSettings.btnPrefixDir.setVisible(False)
-            self.uiSettings.cboBottle.setVisible(True)
-            self.ShowBottles()
-            self.uiSettings.btnCheckPrefix.setText("Check Bottle")
-            if self.uiSettings.cboBottle.currentText() == "":
-                self.winePrefix = ""
-
-    def cboBottleChanged(self):
-        self.winePrefix = self.winSettings.cboBottle.currentText()
 
     def chkAdvancedClicked(self):
         if self.osType.usingWindows:
@@ -246,12 +172,6 @@ class SettingsWindow:
     def txtPrefixChanged(self, text):
         self.winePrefix = text
 
-    def btnCheckPrefixClicked(self):
-        confCheck = CheckConfig(self.app, self.winePrefix, self.homeDir,
-                                self.osType, self.rootDir, self.parent)
-
-        confCheck.Run()
-
     def setLanguageButtons(self):
         #Sets up language buttons. Only buttons for available languages are enabled.
         if os.path.exists(self.uiSettings.txtGameDir.text()):
@@ -277,16 +197,6 @@ class SettingsWindow:
                 elif lang == "FR":
                     self.uiSettings.btnFR.setChecked(True)
 
-    def getApp(self):
-        if self.osType.usingWindows:
-            return "Native"
-        else:
-            if self.uiSettings.cboApplication.currentIndex() == 0:
-                return "Wine"
-            elif self.uiSettings.cboApplication.currentIndex() == 1:
-                return "CXGames"
-            else:
-                return "CXOffice"
     def getLanguage(self):
             if self.uiSettings.btnEN.isChecked():
                 return "EN"
@@ -296,10 +206,7 @@ class SettingsWindow:
                 return "FR"
 
     def getPrefix(self):
-        if self.uiSettings.cboApplication.currentIndex() == 0:
-            return self.uiSettings.txtPrefix.text()
-        else:
-            return self.uiSettings.cboBottle.currentText()
+        return self.uiSettings.txtPrefix.text()
 
     def getProg(self):
         return self.uiSettings.txtProgram.text()
