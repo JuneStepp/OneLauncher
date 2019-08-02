@@ -214,8 +214,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.settings.wineDebug = winSettings.getDebug()
                 self.settings.winePrefix = winSettings.getPrefix()
 
-            self.settings.SaveSettings(self.uiMain.chkSaveSettings.isChecked(),
-                                        self.uiMain.chkSavePassword.isChecked())
+            self.settings.SaveSettings(saveAccountDetails=self.uiMain.chkSaveSettings.isChecked(),
+                                        savePassword=self.uiMain.chkSavePassword.isChecked())
             self.resetFocus()
             self.InitialSetup()
         else:
@@ -228,15 +228,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.hide()
 
         if winWizard.Run() == QtWidgets.QDialog.Accepted:
-            self.settings.usingDND = winWizard.getUsingDND()
-            self.settings.usingTest = winWizard.getUsingTest()
-            self.settings.hiResEnabled = winWizard.getHiRes()
-            self.settings.app = winWizard.getApp()
-            self.settings.winePrefix = winWizard.getPrefix()
-            self.settings.gameDir = winWizard.getGameDir()
-            self.settings.SaveSettings(self.uiMain.chkSaveSettings.isChecked(),
-                                        self.uiMain.chkSavePassword.isChecked())
-            self.InitialSetup()
+            default_game =  winWizard.getGame()
+            if default_game:
+                game_list = ["LOTRO", "DDO", "LOTRO.Test", "DDO.Test"]
+                game_list.append(game_list.pop(game_list.index(default_game)))
+                for game in game_list:
+                    dir = winWizard.getGameDir(game)
+                    if dir:
+                        self.settings.gameDir = dir
+                        self.settings.hiResEnabled = winWizard.getHiRes(self.settings.gameDir)
+                        self.settings.SaveSettings(game=game)
+
+                self.InitialSetup()
         self.show()
 
     def btnSwitchGameClicked(self):
@@ -269,8 +272,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.settings.account = self.uiMain.txtAccount.text()
                 self.settings.realm = self.uiMain.cboRealm.currentText()
 
-                self.settings.SaveSettings(self.uiMain.chkSaveSettings.isChecked(),
-                        self.uiMain.chkSavePassword.isChecked())
+                self.settings.SaveSettings(saveAccountDetails=self.uiMain.chkSaveSettings.isChecked(),
+                        savePassword=self.uiMain.chkSavePassword.isChecked())
 
                 if self.uiMain.chkSavePassword.isChecked():
                     if self.settings.usingDND:
@@ -429,6 +432,7 @@ class MainWindow(QtWidgets.QMainWindow):
             #Checks if the user is running OneLauncher for the first time and calls the setup Wizard
             if not os.path.exists(self.settings.settingsDir):
                 self.settings_wizard_called()
+                return None
             else:
                 self.AddLog("[E01] Error loading settings")
         else:

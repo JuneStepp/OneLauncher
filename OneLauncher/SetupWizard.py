@@ -44,7 +44,6 @@ class SetupWizard:
 
         self.homeDir = homeDir
         self.osType = osType
-        self.gameDir = ""
 
         self.winSetupWizard = QtWidgets.QDialog(parent, QtCore.Qt.FramelessWindowHint)
 
@@ -148,36 +147,32 @@ class SetupWizard:
                 if not name.upper().endswith(os.sep + "BACKUP"):
                     self.trawl(path, name)
 
-    def getApp(self):
-        if self.osType.usingWindows:
-            return "Native"
-        elif self.uiWizard.cboApplication.currentIndex() == 0:
-            return "Wine"
-        elif self.uiWizard.cboApplication.currentIndex() == 1:
-            return "CXGames"
+    def getGame(self):
+        if self.uiWizard.lstLOTRO.currentItem():
+            return "LOTRO"
+        elif self.uiWizard.lstDDO.currentItem():
+            return  "DDO"
+        elif self.uiWizard.lstLOTROTest.currentItem():
+            return "LOTRO.Test"
+        elif self.uiWizard.lstDDOTest.currentItem():
+            return "DDO.Test"
         else:
-            return "CXOffice"
+            return None
 
-    def getUsingDND(self):
-        if self.uiWizard.cboGame.currentIndex() == 0 or self.uiWizard.cboGame.currentIndex() == 1:
-            return False
+    def getGameDir(self, game):
+        if game == "LOTRO" and self.uiWizard.lstLOTRO.currentItem():
+            return self.uiWizard.lstLOTRO.currentItem().text()
+        elif game == "DDO" and self.uiWizard.lstDDO.currentItem():
+            return self.uiWizard.lstDDO.currentItem().text()
+        elif game == "LOTRO.Test" and self.uiWizard.lstLOTROTest.currentItem():
+            return self.uiWizard.lstLOTROTest.currentItem().text()
+        elif game == "DDO.Test" and self.uiWizard.lstDDOTest.currentItem():
+            return self.uiWizard.lstDDOTest.currentItem().text()
         else:
-            return True
+            return None
 
-    def getUsingTest(self):
-        if self.uiWizard.cboGame.currentIndex() == 0 or self.uiWizard.cboGame.currentIndex() == 2:
-            return False
-        else:
-            return True
-
-    def getPrefix(self):
-        return self.prefix
-
-    def getGameDir(self):
-        return self.gameDir
-
-    def getHiRes(self):
-        if os.path.exists(self.gameDir + os.sep + "client_highres.dat"):
+    def getHiRes(self, gameDir):
+        if os.path.exists(gameDir + os.sep + "client_highres.dat"):
             return True
         else:
             return False
