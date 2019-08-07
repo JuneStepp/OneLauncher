@@ -105,11 +105,13 @@ class Settings:
                         self.patchClient = GetText(node.childNodes)
 
                 # Disables 64-bit client if it is unavailable for LOTRO
-                if not os.path.exists(self.gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe"):
+                if not os.path.exists(self.gameDir + os.sep + "x64" + os.sep +
+                    "lotroclient64.exe") and self.currentGame.startswith("LOTRO"):
                     self.x86Enabled = False
 
                 # Disables 64-bit client if it is unavailable for DDO
-                if not os.path.exists(self.gameDir + os.sep + "x64" + os.sep + "dndclient64.exe"):
+                if not os.path.exists(self.gameDir + os.sep + "x64" + os.sep +
+                    "dndclient64.exe") and self.currentGame.startswith("DDO"):
                     self.x86Enabled = False
 
                 success = True
