@@ -121,7 +121,8 @@ class Settings:
 
                 success = True
 
-                if not os.path.exists(self.wineProg) and self.wineProg != "wine":
+                if (not os.path.exists(self.wineProg) and self.wineProg != "wine" and
+                        not self.builtInPrefixEnabled):
                     success = "[E16] Wine executable set does not exist"
         except:
             success = False

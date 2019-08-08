@@ -37,6 +37,7 @@ from .SetupWizard import SetupWizard
 from .PatchWindow import PatchWindow
 from .StartGame import StartGame
 from .Settings import Settings
+from .Updater import BuiltInPrefix
 from .OneLauncherUtils import DetermineOS, DetermineGame, LanguageConfig
 from .OneLauncherUtils import BaseConfig, GLSDataCentre, WorldQueueConfig
 from .OneLauncherUtils import AuthenticateUser, JoinWorldQueue, GetText, WebConnection
@@ -183,7 +184,16 @@ class MainWindow(QtWidgets.QMainWindow):
         dlgAbout.exec_()
         self.resetFocus()
 
+    def manageBuiltInPrefix(self):
+        if self.settings.builtInPrefixEnabled and not self.osType.usingWindows:
+            winBuiltInPrefix = BuiltInPrefix(self.settings.settingsDir, self)
+
+            self.settings.wineProg = winBuiltInPrefix.Run()
+            self.settings.SaveSettings()
+
     def actionPatchSelected(self):
+        self.manageBuiltInPrefix()
+
         winPatch = PatchWindow(self.dataCentre.patchServer, self.worldQueueConfig.patchProductCode,
                                self.settings.language, self.settings.gameDir, self.settings.patchClient,
                                self.settings.wineProg, self.settings.hiResEnabled, self.gameType.iconFile,
@@ -362,6 +372,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.AddLog(self.account.messError)
 
     def LaunchGame(self):
+        self.manageBuiltInPrefix()
+
         game = StartGame(self.worldQueueConfig.gameClientFilename, self.settings.x86Enabled,
                          self.worldQueueConfig.gameClientArgTemplate, self.accNumber, self.urlLoginServer,
                          self.account.ticket, self.urlChatServer, self.settings.language,
