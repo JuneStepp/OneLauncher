@@ -235,6 +235,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     if dir:
                         self.settings.gameDir = dir
                         self.settings.hiResEnabled = winWizard.getHiRes(self.settings.gameDir)
+                        self.settings.winePrefix = ""
                         self.settings.SaveSettings(game=game)
 
                 self.InitialSetup()
@@ -365,8 +366,8 @@ class MainWindow(QtWidgets.QMainWindow):
                          self.worldQueueConfig.gameClientArgTemplate, self.accNumber, self.urlLoginServer,
                          self.account.ticket, self.urlChatServer, self.settings.language,
                          self.settings.gameDir, self.settings.wineProg, self.settings.wineDebug,
-                         self.settings.winePrefix, self.settings.hiResEnabled,
-                         self.osType, self.valHomeDir, self.gameType.iconFile, self.rootDir,
+                         self.settings.winePrefix, self.settings.hiResEnabled, self.settings.builtInPrefixEnabled
+                         , self.osType, self.valHomeDir, self.gameType.iconFile, self.rootDir,
                          self.worldQueueConfig.crashreceiver, self.worldQueueConfig.DefaultUploadThrottleMbps,
                          self.worldQueueConfig.bugurl, self.worldQueueConfig.authserverurl,
                          self.worldQueueConfig.supporturl, self.worldQueueConfig.supportserviceurl,
