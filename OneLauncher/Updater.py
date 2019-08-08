@@ -39,6 +39,7 @@ from pkg_resources import resource_filename
 
 class BuiltInPrefix:
     WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/4.13/wine-4.13-staging-improved-amd64.tar.xz"
+    DXVK_URL = "https://github.com/doitsujin/dxvk/releases/download/v1.3.2/dxvk-1.3.2.tar.gz"
 
     def __init__(self, settingsDir, parent):
         self.settingsDir = settingsDir
@@ -51,26 +52,38 @@ class BuiltInPrefix:
 
     #Sets wine program and downloads wine if it is not there or a new version is needed
     def wineSetup(self):
-        self.latest_wine_version = float(self.WINE_URL[57:61])
-        if os.path.exists(self.settingsDir + "wine/wine-" + str(self.latest_wine_version)):
+        self.latest_wine_version = self.WINE_URL[57:61]
+        if os.path.exists(self.settingsDir + "wine/wine-" + self.latest_wine_version):
             return (self.settingsDir + "wine/wine-" +
-                    str(self.latest_wine_version) + "/bin/wine")
+                    self.latest_wine_version + "/bin/wine")
         else:
             self.dlgDownloader.setLabelText("Downloading wine...")
             self.downloader(self.WINE_URL, self.settingsDir + "wine/wine-" +
-                            str(self.latest_wine_version) + ".tar.xz")
+                            self.latest_wine_version + ".tar.xz")
 
             self.dlgDownloader.reset()
             self.dlgDownloader.setLabelText("Extracting wine...")
             self.dlgDownloader.setValue(99)
-            self.extracter(self.settingsDir + "wine/wine-" +
-                            str(self.latest_wine_version) + ".tar.xz")
+            self.wine_extracter(self.settingsDir + "wine/wine-" +
+                            self.latest_wine_version + ".tar.xz")
             self.dlgDownloader.setValue(100)
 
             return (self.settingsDir + "wine/wine-" +
-                    str(self.latest_wine_version) + "/bin/wine")
+                    self.latest_wine_version + "/bin/wine")
 
-    #def dxvkSetup(self):
+    def dxvkSetup(self):
+        self.latest_dxvk_version = self.DXVK_URL[53:58]
+        if not os.path.exists(self.settingsDir + "wine/dxvk-" + self.latest_dxvk_version):
+            self.dlgDownloader.setLabelText("Downloading dxvk...")
+            self.downloader(self.DXVK_URL, self.settingsDir + "wine/dxvk-" +
+                            str(self.latest_dxvk_version) + ".tar.gz")
+
+            self.dlgDownloader.reset()
+            self.dlgDownloader.setLabelText("Extracting dxvk...")
+            self.dlgDownloader.setValue(99)
+            self.dxvk_extracter(self.settingsDir + "wine/dxvk-" +
+                            str(self.latest_dxvk_version) + ".tar.gz")
+            self.dlgDownloader.setValue(100)
 
     def downloader(self, url, path):
         #Downloads file from url to path and shows progress with self.handleDownloadProgress
@@ -81,7 +94,7 @@ class BuiltInPrefix:
         percent = 100 * index * frame // size
         self.dlgDownloader.setValue(percent)
 
-    def extracter(self, path):
+    def wine_extracter(self, path):
         #Extracts tar.xz file
         with lzma.open(path) as file:
             with tarfile.open(fileobj=file) as tar:
@@ -89,20 +102,39 @@ class BuiltInPrefix:
 
         #Moves files from nested directory to main one
         source_dir = (os.listdir(path[:-7]))[0]
-        move(os.path.join(path[:-7], source_dir), path[:-17])
+        move(os.path.join(path[:-7], source_dir), self.settingsDir + "wine")
         os.rmdir(path[:-7])
-        os.rename(os.path.join(path[:-17], source_dir), path[:-7])
+        os.rename(os.path.join(self.settingsDir + "wine", source_dir), path[:-7])
 
         #Removes downloaded tar.xz
         os.remove(path)
 
         #Removes old wine versions
-        for dir in os.listdir(path[:-17]):
-            if dir.startswith("wine") and not dir.endswith(str(self.latest_wine_version)):
-                rmtree(os.path.join(path[:-17], dir))
+        for dir in os.listdir(self.settingsDir + "wine"):
+            if dir.startswith("wine") and not dir.endswith(self.latest_wine_version):
+                rmtree(os.path.join(self.settingsDir + "wine", dir))
+
+    def dxvk_extracter(self, path):
+        #Extracts tar.gz file
+        with tarfile.open(path, "r:gz") as file:
+            file.extractall(path[:-7] + "_TEMP")
+
+        #Moves files from nested directory to main one
+        source_dir = (os.listdir(path[:-7] + "_TEMP"))[0]
+        move(os.path.join(path[:-7] + "_TEMP", source_dir), self.settingsDir + "wine")
+        os.rmdir(path[:-7] + "_TEMP")
+
+        #Removes downloaded tar.gz
+        os.remove(path)
+
+        #Removes old dxvk versions
+        for dir in os.listdir(self.settingsDir + "wine"):
+            if dir.startswith("dxvk") and not dir.endswith(self.latest_dxvk_version):
+                rmtree(os.path.join(self.settingsDir + "wine", dir))
 
     def Run(self):
         wineProg = self.wineSetup()
-        #self.dxvkSetup()
+        self.dlgDownloader.reset()
+        self.dxvkSetup()
         self.dlgDownloader.close()
         return wineProg
