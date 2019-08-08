@@ -48,7 +48,8 @@ class Settings:
         self.wineDebug = "fixme-all"
         self.patchClient = "patchclient.dll"
         self.focusAccount = True
-        self.winePrefix = os.environ.get('WINEPREFIX')
+        self.winePrefix = self.settingsDir + "wine/prefix"
+        self.builtInPrefixEnabled = True
         self.gameDir = ""
         self.x86Enabled = False
         self.savePassword = False
@@ -76,7 +77,11 @@ class Settings:
                     elif node.nodeName == "Wine.Debug":
                         self.wineDebug = GetText(node.childNodes)
                     elif node.nodeName == "Wine.Prefix":
-                        self.winePrefix = GetText(node.childNodes)
+                        winePrefix = GetText(node.childNodes)
+                        #Checks if prefix is set to built in wine prefix
+                        if winePrefix != self.winePrefix:
+                            self.winePrefix = winePrefix
+                            self.builtInPrefixEnabled = False
                     elif node.nodeName == "HiRes":
                         if GetText(node.childNodes) == "True":
                             self.hiResEnabled = True
@@ -129,6 +134,8 @@ class Settings:
         # Check if settings directory exists if not create
         if not os.path.exists(self.settingsDir):
             os.mkdir(self.settingsDir)
+        os.makedirs(self.settingsDir + "wine/prefix", exist_ok=True)
+
 
         # Check if settings file exists if not create new settings XML
         if os.path.exists(self.settingsFile):
