@@ -189,7 +189,8 @@ class MainWindow(QtWidgets.QMainWindow):
             winBuiltInPrefix = BuiltInPrefix(self.settings.settingsDir, self)
 
             self.settings.wineProg = winBuiltInPrefix.Run()
-            self.settings.SaveSettings()
+            self.settings.SaveSettings(saveAccountDetails=self.uiMain.chkSaveSettings.isChecked(),
+                                        savePassword=self.uiMain.chkSavePassword.isChecked())
 
     def actionPatchSelected(self):
         self.manageBuiltInPrefix()
