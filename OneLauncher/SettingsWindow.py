@@ -57,6 +57,9 @@ class SettingsWindow:
             self.uiSettings.txtProgram.setText(wineProg)
             self.uiSettings.txtProgram.setVisible(False)
             self.uiSettings.lblProgram.setVisible(False)
+            self.uiSettings.txtPrefix.setVisible(False)
+            self.uiSettings.lblPrefix.setVisible(False)
+            self.uiSettings.btnPrefixDir.setVisible(False)
         else: self.uiSettings.tabWidget.removeTab(1)
 
         self.uiSettings.txtGameDir.setText(gameDir)
@@ -117,11 +120,17 @@ class SettingsWindow:
                 self.uiSettings.txtPatchClient.setVisible(True)
                 self.uiSettings.lblProgram.setVisible(True)
                 self.uiSettings.lblPatchClient.setVisible(True)
+                self.uiSettings.txtPrefix.setVisible(True)
+                self.uiSettings.lblPrefix.setVisible(True)
+                self.uiSettings.btnPrefixDir.setVisible(True)
             else:
                 self.uiSettings.txtProgram.setVisible(False)
                 self.uiSettings.txtPatchClient.setVisible(False)
                 self.uiSettings.lblProgram.setVisible(False)
                 self.uiSettings.lblPatchClient.setVisible(False)
+                self.uiSettings.txtPrefix.setVisible(False)
+                self.uiSettings.lblPrefix.setVisible(False)
+                self.uiSettings.btnPrefixDir.setVisible(False)
 
     def btnGameDirClicked(self):
         tempdir = self.uiSettings.txtGameDir.text()
