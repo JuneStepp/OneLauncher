@@ -225,6 +225,5 @@ class Settings:
                 gameConfigNode.appendChild(tempNode)
 
         # write new settings file
-        f = open(self.settingsFile, 'w')
-        f.write(doc.toxml())
-        f.close()
+        with open(self.settingsFile, 'w') as file:
+            file.write(doc.toxml())
