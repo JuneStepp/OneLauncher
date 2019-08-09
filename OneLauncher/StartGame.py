@@ -105,7 +105,6 @@ class StartGame:
 
         else:
             processEnviroment = QtCore.QProcessEnvironment.systemEnvironment()
-            self.process.setProcessEnvironment(processEnviroment)
             
             if wineDebug != "":
                 processEnviroment.insert("WINEDEBUG", wineDebug)
@@ -132,6 +131,8 @@ class StartGame:
 
                 #Adds dll overrides for directx, so dxvk is used instead of wine3d
                 processEnviroment.insert("WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10=n")
+
+            self.process.setProcessEnvironment(processEnviroment)
 
         self.uiLog.txtLog.append("Connecting to server: " + realmName)
         self.uiLog.txtLog.append("Account: " + accountText)
