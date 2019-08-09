@@ -199,9 +199,8 @@ class GLSDataCentre:
             tempxml = string_decode(webresp.read())
 
             filename = "%s%sGLSDataCenter.config" % (baseDir, osType.appDir)
-            outfile = uopen(filename, "w", "utf-8")
-            outfile.write(tempxml)
-            outfile.close()
+            with uopen(filename, "w", "utf-8") as outfile:
+                outfile.write(tempxml)
 
             if tempxml == "":
                 self.loadSuccess = False
@@ -271,9 +270,8 @@ class Realm:
             tempxml = string_decode(webresp.read())
 
             filename = "%s%sserver.config" % (baseDir, osType.appDir)
-            outfile = uopen(filename, "w", "utf-8")
-            outfile.write(tempxml)
-            outfile.close()
+            with uopen(filename, "w", "utf-8") as outfile:
+                outfile.write(tempxml)
 
             if tempxml == "":
                 self.realmAvailable = False
@@ -328,9 +326,8 @@ class WorldQueueConfig:
             tempxml = string_decode(webresp.read())
 
             filename = "%s%slauncher.config" % (baseDir, osType.appDir)
-            outfile = uopen(filename, "w", "utf-8")
-            outfile.write(tempxml)
-            outfile.close()
+            with uopen(filename, "w", "utf-8") as outfile:
+                outfile.write(tempxml)
 
             if tempxml == "":
                 self.loadSuccess = False
@@ -387,9 +384,8 @@ class WorldQueueConfig:
             for filename in filenames:
                 filepath = (gameDir + os.sep + filename)
                 if os.path.exists(filepath):
-                    infile = uopen(filepath, "r", "utf-8")
-                    tempxml = infile.read()
-                    infile.close()
+                    with uopen(filepath, "r", "utf-8") as infile:
+                        tempxml = infile.read()
                     doc = xml.dom.minidom.parseString(tempxml)
                     nodes = doc.getElementsByTagName("appSettings")[0].childNodes
 
@@ -456,9 +452,8 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
             tempxml = string_decode(webresp.read())
 
             filename = "%s%sGLSAuthServer.config" % (baseDir, osType.appDir)
-            outfile = uopen(filename, "w", "utf-8")
-            outfile.write(tempxml)
-            outfile.close()
+            with uopen(filename, "w", "utf-8") as outfile:
+                outfile.write(tempxml)
 
             if tempxml == "":
                 self.messError = "[E08] Server not found - may be down"
@@ -526,9 +521,8 @@ class JoinWorldQueue:
             tempxml = string_decode(webresp.read())
 
             filename = "%s%sWorldQueue.config" % (baseDir, osType.appDir)
-            outfile = uopen(filename, "w", "utf-8")
-            outfile.write(tempxml)
-            outfile.close()
+            with uopen(filename, "w", "utf-8") as outfile:
+                outfile.write(tempxml)
 
             if tempxml == "":
                 self.joinSuccess = False

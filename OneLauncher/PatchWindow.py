@@ -142,9 +142,8 @@ class PatchWindow:
             self.winLog, "Save log file", self.homeDir)[0]
 
         if filename != "":
-            outfile = open(filename, "w")
-            outfile.write(self.uiLog.txtLog.toPlainText())
-            outfile.close()
+            with open(filename, "w") as outfile:
+                outfile.write(self.uiLog.txtLog.toPlainText())
 
     def processFinished(self, exitCode, exitStatus):
         if self.aborted:
