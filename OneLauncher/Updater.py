@@ -33,7 +33,7 @@ import tarfile
 from contextlib import closing
 from shutil import move, rmtree
 
-import os
+import os, errno
 from qtpy import QtCore, QtWidgets, uic
 from pkg_resources import resource_filename
 
@@ -41,8 +41,9 @@ class BuiltInPrefix:
     WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/4.13/wine-4.13-staging-improved-amd64.tar.xz"
     DXVK_URL = "https://github.com/doitsujin/dxvk/releases/download/v1.3.2/dxvk-1.3.2.tar.gz"
 
-    def __init__(self, settingsDir, parent):
+    def __init__(self, settingsDir, winePrefix, parent):
         self.settingsDir = settingsDir
+        self.winePrefix = winePrefix
 
         self.dlgDownloader = QtWidgets.QProgressDialog("Checking for updates...", "",
                                         0, 100, parent, QtCore.Qt.FramelessWindowHint)
@@ -53,19 +54,18 @@ class BuiltInPrefix:
     #Sets wine program and downloads wine if it is not there or a new version is needed
     def wineSetup(self):
         self.latest_wine_version = self.WINE_URL[57:61]
-        if os.path.exists(self.settingsDir + "wine/wine-" + self.latest_wine_version):
-            return (self.settingsDir + "wine/wine-" +
-                    self.latest_wine_version + "/bin/wine")
+        latest_wine_path = self.settingsDir + "wine/wine-" + self.latest_wine_version
+
+        if os.path.exists(latest_wine_path):
+            return (latest_wine_path + "/bin/wine")
         else:
             self.dlgDownloader.setLabelText("Downloading wine...")
-            self.downloader(self.WINE_URL, self.settingsDir + "wine/wine-" +
-                            self.latest_wine_version + ".tar.xz")
+            self.downloader(self.WINE_URL, latest_wine_path + ".tar.xz")
 
             self.dlgDownloader.reset()
             self.dlgDownloader.setLabelText("Extracting wine...")
             self.dlgDownloader.setValue(99)
-            self.wine_extracter(self.settingsDir + "wine/wine-" +
-                            self.latest_wine_version + ".tar.xz")
+            self.wine_extracter(latest_wine_path + ".tar.xz")
             self.dlgDownloader.setValue(100)
 
             return (self.settingsDir + "wine/wine-" +
@@ -73,17 +73,23 @@ class BuiltInPrefix:
 
     def dxvkSetup(self):
         self.latest_dxvk_version = self.DXVK_URL[53:58]
-        if not os.path.exists(self.settingsDir + "wine/dxvk-" + self.latest_dxvk_version):
+        self.latest_dxvk_path = (self.settingsDir + "wine/dxvk-" +
+                                    self.latest_dxvk_version)
+
+        if not os.path.exists(self.latest_dxvk_path):
             self.dlgDownloader.setLabelText("Downloading dxvk...")
-            self.downloader(self.DXVK_URL, self.settingsDir + "wine/dxvk-" +
-                            str(self.latest_dxvk_version) + ".tar.gz")
+            self.downloader(self.DXVK_URL, self.latest_dxvk_path + ".tar.gz")
 
             self.dlgDownloader.reset()
             self.dlgDownloader.setLabelText("Extracting dxvk...")
             self.dlgDownloader.setValue(99)
-            self.dxvk_extracter(self.settingsDir + "wine/dxvk-" +
-                            str(self.latest_dxvk_version) + ".tar.gz")
+            self.dxvk_extracter(self.latest_dxvk_path + ".tar.gz")
             self.dlgDownloader.setValue(100)
+
+            self.dxvk_injecter()
+
+        elif not os.path.islink(self.winePrefix + "/drive_c/windows/system32/d3d11.dll"):
+            self.dxvk_injecter()
 
     def downloader(self, url, path):
         #Downloads file from url to path and shows progress with self.handleDownloadProgress
@@ -131,6 +137,31 @@ class BuiltInPrefix:
         for dir in os.listdir(self.settingsDir + "wine"):
             if dir.startswith("dxvk") and not dir.endswith(self.latest_dxvk_version):
                 rmtree(os.path.join(self.settingsDir + "wine", dir))
+
+    #Adds dxvk to the wine prefix
+    def dxvk_injecter(self):
+        #Makes directories for dxvk dlls in case wine prefix hasn't been run yet
+        os.makedirs(self.winePrefix + "/drive_c/windows/system32", exist_ok=True)
+        os.makedirs(self.winePrefix + "/drive_c/windows/syswow64", exist_ok=True)
+
+        dll_list = os.listdir(self.latest_dxvk_path + "/x64")
+
+        #Removes current dlls
+        for dll in dll_list:
+            try:
+                os.remove(self.winePrefix + "/drive_c/windows/system32/" + dll)
+                os.remove(self.winePrefix + "/drive_c/windows/syswow64/" + dll)
+            except OSError as error:
+                # errno.ENOENT = no such file or directory
+                if error.errno != errno.ENOENT:
+                    raise
+
+        #Symlinks dxvk dlls in to wine prefix
+        for dll in dll_list:
+            os.symlink(self.latest_dxvk_path + "/x64/" + dll, self.winePrefix +
+                                                "/drive_c/windows/system32/" + dll)
+            os.symlink(self.latest_dxvk_path + "/x32/" + dll, self.winePrefix +
+                                                "/drive_c/windows/syswow64/" + dll)
 
     def Run(self):
         wineProg = self.wineSetup()

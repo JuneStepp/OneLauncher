@@ -76,10 +76,11 @@ class PatchWindow:
         self.process.finished.connect(self.processFinished)
 
         processEnviroment = QtCore.QProcessEnvironment.systemEnvironment()
-        self.process.setProcessEnvironment(processEnviroment)
 
         if winePrefix != "":
             processEnviroment.insert("WINEPREFIX", winePrefix)
+
+        self.process.setProcessEnvironment(processEnviroment)
 
         if self.osType.usingWindows:
             patchParams = "%s,Patch %s --language %s --productcode %s" % (patchClient, urlPatchServer, language, prodCode)

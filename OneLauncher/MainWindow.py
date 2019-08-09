@@ -186,7 +186,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def manageBuiltInPrefix(self):
         if self.settings.builtInPrefixEnabled and not self.osType.usingWindows:
-            winBuiltInPrefix = BuiltInPrefix(self.settings.settingsDir, self)
+            winBuiltInPrefix = BuiltInPrefix(self.settings.settingsDir,
+                                                self.settings.winePrefix, self)
 
             self.settings.wineProg = winBuiltInPrefix.Run()
             self.settings.SaveSettings(saveAccountDetails=self.uiMain.chkSaveSettings.isChecked(),
