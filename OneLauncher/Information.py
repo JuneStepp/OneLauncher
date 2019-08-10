@@ -1,5 +1,5 @@
 # coding=utf-8
-Version = "1.0.0"
+Version = "1.1"
 Description = "LOTRO/DDO Custom Launcher"
 Website = "<a href=\"https://github.com/JeremyStepp/OneLauncher\">Github.com/JeremyStepp/OneLauncher</a>"
 Author = "Jeremy Stepp"

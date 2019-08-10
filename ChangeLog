@@ -109,9 +109,13 @@ Changes
 
 1.0.0 Renamed to OneLauncher, updated, improved, and redid ui. (Basically a lot of stuff)
 
-1.1 (Unfinished)
-  -- Window dragging
-  -- Option to securely remember account password
-  -- Redone language selection
+1.1
   -- Redone setup wizard
+  -- Auto setup OneLauncher Wine prefix (In game stores should work)
+      - Built in dxvk support (Lets directx11 get used with lotro and ddo)
+      - Built in esync support
+      - Built in wine downloading (Seperate wine should still be installed for dependencies)
+  -- Option to securely remember account password
+  -- Window dragging
+  -- Redone language selection
   -- Many more smaller improvements
