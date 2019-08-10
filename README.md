@@ -23,6 +23,8 @@ LOTRO (C) 2007-2009 SNy
 # Basic Use
 
  Simply download the appropriate executable for your operating system and double click it!
+ If on Linux or Mac make sure Wine is installed, so all dependencies for the version OneLauncher
+ installs are met.
 
 # Development Install
 
@@ -65,7 +67,6 @@ None of this is set in stone, but it gives a basic idea of some of the major
  features I plan to implement. Requests, contributions, and critiques, on anything
  are always welcome.
 
--  1.1 -- Fix up setup wizard, have it come up at first start, and add auto updater for OneLauncher
 -  1.2 -- Add addon manager (plugins, themes, and abc files)
 -  1.3 -- Implement extended lua plugin api (More keyboard action interupts, ect)
--  1.4 -- Add Lutris integration, full game install from OneLauncher, and stuff like dxvk support/auto setup in own prefixes
+-  1.4 -- Full game install from OneLauncher (There was more stuff here, but I already did it)
