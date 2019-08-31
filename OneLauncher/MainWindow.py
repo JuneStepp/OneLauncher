@@ -325,7 +325,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Force a small display to ensure message above is displayed
         # as program can look like it is not responding while validating
-        for loop in range(1, 5):
+        for i in range(4):
             self.app.processEvents()
 
         self.account = AuthenticateUser(self.dataCentre.authServer, self.uiMain.txtAccount.text(),
