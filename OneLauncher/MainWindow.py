@@ -33,6 +33,7 @@ import zlib
 from qtpy import QtCore, QtGui, QtWidgets, uic
 import qdarkstyle
 from .SettingsWindow import SettingsWindow
+from .AddonManager import AddonManager
 from .SetupWizard import SetupWizard
 from .PatchWindow import PatchWindow
 from .StartGame import StartGame
@@ -86,7 +87,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Sets some widgets to WA_NoMousePropagation to avoid window dragging issues
         mouse_ignore_list = [self.uiMain.btnAbout, self.uiMain.btnExit, self.uiMain.btnLogin,
                             self.uiMain.btnMinimize, self.uiMain.btnOptions,
-                            self.uiMain.btnSwitchGame,
+                            self.uiMain.btnAddonManager, self.uiMain.btnSwitchGame,
                              self.uiMain.cboRealm, self.uiMain.chkSaveSettings]
         for widget in mouse_ignore_list:
             widget.setAttribute(QtCore.Qt.WA_NoMousePropagation)
@@ -105,6 +106,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.uiMain.btnOptions.setIcon(QtGui.QIcon(resource_filename(__name__,
                                         "images" + os.sep + "SettingsGear.png")))
         self.uiMain.btnOptions.clicked.connect(self.btnOptionsSelected)
+        self.uiMain.btnAddonManager.setIcon(QtGui.QIcon(resource_filename(__name__,
+                                        "images" + os.sep + "AddonManager.png")))
+        self.uiMain.btnAddonManager.clicked.connect(self.btnAddonManagerSelected)
         self.uiMain.btnSwitchGame.clicked.connect(self.btnSwitchGameClicked)
         self.uiMain.btnSwitchGameMenu = QtWidgets.QMenu()
         self.uiMain.btnSwitchGameMenu.addAction(self.uiMain.actionLOTROTest)
@@ -232,6 +236,12 @@ class MainWindow(QtWidgets.QMainWindow):
             if winSettings.getSetupWizardClicked():
                 self.settings_wizard_called()
             else: self.resetFocus()
+
+    def btnAddonManagerSelected(self):
+        winSettings = AddonManager(self)
+
+        winSettings.Run()
+        self.resetFocus()
 
     def settings_wizard_called(self):
         winWizard = SetupWizard(self.winMain, self.valHomeDir, self.osType, self.rootDir)

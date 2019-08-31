@@ -351,6 +351,22 @@
      <string>Remember password</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="btnAddonManager">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>10</y>
+      <width>31</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Settings&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
   </widget>
   <action name="actionPatch">
    <property name="text">
