@@ -37,7 +37,7 @@ from .SetupWizard import SetupWizard
 from .PatchWindow import PatchWindow
 from .StartGame import StartGame
 from .Settings import Settings
-from .Updater import BuiltInPrefix
+from .WinePrefix import BuiltInPrefix
 from .OneLauncherUtils import DetermineOS, DetermineGame, LanguageConfig
 from .OneLauncherUtils import BaseConfig, GLSDataCentre, WorldQueueConfig
 from .OneLauncherUtils import AuthenticateUser, JoinWorldQueue, GetText, WebConnection
