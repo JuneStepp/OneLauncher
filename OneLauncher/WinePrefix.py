@@ -38,8 +38,8 @@ from qtpy import QtCore, QtWidgets, uic
 from pkg_resources import resource_filename
 
 class BuiltInPrefix:
-    WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/4.13/wine-4.13-staging-improved-amd64.tar.xz"
-    DXVK_URL = "https://github.com/doitsujin/dxvk/releases/download/v1.3.2/dxvk-1.3.2.tar.gz"
+    WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/4.15/wine-4.15-staging-improved-amd64.tar.xz"
+    DXVK_URL = "https://github.com/doitsujin/dxvk/releases/download/v1.3.3/dxvk-1.3.3.tar.gz"
 
     def __init__(self, settingsDir, winePrefix, parent):
         self.settingsDir = settingsDir
