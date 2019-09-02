@@ -46,6 +46,7 @@ from . import Information
 from pkg_resources import resource_filename
 import keyring
 
+
 class MainWindow(QtWidgets.QMainWindow):
     app = QtWidgets.QApplication(sys.argv)
 
@@ -54,6 +55,7 @@ class MainWindow(QtWidgets.QMainWindow):
     ReturnGLSDataCentre = QtCore.Signal("PyQt_PyObject")
     ReturnWorldQueueConfig = QtCore.Signal("PyQt_PyObject")
     ReturnNews = QtCore.Signal("QString")
+
     def __init__(self):
         super().__init__()
         # Determine where module is located (needed for finding ICO & PNG files)
@@ -66,7 +68,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.rootDir = os.path.realpath(self.rootDir)
             self.rootDir = os.path.dirname(os.path.abspath(self.rootDir))
 
-        uifile = resource_filename(__name__, 'ui' + os.sep + 'winMain.ui')
+        uifile = resource_filename(__name__, "ui" + os.sep + "winMain.ui")
 
         # Create the main window and set all text so that translations are handled via gettext
         Ui_winMain, base_class = uic.loadUiType(uifile)
@@ -85,10 +87,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.dragPos = self.pos()
 
         # Sets some widgets to WA_NoMousePropagation to avoid window dragging issues
-        mouse_ignore_list = [self.uiMain.btnAbout, self.uiMain.btnExit, self.uiMain.btnLogin,
-                            self.uiMain.btnMinimize, self.uiMain.btnOptions,
-                            self.uiMain.btnAddonManager, self.uiMain.btnSwitchGame,
-                             self.uiMain.cboRealm, self.uiMain.chkSaveSettings]
+        mouse_ignore_list = [
+            self.uiMain.btnAbout,
+            self.uiMain.btnExit,
+            self.uiMain.btnLogin,
+            self.uiMain.btnMinimize,
+            self.uiMain.btnOptions,
+            self.uiMain.btnAddonManager,
+            self.uiMain.btnSwitchGame,
+            self.uiMain.cboRealm,
+            self.uiMain.chkSaveSettings,
+        ]
         for widget in mouse_ignore_list:
             widget.setAttribute(QtCore.Qt.WA_NoMousePropagation)
 
@@ -103,11 +112,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.uiMain.btnLoginMenu.addAction(self.uiMain.actionPatch)
         self.uiMain.actionPatch.triggered.connect(self.actionPatchSelected)
         self.uiMain.btnLogin.setMenu(self.uiMain.btnLoginMenu)
-        self.uiMain.btnOptions.setIcon(QtGui.QIcon(resource_filename(__name__,
-                                        "images" + os.sep + "SettingsGear.png")))
+        self.uiMain.btnOptions.setIcon(
+            QtGui.QIcon(
+                resource_filename(__name__, "images" + os.sep + "SettingsGear.png")
+            )
+        )
         self.uiMain.btnOptions.clicked.connect(self.btnOptionsSelected)
-        self.uiMain.btnAddonManager.setIcon(QtGui.QIcon(resource_filename(__name__,
-                                        "images" + os.sep + "AddonManager.png")))
+        self.uiMain.btnAddonManager.setIcon(
+            QtGui.QIcon(
+                resource_filename(__name__, "images" + os.sep + "AddonManager.png")
+            )
+        )
         self.uiMain.btnAddonManager.clicked.connect(self.btnAddonManagerSelected)
         self.uiMain.btnSwitchGame.clicked.connect(self.btnSwitchGameClicked)
         self.uiMain.btnSwitchGameMenu = QtWidgets.QMenu()
@@ -172,7 +187,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def btnAboutSelected(self):
         dlgAbout = QtWidgets.QDialog(self, QtCore.Qt.FramelessWindowHint)
 
-        uifile = resource_filename(__name__, 'ui' + os.sep + 'winAbout.ui')
+        uifile = resource_filename(__name__, "ui" + os.sep + "winAbout.ui")
 
         Ui_dlgAbout, base_class = uic.loadUiType(uifile)
         ui = Ui_dlgAbout()
@@ -190,30 +205,53 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def manageBuiltInPrefix(self):
         if self.settings.builtInPrefixEnabled and not self.osType.usingWindows:
-            winBuiltInPrefix = BuiltInPrefix(self.settings.settingsDir,
-                                                self.settings.winePrefix, self)
+            winBuiltInPrefix = BuiltInPrefix(
+                self.settings.settingsDir, self.settings.winePrefix, self
+            )
 
             self.settings.wineProg = winBuiltInPrefix.Run()
-            self.settings.SaveSettings(saveAccountDetails=self.uiMain.chkSaveSettings.isChecked(),
-                                        savePassword=self.uiMain.chkSavePassword.isChecked())
+            self.settings.SaveSettings(
+                saveAccountDetails=self.uiMain.chkSaveSettings.isChecked(),
+                savePassword=self.uiMain.chkSavePassword.isChecked(),
+            )
 
     def actionPatchSelected(self):
         self.manageBuiltInPrefix()
 
-        winPatch = PatchWindow(self.dataCentre.patchServer, self.worldQueueConfig.patchProductCode,
-                               self.settings.language, self.settings.gameDir, self.settings.patchClient,
-                               self.settings.wineProg, self.settings.hiResEnabled, self.gameType.iconFile,
-                               self.valHomeDir, self.settings.winePrefix, self.osType, self.rootDir, self)
+        winPatch = PatchWindow(
+            self.dataCentre.patchServer,
+            self.worldQueueConfig.patchProductCode,
+            self.settings.language,
+            self.settings.gameDir,
+            self.settings.patchClient,
+            self.settings.wineProg,
+            self.settings.hiResEnabled,
+            self.gameType.iconFile,
+            self.valHomeDir,
+            self.settings.winePrefix,
+            self.osType,
+            self.rootDir,
+            self,
+        )
 
         winPatch.Run(self.app)
         self.resetFocus()
 
     def btnOptionsSelected(self):
-        winSettings = SettingsWindow(self.settings.hiResEnabled, self.settings.x86Enabled,
-                                     self.settings.wineProg, self.settings.wineDebug, self.settings.patchClient,
-                                     self.settings.winePrefix, self.settings.gameDir,
-                                     self.valHomeDir, self.osType, self.settings, LanguageConfig,
-                                      self)
+        winSettings = SettingsWindow(
+            self.settings.hiResEnabled,
+            self.settings.x86Enabled,
+            self.settings.wineProg,
+            self.settings.wineDebug,
+            self.settings.patchClient,
+            self.settings.winePrefix,
+            self.settings.gameDir,
+            self.valHomeDir,
+            self.osType,
+            self.settings,
+            LanguageConfig,
+            self,
+        )
 
         if winSettings.Run() == QtWidgets.QDialog.Accepted:
             self.settings.hiResEnabled = winSettings.getHiRes()
@@ -228,27 +266,32 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.settings.wineDebug = winSettings.getDebug()
                 self.settings.winePrefix = winSettings.getPrefix()
 
-            self.settings.SaveSettings(saveAccountDetails=self.uiMain.chkSaveSettings.isChecked(),
-                                        savePassword=self.uiMain.chkSavePassword.isChecked())
+            self.settings.SaveSettings(
+                saveAccountDetails=self.uiMain.chkSaveSettings.isChecked(),
+                savePassword=self.uiMain.chkSavePassword.isChecked(),
+            )
             self.resetFocus()
             self.InitialSetup()
         else:
             if winSettings.getSetupWizardClicked():
                 self.settings_wizard_called()
-            else: self.resetFocus()
+            else:
+                self.resetFocus()
 
     def btnAddonManagerSelected(self):
-        winSettings = AddonManager(self)
+        winAddonManager = AddonManager(self.settings.currentGame, self.osType, self.settings.settingsDir, self)
 
-        winSettings.Run()
+        winAddonManager.Run()
         self.resetFocus()
 
     def settings_wizard_called(self):
-        winWizard = SetupWizard(self.winMain, self.valHomeDir, self.osType, self.rootDir)
+        winWizard = SetupWizard(
+            self.winMain, self.valHomeDir, self.osType, self.rootDir
+        )
         self.hide()
 
         if winWizard.Run() == QtWidgets.QDialog.Accepted:
-            default_game =  winWizard.getGame()
+            default_game = winWizard.getGame()
             if default_game:
                 game_list = ["LOTRO", "DDO", "LOTRO.Test", "DDO.Test"]
                 game_list.append(game_list.pop(game_list.index(default_game)))
@@ -256,7 +299,9 @@ class MainWindow(QtWidgets.QMainWindow):
                     dir = winWizard.getGameDir(game)
                     if dir:
                         self.settings.gameDir = dir
-                        self.settings.hiResEnabled = winWizard.getHiRes(self.settings.gameDir)
+                        self.settings.hiResEnabled = winWizard.getHiRes(
+                            self.settings.gameDir
+                        )
                         self.settings.winePrefix = ""
                         self.settings.SaveSettings(game=game)
 
@@ -266,7 +311,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def btnSwitchGameClicked(self):
         if self.settings.currentGame == "DDO":
             self.currentGame = "LOTRO"
-        else: self.currentGame = "DDO"
+        else:
+            self.currentGame = "DDO"
         self.InitialSetup()
 
     def SwitchToDDOTest(self):
@@ -287,28 +333,42 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def btnLoginClicked(self):
         if self.uiMain.txtAccount.text() == "" or self.uiMain.txtPassword.text() == "":
-            self.AddLog("<font color=\"Khaki\">Please enter account name and password</font>")
+            self.AddLog(
+                '<font color="Khaki">Please enter account name and password</font>'
+            )
         else:
             if self.uiMain.chkSaveSettings.isChecked():
                 self.settings.account = self.uiMain.txtAccount.text()
                 self.settings.realm = self.uiMain.cboRealm.currentText()
 
-                self.settings.SaveSettings(saveAccountDetails=self.uiMain.chkSaveSettings.isChecked(),
-                        savePassword=self.uiMain.chkSavePassword.isChecked())
+                self.settings.SaveSettings(
+                    saveAccountDetails=self.uiMain.chkSaveSettings.isChecked(),
+                    savePassword=self.uiMain.chkSavePassword.isChecked(),
+                )
 
                 if self.uiMain.chkSavePassword.isChecked():
                     if self.settings.currentGame.startswith("DDO"):
-                        keyring.set_password("OneLauncherDDO", self.uiMain.txtAccount.text(),
-                                                self.uiMain.txtPassword.text())
+                        keyring.set_password(
+                            "OneLauncherDDO",
+                            self.uiMain.txtAccount.text(),
+                            self.uiMain.txtPassword.text(),
+                        )
                     else:
-                        keyring.set_password("OneLauncherLOTRO", self.uiMain.txtAccount.text(),
-                                                self.uiMain.txtPassword.text())
+                        keyring.set_password(
+                            "OneLauncherLOTRO",
+                            self.uiMain.txtAccount.text(),
+                            self.uiMain.txtPassword.text(),
+                        )
                 else:
                     try:
                         if self.settings.currentGame.startswith("DDO"):
-                            keyring.delete_password("OneLauncherDDO", self.uiMain.txtAccount.text())
+                            keyring.delete_password(
+                                "OneLauncherDDO", self.uiMain.txtAccount.text()
+                            )
                         else:
-                            keyring.delete_password("OneLauncherLOTRO", self.uiMain.txtAccount.text())
+                            keyring.delete_password(
+                                "OneLauncherLOTRO", self.uiMain.txtAccount.text()
+                            )
                     except:
                         pass
 
@@ -328,8 +388,14 @@ class MainWindow(QtWidgets.QMainWindow):
         for i in range(4):
             self.app.processEvents()
 
-        self.account = AuthenticateUser(self.dataCentre.authServer, self.uiMain.txtAccount.text(),
-                                        self.uiMain.txtPassword.text(), self.baseConfig.gameName, self.valHomeDir, self.osType)
+        self.account = AuthenticateUser(
+            self.dataCentre.authServer,
+            self.uiMain.txtAccount.text(),
+            self.uiMain.txtPassword.text(),
+            self.baseConfig.gameName,
+            self.valHomeDir,
+            self.osType,
+        )
 
         # don't keep password longer in memory than required
         if not self.uiMain.chkSavePassword.isChecked():
@@ -341,23 +407,28 @@ class MainWindow(QtWidgets.QMainWindow):
             tempRealm = ""
 
             if len(self.account.gameList) > 1:
-                dlgChooseAccount = QtWidgets.QDialog(self, QtCore.Qt.FramelessWindowHint)
+                dlgChooseAccount = QtWidgets.QDialog(
+                    self, QtCore.Qt.FramelessWindowHint
+                )
 
                 uifile = resource_filename(
-                    __name__, 'ui' + os.sep + 'winSelectAccount.ui')
+                    __name__, "ui" + os.sep + "winSelectAccount.ui"
+                )
 
                 Ui_dlgChooseAccount, base_class = uic.loadUiType(uifile)
                 ui = Ui_dlgChooseAccount()
                 ui.setupUi(dlgChooseAccount)
                 ui.lblMessage.setText(
-                    "Multiple game accounts found\n\nPlease select the required game")
+                    "Multiple game accounts found\n\nPlease select the required game"
+                )
 
                 for game in self.account.gameList:
                     ui.comboBox.addItem(game.description)
 
                 if dlgChooseAccount.exec_() == QtWidgets.QDialog.Accepted:
-                    self.accNumber = self.account.gameList[ui.comboBox.currentIndex(
-                    )].name
+                    self.accNumber = self.account.gameList[
+                        ui.comboBox.currentIndex()
+                    ].name
                     self.resetFocus()
                 else:
                     self.resetFocus()
@@ -366,8 +437,7 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 self.accNumber = self.account.gameList[0].name
 
-            tempRealm = self.dataCentre.realmList[self.uiMain.cboRealm.currentIndex(
-            )]
+            tempRealm = self.dataCentre.realmList[self.uiMain.cboRealm.currentIndex()]
             tempRealm.CheckRealm(self.valHomeDir, self.osType)
 
             if tempRealm.realmAvailable:
@@ -386,38 +456,72 @@ class MainWindow(QtWidgets.QMainWindow):
     def LaunchGame(self):
         self.manageBuiltInPrefix()
 
-        game = StartGame(self.worldQueueConfig.gameClientFilename, self.settings.x86Enabled,
-                         self.worldQueueConfig.gameClientArgTemplate, self.accNumber, self.urlLoginServer,
-                         self.account.ticket, self.urlChatServer, self.settings.language,
-                         self.settings.gameDir, self.settings.wineProg, self.settings.wineDebug,
-                         self.settings.winePrefix, self.settings.hiResEnabled, self.settings.builtInPrefixEnabled
-                         , self.osType, self.valHomeDir, self.gameType.iconFile, self.rootDir,
-                         self.worldQueueConfig.crashreceiver, self.worldQueueConfig.DefaultUploadThrottleMbps,
-                         self.worldQueueConfig.bugurl, self.worldQueueConfig.authserverurl,
-                         self.worldQueueConfig.supporturl, self.worldQueueConfig.supportserviceurl,
-                         self.worldQueueConfig.glsticketlifetime,
-                         self.uiMain.cboRealm.currentText(),
-                         self.uiMain.txtAccount.text(), self)
+        game = StartGame(
+            self.worldQueueConfig.gameClientFilename,
+            self.settings.x86Enabled,
+            self.worldQueueConfig.gameClientArgTemplate,
+            self.accNumber,
+            self.urlLoginServer,
+            self.account.ticket,
+            self.urlChatServer,
+            self.settings.language,
+            self.settings.gameDir,
+            self.settings.wineProg,
+            self.settings.wineDebug,
+            self.settings.winePrefix,
+            self.settings.hiResEnabled,
+            self.settings.builtInPrefixEnabled,
+            self.osType,
+            self.valHomeDir,
+            self.gameType.iconFile,
+            self.rootDir,
+            self.worldQueueConfig.crashreceiver,
+            self.worldQueueConfig.DefaultUploadThrottleMbps,
+            self.worldQueueConfig.bugurl,
+            self.worldQueueConfig.authserverurl,
+            self.worldQueueConfig.supporturl,
+            self.worldQueueConfig.supportserviceurl,
+            self.worldQueueConfig.glsticketlifetime,
+            self.uiMain.cboRealm.currentText(),
+            self.uiMain.txtAccount.text(),
+            self,
+        )
         self.hide()
         game.Run()
 
     def EnterWorldQueue(self, queueURL):
-        self.worldQueue = JoinWorldQueue(self.worldQueueConfig.worldQueueParam,
-                                         self.accNumber, self.account.ticket, queueURL, self.worldQueueConfig.worldQueueURL, self.valHomeDir, self.osType)
+        self.worldQueue = JoinWorldQueue(
+            self.worldQueueConfig.worldQueueParam,
+            self.accNumber,
+            self.account.ticket,
+            queueURL,
+            self.worldQueueConfig.worldQueueURL,
+            self.valHomeDir,
+            self.osType,
+        )
 
         if self.worldQueue.joinSuccess:
             self.AddLog("Joined world queue")
 
             displayQueueing = True
 
-            while self.worldQueue.number > self.worldQueue.serving and self.worldQueue.joinSuccess:
+            while (
+                self.worldQueue.number > self.worldQueue.serving
+                and self.worldQueue.joinSuccess
+            ):
                 if displayQueueing:
                     self.AddLog("Currently queueing, please wait...")
                     displayQueueing = False
 
-                self.worldQueue = JoinWorldQueue(self.worldQueueConfig.worldQueueParam,
-                                                 self.accNumber, self.account.ticket, queueURL, self.worldQueueConfig.worldQueueURL,
-                                                 self.valHomeDir, self.osType)
+                self.worldQueue = JoinWorldQueue(
+                    self.worldQueueConfig.worldQueueParam,
+                    self.accNumber,
+                    self.account.ticket,
+                    queueURL,
+                    self.worldQueueConfig.worldQueueURL,
+                    self.valHomeDir,
+                    self.osType,
+                )
 
                 if not self.worldQueue.joinSuccess:
                     self.AddLog("[E10] Error getting realm status")
@@ -451,7 +555,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if settings_load_success and settings_load_success != True:
             self.AddLog(settings_load_success)
         elif not settings_load_success:
-            #Checks if the user is running OneLauncher for the first time and calls the setup Wizard
+            # Checks if the user is running OneLauncher for the first time and calls the setup Wizard
             if not os.path.exists(self.settings.settingsDir):
                 self.settings_wizard_called()
                 return None
@@ -470,28 +574,40 @@ class MainWindow(QtWidgets.QMainWindow):
                 if self.settings.savePassword:
                     self.uiMain.chkSavePassword.setChecked(True)
                     if self.settings.currentGame.startswith("DDO"):
-                        self.uiMain.txtPassword.setText(keyring.get_password(
-                                        "OneLauncherDDO", self.settings.account))
+                        self.uiMain.txtPassword.setText(
+                            keyring.get_password(
+                                "OneLauncherDDO", self.settings.account
+                            )
+                        )
                     else:
-                        self.uiMain.txtPassword.setText(keyring.get_password(
-                                        "OneLauncherLOTRO", self.settings.account))
-                else: self.uiMain.txtPassword.setFocus()
+                        self.uiMain.txtPassword.setText(
+                            keyring.get_password(
+                                "OneLauncherLOTRO", self.settings.account
+                            )
+                        )
+                else:
+                    self.uiMain.txtPassword.setFocus()
 
         self.gameType.GetSettings(self.settings.currentGame)
 
-        pngFile = resource_filename(
-            __name__, self.gameType.pngFile.replace("\\", "/"))
+        pngFile = resource_filename(__name__, self.gameType.pngFile.replace("\\", "/"))
         iconFile = resource_filename(
-            __name__, self.gameType.iconFile.replace("\\", "/"))
+            __name__, self.gameType.iconFile.replace("\\", "/")
+        )
 
         self.uiMain.imgMain.setPixmap(QtGui.QPixmap(pngFile))
         self.setWindowTitle(self.gameType.title)
         self.setWindowIcon(QtGui.QIcon(iconFile))
 
-        #Set icon and dropdown options of switch game button acording to game running
+        # Set icon and dropdown options of switch game button acording to game running
         if self.settings.currentGame == "DDO":
-            self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
-                                        "images" + os.sep + "LOTROSwitchIcon.png")))
+            self.uiMain.btnSwitchGame.setIcon(
+                QtGui.QIcon(
+                    resource_filename(
+                        __name__, "images" + os.sep + "LOTROSwitchIcon.png"
+                    )
+                )
+            )
             self.uiMain.actionLOTROTest.setEnabled(False)
             self.uiMain.actionLOTROTest.setVisible(False)
             self.uiMain.actionDDOTest.setEnabled(True)
@@ -501,8 +617,13 @@ class MainWindow(QtWidgets.QMainWindow):
             self.uiMain.actionDDO.setEnabled(False)
             self.uiMain.actionDDO.setVisible(False)
         elif self.settings.currentGame == "DDO.Test":
-            self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
-                                        "images" + os.sep + "LOTROSwitchIcon.png")))
+            self.uiMain.btnSwitchGame.setIcon(
+                QtGui.QIcon(
+                    resource_filename(
+                        __name__, "images" + os.sep + "LOTROSwitchIcon.png"
+                    )
+                )
+            )
             self.uiMain.actionLOTROTest.setEnabled(False)
             self.uiMain.actionLOTROTest.setVisible(False)
             self.uiMain.actionDDOTest.setEnabled(False)
@@ -512,8 +633,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self.uiMain.actionDDO.setEnabled(True)
             self.uiMain.actionDDO.setVisible(True)
         elif self.settings.currentGame == "LOTRO.Test":
-            self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
-                                        "images" + os.sep + "DDOSwitchIcon.png")))
+            self.uiMain.btnSwitchGame.setIcon(
+                QtGui.QIcon(
+                    resource_filename(__name__, "images" + os.sep + "DDOSwitchIcon.png")
+                )
+            )
             self.uiMain.actionLOTROTest.setEnabled(False)
             self.uiMain.actionLOTROTest.setVisible(False)
             self.uiMain.actionDDOTest.setEnabled(False)
@@ -523,8 +647,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self.uiMain.actionDDO.setEnabled(False)
             self.uiMain.actionDDO.setVisible(False)
         else:
-            self.uiMain.btnSwitchGame.setIcon(QtGui.QIcon(resource_filename(__name__,
-                                        "images" + os.sep + "DDOSwitchIcon.png")))
+            self.uiMain.btnSwitchGame.setIcon(
+                QtGui.QIcon(
+                    resource_filename(__name__, "images" + os.sep + "DDOSwitchIcon.png")
+                )
+            )
             self.uiMain.actionDDOTest.setEnabled(False)
             self.uiMain.actionDDOTest.setVisible(False)
             self.uiMain.actionLOTROTest.setEnabled(True)
@@ -534,20 +661,29 @@ class MainWindow(QtWidgets.QMainWindow):
             self.uiMain.actionDDO.setEnabled(False)
             self.uiMain.actionDDO.setVisible(False)
 
-        self.configFile = "%s%s" % (
-            self.settings.gameDir, self.gameType.configFile)
+        self.configFile = "%s%s" % (self.settings.gameDir, self.gameType.configFile)
         self.configFileAlt = "%s%s" % (
-            self.settings.gameDir, self.gameType.configFileAlt)
+            self.settings.gameDir,
+            self.gameType.configFileAlt,
+        )
         self.gameDirExists = os.path.exists(self.settings.gameDir)
 
         if not self.gameDirExists:
             self.AddLog("[E13] Game Directory not found")
 
         self.configThread = MainWindowThread()
-        self.configThread.SetUp(self.settings, self.configFile, self.configFileAlt,
-                                self.valHomeDir, self.osType, self.ReturnLog,
-                                self.ReturnBaseConfig, self.ReturnGLSDataCentre,
-                                self.ReturnWorldQueueConfig, self.ReturnNews)
+        self.configThread.SetUp(
+            self.settings,
+            self.configFile,
+            self.configFileAlt,
+            self.valHomeDir,
+            self.osType,
+            self.ReturnLog,
+            self.ReturnBaseConfig,
+            self.ReturnGLSDataCentre,
+            self.ReturnWorldQueueConfig,
+            self.ReturnNews,
+        )
         self.configThread.start()
 
     def GetBaseConfig(self, baseConfig):
@@ -589,10 +725,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.uiMain.txtFeed.setHtml(news)
 
     def GetHomeDir(self):
-        temp = os.environ.get('HOME')
+        temp = os.environ.get("HOME")
 
         if temp is None:
-            temp = os.environ.get('APPDATA')
+            temp = os.environ.get("APPDATA")
 
         if not temp.endswith(os.sep):
             temp += os.sep
@@ -608,13 +744,24 @@ class MainWindow(QtWidgets.QMainWindow):
     def AddLog(self, message):
         for line in message.splitlines():
             if line.startswith("[E"):
-                line = ("<font color=\"red\">" + message + "</font>")
+                line = '<font color="red">' + message + "</font>"
             self.uiMain.txtStatus.append(line)
 
+
 class MainWindowThread(QtCore.QThread):
-    def SetUp(self, settings, configFile, configFileAlt, baseDir,
-            osType, ReturnLog, ReturnBaseConfig,
-            ReturnGLSDataCentre, ReturnWorldQueueConfig, ReturnNews):
+    def SetUp(
+        self,
+        settings,
+        configFile,
+        configFileAlt,
+        baseDir,
+        osType,
+        ReturnLog,
+        ReturnBaseConfig,
+        ReturnGLSDataCentre,
+        ReturnWorldQueueConfig,
+        ReturnNews,
+    ):
 
         self.settings = settings
         self.configFile = configFile
@@ -649,7 +796,8 @@ class MainWindowThread(QtCore.QThread):
             self.ReturnBaseConfig.emit(self.baseConfig)
 
             self.AccessGLSDataCentre(
-                self.baseConfig.GLSDataCentreService, self.baseConfig.gameName)
+                self.baseConfig.GLSDataCentreService, self.baseConfig.gameName
+            )
         else:
             self.baseConfig = BaseConfig(self.configFileAlt)
 
@@ -657,13 +805,13 @@ class MainWindowThread(QtCore.QThread):
                 self.ReturnBaseConfig.emit(self.baseConfig)
 
                 self.AccessGLSDataCentre(
-                    self.baseConfig.GLSDataCentreService, self.baseConfig.gameName)
+                    self.baseConfig.GLSDataCentreService, self.baseConfig.gameName
+                )
             else:
                 self.ReturnLog.emit("[E03] Error reading launcher configuration file.")
 
     def AccessGLSDataCentre(self, urlGLS, gameName):
-        self.dataCentre = GLSDataCentre(
-            urlGLS, gameName, self.baseDir, self.osType)
+        self.dataCentre = GLSDataCentre(urlGLS, gameName, self.baseDir, self.osType)
 
         if self.dataCentre.loadSuccess:
             self.ReturnLog.emit("Fetched details from GLS data centre.")
@@ -676,8 +824,12 @@ class MainWindowThread(QtCore.QThread):
 
     def GetWorldQueueConfig(self, urlWorldQueueServer):
         self.worldQueueConfig = WorldQueueConfig(
-            urlWorldQueueServer, self.baseDir, self.osType,
-            self.settings.gameDir, self.settings.x86Enabled)
+            urlWorldQueueServer,
+            self.baseDir,
+            self.osType,
+            self.settings.gameDir,
+            self.settings.x86Enabled,
+        )
 
         if self.worldQueueConfig.message:
             self.ReturnLog.emit(self.worldQueueConfig.message)
@@ -694,8 +846,7 @@ class MainWindowThread(QtCore.QThread):
         try:
             href = ""
 
-            webservice, post = WebConnection(
-                self.worldQueueConfig.newsStyleSheetURL)
+            webservice, post = WebConnection(self.worldQueueConfig.newsStyleSheetURL)
 
             webservice.putrequest("GET", post)
             webservice.putheader("Accept-Encoding", "gzip")
@@ -703,7 +854,7 @@ class MainWindowThread(QtCore.QThread):
 
             webresp = webservice.getresponse()
 
-            if webresp.getheader('Content-Encoding', '') == 'gzip':
+            if webresp.getheader("Content-Encoding", "") == "gzip":
                 tempxml = zlib.decompress(webresp.read(), 16 + zlib.MAX_WBITS)
             else:
                 tempxml = webresp.read()
@@ -713,10 +864,14 @@ class MainWindowThread(QtCore.QThread):
             nodes = doc.getElementsByTagName("div")
             for node in nodes:
                 if node.nodeType == node.ELEMENT_NODE:
-                    if node.attributes.item(0).firstChild.nodeValue == "launcherNewsItemDate":
+                    if (
+                        node.attributes.item(0).firstChild.nodeValue
+                        == "launcherNewsItemDate"
+                    ):
                         timeCode = GetText(node.childNodes).strip()
-                        timeCode = timeCode.replace("\t", "").replace(
-                            ",", "").replace("-", "")
+                        timeCode = (
+                            timeCode.replace("\t", "").replace(",", "").replace("-", "")
+                        )
                         if len(timeCode) > 0:
                             timeCode = " %s" % (timeCode)
 
@@ -732,7 +887,9 @@ class MainWindowThread(QtCore.QThread):
             HTMLTEMPLATE += href.value
             HTMLTEMPLATE += '"/><base target="_blank"/></head><body><div class="launcherNewsItemsContainer" style="width:auto">'
 
-            urlNewsFeed = self.worldQueueConfig.newsFeedURL.replace("{lang}", self.settings.language.lower())
+            urlNewsFeed = self.worldQueueConfig.newsFeedURL.replace(
+                "{lang}", self.settings.language.lower()
+            )
 
             webservice, post = WebConnection(urlNewsFeed)
 
@@ -742,7 +899,7 @@ class MainWindowThread(QtCore.QThread):
 
             webresp = webservice.getresponse()
 
-            if webresp.getheader('Content-Encoding', '') == 'gzip':
+            if webresp.getheader("Content-Encoding", "") == "gzip":
                 tempxml = zlib.decompress(webresp.read(), 16 + zlib.MAX_WBITS)
             else:
                 tempxml = webresp.read()
@@ -754,9 +911,8 @@ class MainWindowThread(QtCore.QThread):
                 webservice.endheaders()
                 webresp = webservice.getresponse()
 
-                if webresp.getheader('Content-Encoding', '') == 'gzip':
-                    tempxml = zlib.decompress(
-                        webresp.read(), 16 + zlib.MAX_WBITS)
+                if webresp.getheader("Content-Encoding", "") == "gzip":
+                    tempxml = zlib.decompress(webresp.read(), 16 + zlib.MAX_WBITS)
                 else:
                     tempxml = webresp.read()
 
@@ -773,20 +929,35 @@ class MainWindowThread(QtCore.QThread):
                 for node in item.childNodes:
                     if node.nodeType == node.ELEMENT_NODE:
                         if node.nodeName == "title":
-                            title = "<font color=\"gold\"><div class=\"launcherNewsItemTitle\">%s</div></font>" % (
-                                GetText(node.childNodes))
+                            title = (
+                                '<font color="gold"><div class="launcherNewsItemTitle">%s</div></font>'
+                                % (GetText(node.childNodes))
+                            )
                         elif node.nodeName == "description":
-                            description = "<div class=\"launcherNewsItemDescription\">%s</div>" % (
-                                GetText(node.childNodes))
+                            description = (
+                                '<div class="launcherNewsItemDescription">%s</div>'
+                                % (GetText(node.childNodes))
+                            )
                         elif node.nodeName == "pubDate":
                             tempDate = GetText(node.childNodes)
-                            dispDate = "%s %s %s %s%s" % (tempDate[8:11], tempDate[5:7], tempDate[12:16],
-                                                          tempDate[17:22], timeCode)
-                            date = "<small><i><div align=\"right\"class=\"launcherNewsItemDate\">%s</div></i></small>" % (
-                                dispDate)
+                            dispDate = "%s %s %s %s%s" % (
+                                tempDate[8:11],
+                                tempDate[5:7],
+                                tempDate[12:16],
+                                tempDate[17:22],
+                                timeCode,
+                            )
+                            date = (
+                                '<small><i><div align="right"class="launcherNewsItemDate">%s</div></i></small>'
+                                % (dispDate)
+                            )
 
-                result += "<div class=\"launcherNewsItemContainer\">%s%s%s%s</div>" % (
-                    title, date, description, "<hr>")
+                result += '<div class="launcherNewsItemContainer">%s%s%s%s</div>' % (
+                    title,
+                    date,
+                    description,
+                    "<hr>",
+                )
 
             result += "</div></body></html>"
 
