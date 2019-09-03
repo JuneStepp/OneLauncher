@@ -191,6 +191,8 @@ class AddonManager:
             "tablePlugins",
             "tableThemes",
             "tableMusic",
+            "tableThemesDDO",
+            "tableThemesDDOInstalled",
         ]
 
         # Connects to addons_cache database and creates it if it does not exist
