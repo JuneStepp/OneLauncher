@@ -65,6 +65,10 @@ class AddonManager:
         self.uiAddonManager.txtLog.hide()
         self.uiAddonManager.btnLog.clicked.connect(self.btnLogClicked)
 
+        self.uiAddonManager.txtSearchBar.textChanged.connect(
+            self.txtSearchBarTextChanged
+        )
+
         self.openDB()
 
         if osType.usingWindows:
@@ -163,10 +167,8 @@ class AddonManager:
                     item.setText(GetText(node.childNodes))
                     self.uiAddonManager.tablePluginsInstalled.setItem(rows, 2, item)
 
-            c = self.conn.cursor()
-
             # Clears rows from table
-            c.execute("DELETE FROM tablePluginsInstalled")
+            self.c.execute("DELETE FROM tablePluginsInstalled")
 
             # Add contents of table to the database
             for row in range(self.uiAddonManager.tablePluginsInstalled.rowCount()):
@@ -177,7 +179,7 @@ class AddonManager:
                         values = values + ", '" + value.text() + "'"
                     else:
                         values = values + ", ''"
-                c.execute(
+                self.c.execute(
                     "INSERT INTO tablePluginsInstalled values({values})".format(
                         values=values[1:]
                     )
@@ -200,24 +202,24 @@ class AddonManager:
             self.conn = sqlite3.connect(
                 os.path.join(self.settingsDir, "addons_cache.sqlite")
             )
-            c = self.conn.cursor()
+            self.c = self.conn.cursor()
 
             for table in table_list:
-                c.execute(
-                    "CREATE TABLE {tn} ({nf} {ft})".format(
-                        tn=table, nf="Name", ft="STRING"
+                self.c.execute(
+                    "CREATE VIRTUAL TABLE {tbl_nm} USING FTS5({clmA}, {clmB}, {clmC}, {clmD}, {clmE})".format(
+                        tbl_nm=table,
+                        clmA=self.COLUMN_LIST[0],
+                        clmB=self.COLUMN_LIST[1],
+                        clmC=self.COLUMN_LIST[2],
+                        clmD=self.COLUMN_LIST[3],
+                        clmE=self.COLUMN_LIST[4],
                     )
                 )
-                for column in self.COLUMN_LIST[1:]:
-                    c.execute(
-                        "ALTER TABLE {tn} ADD COLUMN '{cn}' {ct}".format(
-                            tn=table, cn=column, ct="STRING"
-                        )
-                    )
         else:
             self.conn = sqlite3.connect(
                 os.path.join(self.settingsDir, "addons_cache.sqlite")
             )
+            self.c = self.conn.cursor()
 
     def closeDB(self):
         self.conn.commit()
@@ -240,6 +242,44 @@ class AddonManager:
         if filenames:
             for file in filenames:
                 print(file)
+
+    def txtSearchBarTextChanged(self, text):
+        if self.currentGame.startswith("LOTRO"):
+            # If in Installed tab
+            if self.uiAddonManager.tabWidget.currentIndex() == 0:
+                # If in PluginsInstalled tab
+                if self.uiAddonManager.tabWidgetInstalled.currentIndex() == 0:
+                    self.searchDB(self.uiAddonManager.tablePluginsInstalled, text)
+
+    def searchDB(self, table, text):
+        table.clearContents()
+        table.setRowCount(0)
+
+        for word in text.split():
+            search_word = "%" + word + "%"
+
+            for row in self.c.execute(
+                "SELECT * FROM {table} WHERE Author LIKE ? OR Category LIKE ? OR Name LIKE ?".format(
+                    table=table.objectName()
+                ),
+                (search_word, search_word, search_word),
+            ):
+                # Detects duplicates from multi-word search
+                if not table.findItems(row[0], QtCore.Qt.MatchExactly):
+                    # Sets items onto the visible table
+                    self.addRowToTable(table, row)
+
+    def addRowToTable(self, table, list):
+        rows = table.rowCount()
+        table.setRowCount(rows + 1)
+        for i, item in enumerate(list):
+            tbl_item = QtWidgets.QTableWidgetItem()
+
+            tbl_item.setText(item)
+            # Sets color to red if plugin is unmanaged
+            if item == "Unmanaged" and i == 1:
+                tbl_item.setForeground(QtGui.QColor("darkred"))
+            table.setItem(rows, i, tbl_item)
 
     def btnBoxActivated(self):
         self.winAddonManager.accept()
