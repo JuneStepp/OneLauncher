@@ -270,6 +270,8 @@ class AddonManager:
                     self.addRowToTable(table, row)
 
     def addRowToTable(self, table, list):
+        table.setSortingEnabled(False)
+
         rows = table.rowCount()
         table.setRowCount(rows + 1)
         for i, item in enumerate(list):
@@ -280,6 +282,8 @@ class AddonManager:
             if item == "Unmanaged" and i == 1:
                 tbl_item.setForeground(QtGui.QColor("darkred"))
             table.setItem(rows, i, tbl_item)
+
+        table.setSortingEnabled(True)
 
     def btnBoxActivated(self):
         self.winAddonManager.accept()
