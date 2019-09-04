@@ -246,19 +246,26 @@ class AddonManager:
         table.clearContents()
         table.setRowCount(0)
 
-        for word in text.split():
-            search_word = "%" + word + "%"
+        if text:
+            for word in text.split():
+                search_word = "%" + word + "%"
 
+                for row in self.c.execute(
+                    "SELECT * FROM {table} WHERE Author LIKE ? OR Category LIKE ? OR Name LIKE ?".format(
+                        table=table.objectName()
+                    ),
+                    (search_word, search_word, search_word),
+                ):
+                    # Detects duplicates from multi-word search
+                    if not table.findItems(row[0], QtCore.Qt.MatchExactly):
+                        # Sets items onto the visible table
+                        self.addRowToTable(table, row)
+        else:
+            # Shows all plugins if the search bar is empty
             for row in self.c.execute(
-                "SELECT * FROM {table} WHERE Author LIKE ? OR Category LIKE ? OR Name LIKE ?".format(
-                    table=table.objectName()
-                ),
-                (search_word, search_word, search_word),
+                "SELECT * FROM {table}".format(table=table.objectName())
             ):
-                # Detects duplicates from multi-word search
-                if not table.findItems(row[0], QtCore.Qt.MatchExactly):
-                    # Sets items onto the visible table
-                    self.addRowToTable(table, row)
+                self.addRowToTable(table, row)
 
     def addRowToTable(self, table, list):
         table.setSortingEnabled(False)
