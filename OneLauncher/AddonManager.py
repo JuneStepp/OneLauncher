@@ -136,38 +136,29 @@ class AddonManager:
 
     def addInstalledPluginstoDB(self, plugins_list, plugins_list_compendium):
         for plugin in plugins_list_compendium + plugins_list:
-            doc = xml.dom.minidom.parse(plugin)
+            items_row = [""] * 4
 
-            # Adds a row to the table
-            rows = self.uiAddonManager.tablePluginsInstalled.rowCount()
-            self.uiAddonManager.tablePluginsInstalled.setRowCount(rows + 1)
+            doc = xml.dom.minidom.parse(plugin)
 
             # Sets tag for plugin file xml search and category for unmanaged plugins
             if plugin.endswith(".plugincompendium"):
                 tag = "PluginConfig"
             else:
                 tag = "Information"
-                item = QtWidgets.QTableWidgetItem()
-                item.setForeground(QtGui.QColor("darkred"))
-                item.setText("Unmanaged")
-                self.uiAddonManager.tablePluginsInstalled.setItem(rows, 1, item)
+                items_row[1] = "Unmanaged"
 
             nodes = doc.getElementsByTagName(tag)[0].childNodes
-
             for node in nodes:
-                item = QtWidgets.QTableWidgetItem()
-
                 if node.nodeName == "Name":
-                    item.setText(GetText(node.childNodes))
-                    self.uiAddonManager.tablePluginsInstalled.setItem(rows, 0, item)
+                    items_row[0] = GetText(node.childNodes)
                 elif node.nodeName == "Author":
-                    item.setText(GetText(node.childNodes))
-                    self.uiAddonManager.tablePluginsInstalled.setItem(rows, 3, item)
+                    items_row[3] = GetText(node.childNodes)
                 elif node.nodeName == "Version":
-                    item.setText(GetText(node.childNodes))
-                    self.uiAddonManager.tablePluginsInstalled.setItem(rows, 2, item)
+                    items_row[2] = GetText(node.childNodes)
 
-            # Clears rows from table
+            self.addRowToTable(self.uiAddonManager.tablePluginsInstalled, items_row)
+
+            # Clears rows from db table
             self.c.execute("DELETE FROM tablePluginsInstalled")
 
             # Add contents of table to the database
