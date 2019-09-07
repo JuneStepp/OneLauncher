@@ -137,8 +137,11 @@ class AddonManager:
         self.addInstalledPluginstoDB(plugins_list, plugins_list_compendium)
 
     def addInstalledPluginstoDB(self, plugins_list, plugins_list_compendium):
+        # Clears rows from db table
+        self.c.execute("DELETE FROM tablePluginsInstalled")
+
         for plugin in plugins_list_compendium + plugins_list:
-            items_row = [""] * 4
+            items_row = [""] * len(self.COLUMN_LIST)
 
             doc = xml.dom.minidom.parse(plugin)
 
@@ -158,25 +161,10 @@ class AddonManager:
                 elif node.nodeName == "Version":
                     items_row[2] = GetText(node.childNodes)
 
-            self.addRowToTable(self.uiAddonManager.tablePluginsInstalled, items_row)
+            self.addRowToDB("tablePluginsInstalled", items_row)
 
-            # Clears rows from db table
-            self.c.execute("DELETE FROM tablePluginsInstalled")
-
-            # Add contents of table to the database
-            for row in range(self.uiAddonManager.tablePluginsInstalled.rowCount()):
-                values = ""
-                for column in range(len(self.COLUMN_LIST)):
-                    value = self.uiAddonManager.tablePluginsInstalled.item(row, column)
-                    if value:
-                        values = values + ", '" + value.text() + "'"
-                    else:
-                        values = values + ", ''"
-                self.c.execute(
-                    "INSERT INTO tablePluginsInstalled values({values})".format(
-                        values=values[1:]
-                    )
-                )
+        # Populate user visible table
+        self.searchDB(self.uiAddonManager.tablePluginsInstalled, "")
 
     def openDB(self):
         table_list = [
@@ -284,6 +272,18 @@ class AddonManager:
             table.setItem(rows, i, tbl_item)
 
         table.setSortingEnabled(True)
+
+    def addRowToDB(self, table, list):
+        items = ""
+        for item in list:
+            if item:
+                items = items + ", '" + item + "'"
+            else:
+                items = items + ", ''"
+
+        self.c.execute(
+            "INSERT INTO {table} values({values})".format(table=table, values=items[1:])
+        )
 
     def btnBoxActivated(self):
         self.winAddonManager.accept()
