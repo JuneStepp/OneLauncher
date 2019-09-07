@@ -53,14 +53,16 @@ class AddonManager:
 
         self.uiAddonManager.btnBox.rejected.connect(self.btnBoxActivated)
 
-        self.uiAddonManager.btnAddAddonMenu = QtWidgets.QMenu()
-        self.uiAddonManager.btnAddAddonMenu.addAction(
+        self.uiAddonManager.btnAddonsMenu = QtWidgets.QMenu()
+        self.uiAddonManager.btnAddonsMenu.addAction(
             self.uiAddonManager.actionAddonImport
         )
         self.uiAddonManager.actionAddonImport.triggered.connect(
             self.actionAddonImportSelected
         )
-        self.uiAddonManager.btnAddAddon.setMenu(self.uiAddonManager.btnAddAddonMenu)
+        self.uiAddonManager.btnAddons.setMenu(self.uiAddonManager.btnAddonsMenu)
+        self.uiAddonManager.btnAddons.clicked.connect(self.btnAddonsClicked)
+        self.uiAddonManager.tabWidget.currentChanged.connect(self.tabWidgetIndexChanged)
 
         self.uiAddonManager.txtLog.hide()
         self.uiAddonManager.btnLog.clicked.connect(self.btnLogClicked)
@@ -297,6 +299,18 @@ class AddonManager:
             "Errors: " + str(int(self.uiAddonManager.lblErrors.text()[-1]) + 1)
         )
         self.uiAddonManager.txtLog.append(message + "\n")
+
+    def btnAddonsClicked(self):
+        if self.uiAddonManager.tabWidget.currentIndex() == 0:
+            print("Removing addons yo")
+
+    def tabWidgetIndexChanged(self, index):
+        if index == 0:
+            self.uiAddonManager.btnAddons.setText("-")
+            self.uiAddonManager.btnAddons.setToolTip("Remove addons")
+        else:
+            self.uiAddonManager.btnAddons.setText("+")
+            self.uiAddonManager.btnAddons.setToolTip("Install addons")
 
     def Run(self):
         self.winAddonManager.exec_()
