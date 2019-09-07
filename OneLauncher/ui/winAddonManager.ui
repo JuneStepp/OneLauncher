@@ -54,7 +54,7 @@
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QToolButton" name="btnAddAddon">
+  <widget class="QToolButton" name="btnAddons">
    <property name="geometry">
     <rect>
      <x>650</x>
@@ -64,10 +64,10 @@
     </rect>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add addons&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove addons&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="text">
-    <string>+</string>
+    <string>-</string>
    </property>
    <property name="popupMode">
     <enum>QToolButton::MenuButtonPopup</enum>
@@ -632,10 +632,10 @@
   </widget>
   <action name="actionAddonImport">
    <property name="text">
-    <string>Import Addon</string>
+    <string>Import Addons</string>
    </property>
    <property name="toolTip">
-    <string>Import addon from file/archive</string>
+    <string>Import addons from files/archives</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
@@ -644,7 +644,7 @@
   <zorder>btnBox</zorder>
   <zorder>tabWidget</zorder>
   <zorder>txtSearchBar</zorder>
-  <zorder>btnAddAddon</zorder>
+  <zorder>btnAddons</zorder>
   <zorder>progressBar</zorder>
   <zorder>lblErrors</zorder>
   <zorder>btnLog</zorder>
