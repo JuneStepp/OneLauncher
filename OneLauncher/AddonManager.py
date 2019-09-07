@@ -243,28 +243,36 @@ class AddonManager:
                 search_word = "%" + word + "%"
 
                 for row in self.c.execute(
-                    "SELECT * FROM {table} WHERE Author LIKE ? OR Category LIKE ? OR Name LIKE ?".format(
+                    "SELECT rowid, * FROM {table} WHERE Author LIKE ? OR Category LIKE ? OR Name LIKE ?".format(
                         table=table.objectName()
                     ),
                     (search_word, search_word, search_word),
                 ):
                     # Detects duplicates from multi-word search
-                    if not table.findItems(row[0], QtCore.Qt.MatchExactly):
+                    if not table.findItems(row[1], QtCore.Qt.MatchExactly):
                         # Sets items onto the visible table
                         self.addRowToTable(table, row)
         else:
             # Shows all plugins if the search bar is empty
             for row in self.c.execute(
-                "SELECT * FROM {table}".format(table=table.objectName())
+                "SELECT rowid, * FROM {table}".format(table=table.objectName())
             ):
                 self.addRowToTable(table, row)
 
+    # Adds row to a visible table. First value in list is row name
     def addRowToTable(self, table, list):
         table.setSortingEnabled(False)
 
         rows = table.rowCount()
         table.setRowCount(rows + 1)
-        for i, item in enumerate(list):
+
+        # Sets row name
+        tbl_item = QtWidgets.QTableWidgetItem()
+        tbl_item.setText(str(list[0]))
+        table.setVerticalHeaderItem(rows, tbl_item)
+
+        # Adds items to row
+        for i, item in enumerate(list[1:]):
             tbl_item = QtWidgets.QTableWidgetItem()
 
             tbl_item.setText(item)
@@ -304,7 +312,27 @@ class AddonManager:
 
     def btnAddonsClicked(self):
         if self.uiAddonManager.tabWidget.currentIndex() == 0:
-            print("Removing addons yo")
+            if self.currentGame.startswith("LOTRO"):
+                if self.uiAddonManager.tabWidgetInstalled.currentIndex() == 0:
+                    for (
+                        item
+                    ) in self.uiAddonManager.tablePluginsInstalled.selectedItems()[
+                        0 :: len(self.COLUMN_LIST)
+                    ]:
+                        # Gets db row id stored in the row name for selected row
+                        selected_row = int(
+                            (
+                                self.uiAddonManager.tablePluginsInstalled.verticalHeaderItem(
+                                    item.row()
+                                )
+                            ).text()
+                        )
+
+                        for selected_plugin in self.c.execute(
+                            "SELECT File FROM tablePluginsInstalled WHERE rowid = ?",
+                            (selected_row,),
+                        ):
+                            print(selected_plugin)
 
     def tabWidgetIndexChanged(self, index):
         if index == 0:
