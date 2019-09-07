@@ -37,7 +37,7 @@ import sqlite3
 
 
 class AddonManager:
-    COLUMN_LIST = ["Name", "Category", "Version", "Author", "Modified"]
+    COLUMN_LIST = ["Name", "Category", "Version", "Author", "Modified", "File"]
 
     def __init__(self, currentGame, osType, settingsDir, parent):
         self.settingsDir = settingsDir
@@ -160,6 +160,7 @@ class AddonManager:
                     items_row[3] = GetText(node.childNodes)
                 elif node.nodeName == "Version":
                     items_row[2] = GetText(node.childNodes)
+            items_row[5] = plugin
 
             self.addRowToDB("tablePluginsInstalled", items_row)
 
@@ -187,13 +188,14 @@ class AddonManager:
 
             for table in table_list:
                 self.c.execute(
-                    "CREATE VIRTUAL TABLE {tbl_nm} USING FTS5({clmA}, {clmB}, {clmC}, {clmD}, {clmE})".format(
+                    "CREATE VIRTUAL TABLE {tbl_nm} USING FTS5({clmA}, {clmB}, {clmC}, {clmD}, {clmE}, {clmF})".format(
                         tbl_nm=table,
                         clmA=self.COLUMN_LIST[0],
                         clmB=self.COLUMN_LIST[1],
                         clmC=self.COLUMN_LIST[2],
                         clmD=self.COLUMN_LIST[3],
                         clmE=self.COLUMN_LIST[4],
+                        clmF=self.COLUMN_LIST[5],
                     )
                 )
         else:
