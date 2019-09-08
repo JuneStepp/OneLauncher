@@ -37,7 +37,7 @@ import sqlite3
 
 
 class AddonManager:
-    COLUMN_LIST = ["Name", "Category", "Version", "Author", "Modified", "File"]
+    COLUMN_LIST = ["ID", "Name", "Category", "Version", "Author", "Modified", "File"]
 
     def __init__(self, currentGame, osType, settingsDir, parent):
         self.settingsDir = settingsDir
@@ -70,6 +70,9 @@ class AddonManager:
         self.uiAddonManager.txtSearchBar.textChanged.connect(
             self.txtSearchBarTextChanged
         )
+
+        # Hides ID column
+        self.uiAddonManager.tablePluginsInstalled.hideColumn(0)
 
         self.openDB()
 
@@ -141,7 +144,7 @@ class AddonManager:
         self.c.execute("DELETE FROM tablePluginsInstalled")
 
         for plugin in plugins_list_compendium + plugins_list:
-            items_row = [""] * len(self.COLUMN_LIST)
+            items_row = [""] * (len(self.COLUMN_LIST) - 1)
 
             doc = xml.dom.minidom.parse(plugin)
 
@@ -190,12 +193,12 @@ class AddonManager:
                 self.c.execute(
                     "CREATE VIRTUAL TABLE {tbl_nm} USING FTS5({clmA}, {clmB}, {clmC}, {clmD}, {clmE}, {clmF})".format(
                         tbl_nm=table,
-                        clmA=self.COLUMN_LIST[0],
-                        clmB=self.COLUMN_LIST[1],
-                        clmC=self.COLUMN_LIST[2],
-                        clmD=self.COLUMN_LIST[3],
-                        clmE=self.COLUMN_LIST[4],
-                        clmF=self.COLUMN_LIST[5],
+                        clmA=self.COLUMN_LIST[1],
+                        clmB=self.COLUMN_LIST[2],
+                        clmC=self.COLUMN_LIST[3],
+                        clmD=self.COLUMN_LIST[4],
+                        clmE=self.COLUMN_LIST[5],
+                        clmF=self.COLUMN_LIST[6],
                     )
                 )
         else:
@@ -249,8 +252,12 @@ class AddonManager:
                     (search_word, search_word, search_word),
                 ):
                     # Detects duplicates from multi-word search
-                    if not table.findItems(row[1], QtCore.Qt.MatchExactly):
-                        # Sets items onto the visible table
+                    duplicate = False
+                    for item in table.findItems(row[1], QtCore.Qt.MatchExactly):
+                        if int((table.item(item.row(), 0)).text()) == row[0]:
+                            duplicate = True
+                            break
+                    if not duplicate:
                         self.addRowToTable(table, row)
         else:
             # Shows all plugins if the search bar is empty
@@ -269,15 +276,14 @@ class AddonManager:
         # Sets row name
         tbl_item = QtWidgets.QTableWidgetItem()
         tbl_item.setText(str(list[0]))
-        table.setVerticalHeaderItem(rows, tbl_item)
 
         # Adds items to row
-        for i, item in enumerate(list[1:]):
+        for i, item in enumerate(list):
             tbl_item = QtWidgets.QTableWidgetItem()
 
-            tbl_item.setText(item)
+            tbl_item.setText(str(item))
             # Sets color to red if plugin is unmanaged
-            if item == "Unmanaged" and i == 1:
+            if item == "Unmanaged" and i == 2:
                 tbl_item.setForeground(QtGui.QColor("darkred"))
             table.setItem(rows, i, tbl_item)
 
@@ -317,13 +323,13 @@ class AddonManager:
                     for (
                         item
                     ) in self.uiAddonManager.tablePluginsInstalled.selectedItems()[
-                        0 :: len(self.COLUMN_LIST)
+                        0 :: (len(self.COLUMN_LIST) - 2)
                     ]:
-                        # Gets db row id stored in the row name for selected row
+                        # Gets db row id for selected row
                         selected_row = int(
                             (
-                                self.uiAddonManager.tablePluginsInstalled.verticalHeaderItem(
-                                    item.row()
+                                self.uiAddonManager.tablePluginsInstalled.item(
+                                    item.row(), 0
                                 )
                             ).text()
                         )
