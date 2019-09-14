@@ -37,11 +37,23 @@ import sqlite3
 
 
 class AddonManager:
-    COLUMN_LIST = ["ID", "Name", "Category", "Version", "Author", "Modified", "File"]
+    # ID is from the order plugins are found on the filesystem. InterfaceID is the unique ID for plugins on lotrointerface.com
+    COLUMN_LIST = [
+        "ID",
+        "Name",
+        "Category",
+        "Version",
+        "Author",
+        "Modified",
+        "File",
+        "InterfaceID",
+        "Dependencies",
+    ]
 
     def __init__(self, currentGame, osType, settingsDir, parent):
         self.settingsDir = settingsDir
         self.currentGame = currentGame
+        self.parent = parent
 
         self.winAddonManager = QtWidgets.QDialog(parent, QtCore.Qt.FramelessWindowHint)
 
@@ -67,6 +79,7 @@ class AddonManager:
         self.uiAddonManager.txtLog.hide()
         self.uiAddonManager.btnLog.clicked.connect(self.btnLogClicked)
 
+        self.uiAddonManager.txtSearchBar.setFocus()
         self.uiAddonManager.txtSearchBar.textChanged.connect(
             self.txtSearchBarTextChanged
         )
@@ -150,6 +163,16 @@ class AddonManager:
 
             # Sets tag for plugin file xml search and category for unmanaged plugins
             if plugin.endswith(".plugincompendium"):
+                dependencies = ""
+                if doc.getElementsByTagName("Dependencies"):
+                    nodes = doc.getElementsByTagName("Dependencies")[0].childNodes
+                    for node in nodes:
+                        if node.nodeName == "dependency":
+                            dependencies = (
+                                dependencies + "," + (GetText(node.childNodes))
+                            )
+                items_row[7] = dependencies[1:]
+
                 tag = "PluginConfig"
             else:
                 tag = "Information"
@@ -163,6 +186,8 @@ class AddonManager:
                     items_row[3] = GetText(node.childNodes)
                 elif node.nodeName == "Version":
                     items_row[2] = GetText(node.childNodes)
+                elif node.nodeName == "Id":
+                    items_row[6] = GetText(node.childNodes)
             items_row[5] = plugin
 
             self.addRowToDB("tablePluginsInstalled", items_row)
@@ -191,7 +216,7 @@ class AddonManager:
 
             for table in table_list:
                 self.c.execute(
-                    "CREATE VIRTUAL TABLE {tbl_nm} USING FTS5({clmA}, {clmB}, {clmC}, {clmD}, {clmE}, {clmF})".format(
+                    "CREATE VIRTUAL TABLE {tbl_nm} USING FTS5({clmA}, {clmB}, {clmC}, {clmD}, {clmE}, {clmF}, {clmG}, {clmH})".format(
                         tbl_nm=table,
                         clmA=self.COLUMN_LIST[1],
                         clmB=self.COLUMN_LIST[2],
@@ -199,6 +224,8 @@ class AddonManager:
                         clmD=self.COLUMN_LIST[4],
                         clmE=self.COLUMN_LIST[5],
                         clmF=self.COLUMN_LIST[6],
+                        clmG=self.COLUMN_LIST[7],
+                        clmH=self.COLUMN_LIST[8],
                     )
                 )
         else:
@@ -320,25 +347,92 @@ class AddonManager:
         if self.uiAddonManager.tabWidget.currentIndex() == 0:
             if self.currentGame.startswith("LOTRO"):
                 if self.uiAddonManager.tabWidgetInstalled.currentIndex() == 0:
-                    for (
-                        item
-                    ) in self.uiAddonManager.tablePluginsInstalled.selectedItems()[
-                        0 :: (len(self.COLUMN_LIST) - 2)
-                    ]:
-                        # Gets db row id for selected row
-                        selected_row = int(
-                            (
-                                self.uiAddonManager.tablePluginsInstalled.item(
-                                    item.row(), 0
-                                )
-                            ).text()
-                        )
+                    table = self.uiAddonManager.tablePluginsInstalled
+                    plugins, details = self.getSelectedAddons(table)
 
-                        for selected_plugin in self.c.execute(
-                            "SELECT File FROM tablePluginsInstalled WHERE rowid = ?",
-                            (selected_row,),
-                        ):
-                            print(selected_plugin)
+                    num_depends = len(details.split("\n")) - 1
+                    if num_depends == 1:
+                        plural, plural1 = "this ", " plugin?"
+                    else:
+                        plural, plural1 = "these ", " plugins?"
+                    text = (
+                        "Are you sure you want to remove "
+                        + plural
+                        + str(len(plugins))
+                        + plural1
+                    )
+                    if self.confirmationPrompt(text, details):
+                        self.uninstallPlugins(plugins, table)
+
+    def getSelectedAddons(self, table):
+        if table.selectedItems():
+            selected_addons = []
+            details = ""
+            for item in table.selectedItems()[0 :: (len(self.COLUMN_LIST) - 4)]:
+                # Gets db row id for selected row
+                selected_row = int((table.item(item.row(), 0)).text())
+
+                selected_name = table.item(item.row(), 1).text()
+
+                for selected_addon in self.c.execute(
+                    "SELECT InterfaceID, File, Name FROM {table} WHERE rowid = ?".format(
+                        table=table.objectName()
+                    ),
+                    (selected_row,),
+                ):
+                    selected_addons.append(selected_addon)
+                    details = details + selected_name + "\n"
+
+            return selected_addons, details
+
+    def uninstallPlugins(self, plugins, table):
+        for plugin in plugins:
+            if self.checkAddonForDependencies(plugin, table):
+                print(plugin[1])
+
+    def checkAddonForDependencies(self, addon, table):
+        details = ""
+
+        for dependent in self.c.execute(
+            'SELECT Name, Dependencies FROM {table} WHERE Dependencies != ""'.format(
+                table=table.objectName()
+            )
+        ):
+            for dependency in dependent[1].split(","):
+                if dependency == addon[0]:
+                    details = details + dependent[0] + "\n"
+
+        if details:
+            num_depends = len(details.split("\n")) - 1
+            if num_depends == 1:
+                plural = " addon depends"
+            else:
+                plural = " addons deppend"
+            text = (
+                str(num_depends)
+                + plural
+                + " on "
+                + addon[2]
+                + ". Are you sure you want to remove it?"
+            )
+            return self.confirmationPrompt(text, details)
+        else:
+            return True
+
+    def confirmationPrompt(self, text, details):
+        messageBox = QtWidgets.QMessageBox(self.parent)
+        messageBox.setWindowFlag(QtCore.Qt.FramelessWindowHint)
+        messageBox.setIcon(4)
+        messageBox.setStandardButtons(messageBox.Apply | messageBox.Cancel)
+
+        messageBox.setInformativeText(text)
+        messageBox.setDetailedText(details)
+
+        # Checks if user accepts dialouge
+        if messageBox.exec() == 33554432:
+            return True
+        else:
+            return False
 
     def tabWidgetIndexChanged(self, index):
         if index == 0:
@@ -349,5 +443,5 @@ class AddonManager:
             self.uiAddonManager.btnAddons.setToolTip("Install addons")
 
     def Run(self):
-        self.winAddonManager.exec_()
+        self.winAddonManager.exec()
         self.closeDB()
