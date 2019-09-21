@@ -3,7 +3,7 @@ name: release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
 
 jobs:
   release:
@@ -11,9 +11,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-16.04, windows-latest, macOS-latest]
+        os: [ubuntu-18.04, windows-latest, macOS-latest]
         include:
-          - os: ubuntu-16.04
+          - os: ubuntu-18.04
             artifact_name: dist/TheOneLauncher-Linux
           - os: windows-latest
             artifact_name: dist/TheOneLauncher-Windows.exe
@@ -21,25 +21,31 @@ jobs:
             artifact_name: dist/TheOneLauncher-Mac
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Set up Python
-      uses: actions/setup-python@v1
-      with:
-        python-version: ^3.2
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install PyQt5
-        pip install qtpy
-        pip install qdarkstyle
-        pip install keyring
-        pip install https://github.com/JeremyStepp/pyinstaller/archive/develop.zip  
-    - name: Build
-      run: python build.py
-    - name: Make release
-      uses: softprops/action-gh-release@v1
-      with:       
-        files: ${{ matrix.artifact_name }}
-        draft: True
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v1
+      - name: Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo add-apt-repository ppa:jonathonf/backports
+          sudo apt-get update
+          sudo apt-get install sqlite3 upx
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: ^3.2
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PyQt5
+          pip install qtpy
+          pip install qdarkstyle
+          pip install keyring
+          pip install https://github.com/JeremyStepp/pyinstaller/archive/develop.zip
+      - name: Build
+        run: python build.py
+      - name: Make release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ matrix.artifact_name }}
+          draft: True
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
