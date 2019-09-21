@@ -34,6 +34,7 @@ from xml.dom import EMPTY_NAMESPACE
 import xml.dom.minidom
 from .OneLauncherUtils import GetText
 import sqlite3
+from shutil import rmtree
 
 
 class AddonManager:
@@ -101,24 +102,26 @@ class AddonManager:
             self.uiAddonManager.tabWidgetInstalled.removeTab(0)
             self.uiAddonManager.tabWidgetInstalled.removeTab(1)
 
-            data_folder = os.path.join(
+            self.data_folder = os.path.join(
                 os.path.expanduser("~"), documents_folder, "Dungeons and Dragons Online"
             )
             # self.getInstalledThemes(data_folder)
 
         else:
-            data_folder = os.path.join(
+            self.data_folder = os.path.join(
                 os.path.expanduser("~"),
                 documents_folder,
                 "The Lord of the Rings Online",
             )
 
-            self.getInstalledPlugins(data_folder)
-            # self.getInstalledThemes(data_folder)
-            # self.getInstalledMusic(data_folder)
+            self.getInstalledPlugins()
+            # self.getInstalledThemes()
+            # self.getInstalledMusic()
 
-    def getInstalledPlugins(self, data_folder):
-        data_folder = os.path.join(data_folder, "Plugins")
+    def getInstalledPlugins(self):
+        self.uiAddonManager.txtSearchBar.clear()
+
+        data_folder = os.path.join(self.data_folder, "Plugins")
         os.makedirs(data_folder, exist_ok=True)
 
         # Finds all plugins and adds their .plugincompendium files to a list
@@ -386,9 +389,45 @@ class AddonManager:
             return selected_addons, details
 
     def uninstallPlugins(self, plugins, table):
+        data_folder = os.path.join(self.data_folder, "Plugins")
         for plugin in plugins:
-            if self.checkAddonForDependencies(plugin, table):
-                print(plugin[1])
+            if plugin[1].endswith(".plugin"):
+                plugin_files = [plugin[1]]
+            else:
+                plugin_files = []
+                if self.checkAddonForDependencies(plugin, table):
+                    doc = xml.dom.minidom.parse(plugin[1])
+                    nodes = doc.getElementsByTagName("Descriptors")[0].childNodes
+                    for node in nodes:
+                        if node.nodeName == "descriptor":
+                            plugin_files.append(
+                                os.path.join(
+                                    data_folder,
+                                    (GetText(node.childNodes).replace("\\", os.sep)),
+                                )
+                            )
+                else:
+                    continue
+
+            for plugin_file in plugin_files:
+                doc = xml.dom.minidom.parse(plugin_file)
+                nodes = doc.getElementsByTagName("Plugin")[0].childNodes
+                for node in nodes:
+                    if node.nodeName == "Package":
+                        plugin_folder = os.path.split(
+                            GetText(node.childNodes).replace(".", os.sep)
+                        )[0]
+
+                        # Removes plugin and all related files
+                        if os.path.exists(data_folder + os.sep + plugin_folder):
+                            rmtree(data_folder + os.sep + plugin_folder)
+                if os.path.exists(plugin_file):
+                    os.remove(plugin_file)
+            if os.path.exists(plugin[1]):
+                os.remove(plugin[1])
+
+        # Reloads plugins
+        self.getInstalledPlugins()
 
     def checkAddonForDependencies(self, addon, table):
         details = ""
