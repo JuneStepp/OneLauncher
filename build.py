@@ -29,9 +29,23 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import os
+from sys import platform
 
-build_command = ("python -O -m PyInstaller RunOneLauncher --name TheOneLauncher -w -y -F "
-    "--add-data OneLauncher/certificates{0}OneLauncher/certificates --add-data OneLauncher/"
-    "ui{0}OneLauncher/ui --add-data OneLauncher/images{0}OneLauncher/images"
-    " --hidden-import qdarkstyle".format(os.pathsep))
+if platform == "linux":
+    binary_name = "TheOneLauncher-Linux"
+elif platform == "win32":
+    binary_name = "TheOneLauncher-Windows"
+elif platform == "darwin":
+    binary_name = "TheOneLauncher-Mac"
+else:
+    print(
+        "Your OS is not supported by this program): If you are on Linux, Windows, or Mac you shouldn't get this error"
+    )
+
+build_command = (
+    "python -O -m PyInstaller RunOneLauncher --name {name} -w -y -F "
+    "--add-data OneLauncher/certificates{sep}OneLauncher/certificates --add-data OneLauncher/"
+    "ui{sep}OneLauncher/ui --add-data OneLauncher/images{sep}OneLauncher/images"
+    " --hidden-import qdarkstyle".format(sep=os.pathsep, name=binary_name)
+)
 os.system(build_command)
