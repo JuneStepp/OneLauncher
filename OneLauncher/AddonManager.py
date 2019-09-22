@@ -215,6 +215,17 @@ class AddonManager:
             if music.endswith(".abc"):
                 items_row[0] = os.path.splitext(items_row[0])[0]
 
+                with open(music, "r") as file:
+                    for i in range(3):
+                        line = file.readline().strip()
+                        if line.startswith("T: "):
+                            items_row[0] = line[3:]
+                        if line.startswith("Z: "):
+                            if line.startswith("Z: Transcribed by "):
+                                items_row[3] = line[18:]
+                            else:
+                                items_row[3] = line[3:]
+
             items_row[5] = music
             items_row[1] = "Unmanaged"
 
@@ -432,6 +443,7 @@ class AddonManager:
         items = ""
         for item in list:
             if item:
+                item = item.replace("'", "''")
                 items = items + ", '" + item + "'"
             else:
                 items = items + ", ''"
@@ -568,7 +580,6 @@ class AddonManager:
             if music[1].endswith(".musiccompendium"):
                 music = os.path.split(music[1])[0]
             else:
-                print(music)
                 music = music[1]
 
             if music.endswith(".abc"):
