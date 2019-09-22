@@ -183,7 +183,7 @@
       <attribute name="title">
        <string>Themes</string>
       </attribute>
-      <widget class="QTableWidget" name="tablePluginsInstalled_2">
+      <widget class="QTableWidget" name="tableThemesInstalled">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -225,6 +225,11 @@
        <attribute name="verticalHeaderVisible">
         <bool>false</bool>
        </attribute>
+       <column>
+        <property name="text">
+         <string>ID</string>
+        </property>
+       </column>
        <column>
         <property name="text">
          <string>Name</string>
@@ -259,7 +264,7 @@
       <attribute name="toolTip">
        <string>ABC Files</string>
       </attribute>
-      <widget class="QTableWidget" name="tablePluginsInstalled_3">
+      <widget class="QTableWidget" name="tableMusicInstalled">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -301,6 +306,11 @@
        <attribute name="verticalHeaderVisible">
         <bool>false</bool>
        </attribute>
+       <column>
+        <property name="text">
+         <string>ID</string>
+        </property>
+       </column>
        <column>
         <property name="text">
          <string>Name</string>
@@ -350,7 +360,7 @@
       <attribute name="title">
        <string>Plugins</string>
       </attribute>
-      <widget class="QTableWidget" name="tablePluginsInstalled_4">
+      <widget class="QTableWidget" name="tablePlugins">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -423,7 +433,7 @@
       <attribute name="title">
        <string>Themes</string>
       </attribute>
-      <widget class="QTableWidget" name="tablePluginsInstalled_5">
+      <widget class="QTableWidget" name="tableThemes">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -499,7 +509,7 @@
       <attribute name="toolTip">
        <string>ABC Files</string>
       </attribute>
-      <widget class="QTableWidget" name="tablePluginsInstalled_6">
+      <widget class="QTableWidget" name="tableMusic">
        <property name="geometry">
         <rect>
          <x>0</x>
