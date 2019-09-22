@@ -35,6 +35,7 @@ import xml.dom.minidom
 from .OneLauncherUtils import GetText
 import sqlite3
 from shutil import rmtree, copy
+from zipfile import ZipFile
 
 
 class AddonManager:
@@ -379,6 +380,10 @@ class AddonManager:
     def installAddon(self, addon):
         # Install .abc files
         if addon.endswith(".abc"):
+            if self.currentGame.startswith("DDO"):
+                self.addLog("DDO does not support .abc/music files")
+                return
+
             copy(addon, os.path.join(self.data_folder, "Music"))
 
             self.getInstalledMusic()
@@ -387,7 +392,27 @@ class AddonManager:
                 "OneLauncher does not support .rar archives, because it is a proprietary format that would require and external program to extract"
             )
         elif addon.endswith(".zip"):
-            pass
+            with ZipFile(addon, "r") as file:
+                for entry in file.namelist():
+                    if entry.endswith(".plugin"):
+                        if self.currentGame.startswith("DDO"):
+                            self.addLog("DDO does not support plugins")
+                            return
+
+                        file.extractall(path=os.path.join(self.data_folder, "Plugins"))
+                        self.getInstalledPlugins()
+                        return
+                    elif entry.endswith(".abc"):
+                        if self.currentGame.startswith("DDO"):
+                            self.addLog("DDO does not support .abc/music files")
+                            return
+
+                        file.extractall(path=os.path.join(self.data_folder, "Music"))
+                        self.getInstalledMusic()
+                        return
+
+                file.extractall(path=os.path.join(self.data_folder, "ui", "skins"))
+                self.getInstalledThemes()
 
     def txtSearchBarTextChanged(self, text):
         if self.currentGame.startswith("LOTRO"):
