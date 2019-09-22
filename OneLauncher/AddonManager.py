@@ -138,14 +138,12 @@ class AddonManager:
 
         themes_list = []
         themes_list_compendium = []
-        for folder in os.listdir(data_folder):
-            themes_list.append(os.path.join(data_folder, folder))
-            for file in os.listdir(os.path.join(data_folder, folder)):
+        for folder in glob(os.path.join(data_folder, "*", "")):
+            themes_list.append(folder[:-1])
+            for file in os.listdir(folder):
                 if file.endswith(".skincompendium"):
-                    themes_list_compendium.append(
-                        os.path.join(data_folder, folder, file)
-                    )
-                    themes_list.remove(os.path.join(data_folder, folder))
+                    themes_list_compendium.append(os.path.join(folder, file))
+                    themes_list.remove(folder[:-1])
                     break
 
         self.addInstalledThemestoDB(themes_list, themes_list_compendium)
@@ -163,6 +161,7 @@ class AddonManager:
 
             items_row[0] = os.path.split(theme)[1]
             items_row[5] = theme
+            items_row[1] = "Unmanaged"
 
             self.addRowToDB("tableThemesInstalled", items_row)
 
@@ -170,7 +169,51 @@ class AddonManager:
         self.searchDB(self.uiAddonManager.tableThemesInstalled, "")
 
     def getInstalledMusic(self):
-        pass
+        self.uiAddonManager.txtSearchBar.clear()
+
+        data_folder = os.path.join(self.data_folder, "Music")
+        os.makedirs(data_folder, exist_ok=True)
+
+        music_list = []
+        music_list_compendium = []
+        for folder in glob(os.path.join(data_folder, "*", "")):
+            music_list.append(folder[:-1])
+            for file in os.listdir(folder):
+                if file.endswith(".musiccompendium"):
+                    music_list_compendium.append(
+                        os.path.join(data_folder, folder, file)
+                    )
+                    music_list.remove(folder[:-1])
+                    break
+
+        for file in os.listdir(data_folder):
+            if file.endswith(".abc"):
+                music_list.append(os.path.join(data_folder, file))
+
+        self.addInstalledMusictoDB(music_list, music_list_compendium)
+
+    def addInstalledMusictoDB(self, music_list, music_list_compendium):
+        # Clears rows from db table
+        self.c.execute("DELETE FROM tableMusicInstalled")
+
+        for music in music_list_compendium:
+            items_row = self.parseCompediumFile(music, "MusicConfig")
+            self.addRowToDB("tableMusicInstalled", items_row)
+
+        for music in music_list:
+            items_row = [""] * (len(self.COLUMN_LIST) - 1)
+
+            items_row[0] = os.path.split(music)[1]
+            if music.endswith(".abc"):
+                items_row[0] = os.path.splitext(items_row[0])[0]
+
+            items_row[5] = music
+            items_row[1] = "Unmanaged"
+
+            self.addRowToDB("tableMusicInstalled", items_row)
+
+        # Populate user visible table
+        self.searchDB(self.uiAddonManager.tableMusicInstalled, "")
 
     def getInstalledPlugins(self):
         self.uiAddonManager.txtSearchBar.clear()
@@ -319,6 +362,9 @@ class AddonManager:
                 # If in ThemesInstalled tab
                 elif self.uiAddonManager.tabWidgetInstalled.currentIndex() == 1:
                     self.searchDB(self.uiAddonManager.tableThemesInstalled, text)
+                # If in MusicInstalled tab
+                elif self.uiAddonManager.tabWidgetInstalled.currentIndex() == 2:
+                    self.searchDB(self.uiAddonManager.tableMusicInstalled, text)
         else:
             self.searchDB(self.uiAddonManager.tableThemesInstalled, text)
 
@@ -411,6 +457,9 @@ class AddonManager:
                 elif self.uiAddonManager.tabWidgetInstalled.currentIndex() == 1:
                     table = self.uiAddonManager.tableThemesInstalled
                     uninstall_class = self.uninstallThemes
+                elif self.uiAddonManager.tabWidgetInstalled.currentIndex() == 2:
+                    table = self.uiAddonManager.tableMusicInstalled
+                    uninstall_class = self.uninstallMusic
             else:
                 table = self.uiAddonManager.tableThemesInstalled
                 uninstall_class = self.uninstallThemes
@@ -497,7 +546,6 @@ class AddonManager:
 
     def uninstallThemes(self, themes, talbe):
         for theme in themes:
-
             if theme[1].endswith(".skincompendium"):
                 theme = os.path.split(theme[1])[0]
             else:
@@ -506,6 +554,22 @@ class AddonManager:
 
             # Reloads themes
             self.getInstalledThemes()
+
+    def uninstallMusic(self, musics, table):
+        for music in musics:
+            if music[1].endswith(".musiccompendium"):
+                music = os.path.split(music[1])[0]
+            else:
+                print(music)
+                music = music[1]
+
+            if music.endswith(".abc"):
+                os.remove(music)
+            else:
+                rmtree(music)
+
+            # Reloads themes
+            self.getInstalledMusic()
 
     def checkAddonForDependencies(self, addon, table):
         details = ""
