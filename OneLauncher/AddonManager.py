@@ -76,6 +76,9 @@ class AddonManager:
         self.uiAddonManager.btnAddons.setMenu(self.uiAddonManager.btnAddonsMenu)
         self.uiAddonManager.btnAddons.clicked.connect(self.btnAddonsClicked)
         self.uiAddonManager.tabWidget.currentChanged.connect(self.tabWidgetIndexChanged)
+        self.uiAddonManager.tabWidgetInstalled.currentChanged.connect(
+            self.tabWidgetInstalledIndexChanged
+        )
 
         self.uiAddonManager.txtLog.hide()
         self.uiAddonManager.btnLog.clicked.connect(self.btnLogClicked)
@@ -87,6 +90,8 @@ class AddonManager:
 
         # Hides ID column
         self.uiAddonManager.tablePluginsInstalled.hideColumn(0)
+        self.uiAddonManager.tableThemesInstalled.hideColumn(0)
+        self.uiAddonManager.tableMusicInstalled.hideColumn(0)
 
         self.openDB()
 
@@ -105,8 +110,7 @@ class AddonManager:
             self.data_folder = os.path.join(
                 os.path.expanduser("~"), documents_folder, "Dungeons and Dragons Online"
             )
-            # self.getInstalledThemes(data_folder)
-
+            self.getInstalledThemes()
         else:
             self.data_folder = os.path.join(
                 os.path.expanduser("~"),
@@ -114,9 +118,73 @@ class AddonManager:
                 "The Lord of the Rings Online",
             )
 
+            # Loads in installed plugins
             self.getInstalledPlugins()
-            # self.getInstalledThemes()
-            # self.getInstalledMusic()
+
+    def tabWidgetInstalledIndexChanged(self, index):
+        # Load in installed themes on first switch to tab
+        if index == 1 and not self.uiAddonManager.tableThemesInstalled.item(0, 0):
+            self.getInstalledThemes()
+
+        # Load in installed music on first switch to tab
+        if index == 2 and not self.uiAddonManager.tableMusicInstalled.item(0, 0):
+            self.getInstalledMusic()
+
+    def getInstalledThemes(self):
+        self.uiAddonManager.txtSearchBar.clear()
+
+        data_folder = os.path.join(self.data_folder, "ui", "skins")
+        os.makedirs(data_folder, exist_ok=True)
+
+        themes_list = []
+        themes_list_compendium = []
+        for folder in os.listdir(data_folder):
+            themes_list.append(os.path.join(data_folder, folder))
+            for file in os.listdir(os.path.join(data_folder, folder)):
+                if file.endswith(".skincompendium"):
+                    themes_list_compendium.append(
+                        os.path.join(data_folder, folder, file)
+                    )
+                    themes_list.remove(os.path.join(data_folder, folder))
+                    break
+
+        self.addInstalledThemestoDB(themes_list, themes_list_compendium)
+
+    def addInstalledThemestoDB(self, themes_list, themes_list_compendium):
+        # Clears rows from db table
+        self.c.execute("DELETE FROM tableThemesInstalled")
+
+        for theme in themes_list_compendium:
+            items_row = [""] * (len(self.COLUMN_LIST) - 1)
+
+            doc = xml.dom.minidom.parse(theme)
+            nodes = doc.getElementsByTagName("SkinConfig")[0].childNodes
+            for node in nodes:
+                if node.nodeName == "Name":
+                    items_row[0] = GetText(node.childNodes)
+                elif node.nodeName == "Author":
+                    items_row[3] = GetText(node.childNodes)
+                elif node.nodeName == "Version":
+                    items_row[2] = GetText(node.childNodes)
+                elif node.nodeName == "Id":
+                    items_row[6] = GetText(node.childNodes)
+            items_row[5] = theme
+
+            self.addRowToDB("tableThemesInstalled", items_row)
+
+        for theme in themes_list:
+            items_row = [""] * (len(self.COLUMN_LIST) - 1)
+
+            items_row[0] = os.path.split(theme)[1]
+            items_row[5] = theme
+
+            self.addRowToDB("tableThemesInstalled", items_row)
+
+        # Populate user visible table
+        self.searchDB(self.uiAddonManager.tableThemesInstalled, "")
+
+    def getInstalledMusic(self):
+        pass
 
     def getInstalledPlugins(self):
         self.uiAddonManager.txtSearchBar.clear()
@@ -241,18 +309,12 @@ class AddonManager:
         self.conn.commit()
         self.conn.close()
 
-    # def getInstalledThemes(self, data_folder):
-    #     pass
-
-    # def getInstalledMusic(self, data_folder):
-    #     pass
-
     def actionAddonImportSelected(self):
         filenames = QtWidgets.QFileDialog.getOpenFileNames(
             self.winAddonManager,
             "Addon Files/Archives",
             os.path.expanduser("~"),
-            "*.zip *.abc",
+            "*.zip *.rar *.abc",
         )
 
         if filenames:
@@ -266,6 +328,11 @@ class AddonManager:
                 # If in PluginsInstalled tab
                 if self.uiAddonManager.tabWidgetInstalled.currentIndex() == 0:
                     self.searchDB(self.uiAddonManager.tablePluginsInstalled, text)
+                # If in ThemesInstalled tab
+                elif self.uiAddonManager.tabWidgetInstalled.currentIndex() == 1:
+                    self.searchDB(self.uiAddonManager.tableThemesInstalled, text)
+        else:
+            self.searchDB(self.uiAddonManager.tableThemesInstalled, text)
 
     def searchDB(self, table, text):
         table.clearContents()
@@ -347,25 +414,36 @@ class AddonManager:
         self.uiAddonManager.txtLog.append(message + "\n")
 
     def btnAddonsClicked(self):
+        # If on installed tab which means remove addons
         if self.uiAddonManager.tabWidget.currentIndex() == 0:
             if self.currentGame.startswith("LOTRO"):
                 if self.uiAddonManager.tabWidgetInstalled.currentIndex() == 0:
                     table = self.uiAddonManager.tablePluginsInstalled
-                    plugins, details = self.getSelectedAddons(table)
+                    uninstall_class = self.uninstallPlugins
+                elif self.uiAddonManager.tabWidgetInstalled.currentIndex() == 1:
+                    table = self.uiAddonManager.tableThemesInstalled
+                    uninstall_class = self.uninstallThemes
+            else:
+                table = self.uiAddonManager.tableThemesInstalled
+                uninstall_class = self.uninstallThemes
 
-                    num_depends = len(details.split("\n")) - 1
-                    if num_depends == 1:
-                        plural, plural1 = "this ", " plugin?"
-                    else:
-                        plural, plural1 = "these ", " plugins?"
-                    text = (
-                        "Are you sure you want to remove "
-                        + plural
-                        + str(len(plugins))
-                        + plural1
-                    )
-                    if self.confirmationPrompt(text, details):
-                        self.uninstallPlugins(plugins, table)
+            uninstallConfirm, addons = self.getUninstallConfirm(table)
+            if uninstallConfirm:
+                uninstall_class(addons, table)
+
+    def getUninstallConfirm(self, table):
+        addons, details = self.getSelectedAddons(table)
+
+        num_depends = len(details.split("\n")) - 1
+        if num_depends == 1:
+            plural, plural1 = "this ", " addon?"
+        else:
+            plural, plural1 = "these ", " addons?"
+        text = "Are you sure you want to remove " + plural + str(len(addons)) + plural1
+        if self.confirmationPrompt(text, details):
+            return True, addons
+        else:
+            return False, addons
 
     def getSelectedAddons(self, table):
         if table.selectedItems():
@@ -428,6 +506,18 @@ class AddonManager:
 
         # Reloads plugins
         self.getInstalledPlugins()
+
+    def uninstallThemes(self, themes, talbe):
+        for theme in themes:
+
+            if theme[1].endswith(".skincompendium"):
+                theme = os.path.split(theme[1])[0]
+            else:
+                theme = theme[1]
+            rmtree(theme)
+
+            # Reloads themes
+            self.getInstalledThemes()
 
     def checkAddonForDependencies(self, addon, table):
         details = ""
