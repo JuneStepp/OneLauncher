@@ -42,7 +42,7 @@ from pkg_resources import resource_filename
 class BuiltInPrefix:
     WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/4.16/wine-4.16-staging-improved-amd64.tar.xz"
     DXVK_URL = (
-        "https://github.com/doitsujin/dxvk/releases/download/v1.3.4/dxvk-1.3.4.tar.gz"
+        "https://github.com/doitsujin/dxvk/releases/download/v1.4/dxvk-1.4.tar.gz"
     )
 
     def __init__(self, settingsDir, winePrefix, parent):
@@ -58,7 +58,7 @@ class BuiltInPrefix:
 
     # Sets wine program and downloads wine if it is not there or a new version is needed
     def wineSetup(self):
-        self.latest_wine_version = self.WINE_URL[57:61]
+        self.latest_wine_version = self.WINE_URL.split("/download/")[1].split("/")[0]
         latest_wine_path = self.settingsDir + "wine/wine-" + self.latest_wine_version
 
         if os.path.exists(latest_wine_path):
@@ -78,7 +78,7 @@ class BuiltInPrefix:
             )
 
     def dxvkSetup(self):
-        self.latest_dxvk_version = self.DXVK_URL[53:58]
+        self.latest_dxvk_version = self.DXVK_URL.split("download/v")[1].split("/")[0]
         self.latest_dxvk_path = (
             self.settingsDir + "wine/dxvk-" + self.latest_dxvk_version
         )
