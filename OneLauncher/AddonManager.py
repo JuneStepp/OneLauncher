@@ -155,21 +155,7 @@ class AddonManager:
         self.c.execute("DELETE FROM tableThemesInstalled")
 
         for theme in themes_list_compendium:
-            items_row = [""] * (len(self.COLUMN_LIST) - 1)
-
-            doc = xml.dom.minidom.parse(theme)
-            nodes = doc.getElementsByTagName("SkinConfig")[0].childNodes
-            for node in nodes:
-                if node.nodeName == "Name":
-                    items_row[0] = GetText(node.childNodes)
-                elif node.nodeName == "Author":
-                    items_row[3] = GetText(node.childNodes)
-                elif node.nodeName == "Version":
-                    items_row[2] = GetText(node.childNodes)
-                elif node.nodeName == "Id":
-                    items_row[6] = GetText(node.childNodes)
-            items_row[5] = theme
-
+            items_row = self.parseCompediumFile(theme, "SkinConfig")
             self.addRowToDB("tableThemesInstalled", items_row)
 
         for theme in themes_list:
@@ -208,8 +194,6 @@ class AddonManager:
             nodes = doc.getElementsByTagName("Descriptors")[0].childNodes
 
             for node in nodes:
-                item = QtWidgets.QTableWidgetItem()
-
                 if node.nodeName == "descriptor":
                     try:
                         plugins_list.remove(
@@ -228,13 +212,12 @@ class AddonManager:
         self.c.execute("DELETE FROM tablePluginsInstalled")
 
         for plugin in plugins_list_compendium + plugins_list:
-            items_row = [""] * (len(self.COLUMN_LIST) - 1)
-
-            doc = xml.dom.minidom.parse(plugin)
-
             # Sets tag for plugin file xml search and category for unmanaged plugins
             if plugin.endswith(".plugincompendium"):
+                items_row = self.parseCompediumFile(plugin, "PluginConfig")
+
                 dependencies = ""
+                doc = xml.dom.minidom.parse(plugin)
                 if doc.getElementsByTagName("Dependencies"):
                     nodes = doc.getElementsByTagName("Dependencies")[0].childNodes
                     for node in nodes:
@@ -243,28 +226,33 @@ class AddonManager:
                                 dependencies + "," + (GetText(node.childNodes))
                             )
                 items_row[7] = dependencies[1:]
-
-                tag = "PluginConfig"
             else:
-                tag = "Information"
+                items_row = self.parseCompediumFile(plugin, "Information")
                 items_row[1] = "Unmanaged"
-
-            nodes = doc.getElementsByTagName(tag)[0].childNodes
-            for node in nodes:
-                if node.nodeName == "Name":
-                    items_row[0] = GetText(node.childNodes)
-                elif node.nodeName == "Author":
-                    items_row[3] = GetText(node.childNodes)
-                elif node.nodeName == "Version":
-                    items_row[2] = GetText(node.childNodes)
-                elif node.nodeName == "Id":
-                    items_row[6] = GetText(node.childNodes)
-            items_row[5] = plugin
 
             self.addRowToDB("tablePluginsInstalled", items_row)
 
         # Populate user visible table
         self.searchDB(self.uiAddonManager.tablePluginsInstalled, "")
+
+    # Returns list of common values for compendium or .plugin files
+    def parseCompediumFile(self, file, tag):
+        items_row = [""] * (len(self.COLUMN_LIST) - 1)
+
+        doc = xml.dom.minidom.parse(file)
+        nodes = doc.getElementsByTagName(tag)[0].childNodes
+        for node in nodes:
+            if node.nodeName == "Name":
+                items_row[0] = GetText(node.childNodes)
+            elif node.nodeName == "Author":
+                items_row[3] = GetText(node.childNodes)
+            elif node.nodeName == "Version":
+                items_row[2] = GetText(node.childNodes)
+            elif node.nodeName == "Id":
+                items_row[6] = GetText(node.childNodes)
+            items_row[5] = file
+
+        return items_row
 
     def openDB(self):
         table_list = [
