@@ -34,7 +34,7 @@ from xml.dom import EMPTY_NAMESPACE
 import xml.dom.minidom
 from .OneLauncherUtils import GetText
 import sqlite3
-from shutil import rmtree
+from shutil import rmtree, copy
 
 
 class AddonManager:
@@ -360,16 +360,34 @@ class AddonManager:
         self.conn.close()
 
     def actionAddonImportSelected(self):
+        if self.currentGame.startswith("DDO"):
+            addon_formats = "*.zip *.rar"
+        else:
+            addon_formats = "*.zip *.rar *.abc"
+
         filenames = QtWidgets.QFileDialog.getOpenFileNames(
             self.winAddonManager,
             "Addon Files/Archives",
             os.path.expanduser("~"),
-            "*.zip *.rar *.abc",
+            addon_formats,
         )
 
-        if filenames:
-            for file in filenames:
-                print(file)
+        if filenames[0]:
+            for file in filenames[0]:
+                self.installAddon(file)
+
+    def installAddon(self, addon):
+        # Install .abc files
+        if addon.endswith(".abc"):
+            copy(addon, os.path.join(self.data_folder, "Music"))
+
+            self.getInstalledMusic()
+        elif addon.endswith(".rar"):
+            self.addLog(
+                "OneLauncher does not support .rar archives, because it is a proprietary format that would require and external program to extract"
+            )
+        elif addon.endswith(".zip"):
+            pass
 
     def txtSearchBarTextChanged(self, text):
         if self.currentGame.startswith("LOTRO"):
