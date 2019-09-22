@@ -110,6 +110,10 @@ class AddonManager:
             self.data_folder = os.path.join(
                 os.path.expanduser("~"), documents_folder, "Dungeons and Dragons Online"
             )
+
+            self.uiAddonManager.tableThemesInstalled.setObjectName(
+                "tableThemesDDOInstalled"
+            )
             self.getInstalledThemes()
         else:
             self.data_folder = os.path.join(
@@ -146,15 +150,19 @@ class AddonManager:
                     themes_list.remove(folder[:-1])
                     break
 
-        self.addInstalledThemestoDB(themes_list, themes_list_compendium)
+        self.addInstalledThemestoDB(
+            themes_list,
+            themes_list_compendium,
+            self.uiAddonManager.tableThemesInstalled,
+        )
 
-    def addInstalledThemestoDB(self, themes_list, themes_list_compendium):
+    def addInstalledThemestoDB(self, themes_list, themes_list_compendium, table):
         # Clears rows from db table
-        self.c.execute("DELETE FROM tableThemesInstalled")
+        self.c.execute("DELETE FROM {table}".format(table=table.objectName()))
 
         for theme in themes_list_compendium:
             items_row = self.parseCompediumFile(theme, "SkinConfig")
-            self.addRowToDB("tableThemesInstalled", items_row)
+            self.addRowToDB(table.objectName(), items_row)
 
         for theme in themes_list:
             items_row = [""] * (len(self.COLUMN_LIST) - 1)
@@ -163,10 +171,10 @@ class AddonManager:
             items_row[5] = theme
             items_row[1] = "Unmanaged"
 
-            self.addRowToDB("tableThemesInstalled", items_row)
+            self.addRowToDB(table.objectName(), items_row)
 
         # Populate user visible table
-        self.searchDB(self.uiAddonManager.tableThemesInstalled, "")
+        self.searchDB(table, "")
 
     def getInstalledMusic(self):
         self.uiAddonManager.txtSearchBar.clear()
