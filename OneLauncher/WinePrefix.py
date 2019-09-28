@@ -40,9 +40,9 @@ from pkg_resources import resource_filename
 
 
 class BuiltInPrefix:
-    WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/4.16/wine-4.16-staging-improved-amd64.tar.xz"
+    WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/4.17/wine-4.17-staging-improved-amd64.tar.xz"
     DXVK_URL = (
-        "https://github.com/doitsujin/dxvk/releases/download/v1.4/dxvk-1.4.tar.gz"
+        "https://github.com/doitsujin/dxvk/releases/download/v1.4.1/dxvk-1.4.1.tar.gz"
     )
 
     def __init__(self, settingsDir, winePrefix, parent):
@@ -110,16 +110,18 @@ class BuiltInPrefix:
         self.dlgDownloader.setValue(percent)
 
     def wine_extracter(self, path):
+        split_path = os.path.splitext(os.path.splitext(path)[0])[0]
+
         # Extracts tar.xz file
         with lzma.open(path) as file:
             with tarfile.open(fileobj=file) as tar:
-                content = tar.extractall(path[:-7])
+                tar.extractall(split_path)
 
         # Moves files from nested directory to main one
-        source_dir = (os.listdir(path[:-7]))[0]
-        move(os.path.join(path[:-7], source_dir), self.settingsDir + "wine")
-        os.rmdir(path[:-7])
-        os.rename(os.path.join(self.settingsDir + "wine", source_dir), path[:-7])
+        source_dir = (os.listdir(split_path))[0]
+        move(os.path.join(split_path, source_dir), self.settingsDir + "wine")
+        os.rmdir(split_path)
+        os.rename(os.path.join(self.settingsDir + "wine", source_dir), split_path)
 
         # Removes downloaded tar.xz
         os.remove(path)
@@ -130,14 +132,16 @@ class BuiltInPrefix:
                 rmtree(os.path.join(self.settingsDir + "wine", dir))
 
     def dxvk_extracter(self, path):
+        split_path = os.path.splitext(os.path.splitext(path)[0])[0]
+
         # Extracts tar.gz file
         with tarfile.open(path, "r:gz") as file:
-            file.extractall(path[:-7] + "_TEMP")
+            file.extractall(split_path + "_TEMP")
 
         # Moves files from nested directory to main one
-        source_dir = (os.listdir(path[:-7] + "_TEMP"))[0]
-        move(os.path.join(path[:-7] + "_TEMP", source_dir), self.settingsDir + "wine")
-        os.rmdir(path[:-7] + "_TEMP")
+        source_dir = (os.listdir(split_path + "_TEMP"))[0]
+        move(os.path.join(split_path + "_TEMP", source_dir), self.settingsDir + "wine")
+        os.rmdir(split_path + "_TEMP")
 
         # Removes downloaded tar.gz
         os.remove(path)
