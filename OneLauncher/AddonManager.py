@@ -351,6 +351,10 @@ class AddonManager:
             items_row[1] = info[0]
             items_row[4] = info[1]
 
+        # Unmanaged if not in online cache
+        if not items_row[1]:
+            items_row[1] = "Unmanaged"
+
         return items_row
 
     def openDB(self):
