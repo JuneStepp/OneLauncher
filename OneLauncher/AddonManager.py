@@ -173,6 +173,7 @@ class AddonManager:
 
         for theme in themes_list_compendium:
             items_row = self.parseCompediumFile(theme, "SkinConfig")
+            items_row = self.getOnlineAddonInfo(items_row, "tableThemes")
             self.addRowToDB(table.objectName(), items_row)
 
         for theme in themes_list:
@@ -217,6 +218,7 @@ class AddonManager:
 
         for music in music_list_compendium:
             items_row = self.parseCompediumFile(music, "MusicConfig")
+            items_row = self.getOnlineAddonInfo(items_row, "tableMusic")
             self.addRowToDB("tableMusicInstalled", items_row)
 
         for music in music_list:
@@ -288,6 +290,7 @@ class AddonManager:
             # Sets tag for plugin file xml search and category for unmanaged plugins
             if plugin.endswith(".plugincompendium"):
                 items_row = self.parseCompediumFile(plugin, "PluginConfig")
+                items_row = self.getOnlineAddonInfo(items_row, "tablePlugins")
 
                 dependencies = ""
                 doc = xml.dom.minidom.parse(plugin)
@@ -326,13 +329,18 @@ class AddonManager:
             items_row[5] = file
 
         return items_row
-    
-    def getOnlineAddonInfo(self, InterfaceID, table):
-        info = self.c.execute(
-            'SELECT Category, Latest Release FROM {table} WHERE InterfaceID = ?'.format(
-                table=table.objectName()),
-                    (InterfaceID),
-            )[0]
+
+    def getOnlineAddonInfo(self, items_row, remote_addons_table):
+        for info in self.c.execute(
+            "SELECT Category, LatestRelease FROM {table} WHERE InterfaceID == '{ID}'".format(
+                table=remote_addons_table, ID=items_row[6]
+            )
+            
+        ):  
+            items_row[1] = info[0]
+            items_row[4] = info[1]
+
+        return items_row
 
     def openDB(self):
         table_list = [
