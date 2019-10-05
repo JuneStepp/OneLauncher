@@ -36,6 +36,8 @@ from .OneLauncherUtils import GetText
 import sqlite3
 from shutil import rmtree, copy
 from zipfile import ZipFile
+from urllib import request
+from time import strftime, localtime
 
 
 class AddonManager:
@@ -46,11 +48,16 @@ class AddonManager:
         "Category",
         "Version",
         "Author",
-        "Modified",
+        "LatestRelease",
         "File",
         "InterfaceID",
         "Dependencies",
     ]
+
+    PLUGINS_URL = "https://api.lotrointerface.com/fav/OneLauncher-Plugins.xml"
+    THEMES_URL = "https://api.lotrointerface.com/fav/OneLauncher-Themes.xml"
+    MUSIC_URL = "https://api.lotrointerface.com/fav/OneLauncher-Music.xml"
+    THEMES_DDO_URL = "https://api.lotrointerface.com/fav/OneLauncher-Themes-DDO.xml"
 
     def __init__(self, currentGame, osType, settingsDir, parent):
         self.settingsDir = settingsDir
@@ -93,6 +100,9 @@ class AddonManager:
         self.uiAddonManager.tablePluginsInstalled.hideColumn(0)
         self.uiAddonManager.tableThemesInstalled.hideColumn(0)
         self.uiAddonManager.tableMusicInstalled.hideColumn(0)
+        self.uiAddonManager.tablePlugins.hideColumn(0)
+        self.uiAddonManager.tableThemes.hideColumn(0)
+        self.uiAddonManager.tableMusic.hideColumn(0)
 
         self.openDB()
 
@@ -316,6 +326,13 @@ class AddonManager:
             items_row[5] = file
 
         return items_row
+    
+    def getOnlineAddonInfo(self, InterfaceID, table):
+        info = self.c.execute(
+            'SELECT Category, Latest Release FROM {table} WHERE InterfaceID = ?'.format(
+                table=table.objectName()),
+                    (InterfaceID),
+            )[0]
 
     def openDB(self):
         table_list = [
@@ -427,6 +444,17 @@ class AddonManager:
                 # If in MusicInstalled tab
                 elif self.uiAddonManager.tabWidgetInstalled.currentIndex() == 2:
                     self.searchDB(self.uiAddonManager.tableMusicInstalled, text)
+            # If in Find More tab
+            elif self.uiAddonManager.tabWidget.currentIndex() == 1:
+                # If in Plugins tab
+                if self.uiAddonManager.tabWidgetFindMore.currentIndex() == 0:
+                    self.searchDB(self.uiAddonManager.tablePlugins, text)
+                # If in Themes tab
+                elif self.uiAddonManager.tabWidgetFindMore.currentIndex() == 1:
+                    self.searchDB(self.uiAddonManager.tableThemes, text)
+                # If in Music tab
+                elif self.uiAddonManager.tabWidgetFindMore.currentIndex() == 2:
+                    self.searchDB(self.uiAddonManager.tableMusic, text)
         else:
             self.searchDB(self.uiAddonManager.tableThemesInstalled, text)
 
@@ -684,6 +712,63 @@ class AddonManager:
         else:
             self.uiAddonManager.btnAddons.setText("+")
             self.uiAddonManager.btnAddons.setToolTip("Install addons")
+
+            # Populates remote addons tables if not done already
+            if not self.uiAddonManager.tableThemes.item(0, 0):
+                self.loadRemoteAddons()
+
+    def loadRemoteAddons(self):
+        if self.currentGame.startswith("LOTRO"):
+            self.getRemoteAddons(self.PLUGINS_URL, self.uiAddonManager.tablePlugins)
+            self.getRemoteAddons(self.THEMES_URL, self.uiAddonManager.tableThemes)
+            self.getRemoteAddons(self.MUSIC_URL, self.uiAddonManager.tableMusic)
+        else:
+            self.getRemoteAddons(self.THEMES_DDO_URL, self.uiAddonManager.tableThemes)
+
+    def getRemoteAddons(self, favorites_url, table):
+        # Clears rows from db table
+        self.c.execute("DELETE FROM {table}".format(table=table.objectName()))
+
+        addons_file = request.urlopen(favorites_url).read().decode()
+        doc = xml.dom.minidom.parseString(addons_file)
+        tags = doc.getElementsByTagName("Ui")
+        for tag in tags:
+            items_row = [""] * (len(self.COLUMN_LIST) - 1)
+            nodes = tag.childNodes
+            for node in nodes:
+                if node.nodeName == "UIName":
+                    items_row[0] = GetText(node.childNodes)
+                elif node.nodeName == "UIAuthorName":
+                    items_row[3] = GetText(node.childNodes)
+                elif node.nodeName == "UICategory":
+                    items_row[1] = GetText(node.childNodes)
+                elif node.nodeName == "UID":
+                    items_row[6] = GetText(node.childNodes)
+                elif node.nodeName == "UIVersion":
+                    items_row[2] = GetText(node.childNodes)
+                elif node.nodeName == "UIUpdated":
+                    items_row[4] = strftime(
+                        "%m-%d-%Y", localtime(int(GetText(node.childNodes)))
+                    )
+                elif node.nodeName == "UIFileURL":
+                    items_row[5] = GetText(node.childNodes)
+            self.addRowToDB(table.objectName(), items_row)
+
+        # Populate user visible table
+        self.searchDB(table, "")
+
+    # Downloads file from url to path and shows progress with self.handleDownloadProgress
+    def downloader(self, url, path, text=""):
+        self.uiAddonManager.progressBar.setText(text)
+        request.urlretrieve(url, path, self.handleDownloadProgress)
+
+        self.uiAddonManager.progressBar.setValue(0)
+        self.uiAddonManager.progressBar.setText("text")
+
+    def handleDownloadProgress(self, index, frame, size):
+        # Updates progress bar with download progress
+        percent = 100 * index * frame // size
+        self.uiAddonManager.progressBar.setValue(percent)
 
     def Run(self):
         self.winAddonManager.exec()
