@@ -53,6 +53,16 @@ class AddonManager:
         "InterfaceID",
         "Dependencies",
     ]
+    TABLE_LIST = [
+        "tablePluginsInstalled",
+        "tableThemesInstalled",
+        "tableMusicInstalled",
+        "tablePlugins",
+        "tableThemes",
+        "tableMusic",
+        "tableThemesDDO",
+        "tableThemesDDOInstalled",
+    ]
 
     PLUGINS_URL = "https://api.lotrointerface.com/fav/OneLauncher-Plugins.xml"
     THEMES_URL = "https://api.lotrointerface.com/fav/OneLauncher-Themes.xml"
@@ -96,13 +106,15 @@ class AddonManager:
             self.txtSearchBarTextChanged
         )
 
-        # Hides ID column
-        self.uiAddonManager.tablePluginsInstalled.hideColumn(0)
-        self.uiAddonManager.tableThemesInstalled.hideColumn(0)
-        self.uiAddonManager.tableMusicInstalled.hideColumn(0)
-        self.uiAddonManager.tablePlugins.hideColumn(0)
-        self.uiAddonManager.tableThemes.hideColumn(0)
-        self.uiAddonManager.tableMusic.hideColumn(0)
+        for table in self.TABLE_LIST[:-2]:
+            # Gets callable form from the string
+            table = getattr(self.uiAddonManager, table)
+
+            # Hides ID column
+            table.hideColumn(0)
+
+            # Sort tables by addon name
+            table.sortItems(1)
 
         self.openDB()
 
@@ -342,17 +354,6 @@ class AddonManager:
         return items_row
 
     def openDB(self):
-        table_list = [
-            "tablePluginsInstalled",
-            "tableThemesInstalled",
-            "tableMusicInstalled",
-            "tablePlugins",
-            "tableThemes",
-            "tableMusic",
-            "tableThemesDDO",
-            "tableThemesDDOInstalled",
-        ]
-
         # Connects to addons_cache database and creates it if it does not exist
         if not os.path.exists(os.path.join(self.settingsDir, "addons_cache.sqlite")):
             self.conn = sqlite3.connect(
@@ -360,7 +361,7 @@ class AddonManager:
             )
             self.c = self.conn.cursor()
 
-            for table in table_list:
+            for table in self.TABLE_LIST:
                 self.c.execute(
                     "CREATE VIRTUAL TABLE {tbl_nm} USING FTS5({clmA}, {clmB}, {clmC}, {clmD}, {clmE}, {clmF}, {clmG}, {clmH})".format(
                         tbl_nm=table,
