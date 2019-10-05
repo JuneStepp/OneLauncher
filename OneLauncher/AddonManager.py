@@ -335,8 +335,7 @@ class AddonManager:
             "SELECT Category, LatestRelease FROM {table} WHERE InterfaceID == '{ID}'".format(
                 table=remote_addons_table, ID=items_row[6]
             )
-            
-        ):  
+        ):
             items_row[1] = info[0]
             items_row[4] = info[1]
 
@@ -567,6 +566,27 @@ class AddonManager:
             if uninstallConfirm:
                 uninstall_class(addons, table)
 
+        elif self.uiAddonManager.tabWidget.currentIndex() == 1:
+            self.installRemoteAddons()
+
+    def installRemoteAddons(self):
+        if self.uiAddonManager.tabWidgetFindMore.currentIndex() == 0:
+            table = self.uiAddonManager.tablePlugins
+        elif self.uiAddonManager.tabWidgetFindMore.currentIndex() == 1:
+            table = self.uiAddonManager.tableThemes
+        elif self.uiAddonManager.tabWidgetFindMore.currentIndex() == 2:
+            table = self.uiAddonManager.tableMusic
+
+        addons, details = self.getSelectedAddons(table)
+        for addon in addons:
+            path = os.path.join(self.data_folder, "Downoads", addon[0] + ".zip")
+            os.makedirs(os.path.split(path)[0], exist_ok=True)
+            self.downloader(addon[1], path)
+            self.installAddon(path)
+            os.remove(path)
+            # self.checkAddonForDependencies()
+            self.searchDB(table, "")
+
     def getUninstallConfirm(self, table):
         addons, details = self.getSelectedAddons(table)
 
@@ -766,12 +786,10 @@ class AddonManager:
         self.searchDB(table, "")
 
     # Downloads file from url to path and shows progress with self.handleDownloadProgress
-    def downloader(self, url, path, text=""):
-        self.uiAddonManager.progressBar.setText(text)
+    def downloader(self, url, path):
         request.urlretrieve(url, path, self.handleDownloadProgress)
 
         self.uiAddonManager.progressBar.setValue(0)
-        self.uiAddonManager.progressBar.setText("text")
 
     def handleDownloadProgress(self, index, frame, size):
         # Updates progress bar with download progress
