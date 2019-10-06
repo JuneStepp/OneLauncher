@@ -526,6 +526,10 @@ class AddonManager:
     def addRowToTable(self, table, list):
         table.setSortingEnabled(False)
 
+        disable_row = False
+        installed_color = QtGui.QColor()
+        installed_color.setRgb(63, 73, 83)
+
         rows = table.rowCount()
         table.setRowCount(rows + 1)
 
@@ -541,7 +545,15 @@ class AddonManager:
             # Sets color to red if plugin is unmanaged
             if item == "Unmanaged" and i == 2:
                 tbl_item.setForeground(QtGui.QColor("darkred"))
+            elif str(item).startswith("(Installed)") and i == 1:
+                tbl_item.setText(item.split("(Installed) ")[1])
+                disable_row = True
             table.setItem(rows, i, tbl_item)
+
+        if disable_row:
+            for i in range(table.columnCount()):
+                table.item(rows, i).setFlags(QtCore.Qt.ItemIsEnabled)
+                table.item(rows, i).setBackground(installed_color)
 
         table.setSortingEnabled(True)
 
@@ -606,29 +618,34 @@ class AddonManager:
             table = self.uiAddonManager.tableMusic
 
         addons, details = self.getSelectedAddons(table)
-        self.searchDB(
-            getattr(self.uiAddonManager, table.objectName() + "Installed"), ""
-        )
-        for addon in addons:
-            path = os.path.join(self.data_folder, "Downoads", addon[0] + ".zip")
-            os.makedirs(os.path.split(path)[0], exist_ok=True)
-            self.downloader(addon[1], path)
-            self.installAddon(path)
-            os.remove(path)
+        if addons and details:
+            self.searchDB(
+                getattr(self.uiAddonManager, table.objectName() + "Installed"), ""
+            )
+            for addon in addons:
+                path = os.path.join(self.data_folder, "Downoads", addon[0] + ".zip")
+                os.makedirs(os.path.split(path)[0], exist_ok=True)
+                self.downloader(addon[1], path)
+                self.installAddon(path)
+                os.remove(path)
         # install dependencies. they are listed on db entry. make function for it
         # Make sure to deal with addons that just extract for glory and don't have a root folder. Looking at you music
 
     def getUninstallConfirm(self, table):
         addons, details = self.getSelectedAddons(table)
-
-        num_depends = len(details.split("\n")) - 1
-        if num_depends == 1:
-            plural, plural1 = "this ", " addon?"
-        else:
-            plural, plural1 = "these ", " addons?"
-        text = "Are you sure you want to remove " + plural + str(len(addons)) + plural1
-        if self.confirmationPrompt(text, details):
-            return True, addons
+        if addons and details:
+            num_depends = len(details.split("\n")) - 1
+            if num_depends == 1:
+                plural, plural1 = "this ", " addon?"
+            else:
+                plural, plural1 = "these ", " addons?"
+            text = (
+                "Are you sure you want to remove " + plural + str(len(addons)) + plural1
+            )
+            if self.confirmationPrompt(text, details):
+                return True, addons
+            else:
+                return False, addons
         else:
             return False, addons
 
@@ -652,6 +669,8 @@ class AddonManager:
                     details = details + selected_name + "\n"
 
             return selected_addons, details
+        else:
+            return None, None
 
     def uninstallPlugins(self, plugins, table):
         data_folder = os.path.join(self.data_folder, "Plugins")
@@ -791,6 +810,16 @@ class AddonManager:
         # Clears rows from db table
         self.c.execute("DELETE FROM {table}".format(table=table.objectName()))
 
+        # Gets list of Interface IDs for installed addons
+        installed_IDs = []
+        for ID in self.c.execute(
+            "SELECT InterfaceID FROM {table}".format(
+                table=table.objectName() + "Installed"
+            )
+        ):
+            if ID[0]:
+                installed_IDs.append(ID[0])
+
         addons_file = request.urlopen(favorites_url).read().decode()
         doc = xml.dom.minidom.parseString(addons_file)
         tags = doc.getElementsByTagName("Ui")
@@ -814,6 +843,11 @@ class AddonManager:
                     )
                 elif node.nodeName == "UIFileURL":
                     items_row[5] = GetText(node.childNodes)
+
+            # Prepends name with (Installed) if already installed
+            if items_row[6] in installed_IDs:
+                items_row[0] = "(Installed) " + items_row[0]
+
             self.addRowToDB(table.objectName(), items_row)
 
         # Populate user visible table
