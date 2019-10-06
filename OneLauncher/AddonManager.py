@@ -157,15 +157,20 @@ class AddonManager:
         if index == 2 and not self.uiAddonManager.tableMusicInstalled.item(0, 0):
             self.getInstalledMusic()
 
-    def getInstalledThemes(self):
-        self.uiAddonManager.txtSearchBar.clear()
-
+    def getInstalledThemes(self, folders_list=None):
         data_folder = os.path.join(self.data_folder, "ui", "skins")
         os.makedirs(data_folder, exist_ok=True)
 
+        if not folders_list:
+            folders_list = glob(os.path.join(data_folder, "*", ""))
+        else:
+            folders_list = [
+                os.path.join(data_folder, folder) for folder in folders_list
+            ]
+
         themes_list = []
         themes_list_compendium = []
-        for folder in glob(os.path.join(data_folder, "*", "")):
+        for folder in folders_list:
             themes_list.append(folder[:-1])
             for file in os.listdir(folder):
                 if file.endswith(".skincompendium"):
@@ -180,8 +185,9 @@ class AddonManager:
         )
 
     def addInstalledThemestoDB(self, themes_list, themes_list_compendium, table):
-        # Clears rows from db table
-        self.c.execute("DELETE FROM {table}".format(table=table.objectName()))
+        # Clears rows from db table if needed (This function is called to add newly installed themes after initial load as well)
+        if not table.item(0, 1):
+            self.c.execute("DELETE FROM {table}".format(table=table.objectName()))
 
         for theme in themes_list_compendium:
             items_row = self.parseCompediumFile(theme, "SkinConfig")
@@ -200,15 +206,20 @@ class AddonManager:
         # Populate user visible table
         self.searchDB(table, "")
 
-    def getInstalledMusic(self):
-        self.uiAddonManager.txtSearchBar.clear()
-
+    def getInstalledMusic(self, folders_list=None):
         data_folder = os.path.join(self.data_folder, "Music")
         os.makedirs(data_folder, exist_ok=True)
 
+        if not folders_list:
+            folders_list = glob(os.path.join(data_folder, "*", ""))
+        else:
+            folders_list = [
+                os.path.join(data_folder, folder) for folder in folders_list
+            ]
+
         music_list = []
         music_list_compendium = []
-        for folder in glob(os.path.join(data_folder, "*", "")):
+        for folder in folders_list:
             music_list.append(folder[:-1])
             for file in os.listdir(folder):
                 if file.endswith(".musiccompendium"):
@@ -225,8 +236,9 @@ class AddonManager:
         self.addInstalledMusictoDB(music_list, music_list_compendium)
 
     def addInstalledMusictoDB(self, music_list, music_list_compendium):
-        # Clears rows from db table
-        self.c.execute("DELETE FROM tableMusicInstalled")
+        # Clears rows from db table if needed (This function is called to add newly installed music after initial load as well)
+        if not self.uiAddonManager.tableMusicInstalled.item(0, 1):
+            self.c.execute("DELETE FROM tableMusicInstalled")
 
         for music in music_list_compendium:
             items_row = self.parseCompediumFile(music, "MusicConfig")
@@ -259,16 +271,21 @@ class AddonManager:
         # Populate user visible table
         self.searchDB(self.uiAddonManager.tableMusicInstalled, "")
 
-    def getInstalledPlugins(self):
-        self.uiAddonManager.txtSearchBar.clear()
-
+    def getInstalledPlugins(self, folders_list=None):
         data_folder = os.path.join(self.data_folder, "Plugins")
         os.makedirs(data_folder, exist_ok=True)
+
+        if not folders_list:
+            folders_list = glob(os.path.join(data_folder, "*", ""))
+        else:
+            folders_list = [
+                os.path.join(data_folder, folder) for folder in folders_list
+            ]
 
         # Finds all plugins and adds their .plugincompendium files to a list
         plugins_list_compendium = []
         plugins_list = []
-        for folder in glob(os.path.join(data_folder, "*", "")):
+        for folder in folders_list:
             for file in os.listdir(folder):
                 if file.endswith(".plugincompendium"):
                     plugins_list_compendium.append(os.path.join(folder, file))
@@ -295,8 +312,9 @@ class AddonManager:
         self.addInstalledPluginstoDB(plugins_list, plugins_list_compendium)
 
     def addInstalledPluginstoDB(self, plugins_list, plugins_list_compendium):
-        # Clears rows from db table
-        self.c.execute("DELETE FROM tablePluginsInstalled")
+        # Clears rows from db table if needed (This function is called to add newly installed plugins after initial load as well)
+        if not self.uiAddonManager.tablePluginsInstalled.item(0, 1):
+            self.c.execute("DELETE FROM tablePluginsInstalled")
 
         for plugin in plugins_list_compendium + plugins_list:
             # Sets tag for plugin file xml search and category for unmanaged plugins
@@ -429,7 +447,9 @@ class AddonManager:
                             return
 
                         file.extractall(path=os.path.join(self.data_folder, "Plugins"))
-                        self.getInstalledPlugins()
+                        self.getInstalledPlugins(
+                            folders_list=[entry.split("/")[0] + "/"]
+                        )
                         return
                     elif entry.endswith(".abc"):
                         if self.currentGame.startswith("DDO"):
@@ -437,11 +457,12 @@ class AddonManager:
                             return
 
                         file.extractall(path=os.path.join(self.data_folder, "Music"))
-                        self.getInstalledMusic()
+                        self.getInstalledMusic(folders_list=[entry.split("/")[0] + "/"])
                         return
 
                 file.extractall(path=os.path.join(self.data_folder, "ui", "skins"))
-                self.getInstalledThemes()
+                self.getInstalledThemes(folders_list=[entry.split("/")[0] + "/"])
+                return
 
     def txtSearchBarTextChanged(self, text):
         if self.currentGame.startswith("LOTRO"):
@@ -498,6 +519,8 @@ class AddonManager:
                 "SELECT rowid, * FROM {table}".format(table=table.objectName())
             ):
                 self.addRowToTable(table, row)
+
+            self.uiAddonManager.txtSearchBar.clear()
 
     # Adds row to a visible table. First value in list is row name
     def addRowToTable(self, table, list):
@@ -583,14 +606,17 @@ class AddonManager:
             table = self.uiAddonManager.tableMusic
 
         addons, details = self.getSelectedAddons(table)
+        self.searchDB(
+            getattr(self.uiAddonManager, table.objectName() + "Installed"), ""
+        )
         for addon in addons:
             path = os.path.join(self.data_folder, "Downoads", addon[0] + ".zip")
             os.makedirs(os.path.split(path)[0], exist_ok=True)
             self.downloader(addon[1], path)
             self.installAddon(path)
             os.remove(path)
-            # self.checkAddonForDependencies()
-            self.searchDB(table, "")
+        # install dependencies. they are listed on db entry. make function for it
+        # Make sure to deal with addons that just extract for glory and don't have a root folder. Looking at you music
 
     def getUninstallConfirm(self, table):
         addons, details = self.getSelectedAddons(table)
@@ -666,9 +692,10 @@ class AddonManager:
                 os.remove(plugin[1])
 
         # Reloads plugins
+        table.clearContents()
         self.getInstalledPlugins()
 
-    def uninstallThemes(self, themes, talbe):
+    def uninstallThemes(self, themes, table):
         for theme in themes:
             if theme[1].endswith(".skincompendium"):
                 theme = os.path.split(theme[1])[0]
@@ -677,6 +704,7 @@ class AddonManager:
             rmtree(theme)
 
             # Reloads themes
+            table.clearContents()
             self.getInstalledThemes()
 
     def uninstallMusic(self, musics, table):
@@ -691,7 +719,8 @@ class AddonManager:
             else:
                 rmtree(music)
 
-            # Reloads themes
+            # Reloads music
+            table.clearContents()
             self.getInstalledMusic()
 
     def checkAddonForDependencies(self, addon, table):
