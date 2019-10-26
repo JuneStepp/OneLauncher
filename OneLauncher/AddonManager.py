@@ -171,11 +171,12 @@ class AddonManager:
         themes_list = []
         themes_list_compendium = []
         for folder in folders_list:
-            themes_list.append(folder[:-1])
+            folder = folder[:-1] + folder[-1].replace("/", "")
+            themes_list.append(folder)
             for file in os.listdir(folder):
                 if file.endswith(".skincompendium"):
                     themes_list_compendium.append(os.path.join(folder, file))
-                    themes_list.remove(folder[:-1])
+                    themes_list.remove(folder)
                     break
 
         self.addInstalledThemestoDB(
@@ -220,13 +221,14 @@ class AddonManager:
         music_list = []
         music_list_compendium = []
         for folder in folders_list:
-            music_list.append(folder[:-1])
+            folder = folder[:-1] + folder[-1].replace("/", "")
+            music_list.append(folder)
             for file in os.listdir(folder):
                 if file.endswith(".musiccompendium"):
                     music_list_compendium.append(
                         os.path.join(data_folder, folder, file)
                     )
-                    music_list.remove(folder[:-1])
+                    music_list.remove(folder)
                     break
 
         for file in os.listdir(data_folder):
@@ -456,12 +458,23 @@ class AddonManager:
                             self.addLog("DDO does not support .abc/music files")
                             return
 
-                        file.extractall(path=os.path.join(self.data_folder, "Music"))
-                        self.getInstalledMusic(folders_list=[entry.split("/")[0] + "/"])
+                        # Make folder for music if there is no root folder
+                        if len(entry.split("/")) == 1:
+                            name = os.path.split(os.path.splitext(addon)[0])[1]
+                            path = os.path.join(
+                                self.data_folder, "Music", name)
+                            os.makedirs(os.path.split(path)[0], exist_ok=True)
+                            music_folder = name
+                        else:
+                            path = os.path.join(self.data_folder, "Music")
+                            music_folder = entry.split("/")[0]
+
+                        file.extractall(path=path)
+                        self.getInstalledMusic(folders_list=[music_folder])
                         return
 
                 file.extractall(path=os.path.join(self.data_folder, "ui", "skins"))
-                self.getInstalledThemes(folders_list=[entry.split("/")[0] + "/"])
+                self.getInstalledThemes(folders_list=[entry.split("/")[0]])
                 return
 
     def txtSearchBarTextChanged(self, text):
@@ -605,6 +618,7 @@ class AddonManager:
             uninstallConfirm, addons = self.getUninstallConfirm(table)
             if uninstallConfirm:
                 uninstall_class(addons, table)
+                self.loadRemoteAddons()
 
         elif self.uiAddonManager.tabWidget.currentIndex() == 1:
             self.installRemoteAddons()
@@ -623,13 +637,15 @@ class AddonManager:
                 getattr(self.uiAddonManager, table.objectName() + "Installed"), ""
             )
             for addon in addons:
-                path = os.path.join(self.data_folder, "Downoads", addon[0] + ".zip")
+                path = os.path.join(self.data_folder, "Downloads", addon[2] + ".zip")
                 os.makedirs(os.path.split(path)[0], exist_ok=True)
                 self.downloader(addon[1], path)
                 self.installAddon(path)
-                os.remove(path)
+                os.remove(path)            
         # install dependencies. they are listed on db entry. make function for it
         # Make sure to deal with addons that just extract for glory and don't have a root folder. Looking at you music
+
+        self.loadRemoteAddons()
 
     def getUninstallConfirm(self, table):
         addons, details = self.getSelectedAddons(table)
