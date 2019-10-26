@@ -448,34 +448,39 @@ class AddonManager:
                             self.addLog("DDO does not support plugins")
                             return
 
-                        file.extractall(path=os.path.join(self.data_folder, "Plugins"))
-                        self.getInstalledPlugins(
-                            folders_list=[entry.split("/")[0] + "/"]
-                        )
+                        path, folder = self.getAddonInstallationFolder(entry, addon, ["Plugins"])
+                        file.extractall(path=path)
+                        self.getInstalledPlugins(folders_list=[folder])
                         return
                     elif entry.endswith(".abc"):
                         if self.currentGame.startswith("DDO"):
                             self.addLog("DDO does not support .abc/music files")
                             return
 
-                        # Make folder for music if there is no root folder
-                        if len(entry.split("/")) == 1:
-                            name = os.path.split(os.path.splitext(addon)[0])[1]
-                            path = os.path.join(
-                                self.data_folder, "Music", name)
-                            os.makedirs(os.path.split(path)[0], exist_ok=True)
-                            music_folder = name
-                        else:
-                            path = os.path.join(self.data_folder, "Music")
-                            music_folder = entry.split("/")[0]
-
+                        path, folder = self.getAddonInstallationFolder(entry, addon, ["Music"])
                         file.extractall(path=path)
-                        self.getInstalledMusic(folders_list=[music_folder])
+                        self.getInstalledMusic(folders_list=[folder])
                         return
 
-                file.extractall(path=os.path.join(self.data_folder, "ui", "skins"))
-                self.getInstalledThemes(folders_list=[entry.split("/")[0]])
+                path, folder = self.getAddonInstallationFolder(entry, addon, ["ui", "skins"])
+                file.extractall(path=path)
+                self.getInstalledThemes(folders_list=[folder])
                 return
+
+    #Gets folder and makes one if there is no root folder                
+    def getAddonInstallationFolder(self, entry, addon, data_folder: list):
+        #If no root folder 
+        if len(entry.split("/")) == 1:
+            name = os.path.split(os.path.splitext(addon)[0])[1]
+            path = os.path.join(
+                self.data_folder, *data_folder, name)
+            os.makedirs(os.path.split(path)[0], exist_ok=True)
+            folder = name
+        else:
+            path = os.path.join(self.data_folder, *data_folder)
+            folder = entry.split("/")[0]
+        
+        return path, folder
 
     def txtSearchBarTextChanged(self, text):
         if self.currentGame.startswith("LOTRO"):
