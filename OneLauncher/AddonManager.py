@@ -294,7 +294,15 @@ class AddonManager:
                 elif file.endswith(".plugin"):
                     plugins_list.append(os.path.join(folder, file))
 
-        # Remove managed plugins from plugins list
+        plugins_list, plugins_list_compendium = self.removeManagedPluginsFromPluginsList(
+            plugins_list, plugins_list_compendium, data_folder
+        )
+
+        self.addInstalledPluginstoDB(plugins_list, plugins_list_compendium)
+
+    def removeManagedPluginsFromPluginsList(
+        self, plugins_list, plugins_list_compendium, data_folder
+    ):
         for plugin in plugins_list_compendium:
             doc = xml.dom.minidom.parse(plugin)
             nodes = doc.getElementsByTagName("Descriptors")[0].childNodes
@@ -311,7 +319,7 @@ class AddonManager:
                     except ValueError:
                         self.addLog(plugin + " has misconfigured descriptors")
 
-        self.addInstalledPluginstoDB(plugins_list, plugins_list_compendium)
+        return plugins_list, plugins_list_compendium
 
     def addInstalledPluginstoDB(self, plugins_list, plugins_list_compendium):
         # Clears rows from db table if needed (This function is called to add newly installed plugins after initial load as well)
@@ -440,6 +448,7 @@ class AddonManager:
             self.addLog(
                 "OneLauncher does not support .rar archives, because it is a proprietary format that would require and external program to extract"
             )
+            return
         elif addon.endswith(".zip"):
             with ZipFile(addon, "r") as file:
                 for entry in file.namelist():
@@ -448,38 +457,86 @@ class AddonManager:
                             self.addLog("DDO does not support plugins")
                             return
 
-                        path, folder = self.getAddonInstallationFolder(entry, addon, ["Plugins"])
+                        path, folder = self.getAddonInstallationFolder(
+                            entry, addon, ["Plugins"]
+                        )
                         file.extractall(path=path)
-                        self.getInstalledPlugins(folders_list=[folder])
+
+                        plugins_list = []
+                        plugins_list_compendium = []
+                        data_folder = os.path.join(self.data_folder, "Plugins")
+                        for entry in file.namelist():
+                            if len(entry.split("/")) == 2:
+                                if entry.endswith(".plugin"):
+                                    plugins_list.append(
+                                        os.path.join(data_folder, entry)
+                                    )
+                                elif entry.endswith(".plugincompendium"):
+                                    plugins_list_compendium.append(
+                                        os.path.join(data_folder, entry)
+                                    )
+
+                        plugins_list, plugins_list_compendium = self.removeManagedPluginsFromPluginsList(
+                            plugins_list, plugins_list_compendium, data_folder
+                        )
+
+                        self.addInstalledPluginstoDB(
+                            plugins_list, plugins_list_compendium
+                        )
+                        self.installAddonRemoteDependencies("tablePluginsInstalled")
                         return
                     elif entry.endswith(".abc"):
                         if self.currentGame.startswith("DDO"):
                             self.addLog("DDO does not support .abc/music files")
                             return
 
-                        path, folder = self.getAddonInstallationFolder(entry, addon, ["Music"])
+                        path, folder = self.getAddonInstallationFolder(
+                            entry, addon, ["Music"]
+                        )
                         file.extractall(path=path)
                         self.getInstalledMusic(folders_list=[folder])
+                        self.installAddonRemoteDependencies("tableMusicInstalled")
                         return
 
-                path, folder = self.getAddonInstallationFolder(entry, addon, ["ui", "skins"])
+                path, folder = self.getAddonInstallationFolder(
+                    entry, addon, ["ui", "skins"]
+                )
                 file.extractall(path=path)
                 self.getInstalledThemes(folders_list=[folder])
-                return
+                self.installAddonRemoteDependencies("tableThemesInstalled")
 
-    #Gets folder and makes one if there is no root folder                
+    # Installs the dependencies for the last installed addon
+    def installAddonRemoteDependencies(self, table):
+        # Gets dependencies for last column in db
+        for item in self.c.execute(
+            "SELECT Dependencies FROM {table} ORDER BY rowid DESC LIMIT 1".format(
+                table=table
+            )
+        ):
+            dependencies = item[0]
+
+        for dependencie in dependencies.split(","):
+            if dependencie:
+                for item in self.c.execute(
+                    "SELECT File, Name FROM {table} WHERE InterfaceID = ?".format(
+                        table=table.split("Installed")[0]
+                    ),
+                    (dependencie,),
+                ):
+                    self.installRemoteAddon(item[0], item[1])
+
+    # Gets folder and makes one if there is no root folder
     def getAddonInstallationFolder(self, entry, addon, data_folder: list):
-        #If no root folder 
+        # If no root folder
         if len(entry.split("/")) == 1:
             name = os.path.split(os.path.splitext(addon)[0])[1]
-            path = os.path.join(
-                self.data_folder, *data_folder, name)
+            path = os.path.join(self.data_folder, *data_folder, name)
             os.makedirs(os.path.split(path)[0], exist_ok=True)
             folder = name
         else:
             path = os.path.join(self.data_folder, *data_folder)
             folder = entry.split("/")[0]
-        
+
         return path, folder
 
     def txtSearchBarTextChanged(self, text):
@@ -638,19 +695,17 @@ class AddonManager:
 
         addons, details = self.getSelectedAddons(table)
         if addons and details:
-            self.searchDB(
-                getattr(self.uiAddonManager, table.objectName() + "Installed"), ""
-            )
             for addon in addons:
-                path = os.path.join(self.data_folder, "Downloads", addon[2] + ".zip")
-                os.makedirs(os.path.split(path)[0], exist_ok=True)
-                self.downloader(addon[1], path)
-                self.installAddon(path)
-                os.remove(path)            
-        # install dependencies. they are listed on db entry. make function for it
-        # Make sure to deal with addons that just extract for glory and don't have a root folder. Looking at you music
+                self.installRemoteAddon(addon[1], addon[2])
 
         self.loadRemoteAddons()
+
+    def installRemoteAddon(self, url, name):
+        path = os.path.join(self.data_folder, "Downloads", name + ".zip")
+        os.makedirs(os.path.split(path)[0], exist_ok=True)
+        self.downloader(url, path)
+        self.installAddon(path)
+        os.remove(path)
 
     def getUninstallConfirm(self, table):
         addons, details = self.getSelectedAddons(table)
@@ -715,18 +770,18 @@ class AddonManager:
                     continue
 
             for plugin_file in plugin_files:
-                doc = xml.dom.minidom.parse(plugin_file)
-                nodes = doc.getElementsByTagName("Plugin")[0].childNodes
-                for node in nodes:
-                    if node.nodeName == "Package":
-                        plugin_folder = os.path.split(
-                            GetText(node.childNodes).replace(".", os.sep)
-                        )[0]
-
-                        # Removes plugin and all related files
-                        if os.path.exists(data_folder + os.sep + plugin_folder):
-                            rmtree(data_folder + os.sep + plugin_folder)
                 if os.path.exists(plugin_file):
+                    doc = xml.dom.minidom.parse(plugin_file)
+                    nodes = doc.getElementsByTagName("Plugin")[0].childNodes
+                    for node in nodes:
+                        if node.nodeName == "Package":
+                            plugin_folder = os.path.split(
+                                GetText(node.childNodes).replace(".", os.sep)
+                            )[0]
+
+                            # Removes plugin and all related files
+                            if os.path.exists(data_folder + os.sep + plugin_folder):
+                                rmtree(data_folder + os.sep + plugin_folder)
                     os.remove(plugin_file)
             if os.path.exists(plugin[1]):
                 os.remove(plugin[1])
