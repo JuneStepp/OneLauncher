@@ -164,6 +164,9 @@ class AddonManager:
             self.getInstalledMusic()
 
     def getInstalledThemes(self, folders_list=None):
+        if not self.uiAddonManager.tableThemesInstalled.item(0, 1):
+            folders_list = None
+
         os.makedirs(self.data_folder_themes, exist_ok=True)
 
         if not folders_list:
@@ -184,21 +187,22 @@ class AddonManager:
                     themes_list.remove(folder)
                     break
 
-        self.addInstalledThemestoDB(
-            themes_list,
-            themes_list_compendium,
-            self.uiAddonManager.tableThemesInstalled,
-        )
+        self.addInstalledThemestoDB(themes_list, themes_list_compendium)
 
-    def addInstalledThemestoDB(self, themes_list, themes_list_compendium, table):
+    def addInstalledThemestoDB(self, themes_list, themes_list_compendium):
+        if self.currentGame.startswith("DDO"):
+            table = "tableThemesDDOInstalled"
+        else:
+            table = "tableThemesInstalled"
+
         # Clears rows from db table if needed (This function is called to add newly installed themes after initial load as well)
-        if not table.item(0, 1):
-            self.c.execute("DELETE FROM {table}".format(table=table.objectName()))
+        if not self.uiAddonManager.tableThemesInstalled.item(0, 1):
+            self.c.execute("DELETE FROM {table}".format(table=table))
 
         for theme in themes_list_compendium:
             items_row = self.parseCompediumFile(theme, "SkinConfig")
             items_row = self.getOnlineAddonInfo(items_row, "tableThemes")
-            self.addRowToDB(table.objectName(), items_row)
+            self.addRowToDB(table, items_row)
 
         for theme in themes_list:
             items_row = [""] * (len(self.COLUMN_LIST) - 1)
@@ -207,12 +211,15 @@ class AddonManager:
             items_row[5] = theme
             items_row[1] = "Unmanaged"
 
-            self.addRowToDB(table.objectName(), items_row)
+            self.addRowToDB(table, items_row)
 
         # Populate user visible table
-        self.searchDB(table, "")
+        self.searchDB(self.uiAddonManager.tableThemesInstalled, "")
 
     def getInstalledMusic(self, folders_list=None):
+        if not self.uiAddonManager.tableMusicInstalled.item(0, 1):
+            folders_list = None
+
         os.makedirs(self.data_folder_music, exist_ok=True)
 
         if not folders_list:
@@ -278,6 +285,8 @@ class AddonManager:
         self.searchDB(self.uiAddonManager.tableMusicInstalled, "")
 
     def getInstalledPlugins(self, folders_list=None):
+        if not self.uiAddonManager.tablePluginsInstalled.item(0, 1):
+            folders_list = None
         os.makedirs(self.data_folder_plugins, exist_ok=True)
 
         if not folders_list:
@@ -649,8 +658,8 @@ class AddonManager:
                 mainNode.appendChild(tempNode)
 
                 # Write compendium file
-                
-                    # Path includes folder when one has to be generated
+
+                # Path includes folder when one has to be generated
                 if path.endswith(folder):
                     folder = ""
 
