@@ -916,7 +916,8 @@ class AddonManager:
                                 rmtree(
                                     self.data_folder_plugins + os.sep + plugin_folder
                                 )
-                    os.remove(plugin_file)
+                    if os.path.exists(plugin_file):
+                        os.remove(plugin_file)
             if os.path.exists(plugin[1]):
                 os.remove(plugin[1])
 
