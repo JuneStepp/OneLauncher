@@ -134,6 +134,8 @@ class AddonManager:
                 os.path.expanduser("~"), documents_folder, "Dungeons and Dragons Online"
             )
 
+            self.data_folder_themes = os.path.join(self.data_folder, "ui", "skins")
+
             self.uiAddonManager.tableThemesInstalled.setObjectName(
                 "tableThemesDDOInstalled"
             )
@@ -144,6 +146,10 @@ class AddonManager:
                 documents_folder,
                 "The Lord of the Rings Online",
             )
+
+            self.data_folder_plugins = os.path.join(self.data_folder, "Plugins")
+            self.data_folder_themes = os.path.join(self.data_folder, "ui", "skins")
+            self.data_folder_music = os.path.join(self.data_folder, "Music")
 
             # Loads in installed plugins
             self.getInstalledPlugins()
@@ -158,14 +164,13 @@ class AddonManager:
             self.getInstalledMusic()
 
     def getInstalledThemes(self, folders_list=None):
-        data_folder = os.path.join(self.data_folder, "ui", "skins")
-        os.makedirs(data_folder, exist_ok=True)
+        os.makedirs(self.data_folder_themes, exist_ok=True)
 
         if not folders_list:
-            folders_list = glob(os.path.join(data_folder, "*", ""))
+            folders_list = glob(os.path.join(self.data_folder_themes, "*", ""))
         else:
             folders_list = [
-                os.path.join(data_folder, folder) for folder in folders_list
+                os.path.join(self.data_folder_themes, folder) for folder in folders_list
             ]
 
         themes_list = []
@@ -208,14 +213,13 @@ class AddonManager:
         self.searchDB(table, "")
 
     def getInstalledMusic(self, folders_list=None):
-        data_folder = os.path.join(self.data_folder, "Music")
-        os.makedirs(data_folder, exist_ok=True)
+        os.makedirs(self.data_folder_music, exist_ok=True)
 
         if not folders_list:
-            folders_list = glob(os.path.join(data_folder, "*", ""))
+            folders_list = glob(os.path.join(self.data_folder_music, "*", ""))
         else:
             folders_list = [
-                os.path.join(data_folder, folder) for folder in folders_list
+                os.path.join(self.data_folder_music, folder) for folder in folders_list
             ]
 
         music_list = []
@@ -226,14 +230,14 @@ class AddonManager:
             for file in os.listdir(folder):
                 if file.endswith(".musiccompendium"):
                     music_list_compendium.append(
-                        os.path.join(data_folder, folder, file)
+                        os.path.join(self.data_folder_music, folder, file)
                     )
                     music_list.remove(folder)
                     break
 
-        for file in os.listdir(data_folder):
+        for file in os.listdir(self.data_folder_music):
             if file.endswith(".abc"):
-                music_list.append(os.path.join(data_folder, file))
+                music_list.append(os.path.join(self.data_folder_music, file))
 
         self.addInstalledMusictoDB(music_list, music_list_compendium)
 
@@ -274,14 +278,14 @@ class AddonManager:
         self.searchDB(self.uiAddonManager.tableMusicInstalled, "")
 
     def getInstalledPlugins(self, folders_list=None):
-        data_folder = os.path.join(self.data_folder, "Plugins")
-        os.makedirs(data_folder, exist_ok=True)
+        os.makedirs(self.data_folder_plugins, exist_ok=True)
 
         if not folders_list:
-            folders_list = glob(os.path.join(data_folder, "*", ""))
+            folders_list = glob(os.path.join(self.data_folder_plugins, "*", ""))
         else:
             folders_list = [
-                os.path.join(data_folder, folder) for folder in folders_list
+                os.path.join(self.data_folder_plugins, folder)
+                for folder in folders_list
             ]
 
         # Finds all plugins and adds their .plugincompendium files to a list
@@ -295,13 +299,13 @@ class AddonManager:
                     plugins_list.append(os.path.join(folder, file))
 
         plugins_list, plugins_list_compendium = self.removeManagedPluginsFromPluginsList(
-            plugins_list, plugins_list_compendium, data_folder
+            plugins_list, plugins_list_compendium
         )
 
         self.addInstalledPluginstoDB(plugins_list, plugins_list_compendium)
 
     def removeManagedPluginsFromPluginsList(
-        self, plugins_list, plugins_list_compendium, data_folder
+        self, plugins_list, plugins_list_compendium
     ):
         for plugin in plugins_list_compendium:
             doc = xml.dom.minidom.parse(plugin)
@@ -312,7 +316,7 @@ class AddonManager:
                     try:
                         plugins_list.remove(
                             os.path.join(
-                                data_folder,
+                                self.data_folder_plugins,
                                 (GetText(node.childNodes).replace("\\", os.sep)),
                             )
                         )
@@ -434,14 +438,14 @@ class AddonManager:
             for file in filenames[0]:
                 self.installAddon(file)
 
-    def installAddon(self, addon):
+    def installAddon(self, addon, interface_id=""):
         # Install .abc files
         if addon.endswith(".abc"):
             if self.currentGame.startswith("DDO"):
                 self.addLog("DDO does not support .abc/music files")
                 return
 
-            copy(addon, os.path.join(self.data_folder, "Music"))
+            copy(addon, self.data_folder_music)
 
             self.getInstalledMusic()
         elif addon.endswith(".rar"):
@@ -450,60 +454,99 @@ class AddonManager:
             )
             return
         elif addon.endswith(".zip"):
+            addon_type = ""
             with ZipFile(addon, "r") as file:
-                for entry in file.namelist():
+                files_list = file.namelist()
+                for entry in files_list:
                     if entry.endswith(".plugin"):
                         if self.currentGame.startswith("DDO"):
                             self.addLog("DDO does not support plugins")
                             return
 
+                        addon_type = "Plugin"
+                        table = "tablePlugins"
                         path, folder = self.getAddonInstallationFolder(
-                            entry, addon, ["Plugins"]
+                            entry, addon, self.data_folder_plugins
                         )
                         file.extractall(path=path)
 
                         plugins_list = []
                         plugins_list_compendium = []
-                        data_folder = os.path.join(self.data_folder, "Plugins")
-                        for entry in file.namelist():
+                        for entry in files_list:
                             if len(entry.split("/")) == 2:
                                 if entry.endswith(".plugin"):
                                     plugins_list.append(
-                                        os.path.join(data_folder, entry)
+                                        os.path.join(self.data_folder_plugins, entry)
                                     )
                                 elif entry.endswith(".plugincompendium"):
                                     plugins_list_compendium.append(
-                                        os.path.join(data_folder, entry)
+                                        os.path.join(self.data_folder_plugins, entry)
                                     )
 
+                        if not plugins_list_compendium:
+                            if interface_id:
+                                compendium_file = self.generateCompendiumFile(
+                                    files_list,
+                                    folder,
+                                    interface_id,
+                                    addon_type,
+                                    path,
+                                    table,
+                                )
+                                plugins_list_compendium.append(compendium_file)
+
                         plugins_list, plugins_list_compendium = self.removeManagedPluginsFromPluginsList(
-                            plugins_list, plugins_list_compendium, data_folder
+                            plugins_list, plugins_list_compendium
                         )
 
                         self.addInstalledPluginstoDB(
                             plugins_list, plugins_list_compendium
                         )
-                        self.installAddonRemoteDependencies("tablePluginsInstalled")
+
+                        self.installAddonRemoteDependencies(table + "Installed")
                         return
                     elif entry.endswith(".abc"):
                         if self.currentGame.startswith("DDO"):
                             self.addLog("DDO does not support .abc/music files")
                             return
 
+                        addon_type = "Music"
+                        table = "tableMusic"
+
                         path, folder = self.getAddonInstallationFolder(
-                            entry, addon, ["Music"]
+                            entry, addon, self.data_folder_music
                         )
                         file.extractall(path=path)
-                        self.getInstalledMusic(folders_list=[folder])
-                        self.installAddonRemoteDependencies("tableMusicInstalled")
-                        return
 
-                path, folder = self.getAddonInstallationFolder(
-                    entry, addon, ["ui", "skins"]
-                )
-                file.extractall(path=path)
-                self.getInstalledThemes(folders_list=[folder])
-                self.installAddonRemoteDependencies("tableThemesInstalled")
+                        if interface_id:
+                            compendium_file = self.generateCompendiumFile(
+                                files_list,
+                                folder,
+                                interface_id,
+                                addon_type,
+                                path,
+                                table,
+                            )
+                        self.getInstalledMusic(folders_list=[folder])
+
+                        self.installAddonRemoteDependencies(table + "Installed")
+                        return
+                if not addon_type:
+                    addon_type = "Skin"
+                    table = "tableThemes"
+                    path, folder = self.getAddonInstallationFolder(
+                        entry, addon, self.data_folder_themes
+                    )
+                    file.extractall(path=path)
+
+                    if interface_id:
+                        compendium_file = self.generateCompendiumFile(
+                            files_list, folder, interface_id, addon_type, path, table
+                        )
+                    self.getInstalledThemes(folders_list=[folder])
+
+                    self.installAddonRemoteDependencies(table + "Installed")
+                    return
 
     # Installs the dependencies for the last installed addon
     def installAddonRemoteDependencies(self, table):
@@ -523,21 +566,109 @@ class AddonManager:
                     ),
                     (dependencie,),
                 ):
-                    self.installRemoteAddon(item[0], item[1])
+                    self.installRemoteAddon(item[0], item[1], dependencie)
 
     # Gets folder and makes one if there is no root folder
-    def getAddonInstallationFolder(self, entry, addon, data_folder: list):
+    def getAddonInstallationFolder(self, entry, addon, data_folder):
         # If no root folder
         if len(entry.split("/")) == 1:
             name = os.path.split(os.path.splitext(addon)[0])[1]
-            path = os.path.join(self.data_folder, *data_folder, name)
+            path = os.path.join(data_folder, name)
             os.makedirs(os.path.split(path)[0], exist_ok=True)
             folder = name
         else:
-            path = os.path.join(self.data_folder, *data_folder)
+            path = data_folder
             folder = entry.split("/")[0]
 
         return path, folder
+
+    # Generates a compendium file for remote addon
+    def generateCompendiumFile(
+        self, files_list, folder, interface_id, addon_type, path, table
+    ):
+        # Return if a compendium file already exists
+        for file in files_list:
+            if file.endswith(addon_type.lower() + "compendium"):
+                return
+
+        for row in self.c.execute(
+            "SELECT * FROM {table} WHERE InterfaceID = ?".format(table=table),
+            (interface_id,),
+        ):
+            if row[0]:
+                doc = xml.dom.minidom.Document()
+                mainNode = doc.createElementNS(EMPTY_NAMESPACE, addon_type + "Config")
+                doc.appendChild(mainNode)
+
+                tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Id")
+                tempNode.appendChild(doc.createTextNode("%s" % (row[6])))
+                mainNode.appendChild(tempNode)
+
+                tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Name")
+                tempNode.appendChild(doc.createTextNode("%s" % (row[0])))
+                mainNode.appendChild(tempNode)
+
+                tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Version")
+                tempNode.appendChild(doc.createTextNode("%s" % (row[2])))
+                mainNode.appendChild(tempNode)
+
+                tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Author")
+                tempNode.appendChild(doc.createTextNode("%s" % (row[3])))
+                mainNode.appendChild(tempNode)
+
+                tempNode = doc.createElementNS(EMPTY_NAMESPACE, "InfoUrl")
+                tempNode.appendChild(
+                    doc.createTextNode("%s" % (self.getInterfaceInfoUrl(row[5])))
+                )
+                mainNode.appendChild(tempNode)
+
+                tempNode = doc.createElementNS(EMPTY_NAMESPACE, "DownloadUrl")
+                tempNode.appendChild(doc.createTextNode("%s" % (row[5])))
+                mainNode.appendChild(tempNode)
+
+                if addon_type == "Plugin":
+                    # Add addon's .plugin files
+                    descriptorsNode = doc.createElementNS(
+                        EMPTY_NAMESPACE, "Descriptors"
+                    )
+                    mainNode.appendChild(descriptorsNode)
+                    for file in files_list:
+                        if file.endswith(".plugin"):
+                            tempNode = doc.createElementNS(
+                                EMPTY_NAMESPACE, "descriptor"
+                            )
+                            tempNode.appendChild(
+                                doc.createTextNode(
+                                    "%s" % (folder + "\\" + os.path.split(file)[1])
+                                )
+                            )
+                            descriptorsNode.appendChild(tempNode)
+
+                # Can't add dependencies, because they are defined in compendium files
+                tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Dependencies")
+                mainNode.appendChild(tempNode)
+
+                # Write compendium file
+                
+                    # Path includes folder when one has to be generated
+                if path.endswith(folder):
+                    folder = ""
+
+                compendium_file = os.path.join(
+                    path, folder, row[0] + "." + addon_type.lower() + "compendium"
+                )
+                with open(compendium_file, "w+") as file:
+                    file.write(doc.toxml())
+
+                return compendium_file
+
+    # Replaces "download" with "info" in download url to make info url
+    def getInterfaceInfoUrl(self, download_url):
+        download_url_tail = os.path.split(download_url)[1]
+        info_url = download_url.replace(
+            download_url_tail, download_url_tail.replace("download", "info")
+        )
+        return info_url
 
     def txtSearchBarTextChanged(self, text):
         if self.currentGame.startswith("LOTRO"):
@@ -696,15 +827,15 @@ class AddonManager:
         addons, details = self.getSelectedAddons(table)
         if addons and details:
             for addon in addons:
-                self.installRemoteAddon(addon[1], addon[2])
+                self.installRemoteAddon(addon[1], addon[2], addon[0])
 
         self.loadRemoteAddons()
 
-    def installRemoteAddon(self, url, name):
+    def installRemoteAddon(self, url, name, interface_id):
         path = os.path.join(self.data_folder, "Downloads", name + ".zip")
         os.makedirs(os.path.split(path)[0], exist_ok=True)
         self.downloader(url, path)
-        self.installAddon(path)
+        self.installAddon(path, interface_id=interface_id)
         os.remove(path)
 
     def getUninstallConfirm(self, table):
@@ -749,7 +880,6 @@ class AddonManager:
             return None, None
 
     def uninstallPlugins(self, plugins, table):
-        data_folder = os.path.join(self.data_folder, "Plugins")
         for plugin in plugins:
             if plugin[1].endswith(".plugin"):
                 plugin_files = [plugin[1]]
@@ -762,7 +892,7 @@ class AddonManager:
                         if node.nodeName == "descriptor":
                             plugin_files.append(
                                 os.path.join(
-                                    data_folder,
+                                    self.data_folder_plugins,
                                     (GetText(node.childNodes).replace("\\", os.sep)),
                                 )
                             )
@@ -780,8 +910,12 @@ class AddonManager:
                             )[0]
 
                             # Removes plugin and all related files
-                            if os.path.exists(data_folder + os.sep + plugin_folder):
-                                rmtree(data_folder + os.sep + plugin_folder)
+                            if os.path.exists(
+                                self.data_folder_plugins + os.sep + plugin_folder
+                            ):
+                                rmtree(
+                                    self.data_folder_plugins + os.sep + plugin_folder
+                                )
                     os.remove(plugin_file)
             if os.path.exists(plugin[1]):
                 os.remove(plugin[1])
