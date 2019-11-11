@@ -139,6 +139,7 @@ class AddonManager:
             self.uiAddonManager.tableThemesInstalled.setObjectName(
                 "tableThemesDDOInstalled"
             )
+            self.uiAddonManager.tableThemes.setObjectName("tableThemesDDO")
             self.getInstalledThemes()
         else:
             self.data_folder = os.path.join(
@@ -190,19 +191,16 @@ class AddonManager:
         self.addInstalledThemestoDB(themes_list, themes_list_compendium)
 
     def addInstalledThemestoDB(self, themes_list, themes_list_compendium):
-        if self.currentGame.startswith("DDO"):
-            table = "tableThemesDDOInstalled"
-        else:
-            table = "tableThemesInstalled"
+        table = self.uiAddonManager.tableThemesInstalled
 
         # Clears rows from db table if needed (This function is called to add newly installed themes after initial load as well)
-        if not self.uiAddonManager.tableThemesInstalled.item(0, 1):
-            self.c.execute("DELETE FROM {table}".format(table=table))
+        if not table.item(0, 1):
+            self.c.execute("DELETE FROM {table}".format(table=table.objectName()))
 
         for theme in themes_list_compendium:
             items_row = self.parseCompediumFile(theme, "SkinConfig")
             items_row = self.getOnlineAddonInfo(items_row, "tableThemes")
-            self.addRowToDB(table, items_row)
+            self.addRowToDB(table.objectName(), items_row)
 
         for theme in themes_list:
             items_row = [""] * (len(self.COLUMN_LIST) - 1)
@@ -211,7 +209,7 @@ class AddonManager:
             items_row[5] = theme
             items_row[1] = "Unmanaged"
 
-            self.addRowToDB(table, items_row)
+            self.addRowToDB(table.objectName(), items_row)
 
         # Populate user visible table
         self.searchDB(self.uiAddonManager.tableThemesInstalled, "")
@@ -249,14 +247,16 @@ class AddonManager:
         self.addInstalledMusictoDB(music_list, music_list_compendium)
 
     def addInstalledMusictoDB(self, music_list, music_list_compendium):
+        table = self.uiAddonManager.tableMusicInstalled
+
         # Clears rows from db table if needed (This function is called to add newly installed music after initial load as well)
-        if not self.uiAddonManager.tableMusicInstalled.item(0, 1):
+        if not table.item(0, 1):
             self.c.execute("DELETE FROM tableMusicInstalled")
 
         for music in music_list_compendium:
             items_row = self.parseCompediumFile(music, "MusicConfig")
             items_row = self.getOnlineAddonInfo(items_row, "tableMusic")
-            self.addRowToDB("tableMusicInstalled", items_row)
+            self.addRowToDB(table.objectName(), items_row)
 
         for music in music_list:
             items_row = [""] * (len(self.COLUMN_LIST) - 1)
@@ -279,10 +279,10 @@ class AddonManager:
             items_row[5] = music
             items_row[1] = "Unmanaged"
 
-            self.addRowToDB("tableMusicInstalled", items_row)
+            self.addRowToDB(table.objectName(), items_row)
 
         # Populate user visible table
-        self.searchDB(self.uiAddonManager.tableMusicInstalled, "")
+        self.searchDB(table, "")
 
     def getInstalledPlugins(self, folders_list=None):
         if not self.uiAddonManager.tablePluginsInstalled.item(0, 1):
@@ -335,8 +335,10 @@ class AddonManager:
         return plugins_list, plugins_list_compendium
 
     def addInstalledPluginstoDB(self, plugins_list, plugins_list_compendium):
+        table = self.uiAddonManager.tablePluginsInstalled
+
         # Clears rows from db table if needed (This function is called to add newly installed plugins after initial load as well)
-        if not self.uiAddonManager.tablePluginsInstalled.item(0, 1):
+        if not table.item(0, 1):
             self.c.execute("DELETE FROM tablePluginsInstalled")
 
         for plugin in plugins_list_compendium + plugins_list:
@@ -359,7 +361,7 @@ class AddonManager:
                 items_row = self.parseCompediumFile(plugin, "Information")
                 items_row[1] = "Unmanaged"
 
-            self.addRowToDB("tablePluginsInstalled", items_row)
+            self.addRowToDB(table.objectName(), items_row)
 
         # Populate user visible table
         self.searchDB(self.uiAddonManager.tablePluginsInstalled, "")
@@ -473,7 +475,7 @@ class AddonManager:
                             return
 
                         addon_type = "Plugin"
-                        table = "tablePlugins"
+                        table = self.uiAddonManager.tablePlugins
                         path, folder = self.getAddonInstallationFolder(
                             entry, addon, self.data_folder_plugins
                         )
@@ -500,7 +502,7 @@ class AddonManager:
                                     interface_id,
                                     addon_type,
                                     path,
-                                    table,
+                                    table.objectName(),
                                 )
                                 plugins_list_compendium.append(compendium_file)
 
@@ -512,7 +514,9 @@ class AddonManager:
                             plugins_list, plugins_list_compendium
                         )
 
-                        self.installAddonRemoteDependencies(table + "Installed")
+                        self.installAddonRemoteDependencies(
+                            table.objectName() + "Installed"
+                        )
                         return
                     elif entry.endswith(".abc"):
                         if self.currentGame.startswith("DDO"):
@@ -520,7 +524,7 @@ class AddonManager:
                             return
 
                         addon_type = "Music"
-                        table = "tableMusic"
+                        table = self.uiAddonManager.tableMusic
 
                         path, folder = self.getAddonInstallationFolder(
                             entry, addon, self.data_folder_music
@@ -534,15 +538,17 @@ class AddonManager:
                                 interface_id,
                                 addon_type,
                                 path,
-                                table,
+                                table.objectName(),
                             )
                         self.getInstalledMusic(folders_list=[folder])
 
-                        self.installAddonRemoteDependencies(table + "Installed")
+                        self.installAddonRemoteDependencies(
+                            table.objectName() + "Installed"
+                        )
                         return
                 if not addon_type:
                     addon_type = "Skin"
-                    table = "tableThemes"
+                    table = self.uiAddonManager.tableThemes
                     path, folder = self.getAddonInstallationFolder(
                         entry, addon, self.data_folder_themes
                     )
@@ -550,11 +556,18 @@ class AddonManager:
 
                     if interface_id:
                         compendium_file = self.generateCompendiumFile(
-                            files_list, folder, interface_id, addon_type, path, table
+                            files_list,
+                            folder,
+                            interface_id,
+                            addon_type,
+                            path,
+                            table.objectName(),
                         )
                     self.getInstalledThemes(folders_list=[folder])
 
-                    self.installAddonRemoteDependencies(table + "Installed")
+                    self.installAddonRemoteDependencies(
+                        table.objectName() + "Installed"
+                    )
                     return
 
     # Installs the dependencies for the last installed addon
@@ -704,7 +717,12 @@ class AddonManager:
                 elif self.uiAddonManager.tabWidgetFindMore.currentIndex() == 2:
                     self.searchDB(self.uiAddonManager.tableMusic, text)
         else:
-            self.searchDB(self.uiAddonManager.tableThemesInstalled, text)
+            # If in Installed tab
+            if self.uiAddonManager.tabWidget.currentIndex() == 0:
+                self.searchDB(self.uiAddonManager.tableThemesInstalled, text)
+            # If in Find More tab
+            elif self.uiAddonManager.tabWidget.currentIndex() == 1:
+                self.searchDB(self.uiAddonManager.tableThemes, text)
 
     def searchDB(self, table, text):
         table.clearContents()
@@ -826,12 +844,15 @@ class AddonManager:
             self.installRemoteAddons()
 
     def installRemoteAddons(self):
-        if self.uiAddonManager.tabWidgetFindMore.currentIndex() == 0:
-            table = self.uiAddonManager.tablePlugins
-        elif self.uiAddonManager.tabWidgetFindMore.currentIndex() == 1:
+        if self.currentGame.startswith("DDO"):
             table = self.uiAddonManager.tableThemes
-        elif self.uiAddonManager.tabWidgetFindMore.currentIndex() == 2:
-            table = self.uiAddonManager.tableMusic
+        else:
+            if self.uiAddonManager.tabWidgetFindMore.currentIndex() == 0:
+                table = self.uiAddonManager.tablePlugins
+            elif self.uiAddonManager.tabWidgetFindMore.currentIndex() == 1:
+                table = self.uiAddonManager.tableThemes
+            elif self.uiAddonManager.tabWidgetFindMore.currentIndex() == 2:
+                table = self.uiAddonManager.tableMusic
 
         addons, details = self.getSelectedAddons(table)
         if addons and details:
