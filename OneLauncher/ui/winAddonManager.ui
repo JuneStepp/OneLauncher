@@ -182,11 +182,11 @@
        </column>
       </widget>
      </widget>
-     <widget class="QWidget" name="tabThemesInstalled">
+     <widget class="QWidget" name="tabSkinsInstalled">
       <attribute name="title">
-       <string>Themes</string>
+       <string>Skins</string>
       </attribute>
-      <widget class="QTableWidget" name="tableThemesInstalled">
+      <widget class="QTableWidget" name="tableSkinsInstalled">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -446,11 +446,11 @@
        </column>
       </widget>
      </widget>
-     <widget class="QWidget" name="tabThemes">
+     <widget class="QWidget" name="tabSkins">
       <attribute name="title">
-       <string>Themes</string>
+       <string>Skins</string>
       </attribute>
-      <widget class="QTableWidget" name="tableThemes">
+      <widget class="QTableWidget" name="tableSkins">
        <property name="geometry">
         <rect>
          <x>0</x>

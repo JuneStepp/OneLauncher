@@ -55,19 +55,19 @@ class AddonManager:
     ]
     TABLE_LIST = [
         "tablePluginsInstalled",
-        "tableThemesInstalled",
+        "tableSkinsInstalled",
         "tableMusicInstalled",
         "tablePlugins",
-        "tableThemes",
+        "tableSkins",
         "tableMusic",
-        "tableThemesDDO",
-        "tableThemesDDOInstalled",
+        "tableSkinsDDO",
+        "tableSkinsDDOInstalled",
     ]
 
     PLUGINS_URL = "https://api.lotrointerface.com/fav/OneLauncher-Plugins.xml"
-    THEMES_URL = "https://api.lotrointerface.com/fav/OneLauncher-Themes.xml"
+    SKINS_URL = "https://api.lotrointerface.com/fav/OneLauncher-Themes.xml"
     MUSIC_URL = "https://api.lotrointerface.com/fav/OneLauncher-Music.xml"
-    THEMES_DDO_URL = "https://api.lotrointerface.com/fav/OneLauncher-Themes-DDO.xml"
+    SKINS_DDO_URL = "https://api.lotrointerface.com/fav/OneLauncher-Themes-DDO.xml"
 
     def __init__(self, currentGame, osType, settingsDir, parent):
         self.settingsDir = settingsDir
@@ -134,13 +134,13 @@ class AddonManager:
                 os.path.expanduser("~"), documents_folder, "Dungeons and Dragons Online"
             )
 
-            self.data_folder_themes = os.path.join(self.data_folder, "ui", "skins")
+            self.data_folder_skins = os.path.join(self.data_folder, "ui", "skins")
 
-            self.uiAddonManager.tableThemesInstalled.setObjectName(
-                "tableThemesDDOInstalled"
+            self.uiAddonManager.tableSkinsInstalled.setObjectName(
+                "tableSkinsDDOInstalled"
             )
-            self.uiAddonManager.tableThemes.setObjectName("tableThemesDDO")
-            self.getInstalledThemes()
+            self.uiAddonManager.tableSkins.setObjectName("tableSkinsDDO")
+            self.getInstalledSkins()
         else:
             self.data_folder = os.path.join(
                 os.path.expanduser("~"),
@@ -149,70 +149,70 @@ class AddonManager:
             )
 
             self.data_folder_plugins = os.path.join(self.data_folder, "Plugins")
-            self.data_folder_themes = os.path.join(self.data_folder, "ui", "skins")
+            self.data_folder_skins = os.path.join(self.data_folder, "ui", "skins")
             self.data_folder_music = os.path.join(self.data_folder, "Music")
 
             # Loads in installed plugins
             self.getInstalledPlugins()
 
     def tabWidgetInstalledIndexChanged(self, index):
-        # Load in installed themes on first switch to tab
-        if index == 1 and not self.uiAddonManager.tableThemesInstalled.item(0, 0):
-            self.getInstalledThemes()
+        # Load in installed skins on first switch to tab
+        if index == 1 and not self.uiAddonManager.tableSkinsInstalled.item(0, 0):
+            self.getInstalledSkins()
 
         # Load in installed music on first switch to tab
         if index == 2 and not self.uiAddonManager.tableMusicInstalled.item(0, 0):
             self.getInstalledMusic()
 
-    def getInstalledThemes(self, folders_list=None):
-        if not self.uiAddonManager.tableThemesInstalled.item(0, 1):
+    def getInstalledSkins(self, folders_list=None):
+        if not self.uiAddonManager.tableSkinsInstalled.item(0, 1):
             folders_list = None
 
-        os.makedirs(self.data_folder_themes, exist_ok=True)
+        os.makedirs(self.data_folder_skins, exist_ok=True)
 
         if not folders_list:
-            folders_list = glob(os.path.join(self.data_folder_themes, "*", ""))
+            folders_list = glob(os.path.join(self.data_folder_skins, "*", ""))
         else:
             folders_list = [
-                os.path.join(self.data_folder_themes, folder) for folder in folders_list
+                os.path.join(self.data_folder_skins, folder) for folder in folders_list
             ]
 
-        themes_list = []
-        themes_list_compendium = []
+        skins_list = []
+        skins_list_compendium = []
         for folder in folders_list:
             folder = folder[:-1] + folder[-1].replace("/", "")
-            themes_list.append(folder)
+            skins_list.append(folder)
             for file in os.listdir(folder):
                 if file.endswith(".skincompendium"):
-                    themes_list_compendium.append(os.path.join(folder, file))
-                    themes_list.remove(folder)
+                    skins_list_compendium.append(os.path.join(folder, file))
+                    skins_list.remove(folder)
                     break
 
-        self.addInstalledThemestoDB(themes_list, themes_list_compendium)
+        self.addInstalledSkinstoDB(skins_list, skins_list_compendium)
 
-    def addInstalledThemestoDB(self, themes_list, themes_list_compendium):
-        table = self.uiAddonManager.tableThemesInstalled
+    def addInstalledSkinstoDB(self, skins_list, skins_list_compendium):
+        table = self.uiAddonManager.tableSkinsInstalled
 
-        # Clears rows from db table if needed (This function is called to add newly installed themes after initial load as well)
+        # Clears rows from db table if needed (This function is called to add newly installed skins after initial load as well)
         if not table.item(0, 1):
             self.c.execute("DELETE FROM {table}".format(table=table.objectName()))
 
-        for theme in themes_list_compendium:
-            items_row = self.parseCompediumFile(theme, "SkinConfig")
-            items_row = self.getOnlineAddonInfo(items_row, "tableThemes")
+        for skin in skins_list_compendium:
+            items_row = self.parseCompediumFile(skin, "SkinConfig")
+            items_row = self.getOnlineAddonInfo(items_row, "tableSkins")
             self.addRowToDB(table.objectName(), items_row)
 
-        for theme in themes_list:
+        for skin in skins_list:
             items_row = [""] * (len(self.COLUMN_LIST) - 1)
 
-            items_row[0] = os.path.split(theme)[1]
-            items_row[5] = theme
+            items_row[0] = os.path.split(skin)[1]
+            items_row[5] = skin
             items_row[1] = "Unmanaged"
 
             self.addRowToDB(table.objectName(), items_row)
 
         # Populate user visible table
-        self.searchDB(self.uiAddonManager.tableThemesInstalled, "")
+        self.searchDB(self.uiAddonManager.tableSkinsInstalled, "")
 
     def getInstalledMusic(self, folders_list=None):
         if not self.uiAddonManager.tableMusicInstalled.item(0, 1):
@@ -548,9 +548,9 @@ class AddonManager:
                         return
                 if not addon_type:
                     addon_type = "Skin"
-                    table = self.uiAddonManager.tableThemes
+                    table = self.uiAddonManager.tableSkins
                     path, folder = self.getAddonInstallationFolder(
-                        entry, addon, self.data_folder_themes
+                        entry, addon, self.data_folder_skins
                     )
                     file.extractall(path=path)
 
@@ -563,7 +563,7 @@ class AddonManager:
                             path,
                             table.objectName(),
                         )
-                    self.getInstalledThemes(folders_list=[folder])
+                    self.getInstalledSkins(folders_list=[folder])
 
                     self.installAddonRemoteDependencies(
                         table.objectName() + "Installed"
@@ -699,9 +699,9 @@ class AddonManager:
                 # If in PluginsInstalled tab
                 if self.uiAddonManager.tabWidgetInstalled.currentIndex() == 0:
                     self.searchDB(self.uiAddonManager.tablePluginsInstalled, text)
-                # If in ThemesInstalled tab
+                # If in SkinsInstalled tab
                 elif self.uiAddonManager.tabWidgetInstalled.currentIndex() == 1:
-                    self.searchDB(self.uiAddonManager.tableThemesInstalled, text)
+                    self.searchDB(self.uiAddonManager.tableSkinsInstalled, text)
                 # If in MusicInstalled tab
                 elif self.uiAddonManager.tabWidgetInstalled.currentIndex() == 2:
                     self.searchDB(self.uiAddonManager.tableMusicInstalled, text)
@@ -710,19 +710,19 @@ class AddonManager:
                 # If in Plugins tab
                 if self.uiAddonManager.tabWidgetFindMore.currentIndex() == 0:
                     self.searchDB(self.uiAddonManager.tablePlugins, text)
-                # If in Themes tab
+                # If in Skins tab
                 elif self.uiAddonManager.tabWidgetFindMore.currentIndex() == 1:
-                    self.searchDB(self.uiAddonManager.tableThemes, text)
+                    self.searchDB(self.uiAddonManager.tableSkins, text)
                 # If in Music tab
                 elif self.uiAddonManager.tabWidgetFindMore.currentIndex() == 2:
                     self.searchDB(self.uiAddonManager.tableMusic, text)
         else:
             # If in Installed tab
             if self.uiAddonManager.tabWidget.currentIndex() == 0:
-                self.searchDB(self.uiAddonManager.tableThemesInstalled, text)
+                self.searchDB(self.uiAddonManager.tableSkinsInstalled, text)
             # If in Find More tab
             elif self.uiAddonManager.tabWidget.currentIndex() == 1:
-                self.searchDB(self.uiAddonManager.tableThemes, text)
+                self.searchDB(self.uiAddonManager.tableSkins, text)
 
     def searchDB(self, table, text):
         table.clearContents()
@@ -826,14 +826,14 @@ class AddonManager:
                     table = self.uiAddonManager.tablePluginsInstalled
                     uninstall_class = self.uninstallPlugins
                 elif self.uiAddonManager.tabWidgetInstalled.currentIndex() == 1:
-                    table = self.uiAddonManager.tableThemesInstalled
-                    uninstall_class = self.uninstallThemes
+                    table = self.uiAddonManager.tableSkinsInstalled
+                    uninstall_class = self.uninstallSkins
                 elif self.uiAddonManager.tabWidgetInstalled.currentIndex() == 2:
                     table = self.uiAddonManager.tableMusicInstalled
                     uninstall_class = self.uninstallMusic
             else:
-                table = self.uiAddonManager.tableThemesInstalled
-                uninstall_class = self.uninstallThemes
+                table = self.uiAddonManager.tableSkinsInstalled
+                uninstall_class = self.uninstallSkins
 
             uninstallConfirm, addons = self.getUninstallConfirm(table)
             if uninstallConfirm:
@@ -845,12 +845,12 @@ class AddonManager:
 
     def installRemoteAddons(self):
         if self.currentGame.startswith("DDO"):
-            table = self.uiAddonManager.tableThemes
+            table = self.uiAddonManager.tableSkins
         else:
             if self.uiAddonManager.tabWidgetFindMore.currentIndex() == 0:
                 table = self.uiAddonManager.tablePlugins
             elif self.uiAddonManager.tabWidgetFindMore.currentIndex() == 1:
-                table = self.uiAddonManager.tableThemes
+                table = self.uiAddonManager.tableSkins
             elif self.uiAddonManager.tabWidgetFindMore.currentIndex() == 2:
                 table = self.uiAddonManager.tableMusic
 
@@ -955,17 +955,17 @@ class AddonManager:
         table.clearContents()
         self.getInstalledPlugins()
 
-    def uninstallThemes(self, themes, table):
-        for theme in themes:
-            if theme[1].endswith(".skincompendium"):
-                theme = os.path.split(theme[1])[0]
+    def uninstallSkins(self, skins, table):
+        for skin in skins:
+            if skin[1].endswith(".skincompendium"):
+                skin = os.path.split(skin[1])[0]
             else:
-                theme = theme[1]
-            rmtree(theme)
+                skin = skin[1]
+            rmtree(skin)
 
-            # Reloads themes
+            # Reloads skins
             table.clearContents()
-            self.getInstalledThemes()
+            self.getInstalledSkins()
 
     def uninstallMusic(self, musics, table):
         for music in musics:
@@ -1036,16 +1036,16 @@ class AddonManager:
             self.uiAddonManager.btnAddons.setToolTip("Install addons")
 
             # Populates remote addons tables if not done already
-            if not self.uiAddonManager.tableThemes.item(0, 0):
+            if not self.uiAddonManager.tableSkins.item(0, 0):
                 self.loadRemoteAddons()
 
     def loadRemoteAddons(self):
         if self.currentGame.startswith("LOTRO"):
             self.getRemoteAddons(self.PLUGINS_URL, self.uiAddonManager.tablePlugins)
-            self.getRemoteAddons(self.THEMES_URL, self.uiAddonManager.tableThemes)
+            self.getRemoteAddons(self.SKINS_URL, self.uiAddonManager.tableSkins)
             self.getRemoteAddons(self.MUSIC_URL, self.uiAddonManager.tableMusic)
         else:
-            self.getRemoteAddons(self.THEMES_DDO_URL, self.uiAddonManager.tableThemes)
+            self.getRemoteAddons(self.SKINS_DDO_URL, self.uiAddonManager.tableSkins)
 
     def getRemoteAddons(self, favorites_url, table):
         # Clears rows from db table
