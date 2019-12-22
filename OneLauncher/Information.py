@@ -1,7 +1,7 @@
 # coding=utf-8
 Version = "1.1"
 Description = "LOTRO/DDO Custom Launcher"
-Website = "<a href=\"https://github.com/JuneStepp/OneLauncher\">Github.com/JuneStepp/OneLauncher</a>"
+Website = '<a href="https://github.com/JuneStepp/OneLauncher">Github.com/JuneStepp/OneLauncher</a>'
 Author = "June Stepp"
 Email = "git@junestepp.me"
 WebSite = ""

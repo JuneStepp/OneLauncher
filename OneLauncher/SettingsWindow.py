@@ -27,15 +27,26 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 from qtpy import QtCore, QtGui, QtWidgets, uic
-from .OneLauncherUtils import DetermineOS
 import os.path
-import glob
 from pkg_resources import resource_filename
 
 
 class SettingsWindow:
-    def __init__(self, hiRes, x86, wineProg, wineDebug, patchClient, winePrefix,
-                 gameDir, homeDir, osType, settings, LanguageConfig, parent):
+    def __init__(
+        self,
+        hiRes,
+        x86,
+        wineProg,
+        wineDebug,
+        patchClient,
+        winePrefix,
+        gameDir,
+        homeDir,
+        osType,
+        settings,
+        LanguageConfig,
+        parent,
+    ):
 
         self.homeDir = homeDir
         self.osType = osType
@@ -43,9 +54,11 @@ class SettingsWindow:
         self.settings = settings
         self.LanguageConfig = LanguageConfig
 
-        self.winSettings = QtWidgets.QDialog(parent, QtCore.Qt.FramelessWindowHint)
+        self.winSettings = QtWidgets.QDialog(
+            parent, QtCore.Qt.FramelessWindowHint
+        )
 
-        uifile = resource_filename(__name__, 'ui' + os.sep + 'winSettings.ui')
+        uifile = resource_filename(__name__, "ui" + os.sep + "winSettings.ui")
 
         Ui_dlgSettings, base_class = uic.loadUiType(uifile)
         self.uiSettings = Ui_dlgSettings()
@@ -60,7 +73,8 @@ class SettingsWindow:
             self.uiSettings.txtPrefix.setVisible(False)
             self.uiSettings.lblPrefix.setVisible(False)
             self.uiSettings.btnPrefixDir.setVisible(False)
-        else: self.uiSettings.tabWidget.removeTab(1)
+        else:
+            self.uiSettings.tabWidget.removeTab(1)
 
         self.uiSettings.txtGameDir.setText(gameDir)
         self.uiSettings.cboGraphics.addItem("Enabled")
@@ -76,8 +90,11 @@ class SettingsWindow:
             self.uiSettings.cboGraphics.setCurrentIndex(1)
 
         # Only enables and sets up check box if 64-bit client is available
-        if (os.path.exists(gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe") or
-                os.path.exists(gameDir + os.sep + "x64" + os.sep + "dndclient64.exe")):
+        if os.path.exists(
+            gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe"
+        ) or os.path.exists(
+            gameDir + os.sep + "x64" + os.sep + "dndclient64.exe"
+        ):
             if x86:
                 self.uiSettings.chkx86.setChecked(True)
             else:
@@ -85,26 +102,41 @@ class SettingsWindow:
         else:
             self.uiSettings.chkx86.setEnabled(False)
 
-        self.uiSettings.btnEN.setIcon(QtGui.QIcon(resource_filename(__name__,
-                                            "images" + os.sep + "EN.png")))
+        self.uiSettings.btnEN.setIcon(
+            QtGui.QIcon(
+                resource_filename(__name__, "images" + os.sep + "EN.png")
+            )
+        )
 
-        self.uiSettings.btnDE.setIcon(QtGui.QIcon(resource_filename(__name__,
-                                            "images" + os.sep + "DE.png")))
+        self.uiSettings.btnDE.setIcon(
+            QtGui.QIcon(
+                resource_filename(__name__, "images" + os.sep + "DE.png")
+            )
+        )
 
-        self.uiSettings.btnFR.setIcon(QtGui.QIcon(resource_filename(__name__,
-                                            "images" + os.sep + "FR.png")))
+        self.uiSettings.btnFR.setIcon(
+            QtGui.QIcon(
+                resource_filename(__name__, "images" + os.sep + "FR.png")
+            )
+        )
 
         self.setLanguageButtons()
 
-        self.uiSettings.btnSetupWizard.clicked.connect(self.btnSetupWizardClicked)
+        self.uiSettings.btnSetupWizard.clicked.connect(
+            self.btnSetupWizardClicked
+        )
         self.start_setup_wizard = False
         self.uiSettings.btnGameDir.clicked.connect(self.btnGameDirClicked)
         self.uiSettings.txtGameDir.textChanged.connect(self.txtGameDirChanged)
         self.uiSettings.chkAdvanced.clicked.connect(self.chkAdvancedClicked)
 
         if not self.osType.usingWindows:
-            self.uiSettings.btnPrefixDir.clicked.connect(self.btnPrefixDirClicked)
-            self.uiSettings.txtPrefix.textChanged.connect(self.txtPrefixChanged)
+            self.uiSettings.btnPrefixDir.clicked.connect(
+                self.btnPrefixDirClicked
+            )
+            self.uiSettings.txtPrefix.textChanged.connect(
+                self.txtPrefixChanged
+            )
 
     def chkAdvancedClicked(self):
         if self.osType.usingWindows:
@@ -137,20 +169,24 @@ class SettingsWindow:
 
         if tempdir == "":
             if self.osType.usingWindows:
-                tempdir = os.environ.get('ProgramFiles')
+                tempdir = os.environ.get("ProgramFiles")
             else:
                 tempdir = self.homeDir
 
         filename = QtWidgets.QFileDialog.getExistingDirectory(
-            self.winSettings, "Game Directory", tempdir)
+            self.winSettings, "Game Directory", tempdir
+        )
 
         if filename != "":
             self.uiSettings.txtGameDir.setText(filename)
 
     def txtGameDirChanged(self, text):
         if text != "":
-            if (os.path.exists(text + os.sep + "x64" + os.sep + "lotroclient64.exe") or
-                    os.path.exists(text + os.sep + "x64" + os.sep + "dndclient64.exe")):
+            if os.path.exists(
+                text + os.sep + "x64" + os.sep + "lotroclient64.exe"
+            ) or os.path.exists(
+                text + os.sep + "x64" + os.sep + "dndclient64.exe"
+            ):
                 self.uiSettings.chkx86.setEnabled(True)
             else:
                 self.uiSettings.chkx86.setEnabled(False)
@@ -164,7 +200,8 @@ class SettingsWindow:
             tempdir = self.homeDir
 
         filename = QtWidgets.QFileDialog.getExistingDirectory(
-            self.winSettings, "Prefix Directory", tempdir)
+            self.winSettings, "Prefix Directory", tempdir
+        )
 
         if filename != "":
             self.uiSettings.txtPrefix.setText(filename)
@@ -176,16 +213,18 @@ class SettingsWindow:
     def getSetupWizardClicked(self):
         if self.start_setup_wizard:
             return True
-        else: return False
+        else:
+            return False
 
     def txtPrefixChanged(self, text):
         self.winePrefix = text
 
     def setLanguageButtons(self):
-        #Sets up language buttons. Only buttons for available languages are enabled.
+        # Sets up language buttons. Only buttons for available languages are enabled.
         if os.path.exists(self.uiSettings.txtGameDir.text()):
             gameDir = self.uiSettings.txtGameDir.text()
-        else: gameDir = self.settings.gameDir
+        else:
+            gameDir = self.settings.gameDir
 
         for lang in self.LanguageConfig(gameDir).langList:
             if lang == "EN":
@@ -207,12 +246,12 @@ class SettingsWindow:
                     self.uiSettings.btnFR.setChecked(True)
 
     def getLanguage(self):
-            if self.uiSettings.btnEN.isChecked():
-                return "EN"
-            elif self.uiSettings.btnDE.isChecked():
-                return "DE"
-            elif self.uiSettings.btnFR.isChecked():
-                return "FR"
+        if self.uiSettings.btnEN.isChecked():
+            return "EN"
+        elif self.uiSettings.btnDE.isChecked():
+            return "DE"
+        elif self.uiSettings.btnFR.isChecked():
+            return "FR"
 
     def getPrefix(self):
         return self.uiSettings.txtPrefix.text()

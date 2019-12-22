@@ -28,9 +28,10 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import os
-from .OneLauncherUtils import DetermineOS, GetText
+from .OneLauncherUtils import GetText
 from xml.dom import EMPTY_NAMESPACE
-import xml.dom.minidom
+from xml.dom.minidom import Document
+import defusedxml.minidom
 
 
 class Settings:
@@ -60,11 +61,12 @@ class Settings:
 
         try:
             if os.path.exists(self.settingsFile):
-                doc = xml.dom.minidom.parse(self.settingsFile)
+                doc = defusedxml.minidom.parse(self.settingsFile)
 
-                if useGame == None:
-                    defaultGame = GetText(doc.getElementsByTagName(
-                        "Default.Game")[0].childNodes)
+                if useGame is None:
+                    defaultGame = GetText(
+                        doc.getElementsByTagName("Default.Game")[0].childNodes
+                    )
                 else:
                     defaultGame = useGame
 
@@ -78,7 +80,7 @@ class Settings:
                         self.wineDebug = GetText(node.childNodes)
                     elif node.nodeName == "Wine.Prefix":
                         winePrefix = GetText(node.childNodes)
-                        #Checks if prefix is set to built in wine prefix
+                        # Checks if prefix is set to built in wine prefix
                         if winePrefix != self.winePrefix:
                             self.winePrefix = winePrefix
                             self.builtInPrefixEnabled = False
@@ -110,26 +112,37 @@ class Settings:
                         self.patchClient = GetText(node.childNodes)
 
                 # Disables 64-bit client if it is unavailable for LOTRO
-                if not os.path.exists(self.gameDir + os.sep + "x64" + os.sep +
-                    "lotroclient64.exe") and self.currentGame.startswith("LOTRO"):
+                if not os.path.exists(
+                    self.gameDir
+                    + os.sep
+                    + "x64"
+                    + os.sep
+                    + "lotroclient64.exe"
+                ) and self.currentGame.startswith("LOTRO"):
                     self.x86Enabled = False
 
                 # Disables 64-bit client if it is unavailable for DDO
-                if not os.path.exists(self.gameDir + os.sep + "x64" + os.sep +
-                    "dndclient64.exe") and self.currentGame.startswith("DDO"):
+                if not os.path.exists(
+                    self.gameDir + os.sep + "x64" + os.sep + "dndclient64.exe"
+                ) and self.currentGame.startswith("DDO"):
                     self.x86Enabled = False
 
                 success = True
 
-                if (not os.path.exists(self.wineProg) and self.wineProg != "wine" and
-                        not self.builtInPrefixEnabled):
+                if (
+                    not os.path.exists(self.wineProg)
+                    and self.wineProg != "wine"
+                    and not self.builtInPrefixEnabled
+                ):
                     success = "[E16] Wine executable set does not exist"
         except:
             success = False
 
         return success
 
-    def SaveSettings(self, saveAccountDetails=None, savePassword=None, game=None):
+    def SaveSettings(
+        self, saveAccountDetails=None, savePassword=None, game=None
+    ):
         doc = None
 
         # Check if settings directory exists if not create
@@ -137,12 +150,11 @@ class Settings:
             os.mkdir(self.settingsDir)
         os.makedirs(self.settingsDir + "wine/prefix", exist_ok=True)
 
-
         # Check if settings file exists if not create new settings XML
         if os.path.exists(self.settingsFile):
-            doc = xml.dom.minidom.parse(self.settingsFile)
+            doc = defusedxml.minidom.parse(self.settingsFile)
         else:
-            doc = xml.dom.minidom.Document()
+            doc = Document()
             settingsNode = doc.createElementNS(EMPTY_NAMESPACE, "Settings")
             doc.appendChild(settingsNode)
 
@@ -157,7 +169,8 @@ class Settings:
             defaultGameNode[0].firstChild.nodeValue = currGame
         else:
             defaultGameNode = doc.createElementNS(
-                EMPTY_NAMESPACE, "Default.Game")
+                EMPTY_NAMESPACE, "Default.Game"
+            )
             defaultGameNode.appendChild(doc.createTextNode(currGame))
             settingsNode.appendChild(defaultGameNode)
 
@@ -220,10 +233,12 @@ class Settings:
             gameConfigNode.appendChild(tempNode)
 
             if savePassword:
-                tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Save.Password")
+                tempNode = doc.createElementNS(
+                    EMPTY_NAMESPACE, "Save.Password"
+                )
                 tempNode.appendChild(doc.createTextNode("True"))
                 gameConfigNode.appendChild(tempNode)
 
         # write new settings file
-        with open(self.settingsFile, 'w') as file:
+        with open(self.settingsFile, "w") as file:
             file.write(doc.toxml())

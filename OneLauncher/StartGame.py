@@ -26,24 +26,48 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from qtpy import QtCore, QtGui, QtWidgets, uic
-from .OneLauncherUtils import DetermineOS, QByteArray2str
-import sys
+from qtpy import QtCore, QtWidgets, uic
+from .OneLauncherUtils import QByteArray2str
 import os.path
 from pkg_resources import resource_filename
 
 
 class StartGame:
-    def __init__(self, appName, x86, argTemplate, account, server, ticket,
-                 chatServer, language, runDir, wineProgram, wineDebug, winePrefix,
-                 hiResEnabled, builtInPrefixEnabled, osType, homeDir, iconFileIn, rootDir,
-                 crashreceiver, DefaultUploadThrottleMbps, bugurl, authserverurl,
-                 supporturl, supportserviceurl, glsticketlifetime, realmName,
-                 accountText, parent):
+    def __init__(
+        self,
+        appName,
+        x86,
+        argTemplate,
+        account,
+        server,
+        ticket,
+        chatServer,
+        language,
+        runDir,
+        wineProgram,
+        wineDebug,
+        winePrefix,
+        hiResEnabled,
+        builtInPrefixEnabled,
+        osType,
+        homeDir,
+        iconFileIn,
+        rootDir,
+        crashreceiver,
+        DefaultUploadThrottleMbps,
+        bugurl,
+        authserverurl,
+        supporturl,
+        supportserviceurl,
+        glsticketlifetime,
+        realmName,
+        accountText,
+        parent,
+    ):
 
-        #Fixes binary path for 64-bit client
+        # Fixes binary path for 64-bit client
         if x86:
-            appName = ("x64" + os.sep + appName)
+            appName = "x64" + os.sep + appName
 
         self.homeDir = homeDir
         self.winLog = QtWidgets.QDialog()
@@ -52,7 +76,7 @@ class StartGame:
         self.accountText = accountText
         self.parent = parent
 
-        uifile = resource_filename(__name__, 'ui' + os.sep + 'winLog.ui')
+        uifile = resource_filename(__name__, "ui" + os.sep + "winLog.ui")
 
         self.winLog = QtWidgets.QDialog(parent, QtCore.Qt.FramelessWindowHint)
         Ui_winLog, base_class = uic.loadUiType(uifile)
@@ -79,12 +103,20 @@ class StartGame:
         self.command = ""
         self.arguments = []
 
-        gameParams = argTemplate.replace("{SUBSCRIPTION}", account).replace("{LOGIN}", server)\
-            .replace("{GLS}", ticket).replace("{CHAT}", chatServer).replace("{LANG}", language)\
-            .replace("{CRASHRECEIVER}", crashreceiver).replace("{UPLOADTHROTTLE}", DefaultUploadThrottleMbps)\
-            .replace("{BUGURL}", bugurl).replace("{AUTHSERVERURL}", authserverurl)\
-            .replace("{GLSTICKETLIFETIME}", glsticketlifetime).replace("{SUPPORTURL}", supporturl)\
+        gameParams = (
+            argTemplate.replace("{SUBSCRIPTION}", account)
+            .replace("{LOGIN}", server)
+            .replace("{GLS}", ticket)
+            .replace("{CHAT}", chatServer)
+            .replace("{LANG}", language)
+            .replace("{CRASHRECEIVER}", crashreceiver)
+            .replace("{UPLOADTHROTTLE}", DefaultUploadThrottleMbps)
+            .replace("{BUGURL}", bugurl)
+            .replace("{AUTHSERVERURL}", authserverurl)
+            .replace("{GLSTICKETLIFETIME}", glsticketlifetime)
+            .replace("{SUPPORTURL}", supporturl)
             .replace("{SUPPORTSERVICEURL}", supportserviceurl)
+        )
 
         if not hiResEnabled:
             gameParams = gameParams + " --HighResOutOfDate"
@@ -105,7 +137,7 @@ class StartGame:
 
         else:
             processEnviroment = QtCore.QProcessEnvironment.systemEnvironment()
-            
+
             if wineDebug != "":
                 processEnviroment.insert("WINEDEBUG", wineDebug)
 
@@ -120,17 +152,19 @@ class StartGame:
             for arg in gameParams.split(" "):
                 self.arguments.append(arg)
 
-            #Applies needed settings for the buit in wine prefix
+            # Applies needed settings for the buit in wine prefix
             if builtInPrefixEnabled:
-                #Enables esync if open file limit is high enough
+                # Enables esync if open file limit is high enough
                 if os.path.exists("/proc/sys/fs/file-max"):
                     with open("/proc/sys/fs/file-max") as file:
                         file_data = file.read()
                         if int(file_data) >= 524288:
                             processEnviroment.insert("WINEESYNC", "1")
 
-                #Adds dll overrides for directx, so dxvk is used instead of wine3d
-                processEnviroment.insert("WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10=n")
+                # Adds dll overrides for directx, so dxvk is used instead of wine3d
+                processEnviroment.insert(
+                    "WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10=n"
+                )
 
             self.process.setProcessEnvironment(processEnviroment)
 
@@ -140,12 +174,14 @@ class StartGame:
         self.uiLog.txtLog.append("Game Client: " + appName)
 
     def readOutput(self):
-        self.uiLog.txtLog.append(QByteArray2str(
-            self.process.readAllStandardOutput()))
+        self.uiLog.txtLog.append(
+            QByteArray2str(self.process.readAllStandardOutput())
+        )
 
     def readErrors(self):
-        self.uiLog.txtLog.append(QByteArray2str(
-            self.process.readAllStandardError()))
+        self.uiLog.txtLog.append(
+            QByteArray2str(self.process.readAllStandardError())
+        )
 
     def resetButtons(self, exitCode, exitStatus):
         self.finished = True
@@ -169,15 +205,15 @@ class StartGame:
             self.aborted = True
             self.process.kill()
 
-    #Saves a file with the debug log generated by running the game
+    # Saves a file with the debug log generated by running the game
     def btnSaveClicked(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(
-            self.winLog, "Save log file", self.homeDir)[0]
+            self.winLog, "Save log file", self.homeDir
+        )[0]
 
         if filename != "":
             with open(filename, "w") as outfile:
                 outfile.write(self.uiLog.txtLog.toPlainText())
-
 
     def Run(self):
         self.finished = False

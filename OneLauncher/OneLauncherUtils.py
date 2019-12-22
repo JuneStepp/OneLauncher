@@ -27,12 +27,8 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import os
-import subprocess
-import sys
 import glob
-import codecs
-from qtpy import QtCore
-import xml.dom.minidom
+import defusedxml.minidom
 from xml.sax.saxutils import escape as xml_escape
 import ssl
 from pkg_resources import resource_filename
@@ -42,11 +38,18 @@ from codecs import open as uopen
 from http.client import HTTPConnection, HTTPSConnection
 from urllib.parse import quote
 
-def string_encode(s): return s.encode()
 
-def string_decode(s): return s.decode()
+def string_encode(s):
+    return s.encode()
 
-def QByteArray2str(s): return str(s, encoding="utf8", errors="replace")
+
+def string_decode(s):
+    return s.decode()
+
+
+def QByteArray2str(s):
+    return str(s, encoding="utf8", errors="replace")
+
 
 # Try to locate the server certificates for HTTPS connections
 certfile = resource_filename(__name__, "certificates/ca_certs.pem")
@@ -60,6 +63,7 @@ if certfile:
     onelauncher_ssl_ctx.verify_mode = ssl.CERT_REQUIRED
     onelauncher_ssl_ctx.load_verify_locations(certfile)
     print("SSL certificate verification enabled!")
+
 
 def WebConnection(urlIn):
     if urlIn.upper().find("HTTP://") >= 0:
@@ -75,7 +79,10 @@ def WebConnection(urlIn):
 def GetText(nodelist):
     rc = ""
     for node in nodelist:
-        if node.nodeType == node.TEXT_NODE or node.nodeType == node.CDATA_SECTION_NODE:
+        if (
+            node.nodeType == node.TEXT_NODE
+            or node.nodeType == node.CDATA_SECTION_NODE
+        ):
             rc = rc + node.data
     return rc
 
@@ -86,12 +93,15 @@ class BaseConfig:
         self.gameName = ""
 
         try:
-            doc = xml.dom.minidom.parse(configFile)
+            doc = defusedxml.minidom.parse(configFile)
 
             nodes = doc.getElementsByTagName("appSettings")[0].childNodes
             for node in nodes:
                 if node.nodeType == node.ELEMENT_NODE:
-                    if node.getAttribute("key") == "Launcher.DataCenterService.GLS":
+                    if (
+                        node.getAttribute("key")
+                        == "Launcher.DataCenterService.GLS"
+                    ):
                         self.GLSDataCentreService = node.getAttribute("value")
                     elif node.getAttribute("key") == "DataCenter.GameName":
                         self.gameName = node.getAttribute("value")
@@ -112,9 +122,9 @@ class DetermineGame:
     def GetSettings(self, currentGame):
         self.configFile = os.sep + "lotro.launcherconfig"
 
-        if os.name == 'mac':
+        if os.name == "mac":
             self.__os = " - Launcher for Mac OS X"
-        elif os.name == 'nt':
+        elif os.name == "nt":
             self.__os = " - Launcher for Windows"
         else:
             self.__os = " - Launcher for Linux"
@@ -131,7 +141,7 @@ class DetermineGame:
 
             self.title = "Dungeons & Dragons Online" + self.__test + self.__os
         else:
-            self.configFileAlt = (os.sep + "TurbineLauncher.exe.config")
+            self.configFileAlt = os.sep + "TurbineLauncher.exe.config"
             self.iconFile = os.path.join("images", "LOTROIcon.png")
             self.pngFile = os.path.join("images", "LOTRO.png")
 
@@ -140,22 +150,26 @@ class DetermineGame:
 
 class DetermineOS:
     def __init__(self):
-        if os.name == 'mac':
+        if os.name == "mac":
             self.usingMac = True
             self.usingWindows = False
             self.appDir = "Library/Application Support/OneLauncher/"
             self.globalDir = "/Application"
-            self.settingsCXG = "Library/Application Support/CrossOver Games/Bottles"
+            self.settingsCXG = (
+                "Library/Application Support/CrossOver Games/Bottles"
+            )
             self.settingsCXO = "Library/Application Support/CrossOver/Bottles"
             self.directoryCXG = "/CrossOver Games.app/Contents/SharedSupport/CrossOverGames/bin/"
-            self.directoryCXO = "/CrossOver.app/Contents/SharedSupport/CrossOver/bin/"
-            self.macPathCX = os.environ.get('CX_ROOT')
-            if self.macPathCX == None:
+            self.directoryCXO = (
+                "/CrossOver.app/Contents/SharedSupport/CrossOver/bin/"
+            )
+            self.macPathCX = os.environ.get("CX_ROOT")
+            if self.macPathCX is None:
                 self.macPathCX = ""
-        elif os.name == 'nt':
+        elif os.name == "nt":
             self.usingMac = False
             self.usingWindows = True
-            self.appDir = ("OneLauncher" + os.sep)
+            self.appDir = "OneLauncher" + os.sep
             self.globalDir = ""
             self.settingsCXG = ""
             self.settingsCXO = ""
@@ -173,12 +187,13 @@ class DetermineOS:
             self.directoryCXO = "/cxoffice/bin/"
             self.macPathCX = ""
 
+
 class GLSDataCentre:
     def __init__(self, urlGLSDataCentreService, gameName, baseDir, osType):
-        SM_TEMPLATE = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
-<soap:Body><GetDatacenters xmlns=\"http://www.turbine.com/SE/GLS\"><game>%s</game>\
-</GetDatacenters></soap:Body></soap:Envelope>"
+        SM_TEMPLATE = '<?xml version="1.0" encoding="utf-8"?>\
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
+<soap:Body><GetDatacenters xmlns="http://www.turbine.com/SE/GLS"><game>%s</game>\
+</GetDatacenters></soap:Body></soap:Envelope>'
 
         SoapMessage = SM_TEMPLATE % (gameName)
 
@@ -187,10 +202,11 @@ class GLSDataCentre:
             webservice, post = WebConnection(urlGLSDataCentreService)
 
             webservice.putrequest("POST", post)
-            webservice.putheader("Content-type", "text/xml; charset=\"UTF-8\"")
+            webservice.putheader("Content-type", 'text/xml; charset="UTF-8"')
             webservice.putheader("Content-length", "%d" % len(msg))
             webservice.putheader(
-                "SOAPAction", "http://www.turbine.com/SE/GLS/GetDatacenters")
+                "SOAPAction", "http://www.turbine.com/SE/GLS/GetDatacenters"
+            )
             webservice.endheaders()
             webservice.send(msg)
 
@@ -205,14 +221,19 @@ class GLSDataCentre:
             if tempxml == "":
                 self.loadSuccess = False
             else:
-                doc = xml.dom.minidom.parseString(tempxml)
+                doc = defusedxml.minidom.parseString(tempxml)
 
                 self.authServer = GetText(
-                    doc.getElementsByTagName("AuthServer")[0].childNodes)
+                    doc.getElementsByTagName("AuthServer")[0].childNodes
+                )
                 self.patchServer = GetText(
-                    doc.getElementsByTagName("PatchServer")[0].childNodes)
-                self.launchConfigServer = GetText(doc.getElementsByTagName(
-                    "LauncherConfigurationServer")[0].childNodes)
+                    doc.getElementsByTagName("PatchServer")[0].childNodes
+                )
+                self.launchConfigServer = GetText(
+                    doc.getElementsByTagName("LauncherConfigurationServer")[
+                        0
+                    ].childNodes
+                )
 
                 self.realmList = []
 
@@ -229,13 +250,15 @@ class GLSDataCentre:
                         elif realm.nodeName == "StatusServerUrl":
                             urlStatusServer = realm.firstChild.nodeValue
                     self.realmList.append(
-                        Realm(name, urlChatServer, urlStatusServer))
+                        Realm(name, urlChatServer, urlStatusServer)
+                    )
 
                 self.loadSuccess = True
         except:
             self.loadSuccess = False
 
-class LanguageConfig():
+
+class LanguageConfig:
     def __init__(self, runDir):
         self.langFound = False
         self.langList = []
@@ -247,6 +270,7 @@ class LanguageConfig():
             if temp == "English":
                 temp = "EN"
             self.langList.append(temp)
+
 
 class Realm:
     def __init__(self, name, urlChatServer, urlServerStatus):
@@ -276,22 +300,27 @@ class Realm:
             if tempxml == "":
                 self.realmAvailable = False
             else:
-                doc = xml.dom.minidom.parseString(tempxml)
+                doc = defusedxml.minidom.parseString(tempxml)
 
                 try:
-                    self.nowServing = GetText(doc.getElementsByTagName(
-                        "nowservingqueuenumber")[0].childNodes)
+                    self.nowServing = GetText(
+                        doc.getElementsByTagName("nowservingqueuenumber")[
+                            0
+                        ].childNodes
+                    )
                 except:
                     self.nowServing = ""
 
                 try:
-                    self.queueURL = GetText(doc.getElementsByTagName(
-                        "queueurls")[0].childNodes).split(";")[0]
+                    self.queueURL = GetText(
+                        doc.getElementsByTagName("queueurls")[0].childNodes
+                    ).split(";")[0]
                 except:
                     self.queueURL = ""
 
-                self.loginServer = GetText(doc.getElementsByTagName(
-                    "loginservers")[0].childNodes).split(";")[0]
+                self.loginServer = GetText(
+                    doc.getElementsByTagName("loginservers")[0].childNodes
+                ).split(";")[0]
 
                 self.realmAvailable = True
         except:
@@ -332,77 +361,143 @@ class WorldQueueConfig:
             if tempxml == "":
                 self.loadSuccess = False
             else:
-                doc = xml.dom.minidom.parseString(tempxml)
+                doc = defusedxml.minidom.parseString(tempxml)
 
                 nodes = doc.getElementsByTagName("appSettings")[0].childNodes
                 for node in nodes:
                     if node.nodeType == node.ELEMENT_NODE:
-                        if node.getAttribute("key") == "GameClient.WIN64.Filename":
+                        if (
+                            node.getAttribute("key")
+                            == "GameClient.WIN64.Filename"
+                        ):
                             if x86:
                                 self.gameClientFilename = node.getAttribute(
-                                    "value")
-                        if node.getAttribute("key") == "GameClient.WIN32.Filename":
-                            if x86 == False:
+                                    "value"
+                                )
+                        if (
+                            node.getAttribute("key")
+                            == "GameClient.WIN32.Filename"
+                        ):
+                            if x86 is False:
                                 self.gameClientFilename = node.getAttribute(
-                                    "value")
-                        elif node.getAttribute("key") == "GameClient.WIN32.ArgTemplate":
+                                    "value"
+                                )
+                        elif (
+                            node.getAttribute("key")
+                            == "GameClient.WIN32.ArgTemplate"
+                        ):
                             self.gameClientArgTemplate = node.getAttribute(
-                                "value")
-                        elif node.getAttribute("key") == "GameClient.Arg.crashreceiver":
+                                "value"
+                            )
+                        elif (
+                            node.getAttribute("key")
+                            == "GameClient.Arg.crashreceiver"
+                        ):
                             self.crashreceiver = node.getAttribute("value")
-                        elif node.getAttribute("key") == "GameClient.Arg.DefaultUploadThrottleMbps":
+                        elif (
+                            node.getAttribute("key")
+                            == "GameClient.Arg.DefaultUploadThrottleMbps"
+                        ):
                             self.DefaultUploadThrottleMbps = node.getAttribute(
-                                "value")
-                        elif node.getAttribute("key") == "GameClient.Arg.bugurl":
+                                "value"
+                            )
+                        elif (
+                            node.getAttribute("key") == "GameClient.Arg.bugurl"
+                        ):
                             self.bugurl = node.getAttribute("value")
-                        elif node.getAttribute("key") == "GameClient.Arg.authserverurl":
+                        elif (
+                            node.getAttribute("key")
+                            == "GameClient.Arg.authserverurl"
+                        ):
                             self.authserverurl = node.getAttribute("value")
-                        elif node.getAttribute("key") == "GameClient.Arg.supporturl":
+                        elif (
+                            node.getAttribute("key")
+                            == "GameClient.Arg.supporturl"
+                        ):
                             self.supporturl = node.getAttribute("value")
-                        elif node.getAttribute("key") == "GameClient.Arg.supportserviceurl":
+                        elif (
+                            node.getAttribute("key")
+                            == "GameClient.Arg.supportserviceurl"
+                        ):
                             self.supportserviceurl = node.getAttribute("value")
-                        elif node.getAttribute("key") == "GameClient.Arg.glsticketlifetime":
+                        elif (
+                            node.getAttribute("key")
+                            == "GameClient.Arg.glsticketlifetime"
+                        ):
                             self.glsticketlifetime = node.getAttribute("value")
-                        elif node.getAttribute("key") == "Launcher.NewsFeedCSSUrl":
+                        elif (
+                            node.getAttribute("key")
+                            == "Launcher.NewsFeedCSSUrl"
+                        ):
                             self.newsFeedCSSURL = node.getAttribute("value")
                         elif node.getAttribute("key") == "URL.NewsFeed":
                             self.newsFeedURL = node.getAttribute("value")
                         elif node.getAttribute("key") == "URL.NewsStyleSheet":
                             self.newsStyleSheetURL = node.getAttribute("value")
-                        elif node.getAttribute("key") == "Patching.ProductCode":
+                        elif (
+                            node.getAttribute("key") == "Patching.ProductCode"
+                        ):
                             self.patchProductCode = node.getAttribute("value")
-                        elif node.getAttribute("key") == "WorldQueue.LoginQueue.URL":
+                        elif (
+                            node.getAttribute("key")
+                            == "WorldQueue.LoginQueue.URL"
+                        ):
                             self.worldQueueURL = node.getAttribute("value")
-                        elif node.getAttribute("key") == "WorldQueue.TakeANumber.Parameters":
+                        elif (
+                            node.getAttribute("key")
+                            == "WorldQueue.TakeANumber.Parameters"
+                        ):
                             self.worldQueueParam = node.getAttribute("value")
 
                 self.loadSuccess = True
 
             # check launcher configs in gameDir for local game client override
             tempxml = ""
-            filenames = ["TurbineLauncher.exe.config", "ddo.launcherconfig", "lotro.launcherconfig"]
+            filenames = [
+                "TurbineLauncher.exe.config",
+                "ddo.launcherconfig",
+                "lotro.launcherconfig",
+            ]
             for filename in filenames:
-                filepath = (gameDir + os.sep + filename)
+                filepath = gameDir + os.sep + filename
                 if os.path.exists(filepath):
                     with uopen(filepath, "r", "utf-8") as infile:
                         tempxml = infile.read()
-                    doc = xml.dom.minidom.parseString(tempxml)
-                    nodes = doc.getElementsByTagName("appSettings")[0].childNodes
+                    doc = defusedxml.minidom.parseString(tempxml)
+                    nodes = doc.getElementsByTagName("appSettings")[
+                        0
+                    ].childNodes
 
                     self.message = ""
                     for node in nodes:
                         if node.nodeType == node.ELEMENT_NODE:
-                            if node.getAttribute("key") == "GameClient.WIN32.Filename":
+                            if (
+                                node.getAttribute("key")
+                                == "GameClient.WIN32.Filename"
+                            ):
                                 self.gameClientFilename = node.getAttribute(
-                                    "value")
-                                self.message = ("<font color=\"Khaki\">" + filename + " 32-bit and/or legacy"
-                                                " client override activated</font>")
+                                    "value"
+                                )
+                                self.message = (
+                                    '<font color="Khaki">'
+                                    + filename
+                                    + " 32-bit and/or legacy"
+                                    " client override activated</font>"
+                                )
 
-                            if node.getAttribute("key") == "GameClient.WIN64.Filename":
+                            if (
+                                node.getAttribute("key")
+                                == "GameClient.WIN64.Filename"
+                            ):
                                 self.gameClientFilename = node.getAttribute(
-                                    "value")
-                                self.message = ("<font color=\"Khaki\">" + filename + " 64-bit client"
-                                                " override activated</font>")
+                                    "value"
+                                )
+                                self.message = (
+                                    '<font color="Khaki">'
+                                    + filename
+                                    + " 64-bit client"
+                                    " override activated</font>"
+                                )
 
         except:
             self.loadSuccess = False
@@ -419,12 +514,12 @@ class AuthenticateUser:
     def __init__(self, urlLoginServer, name, password, game, baseDir, osType):
         self.authSuccess = False
 
-        SM_TEMPLATE = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-<soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" \
-xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" \
-xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
-<soap:Body><LoginAccount xmlns=\"http://www.turbine.com/SE/GLS\"><username>%s</username>\
-<password>%s</password><additionalInfo></additionalInfo></LoginAccount></soap:Body></soap:Envelope>"
+        SM_TEMPLATE = '<?xml version="1.0" encoding="utf-8"?>\
+<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" \
+xmlns:xsd="http://www.w3.org/2001/XMLSchema" \
+xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
+<soap:Body><LoginAccount xmlns="http://www.turbine.com/SE/GLS"><username>%s</username>\
+<password>%s</password><additionalInfo></additionalInfo></LoginAccount></soap:Body></soap:Envelope>'
 
         SoapMessage = SM_TEMPLATE % (xml_escape(name), xml_escape(password))
 
@@ -435,10 +530,11 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
             webservice, post = WebConnection(urlLoginServer)
 
             webservice.putrequest("POST", post)
-            webservice.putheader("Content-type", "text/xml; charset=\"UTF-8\"")
+            webservice.putheader("Content-type", 'text/xml; charset="UTF-8"')
             webservice.putheader("Content-length", "%d" % len(msg))
             webservice.putheader(
-                "SOAPAction", "http://www.turbine.com/SE/GLS/LoginAccount")
+                "SOAPAction", "http://www.turbine.com/SE/GLS/LoginAccount"
+            )
             webservice.endheaders()
             webservice.send(msg)
 
@@ -458,10 +554,11 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
             if tempxml == "":
                 self.messError = "[E08] Server not found - may be down"
             else:
-                doc = xml.dom.minidom.parseString(tempxml)
+                doc = defusedxml.minidom.parseString(tempxml)
 
                 self.ticket = GetText(
-                    doc.getElementsByTagName("Ticket")[0].childNodes)
+                    doc.getElementsByTagName("Ticket")[0].childNodes
+                )
 
                 for nodes in doc.getElementsByTagName("GameSubscription"):
                     game2 = ""
@@ -487,7 +584,10 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
                     self.messError = "No Error"
                     self.authSuccess = True
                 else:
-                    self.messError = "[E14] Game account not associated with user account - please visit games website and check account details"
+                    self.messError = (
+                        "[E14] Game account not associated with user account "
+                        "- please visit games website and check account details"
+                    )
 
         except ssl.SSLError:
             self.messError = "[E15] SSL Error occured in HTTPS connection"
@@ -495,24 +595,34 @@ xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\
             if webresp and webresp.status == 500:
                 self.messError = "[E07] Account details incorrect"
             else:
-                self.messError = "[E08] Server not found - may be down (%s)" % (
-                    webresp and webresp.status or "N/A")
+                self.messError = (
+                    "[E08] Server not found - may be down (%s)"
+                    % (webresp and webresp.status or "N/A")
+                )
+
 
 class JoinWorldQueue:
-    def __init__(self, argTemplate, account, ticket, queue, urlIn, baseDir, osType):
+    def __init__(
+        self, argTemplate, account, ticket, queue, urlIn, baseDir, osType
+    ):
         try:
             webservice, post = WebConnection(urlIn)
 
-            argComplete = argTemplate.replace("{0}", account).replace("{1}",
-                                                                      quote(ticket)).replace("{2}", quote(queue))
+            argComplete = (
+                argTemplate.replace("{0}", account)
+                .replace("{1}", quote(ticket))
+                .replace("{2}", quote(queue))
+            )
 
             msg = string_encode(argComplete)
             webservice.putrequest("POST", post)
             webservice.putheader(
-                "Content-type", "application/x-www-form-urlencoded")
+                "Content-type", "application/x-www-form-urlencoded"
+            )
             webservice.putheader("Content-length", "%d" % len(msg))
             webservice.putheader(
-                "SOAPAction", "http://www.turbine.com/SE/GLS/LoginAccount")
+                "SOAPAction", "http://www.turbine.com/SE/GLS/LoginAccount"
+            )
             webservice.endheaders()
             webservice.send(msg)
 
@@ -527,13 +637,20 @@ class JoinWorldQueue:
             if tempxml == "":
                 self.joinSuccess = False
             else:
-                doc = xml.dom.minidom.parseString(tempxml)
+                doc = defusedxml.minidom.parseString(tempxml)
 
-                if GetText(doc.getElementsByTagName("HResult")[0].childNodes) == "0x00000000":
-                    self.number = GetText(doc.getElementsByTagName(
-                        "QueueNumber")[0].childNodes)
-                    self.serving = GetText(doc.getElementsByTagName(
-                        "NowServingNumber")[0].childNodes)
+                if (
+                    GetText(doc.getElementsByTagName("HResult")[0].childNodes)
+                    == "0x00000000"
+                ):
+                    self.number = GetText(
+                        doc.getElementsByTagName("QueueNumber")[0].childNodes
+                    )
+                    self.serving = GetText(
+                        doc.getElementsByTagName("NowServingNumber")[
+                            0
+                        ].childNodes
+                    )
 
                     self.joinSuccess = True
                 else:

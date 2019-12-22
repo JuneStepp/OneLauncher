@@ -26,11 +26,11 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from qtpy import QtCore, QtGui, QtWidgets, uic
-from .OneLauncherUtils import DetermineOS
+from qtpy import QtCore, QtWidgets, uic
 import os.path
 import glob
 from pkg_resources import resource_filename
+
 
 def toString(val):
     if isinstance(val, str):
@@ -45,9 +45,13 @@ class SetupWizard:
         self.homeDir = homeDir
         self.osType = osType
 
-        self.winSetupWizard = QtWidgets.QDialog(parent, QtCore.Qt.FramelessWindowHint)
+        self.winSetupWizard = QtWidgets.QDialog(
+            parent, QtCore.Qt.FramelessWindowHint
+        )
 
-        uifile = resource_filename(__name__, 'ui' + os.sep + 'winSetupWizard.ui')
+        uifile = resource_filename(
+            __name__, "ui" + os.sep + "winSetupWizard.ui"
+        )
 
         Ui_winSetupWizard, base_class = uic.loadUiType(uifile)
         self.uiWizard = Ui_winSetupWizard()
@@ -62,8 +66,12 @@ class SetupWizard:
         self.uiWizard.btnFindMenu = QtWidgets.QMenu()
         self.uiWizard.btnFindMenu.addAction(self.uiWizard.actionShowTest)
         self.uiWizard.btnFindMenu.addAction(self.uiWizard.actionShowNormal)
-        self.uiWizard.actionShowTest.triggered.connect(self.actionShowTestSelected)
-        self.uiWizard.actionShowNormal.triggered.connect(self.actionShowNormalSelected)
+        self.uiWizard.actionShowTest.triggered.connect(
+            self.actionShowTestSelected
+        )
+        self.uiWizard.actionShowNormal.triggered.connect(
+            self.actionShowNormalSelected
+        )
         self.uiWizard.btnFind.setMenu(self.uiWizard.btnFindMenu)
         self.uiWizard.btnFind_2.setMenu(self.uiWizard.btnFindMenu)
 
@@ -71,8 +79,12 @@ class SetupWizard:
         self.uiWizard.btnFind_2.clicked.connect(self.btnFindClicked)
 
         self.uiWizard.btnBoxIntro.accepted.connect(self.btnBoxIntroAccepted)
-        self.uiWizard.btnBoxOptions.accepted.connect(self.btnBoxOptionsAccepted)
-        self.uiWizard.btnBoxOptions_2.accepted.connect(self.btnBoxOptionsAccepted)
+        self.uiWizard.btnBoxOptions.accepted.connect(
+            self.btnBoxOptionsAccepted
+        )
+        self.uiWizard.btnBoxOptions_2.accepted.connect(
+            self.btnBoxOptionsAccepted
+        )
 
         self.uiWizard.btnBoxIntro.rejected.connect(self.btnBoxRejected)
         self.uiWizard.btnBoxOptions.rejected.connect(self.btnBoxRejected)
@@ -104,14 +116,23 @@ class SetupWizard:
             for client in ["lotroclient.exe", "dndclient.exe"]:
                 self.client = client
 
-                self.trawl(os.path.join(startDir, "Program Files"),
-                           os.path.join(startDir, "Program Files"))
-                if os.path.exists(os.path.join(startDir, "Program Files (x86)")):
-                    self.trawl(os.path.join(startDir, "Program Files (x86)"),
-                            os.path.join(startDir, "Program Files (x86)"))
+                self.trawl(
+                    os.path.join(startDir, "Program Files"),
+                    os.path.join(startDir, "Program Files"),
+                )
+                if os.path.exists(
+                    os.path.join(startDir, "Program Files (x86)")
+                ):
+                    self.trawl(
+                        os.path.join(startDir, "Program Files (x86)"),
+                        os.path.join(startDir, "Program Files (x86)"),
+                    )
         else:
-            for dir in [self.homeDir + ".*", self.homeDir + self.osType.settingsCXG + "/*",
-                    self.homeDir + self.osType.settingsCXO + "/*"]:
+            for dir in [
+                self.homeDir + ".*",
+                self.homeDir + self.osType.settingsCXG + "/*",
+                self.homeDir + self.osType.settingsCXO + "/*",
+            ]:
                 startDir = dir
 
                 for name in glob.glob(startDir):
@@ -120,12 +141,32 @@ class SetupWizard:
                             for client in ["lotroclient.exe", "dndclient.exe"]:
                                 self.client = client
 
-                                self.trawl(os.path.join(name, "drive_c", "Program Files"),
-                                    os.path.join(name, "drive_c", "Program Files"))
+                                self.trawl(
+                                    os.path.join(
+                                        name, "drive_c", "Program Files"
+                                    ),
+                                    os.path.join(
+                                        name, "drive_c", "Program Files"
+                                    ),
+                                )
 
-                                if os.path.exists(os.path.join(name, "drive_c", "Program Files (x86)")):
-                                    self.trawl(os.path.join(name, "drive_c", "Program Files (x86)"),
-                                        os.path.join(name, "drive_c", "Program Files (x86)"))
+                                if os.path.exists(
+                                    os.path.join(
+                                        name, "drive_c", "Program Files (x86)"
+                                    )
+                                ):
+                                    self.trawl(
+                                        os.path.join(
+                                            name,
+                                            "drive_c",
+                                            "Program Files (x86)",
+                                        ),
+                                        os.path.join(
+                                            name,
+                                            "drive_c",
+                                            "Program Files (x86)",
+                                        ),
+                                    )
 
     def trawl(self, path, directory):
         for name in glob.glob(directory + os.sep + "*"):
@@ -134,12 +175,16 @@ class SetupWizard:
 
                 if self.client == "lotroclient.exe":
                     if "Bullroarer" in dirName:
-                        self.uiWizard.lstLOTROTest.addItem(path + os.sep + dirName)
+                        self.uiWizard.lstLOTROTest.addItem(
+                            path + os.sep + dirName
+                        )
                     else:
                         self.uiWizard.lstLOTRO.addItem(path + os.sep + dirName)
                 elif self.client == "dndclient.exe":
                     if "(Preview)" in dirName:
-                        self.uiWizard.lstDDOTest.addItem(path + os.sep + dirName)
+                        self.uiWizard.lstDDOTest.addItem(
+                            path + os.sep + dirName
+                        )
                     else:
                         self.uiWizard.lstDDO.addItem(path + os.sep + dirName)
 
@@ -151,7 +196,7 @@ class SetupWizard:
         if self.uiWizard.lstLOTRO.currentItem():
             return "LOTRO"
         elif self.uiWizard.lstDDO.currentItem():
-            return  "DDO"
+            return "DDO"
         elif self.uiWizard.lstLOTROTest.currentItem():
             return "LOTRO.Test"
         elif self.uiWizard.lstDDOTest.currentItem():

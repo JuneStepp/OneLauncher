@@ -35,9 +35,11 @@ class ProgressMonitor:
     def __init__(self, logWindow=None):
         self.uiLog = logWindow
         self._re_filestat = re.compile(
-            r'^.*?files to patch: ([\d]+) bytes to download: ([\d]+)')
+            r"^.*?files to patch: ([\d]+) bytes to download: ([\d]+)"
+        )
         self._re_datastat = re.compile(
-            r'^.*?data patches: ([\d]+) bytes to download: ([\d]+)')
+            r"^.*?data patches: ([\d]+) bytes to download: ([\d]+)"
+        )
         self.reset()
 
     def reset(self):
@@ -47,7 +49,7 @@ class ProgressMonitor:
         self.fileBytes = -1
         self.dataCount = -1
         self.dataBytes = -1
-        self.currentLine = ''
+        self.currentLine = ""
         self.currentPos = 0
         self.currentFileNum = 0
         self.currentIterNum = 0
@@ -74,11 +76,11 @@ class ProgressMonitor:
                 linePos = newPos
             else:
                 linePos = len(line)
-            #print(line, linePos)
+            # print(line, linePos)
 
         # copy current line to buffer unless input ends with newline char
-        if text[-1] == '\n':
-            self.currentLine = ''
+        if text[-1] == "\n":
+            self.currentLine = ""
             self.currentPos = 0
         else:
             self.currentLine = text_lines[-1]
@@ -91,7 +93,7 @@ class ProgressMonitor:
             if self.fileCount < 0:
                 self.fileCount = int(res.group(1))
                 self.fileBytes = int(res.group(2))
-                #print("Files: %d, Bytes: %d"%(self.fileCount, self.fileBytes))
+                # print("Files: %d, Bytes: %d"%(self.fileCount, self.fileBytes))
                 if self.uiLog and self.fileCount > 1:
                     self.uiLog.progressBar.setMaximum(self.fileCount)
                     self.uiLog.progressBar.setValue(0)
@@ -101,42 +103,42 @@ class ProgressMonitor:
         if res:
             self.dataCount = int(res.group(1))
             self.dataBytes = int(res.group(2))
-            #print("Iterations: %d, Bytes: %d"%(self.dataCount, self.dataBytes))
+            # print("Iterations: %d, Bytes: %d"%(self.dataCount, self.dataBytes))
             if self.uiLog and self.dataCount > 1:
                 self.uiLog.progressBar.setMaximum(self.dataCount)
                 self.uiLog.progressBar.setValue(0)
             self.stateFunc = self.handlePatchData
 
     def handlePatchFiles(self, text, offset):
-        if text.startswith('Downloading '):
+        if text.startswith("Downloading "):
             self.currentFileNum += 1
-            filename = text.split()[1].strip('.')
-            #print('Downloading %s (%d/%d)'%(filename, self.currentFileNum, self.fileCount))
-            pos = len('Downloading ') + len(filename)
-            #print('text[%d] = %s'%(pos, text[pos]))
+            filename = text.split()[1].strip(".")
+            # print('Downloading %s (%d/%d)'%(filename, self.currentFileNum, self.fileCount))
+            pos = len("Downloading ") + len(filename)
+            # print('text[%d] = %s'%(pos, text[pos]))
             self.stateFunc = self.handleFileDownload
             return self.stateFunc(text, pos)
 
-        elif text.startswith('File patching complete'):
+        elif text.startswith("File patching complete"):
             self.stateFunc = self.handlePatchMain
 
     def handlePatchData(self, text, offset):
-        if text.startswith('Downloading '):
+        if text.startswith("Downloading "):
             self.currentIterNum += 1
-            filename = text.split()[1].strip('.')
-            #print('Patching %s (%d/%d)'%(filename, self.currentIterNum, self.dataCount))
-            pos = len('Downloading ') + len(filename)
-            #print('text[%d] = %s'%(pos, text[pos]))
+            filename = text.split()[1].strip(".")
+            # print('Patching %s (%d/%d)'%(filename, self.currentIterNum, self.dataCount))
+            pos = len("Downloading ") + len(filename)
+            # print('text[%d] = %s'%(pos, text[pos]))
             self.stateFunc = self.handleDataDownload
             return self.stateFunc(text, pos)
 
-        elif text.startswith('Data patching complete'):
+        elif text.startswith("Data patching complete"):
             self.stateFunc = self.handlePatchMain
 
     def handleFileDownload(self, text, offset):
         idx = offset
         while idx < len(text):
-            if text[idx] == '.':
+            if text[idx] == ".":
                 self._fileTotalDots += 1
                 self._fileDots += 1
             else:
@@ -153,16 +155,16 @@ class ProgressMonitor:
     def handleDataDownload(self, text, offset):
         idx = offset
         while idx < len(text):
-            if text[idx] == '.':
+            if text[idx] == ".":
                 self._dataTotalDots += 1
-                #self._fileDots += 1
+                # self._fileDots += 1
             else:
                 self.stateFunc = self.handlePatchData
                 if self.uiLog:
                     self.uiLog.progressBar.setValue(self.currentIterNum)
                 return self.stateFunc(text, idx)
-                #print('%d dots' % self._fileDots)
-                #self._fileDots = 0
+                # print('%d dots' % self._fileDots)
+                # self._fileDots = 0
             idx += 1
 
         return idx
