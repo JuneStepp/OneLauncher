@@ -22,9 +22,9 @@ LOTRO (C) 2007-2009 SNy
 
 # Basic Use
 
- Simply download the appropriate executable for your operating system and double click it!
- If on Linux or Mac make sure Wine is installed, so all dependencies for the version OneLauncher
- installs are met.
+Simply download the appropriate executable for your operating system and double click it!
+If on Linux or Mac make sure Wine is installed, so all dependencies for the version OneLauncher
+installs are met.
 
 # Development Install
 
@@ -32,16 +32,17 @@ The following items are required to run OneLauncher from source.
 It is recomended to use a virtual enviroment for development and
 building like venv, conda, or virtualenv.
 
--   Python (3.2+)
--   qtpy (Can be installed with pip)
--   PyQt5 (Can be installed with pip)
--   qdarkstyle (Can be installed with pip)
--   pkg_resources (Comes with setuptools. You probably have it, but it can be installed with pip)
--   keyring (Can be installed with pip)
+- Python (3.2+)
+- qtpy (Can be installed with pip)
+- PyQt5 (Can be installed with pip)
+- qdarkstyle (Can be installed with pip)
+- pkg_resources (Comes with setuptools. You probably have it, but it can be installed with pip)
+- keyring (Can be installed with pip)
+- defusedxml (Can be installed with pip)
 
--   PyInstaller (Needed to build. Can be installed with pip.
-    Currently [custom development version](https://github.com/JeremyStepp/pyinstaller/archive/develop.zip) is needed)
--   pywin32-ctypes (Needed for Windows building. Can be installed with pip)
+- PyInstaller (Needed to build. Can be installed with pip.
+  Currently [custom development version](https://github.com/JeremyStepp/pyinstaller/archive/develop.zip) is needed)
+- pywin32-ctypes (Needed for Windows building. Can be installed with pip)
 
 # To run
 
@@ -63,10 +64,11 @@ also not cross architecture compatible. Wine can be used for Windows builds
 though.
 
 # Roadmap
-None of this is set in stone, but it gives a basic idea of some of the major
- features I plan to implement. Requests, contributions, and critiques, on anything
- are always welcome.
 
--  1.2 -- Add addon manager (plugins, themes, and abc files)
--  1.3 -- Implement extended lua plugin api (More keyboard action interupts, ect)
--  1.4 -- Full game install from OneLauncher (There was more stuff here, but I already did it)
+None of this is set in stone, but it gives a basic idea of some of the major
+features I plan to implement. Requests, contributions, and critiques, on anything
+are always welcome.
+
+- 1.2 -- Add addon manager (plugins, themes, and abc files)
+- 1.3 -- Implement extended lua plugin api (More keyboard action interupts, ect)
+- 1.4 -- Full game install from OneLauncher (There was more stuff here, but I already did it)

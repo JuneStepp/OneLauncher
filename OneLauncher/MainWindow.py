@@ -28,7 +28,7 @@
 ###########################################################################
 import os
 import sys
-import xml.dom.minidom
+import defusedxml.minidom
 import zlib
 from qtpy import QtCore, QtGui, QtWidgets, uic
 import qdarkstyle
@@ -41,7 +41,12 @@ from .Settings import Settings
 from .WinePrefix import BuiltInPrefix
 from .OneLauncherUtils import DetermineOS, DetermineGame, LanguageConfig
 from .OneLauncherUtils import BaseConfig, GLSDataCentre, WorldQueueConfig
-from .OneLauncherUtils import AuthenticateUser, JoinWorldQueue, GetText, WebConnection
+from .OneLauncherUtils import (
+    AuthenticateUser,
+    JoinWorldQueue,
+    GetText,
+    WebConnection,
+)
 from . import Information
 from pkg_resources import resource_filename
 import keyring
@@ -114,16 +119,22 @@ class MainWindow(QtWidgets.QMainWindow):
         self.uiMain.btnLogin.setMenu(self.uiMain.btnLoginMenu)
         self.uiMain.btnOptions.setIcon(
             QtGui.QIcon(
-                resource_filename(__name__, "images" + os.sep + "SettingsGear.png")
+                resource_filename(
+                    __name__, "images" + os.sep + "SettingsGear.png"
+                )
             )
         )
         self.uiMain.btnOptions.clicked.connect(self.btnOptionsSelected)
         self.uiMain.btnAddonManager.setIcon(
             QtGui.QIcon(
-                resource_filename(__name__, "images" + os.sep + "AddonManager.png")
+                resource_filename(
+                    __name__, "images" + os.sep + "AddonManager.png"
+                )
             )
         )
-        self.uiMain.btnAddonManager.clicked.connect(self.btnAddonManagerSelected)
+        self.uiMain.btnAddonManager.clicked.connect(
+            self.btnAddonManagerSelected
+        )
         self.uiMain.btnSwitchGame.clicked.connect(self.btnSwitchGameClicked)
         self.uiMain.btnSwitchGameMenu = QtWidgets.QMenu()
         self.uiMain.btnSwitchGameMenu.addAction(self.uiMain.actionLOTROTest)
@@ -279,7 +290,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.resetFocus()
 
     def btnAddonManagerSelected(self):
-        winAddonManager = AddonManager(self.settings.currentGame, self.osType, self.settings.settingsDir, self)
+        winAddonManager = AddonManager(
+            self.settings.currentGame,
+            self.osType,
+            self.settings.settingsDir,
+            self,
+        )
 
         winAddonManager.Run()
         self.resetFocus()
@@ -332,7 +348,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.InitialSetup()
 
     def btnLoginClicked(self):
-        if self.uiMain.txtAccount.text() == "" or self.uiMain.txtPassword.text() == "":
+        if (
+            self.uiMain.txtAccount.text() == ""
+            or self.uiMain.txtPassword.text() == ""
+        ):
             self.AddLog(
                 '<font color="Khaki">Please enter account name and password</font>'
             )
@@ -367,7 +386,8 @@ class MainWindow(QtWidgets.QMainWindow):
                             )
                         else:
                             keyring.delete_password(
-                                "OneLauncherLOTRO", self.uiMain.txtAccount.text()
+                                "OneLauncherLOTRO",
+                                self.uiMain.txtAccount.text(),
                             )
                     except:
                         pass
@@ -437,7 +457,9 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 self.accNumber = self.account.gameList[0].name
 
-            tempRealm = self.dataCentre.realmList[self.uiMain.cboRealm.currentIndex()]
+            tempRealm = self.dataCentre.realmList[
+                self.uiMain.cboRealm.currentIndex()
+            ]
             tempRealm.CheckRealm(self.valHomeDir, self.osType)
 
             if tempRealm.realmAvailable:
@@ -555,7 +577,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if settings_load_success and settings_load_success != True:
             self.AddLog(settings_load_success)
         elif not settings_load_success:
-            # Checks if the user is running OneLauncher for the first time and calls the setup Wizard
+            # Checks if the user is running OneLauncher for the first time
+            #  and calls the setup Wizard
             if not os.path.exists(self.settings.settingsDir):
                 self.settings_wizard_called()
                 return None
@@ -590,7 +613,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.gameType.GetSettings(self.settings.currentGame)
 
-        pngFile = resource_filename(__name__, self.gameType.pngFile.replace("\\", "/"))
+        pngFile = resource_filename(
+            __name__, self.gameType.pngFile.replace("\\", "/")
+        )
         iconFile = resource_filename(
             __name__, self.gameType.iconFile.replace("\\", "/")
         )
@@ -635,7 +660,9 @@ class MainWindow(QtWidgets.QMainWindow):
         elif self.settings.currentGame == "LOTRO.Test":
             self.uiMain.btnSwitchGame.setIcon(
                 QtGui.QIcon(
-                    resource_filename(__name__, "images" + os.sep + "DDOSwitchIcon.png")
+                    resource_filename(
+                        __name__, "images" + os.sep + "DDOSwitchIcon.png"
+                    )
                 )
             )
             self.uiMain.actionLOTROTest.setEnabled(False)
@@ -649,7 +676,9 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.uiMain.btnSwitchGame.setIcon(
                 QtGui.QIcon(
-                    resource_filename(__name__, "images" + os.sep + "DDOSwitchIcon.png")
+                    resource_filename(
+                        __name__, "images" + os.sep + "DDOSwitchIcon.png"
+                    )
                 )
             )
             self.uiMain.actionDDOTest.setEnabled(False)
@@ -661,7 +690,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.uiMain.actionDDO.setEnabled(False)
             self.uiMain.actionDDO.setVisible(False)
 
-        self.configFile = "%s%s" % (self.settings.gameDir, self.gameType.configFile)
+        self.configFile = "%s%s" % (
+            self.settings.gameDir,
+            self.gameType.configFile,
+        )
         self.configFileAlt = "%s%s" % (
             self.settings.gameDir,
             self.gameType.configFileAlt,
@@ -805,13 +837,18 @@ class MainWindowThread(QtCore.QThread):
                 self.ReturnBaseConfig.emit(self.baseConfig)
 
                 self.AccessGLSDataCentre(
-                    self.baseConfig.GLSDataCentreService, self.baseConfig.gameName
+                    self.baseConfig.GLSDataCentreService,
+                    self.baseConfig.gameName,
                 )
             else:
-                self.ReturnLog.emit("[E03] Error reading launcher configuration file.")
+                self.ReturnLog.emit(
+                    "[E03] Error reading launcher configuration file."
+                )
 
     def AccessGLSDataCentre(self, urlGLS, gameName):
-        self.dataCentre = GLSDataCentre(urlGLS, gameName, self.baseDir, self.osType)
+        self.dataCentre = GLSDataCentre(
+            urlGLS, gameName, self.baseDir, self.osType
+        )
 
         if self.dataCentre.loadSuccess:
             self.ReturnLog.emit("Fetched details from GLS data centre.")
@@ -840,13 +877,17 @@ class MainWindowThread(QtCore.QThread):
 
             self.GetNews()
         else:
-            self.ReturnLog.emit("[E05] Error getting world queue configuration")
+            self.ReturnLog.emit(
+                "[E05] Error getting world queue configuration"
+            )
 
     def GetNews(self):
         try:
             href = ""
 
-            webservice, post = WebConnection(self.worldQueueConfig.newsStyleSheetURL)
+            webservice, post = WebConnection(
+                self.worldQueueConfig.newsStyleSheetURL
+            )
 
             webservice.putrequest("GET", post)
             webservice.putheader("Accept-Encoding", "gzip")
@@ -859,7 +900,7 @@ class MainWindowThread(QtCore.QThread):
             else:
                 tempxml = webresp.read()
 
-            doc = xml.dom.minidom.parseString(tempxml)
+            doc = defusedxml.minidom.parseString(tempxml, forbid_entities=False)
 
             nodes = doc.getElementsByTagName("div")
             for node in nodes:
@@ -870,7 +911,9 @@ class MainWindowThread(QtCore.QThread):
                     ):
                         timeCode = GetText(node.childNodes).strip()
                         timeCode = (
-                            timeCode.replace("\t", "").replace(",", "").replace("-", "")
+                            timeCode.replace("\t", "")
+                            .replace(",", "")
+                            .replace("-", "")
                         )
                         if len(timeCode) > 0:
                             timeCode = " %s" % (timeCode)
@@ -880,12 +923,18 @@ class MainWindowThread(QtCore.QThread):
                 if link.nodeType == link.ELEMENT_NODE:
                     href = link.attributes["href"]
 
-            # Ignore broken href (as of 3/30/16) in the style sheet and use Launcher.NewsFeedCSSUrl defined in launcher.config
+            # Ignore broken href (as of 3/30/16) in the style sheet and use Launcher.
+            # NewsFeedCSSUrl defined in launcher.config
             href.value = self.worldQueueConfig.newsFeedCSSURL
 
-            HTMLTEMPLATE = '<html><head><link rel="stylesheet" type="text/css" href="'
+            HTMLTEMPLATE = (
+                '<html><head><link rel="stylesheet" type="text/css" href="'
+            )
             HTMLTEMPLATE += href.value
-            HTMLTEMPLATE += '"/><base target="_blank"/></head><body><div class="launcherNewsItemsContainer" style="width:auto">'
+            HTMLTEMPLATE += (
+                '"/><base target="_blank"/></head><body><div '
+                'class="launcherNewsItemsContainer" style="width:auto">'
+            )
 
             urlNewsFeed = self.worldQueueConfig.newsFeedURL.replace(
                 "{lang}", self.settings.language.lower()
@@ -912,13 +961,15 @@ class MainWindowThread(QtCore.QThread):
                 webresp = webservice.getresponse()
 
                 if webresp.getheader("Content-Encoding", "") == "gzip":
-                    tempxml = zlib.decompress(webresp.read(), 16 + zlib.MAX_WBITS)
+                    tempxml = zlib.decompress(
+                        webresp.read(), 16 + zlib.MAX_WBITS
+                    )
                 else:
                     tempxml = webresp.read()
 
             result = HTMLTEMPLATE
 
-            doc = xml.dom.minidom.parseString(tempxml)
+            doc = defusedxml.minidom.parseString(tempxml)
 
             items = doc.getElementsByTagName("item")
             for item in items:
@@ -952,11 +1003,9 @@ class MainWindowThread(QtCore.QThread):
                                 % (dispDate)
                             )
 
-                result += '<div class="launcherNewsItemContainer">%s%s%s%s</div>' % (
-                    title,
-                    date,
-                    description,
-                    "<hr>",
+                result += (
+                    '<div class="launcherNewsItemContainer">%s%s%s%s</div>'
+                    % (title, date, description, "<hr>")
                 )
 
             result += "</div></body></html>"

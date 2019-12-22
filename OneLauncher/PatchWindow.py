@@ -27,23 +27,37 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from qtpy import QtCore, QtGui, QtWidgets, uic
-from .OneLauncherUtils import DetermineOS, QByteArray2str
+from qtpy import QtCore, QtWidgets, uic
+from .OneLauncherUtils import QByteArray2str
 from .ProgressMonitor import ProgressMonitor
 import os.path
 from pkg_resources import resource_filename
 
+
 class PatchWindow:
-    def __init__(self, urlPatchServer, prodCode, language, runDir, patchClient,
-                 wineProgram, hiResEnabled, iconFileIn, homeDir, winePrefix,
-                 osType, rootDir, parent):
+    def __init__(
+        self,
+        urlPatchServer,
+        prodCode,
+        language,
+        runDir,
+        patchClient,
+        wineProgram,
+        hiResEnabled,
+        iconFileIn,
+        homeDir,
+        winePrefix,
+        osType,
+        rootDir,
+        parent,
+    ):
 
         self.homeDir = homeDir
         self.osType = osType
 
         self.winLog = QtWidgets.QDialog(parent, QtCore.Qt.FramelessWindowHint)
 
-        uifile = resource_filename(__name__, 'ui' + os.sep + 'winPatch.ui')
+        uifile = resource_filename(__name__, "ui" + os.sep + "winPatch.ui")
         Ui_winLog, base_class = uic.loadUiType(uifile)
         self.uiLog = Ui_winLog()
         self.uiLog.setupUi(self.winLog)
@@ -83,7 +97,12 @@ class PatchWindow:
         self.process.setProcessEnvironment(processEnviroment)
 
         if self.osType.usingWindows:
-            patchParams = "%s,Patch %s --language %s --productcode %s" % (patchClient, urlPatchServer, language, prodCode)
+            patchParams = "%s,Patch %s --language %s --productcode %s" % (
+                patchClient,
+                urlPatchServer,
+                language,
+                prodCode,
+            )
 
             if hiResEnabled:
                 patchParams = patchParams + " --highres"
@@ -95,7 +114,10 @@ class PatchWindow:
                 self.arguments.append(arg)
 
         else:
-            patchParams = "rundll32.exe %s,Patch %s --language %s --productcode %s" % (patchClient, urlPatchServer, language, prodCode)
+            patchParams = (
+                "rundll32.exe %s,Patch %s --language %s --productcode %s"
+                % (patchClient, urlPatchServer, language, prodCode)
+            )
 
             if hiResEnabled:
                 patchParams = patchParams + " --highres"
@@ -115,8 +137,9 @@ class PatchWindow:
         self.progressMonitor.parseOutput(line)
 
     def readErrors(self):
-        self.uiLog.txtLog.append(QByteArray2str(
-            self.process.readAllStandardError()))
+        self.uiLog.txtLog.append(
+            QByteArray2str(self.process.readAllStandardError())
+        )
 
     def resetButtons(self):
         self.finished = True
@@ -139,7 +162,8 @@ class PatchWindow:
 
     def btnSaveClicked(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(
-            self.winLog, "Save log file", self.homeDir)[0]
+            self.winLog, "Save log file", self.homeDir
+        )[0]
 
         if filename != "":
             with open(filename, "w") as outfile:

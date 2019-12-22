@@ -31,26 +31,28 @@ from urllib import request
 # Imports for extracting function
 import lzma
 import tarfile
-from contextlib import closing
 from shutil import move, rmtree
 
-import os, errno
-from qtpy import QtCore, QtWidgets, uic
-from pkg_resources import resource_filename
+import os
+import errno
+from qtpy import QtCore, QtWidgets
 
 
 class BuiltInPrefix:
     WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/4.17/wine-4.17-staging-improved-amd64.tar.xz"
-    DXVK_URL = (
-        "https://github.com/doitsujin/dxvk/releases/download/v1.4.1/dxvk-1.4.1.tar.gz"
-    )
+    DXVK_URL = "https://github.com/doitsujin/dxvk/releases/download/v1.4.1/dxvk-1.4.1.tar.gz"
 
     def __init__(self, settingsDir, winePrefix, parent):
         self.settingsDir = settingsDir
         self.winePrefix = winePrefix
 
         self.dlgDownloader = QtWidgets.QProgressDialog(
-            "Checking for updates...", "", 0, 100, parent, QtCore.Qt.FramelessWindowHint
+            "Checking for updates...",
+            "",
+            0,
+            100,
+            parent,
+            QtCore.Qt.FramelessWindowHint,
         )
         self.dlgDownloader.setWindowModality(QtCore.Qt.WindowModal)
         self.dlgDownloader.setAutoClose(False)
@@ -58,8 +60,12 @@ class BuiltInPrefix:
 
     # Sets wine program and downloads wine if it is not there or a new version is needed
     def wineSetup(self):
-        self.latest_wine_version = self.WINE_URL.split("/download/")[1].split("/")[0]
-        latest_wine_path = self.settingsDir + "wine/wine-" + self.latest_wine_version
+        self.latest_wine_version = self.WINE_URL.split("/download/")[1].split(
+            "/"
+        )[0]
+        latest_wine_path = (
+            self.settingsDir + "wine/wine-" + self.latest_wine_version
+        )
 
         if os.path.exists(latest_wine_path):
             return latest_wine_path + "/bin/wine"
@@ -74,11 +80,16 @@ class BuiltInPrefix:
             self.dlgDownloader.setValue(100)
 
             return (
-                self.settingsDir + "wine/wine-" + self.latest_wine_version + "/bin/wine"
+                self.settingsDir
+                + "wine/wine-"
+                + self.latest_wine_version
+                + "/bin/wine"
             )
 
     def dxvkSetup(self):
-        self.latest_dxvk_version = self.DXVK_URL.split("download/v")[1].split("/")[0]
+        self.latest_dxvk_version = self.DXVK_URL.split("download/v")[1].split(
+            "/"
+        )[0]
         self.latest_dxvk_path = (
             self.settingsDir + "wine/dxvk-" + self.latest_dxvk_version
         )
@@ -121,14 +132,18 @@ class BuiltInPrefix:
         source_dir = (os.listdir(split_path))[0]
         move(os.path.join(split_path, source_dir), self.settingsDir + "wine")
         os.rmdir(split_path)
-        os.rename(os.path.join(self.settingsDir + "wine", source_dir), split_path)
+        os.rename(
+            os.path.join(self.settingsDir + "wine", source_dir), split_path
+        )
 
         # Removes downloaded tar.xz
         os.remove(path)
 
         # Removes old wine versions
         for dir in os.listdir(self.settingsDir + "wine"):
-            if dir.startswith("wine") and not dir.endswith(self.latest_wine_version):
+            if dir.startswith("wine") and not dir.endswith(
+                self.latest_wine_version
+            ):
                 rmtree(os.path.join(self.settingsDir + "wine", dir))
 
     def dxvk_extracter(self, path):
@@ -140,7 +155,10 @@ class BuiltInPrefix:
 
         # Moves files from nested directory to main one
         source_dir = (os.listdir(split_path + "_TEMP"))[0]
-        move(os.path.join(split_path + "_TEMP", source_dir), self.settingsDir + "wine")
+        move(
+            os.path.join(split_path + "_TEMP", source_dir),
+            self.settingsDir + "wine",
+        )
         os.rmdir(split_path + "_TEMP")
 
         # Removes downloaded tar.gz
@@ -148,14 +166,20 @@ class BuiltInPrefix:
 
         # Removes old dxvk versions
         for dir in os.listdir(self.settingsDir + "wine"):
-            if dir.startswith("dxvk") and not dir.endswith(self.latest_dxvk_version):
+            if dir.startswith("dxvk") and not dir.endswith(
+                self.latest_dxvk_version
+            ):
                 rmtree(os.path.join(self.settingsDir + "wine", dir))
 
     # Adds dxvk to the wine prefix
     def dxvk_injecter(self):
         # Makes directories for dxvk dlls in case wine prefix hasn't been run yet
-        os.makedirs(self.winePrefix + "/drive_c/windows/system32", exist_ok=True)
-        os.makedirs(self.winePrefix + "/drive_c/windows/syswow64", exist_ok=True)
+        os.makedirs(
+            self.winePrefix + "/drive_c/windows/system32", exist_ok=True
+        )
+        os.makedirs(
+            self.winePrefix + "/drive_c/windows/syswow64", exist_ok=True
+        )
 
         dll_list = os.listdir(self.latest_dxvk_path + "/x64")
 
