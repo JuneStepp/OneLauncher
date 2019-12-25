@@ -524,9 +524,8 @@ class AddonManager:
 
                         addon_type = "Plugin"
                         table = self.uiAddonManager.tablePlugins
-                        path, folder = self.getAddonInstallationFolder(
-                            entry, addon, self.data_folder_plugins
-                        )
+                        folder = entry.split("/")[0]
+                        path = self.data_folder_plugins
                         file.extractall(path=path)
 
                         plugins_list = []
@@ -581,7 +580,7 @@ class AddonManager:
                         table = self.uiAddonManager.tableMusic
 
                         path, folder = self.getAddonInstallationFolder(
-                            entry, addon, self.data_folder_music
+                            entry, addon, files_list, self.data_folder_music
                         )
                         file.extractall(path=path)
 
@@ -604,7 +603,7 @@ class AddonManager:
                     addon_type = "Skin"
                     table = self.uiAddonManager.tableSkins
                     path, folder = self.getAddonInstallationFolder(
-                        entry, addon, self.data_folder_skins
+                        entry, addon, files_list, self.data_folder_skins
                     )
                     file.extractall(path=path)
 
@@ -649,9 +648,18 @@ class AddonManager:
                     self.installRemoteAddon(item[0], item[1], dependencie)
 
     # Gets folder and makes one if there is no root folder
-    def getAddonInstallationFolder(self, entry, addon, data_folder):
-        # If no root folder
-        if len(entry.split("/")) == 1:
+    def getAddonInstallationFolder(
+        self, entry, addon, files_list, data_folder
+    ):
+        # Gets list of base folders in archive
+        folders_list = []
+        for file in files_list:
+            folder = file.split(os.path.sep)[0]
+            if folder not in folders_list:
+                folders_list.append(folder)
+
+        # If no root folder or multiple root folders
+        if len(entry.split(os.path.sep)) == 1 or len(folders_list) > 1:
             name = os.path.split(os.path.splitext(addon)[0])[1]
             path = os.path.join(data_folder, name)
             os.makedirs(os.path.split(path)[0], exist_ok=True)
@@ -689,10 +697,7 @@ class AddonManager:
                     os.path.join(data_folder, folders, "*", "")
                 )
                 output = self.moveAddonsFromInvalidFolder(
-                    data_folder,
-                    "",
-                    folders_list=folders_list,
-                    folders=folders,
+                    data_folder, "", folders_list=folders_list, folders=folders
                 )
                 return output
 
