@@ -35,7 +35,7 @@ from xml.dom.minidom import Document
 import defusedxml.minidom
 from .OneLauncherUtils import GetText
 import sqlite3
-from shutil import rmtree, copy
+from shutil import rmtree, copy, move
 from zipfile import ZipFile
 from urllib import request
 from time import strftime, localtime
@@ -608,6 +608,10 @@ class AddonManager:
                     )
                     file.extractall(path=path)
 
+                    folder = self.moveAddonsFromInvalidFolder(
+                        self.data_folder_skins, folder
+                    )
+
                     if interface_id:
                         compendium_file = self.generateCompendiumFile(
                             files_list,
@@ -657,6 +661,55 @@ class AddonManager:
             folder = entry.split("/")[0]
 
         return path, folder
+
+    # Scans data folder for invalid folder names like "ui" or "plugins" and moves stuff out of them
+    def moveAddonsFromInvalidFolder(
+        self, data_folder, folder, folders_list=[], folders=""
+    ):
+        invalid_folder_names = [
+            "ui",
+            "skins",
+            "Plugins",
+            "Music",
+            "My Documents",
+            "The Lord of the Rings Online",
+            "Dungeons and Dragons Online",
+            "Dungeons & Dragons Online",
+        ]
+
+        if not folders_list:
+            folders_list = [folder]
+
+        for folder in folders_list:
+            folder = folder.strip(os.path.sep)
+            folder = os.path.split(folder)[1]
+            if folder in invalid_folder_names:
+                folders = os.path.join(folders, folder)
+                folders_list = glob(
+                    os.path.join(data_folder, folders, "*", "")
+                )
+                output = self.moveAddonsFromInvalidFolder(
+                    data_folder,
+                    "",
+                    folders_list=folders_list,
+                    folders=folders,
+                )
+                return output
+
+        if folders:
+            # List of the folders that will be moved to the data folder
+            addon_folders_list = []
+
+            for file in os.listdir(os.path.join(data_folder, folders)):
+                if os.path.isdir(os.path.join(data_folder, folders, file)):
+                    addon_folders_list.append(file)
+                move(os.path.join(data_folder, folders, file), data_folder)
+
+            rmtree(os.path.join(data_folder, folders.split(os.path.sep)[0]))
+
+            return addon_folders_list[0]
+        else:
+            return folder
 
     # Generates a compendium file for remote addon
     def generateCompendiumFile(
