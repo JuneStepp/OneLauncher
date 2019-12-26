@@ -639,9 +639,16 @@ class AddonManager:
 
         for dependencie in dependencies.split(","):
             if dependencie:
-                for item in self.c.execute(
-                    "SELECT File, Name FROM {table} WHERE InterfaceID = ?".format(  # nosec
-                        table=table.split("Installed")[0]
+                # 0 is the arbitrary ID for Turbine Utilities. 1064 is the ID
+                # of OneLauncher's upload of the utilities on LotroInterface
+                if dependencie == "0":
+                    dependencie = "1064"
+
+                for item in self.c.execute(  # nosec
+                    "SELECT File, Name FROM {table} WHERE InterfaceID = ? AND InterfaceID NOT IN "
+                    "(SELECT InterfaceID FROM {table_installed})".format(
+                        table=table.split("Installed")[0],
+                        table_installed=table,
                     ),
                     (dependencie,),
                 ):
@@ -1136,6 +1143,12 @@ class AddonManager:
             self.getInstalledMusic()
 
     def checkAddonForDependencies(self, addon, table):
+        # Turbine Utilities is treated as having ID 0
+        if addon[0] == "1064":
+            addon_ID = "0"
+        else:
+            addon_ID = addon[0]
+
         details = ""
 
         for dependent in self.c.execute(
@@ -1144,7 +1157,7 @@ class AddonManager:
             )
         ):
             for dependency in dependent[1].split(","):
-                if dependency == addon[0]:
+                if dependency == addon_ID:
                     details = details + dependent[0] + "\n"
 
         if details:
