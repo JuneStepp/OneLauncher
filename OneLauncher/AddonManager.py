@@ -387,18 +387,7 @@ class AddonManager:
                 items_row = self.parseCompediumFile(plugin, "PluginConfig")
                 items_row = self.getOnlineAddonInfo(items_row, "tablePlugins")
 
-                dependencies = ""
-                doc = defusedxml.minidom.parse(plugin)
-                if doc.getElementsByTagName("Dependencies"):
-                    nodes = doc.getElementsByTagName("Dependencies")[
-                        0
-                    ].childNodes
-                    for node in nodes:
-                        if node.nodeName == "dependency":
-                            dependencies = (
-                                dependencies + "," + (GetText(node.childNodes))
-                            )
-                items_row[7] = dependencies[1:]
+                items_row[7] = self.getAddonDependencies(plugin)
             else:
                 items_row = self.parseCompediumFile(plugin, "Information")
                 items_row[1] = "Unmanaged"
@@ -407,6 +396,20 @@ class AddonManager:
 
         # Populate user visible table
         self.searchDB(self.uiAddonManager.tablePluginsInstalled, "")
+
+    def getAddonDependencies(self, file):
+        dependencies = ""
+        doc = defusedxml.minidom.parse(file)
+        if doc.getElementsByTagName("Dependencies"):
+            nodes = doc.getElementsByTagName("Dependencies")[
+                0
+            ].childNodes
+            for node in nodes:
+                if node.nodeName == "dependency":
+                    dependencies = (
+                        dependencies + "," + (GetText(node.childNodes))
+                    )
+            return dependencies[1:]
 
     # Returns list of common values for compendium or .plugin files
     def parseCompediumFile(self, file, tag):
@@ -529,7 +532,6 @@ class AddonManager:
                         file.extractall(path=path)
 
                         plugins_list = []
-                        plugins_list_compendium = []
                         for entry in files_list:
                             if len(entry.split("/")) == 2:
                                 if entry.endswith(".plugin"):
@@ -538,24 +540,17 @@ class AddonManager:
                                             self.data_folder_plugins, entry
                                         )
                                     )
-                                elif entry.endswith(".plugincompendium"):
-                                    plugins_list_compendium.append(
-                                        os.path.join(
-                                            self.data_folder_plugins, entry
-                                        )
-                                    )
 
-                        if not plugins_list_compendium:
-                            if interface_id:
-                                compendium_file = self.generateCompendiumFile(
-                                    files_list,
-                                    folder,
-                                    interface_id,
-                                    addon_type,
-                                    path,
-                                    table.objectName(),
-                                )
-                                plugins_list_compendium.append(compendium_file)
+                        if interface_id:
+                            compendium_file = self.generateCompendiumFile(
+                                files_list,
+                                folder,
+                                interface_id,
+                                addon_type,
+                                path,
+                                table.objectName(),
+                            )
+                            plugins_list_compendium = [compendium_file]
 
                         plugins_list, plugins_list_compendium = self.removeManagedPluginsFromList(
                             plugins_list, plugins_list_compendium
@@ -727,10 +722,24 @@ class AddonManager:
     def generateCompendiumFile(
         self, files_list, folder, interface_id, addon_type, path, table
     ):
+        dependencies = []
         # Return if a compendium file already exists
         for file in files_list:
             if file.endswith(addon_type.lower() + "compendium"):
-                return
+                if addon_type == "Plugin":
+                    # Path includes folder when one has to be generated
+                    tmp_folder = folder
+                    if path.endswith(folder):
+                        tmp_folder = ""
+
+                    compendium_file_path = os.path.join(path, tmp_folder, os.path.split(file)[1])
+                    if os.path.exists(compendium_file_path):
+                        dependencies = self.getAddonDependencies(compendium_file_path)
+                        os.remove(compendium_file_path)
+                    else:
+                        return
+                else:
+                    return
 
         for row in self.c.execute(
             "SELECT * FROM {table} WHERE InterfaceID = ?".format(  # nosec
@@ -793,8 +802,15 @@ class AddonManager:
                             descriptorsNode.appendChild(tempNode)
 
                 # Can't add dependencies, because they are defined in compendium files
-                tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Dependencies")
-                mainNode.appendChild(tempNode)
+                dependenciesNode = doc.createElementNS(EMPTY_NAMESPACE, "Dependencies")
+                mainNode.appendChild(dependenciesNode)
+
+                # If compendium file from plugin already exisited
+                if dependencies:
+                    for dependencie in dependencies.split(","):
+                        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "dependency")
+                        tempNode.appendChild(doc.createTextNode("%s" % (dependencie)))
+                        dependenciesNode.appendChild(tempNode)
 
                 # Write compendium file
 
