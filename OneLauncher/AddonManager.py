@@ -736,8 +736,6 @@ class AddonManager:
                     if os.path.exists(compendium_file_path):
                         dependencies = self.getAddonDependencies(compendium_file_path)
                         os.remove(compendium_file_path)
-                    else:
-                        return
                 else:
                     return
 
