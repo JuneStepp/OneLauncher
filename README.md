@@ -72,3 +72,75 @@ are always welcome.
 - 1.2 -- Add addon manager (plugins, themes, and abc files)
 - 1.3 -- Implement extended lua plugin api (More keyboard action interupts, ect)
 - 1.4 -- Full game install from OneLauncher (There was more stuff here, but I already did it)
+
+# Addon Manager Info For Developers
+
+## Getting in Addon Manager
+
+I follow the the RSS feed on LotroInterface and will add any addons that look
+to be in the correct format. You can open an issue here or email me if you feel
+your addon needs to be added.
+
+## Archive Format
+
+- Addons must be upploaded as a zip!
+- Zip should have descriptive name (i.e not "skin" or "plugin")
+- It's not recomended, but ok if zip has no root folder, multiple root folders, or includes part of the path to the data folder like "ui/skins" or "Plugins".
+
+## Compendium Files
+
+You don't need to make a compendium file unless you need dependencies to be auto installed. One is auto generated during installation.
+
+Compendium file names follow the format
+
+`{NAME}.{plugin/skin/music}compendium`
+An example is `OneLauncher.plugincompendium`
+
+The compendium files follow the format:
+
+```
+<?xml version="1.0" ?>
+<{Plugin/Skin/Music}Config>
+    <Id>{LOTRO INTERFACE ID}</Id>
+    <Name>{NAME}</Name>
+    <Version>{VERSION}</Version>
+    <Author>{AUTHOR}</Author>
+    <InfoUrl>http://www.lotrointerface.com/downloads/info{LOTRO INTERFACE ID}</InfoUrl>
+    <DownloadUrl>http://www.lotrointerface.com/downloads/download{LOTRO INTERFACE ID}</DownloadUrl>
+    <!--Descriptors only needed for plugins-->
+    <Descriptors>
+        <descriptor>{AUTHOR}\{NAME}.plugin</descriptor>
+        <!--More descriptors can be added if more plugins are part of the main plugin-->
+    </Descriptors>
+    <!--Dependencies can be added for any type of addon. The dependency doesn't have to be of the same addon type as what is dependent on it-->
+    <Dependencies>
+        <dependency>{INTERFACE ID OF DEPENDENCY}</dependency>
+        <!--Any amount of dependencies are fine-->
+  </Dependencies>
+</{Plugin/Skin/Music}Config>
+```
+
+An example is:
+
+```
+<?xml version="1.0" ?>
+<PluginConfig>
+    <Id>684</Id>
+    <Name>ChampionFervour</Name>
+    <Version>1.1</Version>
+    <Author>D.H1cks</Author>
+    <InfoUrl>http://www.lotrointerface.com/downloads/info684</InfoUrl>
+    <DownloadUrl>http://www.lotrointerface.com/downloads/download684</DownloadUrl>
+    <Descriptors>
+        <descriptor>DhorPlugins\ChampionFervour.plugin</descriptor>
+    </Descriptors>
+    <Dependencies>
+        <dependency>0</dependency>
+        <dependency>367</dependency>
+    </Dependencies>
+</PluginConfig>
+```
+
+## Patches/Addons
+
+Patches/addons must follow the same format as the addon that is being patched. The most common issue is leaving out folders farther up the tree from what is changed.
