@@ -39,6 +39,7 @@ jobs:
           pip install qtpy
           pip install qdarkstyle
           pip install keyring
+          pip install defusedxml
           pip install https://github.com/JeremyStepp/pyinstaller/archive/develop.zip
       - name: Build
         run: python build.py
