@@ -39,8 +39,8 @@ from qtpy import QtCore, QtWidgets
 
 
 class BuiltInPrefix:
-    WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/4.17/wine-4.17-staging-improved-amd64.tar.xz"
-    DXVK_URL = "https://github.com/doitsujin/dxvk/releases/download/v1.4.1/dxvk-1.4.1.tar.gz"
+    WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/5.0/wine-5.0-staging-improved-amd64.tar.xz"
+    DXVK_URL = "https://github.com/doitsujin/dxvk/releases/download/v1.5.2/dxvk-1.5.2.tar.gz"
 
     def __init__(self, settingsDir, winePrefix, parent):
         self.settingsDir = settingsDir
