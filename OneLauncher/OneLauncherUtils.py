@@ -154,6 +154,16 @@ class DetermineOS:
             self.usingMac = True
             self.usingWindows = False
             self.appDir = "Library/Application Support/OneLauncher/"
+            self.settingsLOTRO = os.path.join(
+                os.path.expanduser("~"),
+                "Documents",
+                "The Lord of the Rings Online",
+            )
+            self.settingsDDO = os.path.join(
+                os.path.expanduser("~"),
+                "Documents",
+                "Dungeons and Dragons Online",
+            )
             self.globalDir = "/Application"
             self.settingsCXG = (
                 "Library/Application Support/CrossOver Games/Bottles"
@@ -170,6 +180,16 @@ class DetermineOS:
             self.usingMac = False
             self.usingWindows = True
             self.appDir = "OneLauncher" + os.sep
+            self.settingsLOTRO = os.path.join(
+                os.path.expanduser("~"),
+                "My Documents",
+                "The Lord of the Rings Online",
+            )
+            self.settingsDDO = os.path.join(
+                os.path.expanduser("~"),
+                "My Documents",
+                "Dungeons and Dragons Online",
+            )
             self.globalDir = ""
             self.settingsCXG = ""
             self.settingsCXO = ""
@@ -180,6 +200,16 @@ class DetermineOS:
             self.usingMac = False
             self.usingWindows = False
             self.appDir = ".OneLauncher" + os.sep
+            self.settingsLOTRO = os.path.join(
+                os.path.expanduser("~"),
+                "Documents",
+                "The Lord of the Rings Online",
+            )
+            self.settingsDDO = os.path.join(
+                os.path.expanduser("~"),
+                "Documents",
+                "Dungeons and Dragons Online",
+            )
             self.globalDir = "/opt"
             self.settingsCXG = ".cxgames"
             self.settingsCXO = ".cxoffice"
