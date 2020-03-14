@@ -109,6 +109,9 @@ class AddonManager:
         self.uiAddonManager.tabWidgetInstalled.currentChanged.connect(
             self.tabWidgetInstalledIndexChanged
         )
+        self.uiAddonManager.tabWidgetFindMore.currentChanged.connect(
+            self.tabWidgetRemoteIndexChanged
+        )
 
         self.uiAddonManager.txtLog.hide()
         self.uiAddonManager.btnLog.clicked.connect(self.btnLogClicked)
@@ -130,11 +133,6 @@ class AddonManager:
 
         self.openDB()
 
-        if osType.usingWindows:
-            documents_folder = "My Documents"
-        else:
-            documents_folder = "Documents"
-
         if currentGame.startswith("DDO"):
             # Removes plugin and music tabs when using DDO
             self.uiAddonManager.tabWidgetFindMore.removeTab(0)
@@ -142,11 +140,7 @@ class AddonManager:
             self.uiAddonManager.tabWidgetInstalled.removeTab(0)
             self.uiAddonManager.tabWidgetInstalled.removeTab(1)
 
-            self.data_folder = os.path.join(
-                os.path.expanduser("~"),
-                documents_folder,
-                "Dungeons and Dragons Online",
-            )
+            self.data_folder = osType.settingsDDO
 
             self.data_folder_skins = os.path.join(
                 self.data_folder, "ui", "skins"
@@ -158,11 +152,7 @@ class AddonManager:
             self.uiAddonManager.tableSkins.setObjectName("tableSkinsDDO")
             self.getInstalledSkins()
         else:
-            self.data_folder = os.path.join(
-                os.path.expanduser("~"),
-                documents_folder,
-                "The Lord of the Rings Online",
-            )
+            self.data_folder = osType.settingsLOTRO
 
             self.data_folder_plugins = os.path.join(
                 self.data_folder, "Plugins"
@@ -174,19 +164,6 @@ class AddonManager:
 
             # Loads in installed plugins
             self.getInstalledPlugins()
-
-    def tabWidgetInstalledIndexChanged(self, index):
-        # Load in installed skins on first switch to tab
-        if index == 1 and not self.uiAddonManager.tableSkinsInstalled.item(
-            0, 0
-        ):
-            self.getInstalledSkins()
-
-        # Load in installed music on first switch to tab
-        if index == 2 and not self.uiAddonManager.tableMusicInstalled.item(
-            0, 0
-        ):
-            self.getInstalledMusic()
 
     def getInstalledSkins(self, folders_list=None):
         if not self.uiAddonManager.tableSkinsInstalled.item(0, 1):
@@ -401,9 +378,7 @@ class AddonManager:
         dependencies = ""
         doc = defusedxml.minidom.parse(file)
         if doc.getElementsByTagName("Dependencies"):
-            nodes = doc.getElementsByTagName("Dependencies")[
-                0
-            ].childNodes
+            nodes = doc.getElementsByTagName("Dependencies")[0].childNodes
             for node in nodes:
                 if node.nodeName == "dependency":
                     dependencies = (
@@ -732,9 +707,13 @@ class AddonManager:
                     if path.endswith(folder):
                         tmp_folder = ""
 
-                    compendium_file_path = os.path.join(path, tmp_folder, os.path.split(file)[1])
+                    compendium_file_path = os.path.join(
+                        path, tmp_folder, os.path.split(file)[1]
+                    )
                     if os.path.exists(compendium_file_path):
-                        dependencies = self.getAddonDependencies(compendium_file_path)
+                        dependencies = self.getAddonDependencies(
+                            compendium_file_path
+                        )
                         os.remove(compendium_file_path)
                 else:
                     return
@@ -800,14 +779,20 @@ class AddonManager:
                             descriptorsNode.appendChild(tempNode)
 
                 # Can't add dependencies, because they are defined in compendium files
-                dependenciesNode = doc.createElementNS(EMPTY_NAMESPACE, "Dependencies")
+                dependenciesNode = doc.createElementNS(
+                    EMPTY_NAMESPACE, "Dependencies"
+                )
                 mainNode.appendChild(dependenciesNode)
 
                 # If compendium file from plugin already exisited
                 if dependencies:
                     for dependencie in dependencies.split(","):
-                        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "dependency")
-                        tempNode.appendChild(doc.createTextNode("%s" % (dependencie)))
+                        tempNode = doc.createElementNS(
+                            EMPTY_NAMESPACE, "dependency"
+                        )
+                        tempNode.appendChild(
+                            doc.createTextNode("%s" % (dependencie))
+                        )
                         dependenciesNode.appendChild(tempNode)
 
                 # Write compendium file
@@ -907,8 +892,6 @@ class AddonManager:
                 )
             ):
                 self.addRowToTable(table, row)
-
-            self.uiAddonManager.txtSearchBar.clear()
 
     # Adds row to a visible table. First value in list is row name
     def addRowToTable(self, table, list):
@@ -1200,11 +1183,36 @@ class AddonManager:
         messageBox.setInformativeText(text)
         messageBox.setDetailedText(details)
 
-        # Checks if user accepts dialouge
+        # Checks if user accepts dialogue
         if messageBox.exec() == 33554432:
             return True
         else:
             return False
+
+    def searchSearchBarContents(self):
+        """
+            Used to re-search users' search when new tabs are selected
+        """
+        user_search = self.uiAddonManager.txtSearchBar.text()
+        self.txtSearchBarTextChanged(user_search)
+
+    def tabWidgetInstalledIndexChanged(self, index):
+        # Load in installed skins on first switch to tab
+        if index == 1 and not self.uiAddonManager.tableSkinsInstalled.item(
+            0, 0
+        ):
+            self.getInstalledSkins()
+
+        # Load in installed music on first switch to tab
+        if index == 2 and not self.uiAddonManager.tableMusicInstalled.item(
+            0, 0
+        ):
+            self.getInstalledMusic()
+
+        self.searchSearchBarContents()
+
+    def tabWidgetRemoteIndexChanged(self, index):
+        self.searchSearchBarContents()
 
     def tabWidgetIndexChanged(self, index):
         if index == 0:
@@ -1217,6 +1225,8 @@ class AddonManager:
             # Populates remote addons tables if not done already
             if not self.uiAddonManager.tableSkins.item(0, 0):
                 self.loadRemoteAddons()
+
+        self.searchSearchBarContents()
 
     def loadRemoteAddons(self):
         if self.currentGame.startswith("LOTRO"):
