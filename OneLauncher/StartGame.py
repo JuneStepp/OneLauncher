@@ -26,7 +26,8 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from qtpy import QtCore, QtWidgets, uic
+from PySide2 import QtCore, QtWidgets
+from PySide2.QtUiTools import QUiLoader
 from .OneLauncherUtils import QByteArray2str
 import os.path
 from pkg_resources import resource_filename
@@ -70,33 +71,37 @@ class StartGame:
             appName = "x64" + os.sep + appName
 
         self.homeDir = homeDir
-        self.winLog = QtWidgets.QDialog()
         self.osType = osType
         self.realmName = realmName
         self.accountText = accountText
         self.parent = parent
 
-        uifile = resource_filename(__name__, "ui" + os.sep + "winLog.ui")
+        ui_file = QtCore.QFile(
+            resource_filename(__name__, "ui" + os.sep + "winLog.ui")
+        )
+        ui_file.open(QtCore.QFile.ReadOnly)
+        loader = QUiLoader()
+        self.winLog = loader.load(ui_file, parentWidget=parent)
+        ui_file.close()
 
-        self.winLog = QtWidgets.QDialog(parent, QtCore.Qt.FramelessWindowHint)
-        Ui_winLog, base_class = uic.loadUiType(uifile)
-        self.uiLog = Ui_winLog()
-        self.uiLog.setupUi(self.winLog)
+        self.winLog.setWindowFlags(
+            QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint
+        )
 
         if self.osType.usingWindows:
             self.winLog.setWindowTitle("Output")
         else:
             self.winLog.setWindowTitle("Launch Game - Wine output")
 
-        # self.uiLog.btnStart.setVisible(False)
-        self.uiLog.btnStart.setText("Launcher")
-        self.uiLog.btnStart.setEnabled(False)
-        self.uiLog.btnSave.setText("Save")
-        self.uiLog.btnSave.setEnabled(False)
-        self.uiLog.btnStop.setText("Exit")
-        self.uiLog.btnStart.clicked.connect(self.btnStartClicked)
-        self.uiLog.btnSave.clicked.connect(self.btnSaveClicked)
-        self.uiLog.btnStop.clicked.connect(self.btnStopClicked)
+        # self.winLog.btnStart.setVisible(False)
+        self.winLog.btnStart.setText("Launcher")
+        self.winLog.btnStart.setEnabled(False)
+        self.winLog.btnSave.setText("Save")
+        self.winLog.btnSave.setEnabled(False)
+        self.winLog.btnStop.setText("Exit")
+        self.winLog.btnStart.clicked.connect(self.btnStartClicked)
+        self.winLog.btnSave.clicked.connect(self.btnSaveClicked)
+        self.winLog.btnStop.clicked.connect(self.btnStopClicked)
 
         self.aborted = False
         self.finished = False
@@ -168,30 +173,30 @@ class StartGame:
 
             self.process.setProcessEnvironment(processEnviroment)
 
-        self.uiLog.txtLog.append("Connecting to server: " + realmName)
-        self.uiLog.txtLog.append("Account: " + accountText)
-        self.uiLog.txtLog.append("Game Directory: " + runDir)
-        self.uiLog.txtLog.append("Game Client: " + appName)
+        self.winLog.txtLog.append("Connecting to server: " + realmName)
+        self.winLog.txtLog.append("Account: " + accountText)
+        self.winLog.txtLog.append("Game Directory: " + runDir)
+        self.winLog.txtLog.append("Game Client: " + appName)
 
     def readOutput(self):
-        self.uiLog.txtLog.append(
+        self.winLog.txtLog.append(
             QByteArray2str(self.process.readAllStandardOutput())
         )
 
     def readErrors(self):
-        self.uiLog.txtLog.append(
+        self.winLog.txtLog.append(
             QByteArray2str(self.process.readAllStandardError())
         )
 
     def resetButtons(self, exitCode, exitStatus):
         self.finished = True
-        self.uiLog.btnStop.setText("Exit")
-        self.uiLog.btnSave.setEnabled(True)
-        self.uiLog.btnStart.setEnabled(True)
+        self.winLog.btnStop.setText("Exit")
+        self.winLog.btnSave.setEnabled(True)
+        self.winLog.btnStart.setEnabled(True)
         if self.aborted:
-            self.uiLog.txtLog.append("<b>***  Aborted  ***</b>")
+            self.winLog.txtLog.append("<b>***  Aborted  ***</b>")
         else:
-            self.uiLog.txtLog.append("<b>***  Finished  ***</b>")
+            self.winLog.txtLog.append("<b>***  Finished  ***</b>")
 
     def btnStartClicked(self):
         if self.finished:
@@ -213,12 +218,12 @@ class StartGame:
 
         if filename != "":
             with open(filename, "w") as outfile:
-                outfile.write(self.uiLog.txtLog.toPlainText())
+                outfile.write(self.winLog.txtLog.toPlainText())
 
     def Run(self):
         self.finished = False
 
-        self.uiLog.btnStop.setText("Abort")
+        self.winLog.btnStop.setText("Abort")
         self.process.start(self.command, self.arguments)
 
         return self.winLog.exec_()

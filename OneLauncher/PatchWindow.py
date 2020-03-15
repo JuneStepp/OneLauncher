@@ -27,7 +27,8 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from qtpy import QtCore, QtWidgets, uic
+from PySide2 import QtCore, QtWidgets
+from PySide2.QtUiTools import QUiLoader
 from .OneLauncherUtils import QByteArray2str
 from .ProgressMonitor import ProgressMonitor
 import os.path
@@ -55,26 +56,31 @@ class PatchWindow:
         self.homeDir = homeDir
         self.osType = osType
 
-        self.winLog = QtWidgets.QDialog(parent, QtCore.Qt.FramelessWindowHint)
+        ui_file = QtCore.QFile(
+            resource_filename(__name__, "ui" + os.sep + "winPatch.ui")
+        )
+        ui_file.open(QtCore.QFile.ReadOnly)
+        loader = QUiLoader()
+        self.winLog = loader.load(ui_file, parentWidget=parent)
+        ui_file.close()
 
-        uifile = resource_filename(__name__, "ui" + os.sep + "winPatch.ui")
-        Ui_winLog, base_class = uic.loadUiType(uifile)
-        self.uiLog = Ui_winLog()
-        self.uiLog.setupUi(self.winLog)
+        self.winLog.setWindowFlags(
+            QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint
+        )
 
         if self.osType.usingWindows:
             self.winLog.setWindowTitle("Output")
         else:
             self.winLog.setWindowTitle("Patch - Wine output")
 
-        self.uiLog.btnSave.setText("Save Log")
-        self.uiLog.btnSave.setEnabled(False)
-        self.uiLog.progressBar.reset()
-        self.uiLog.btnStop.setText("Launcher")
-        self.uiLog.btnStart.setText("Patch")
-        self.uiLog.btnSave.clicked.connect(self.btnSaveClicked)
-        self.uiLog.btnStop.clicked.connect(self.btnStopClicked)
-        self.uiLog.btnStart.clicked.connect(self.btnStartClicked)
+        self.winLog.btnSave.setText("Save Log")
+        self.winLog.btnSave.setEnabled(False)
+        self.winLog.progressBar.reset()
+        self.winLog.btnStop.setText("Launcher")
+        self.winLog.btnStart.setText("Patch")
+        self.winLog.btnSave.clicked.connect(self.btnSaveClicked)
+        self.winLog.btnStop.clicked.connect(self.btnStopClicked)
+        self.winLog.btnStart.clicked.connect(self.btnStartClicked)
 
         self.aborted = False
         self.finished = True
@@ -82,7 +88,7 @@ class PatchWindow:
         self.command = ""
         self.arguments = []
 
-        self.progressMonitor = ProgressMonitor(self.uiLog)
+        self.progressMonitor = ProgressMonitor(self.winLog)
 
         self.process = QtCore.QProcess()
         self.process.readyReadStandardOutput.connect(self.readOutput)
@@ -133,25 +139,25 @@ class PatchWindow:
 
     def readOutput(self):
         line = QByteArray2str(self.process.readAllStandardOutput())
-        self.uiLog.txtLog.append(line)
+        self.winLog.txtLog.append(line)
         self.progressMonitor.parseOutput(line)
 
     def readErrors(self):
-        self.uiLog.txtLog.append(
+        self.winLog.txtLog.append(
             QByteArray2str(self.process.readAllStandardError())
         )
 
     def resetButtons(self):
         self.finished = True
-        self.uiLog.btnStop.setText("Launcher")
-        self.uiLog.btnSave.setEnabled(True)
-        self.uiLog.btnStart.setEnabled(True)
+        self.winLog.btnStop.setText("Launcher")
+        self.winLog.btnSave.setEnabled(True)
+        self.winLog.btnStart.setEnabled(True)
         self.progressMonitor.reset()
         if self.aborted:
-            self.uiLog.txtLog.append("<b>***  Aborted  ***</b>")
+            self.winLog.txtLog.append("<b>***  Aborted  ***</b>")
         else:
             if self.lastRun:
-                self.uiLog.txtLog.append("<b>***  Finished  ***</b>")
+                self.winLog.txtLog.append("<b>***  Finished  ***</b>")
 
     def btnStopClicked(self):
         if self.finished:
@@ -167,7 +173,7 @@ class PatchWindow:
 
         if filename != "":
             with open(filename, "w") as outfile:
-                outfile.write(self.uiLog.txtLog.toPlainText())
+                outfile.write(self.winLog.txtLog.toPlainText())
 
     def processFinished(self, exitCode, exitStatus):
         if self.aborted:
@@ -193,9 +199,9 @@ class PatchWindow:
         self.aborted = False
         self.finished = False
         self.phase = 1
-        self.uiLog.btnStart.setEnabled(False)
-        self.uiLog.btnStop.setText("Abort")
-        self.uiLog.btnSave.setEnabled(False)
+        self.winLog.btnStart.setEnabled(False)
+        self.winLog.btnStop.setText("Abort")
+        self.winLog.btnSave.setEnabled(False)
         self.process.start(self.command, self.file_arguments)
 
     def Run(self, app):

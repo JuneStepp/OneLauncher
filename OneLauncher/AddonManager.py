@@ -26,7 +26,8 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from qtpy import QtCore, QtGui, QtWidgets, uic
+from PySide2 import QtCore, QtGui, QtWidgets
+from PySide2.QtUiTools import QUiLoader
 import os
 from pkg_resources import resource_filename
 from glob import glob
@@ -78,52 +79,53 @@ class AddonManager:
         self.currentGame = currentGame
         self.parent = parent
 
-        self.winAddonManager = QtWidgets.QDialog(
-            parent, QtCore.Qt.FramelessWindowHint
+        ui_file = QtCore.QFile(
+            resource_filename(__name__, "ui" + os.sep + "winAddonManager.ui")
         )
 
-        uifile = resource_filename(
-            __name__, "ui" + os.sep + "winAddonManager.ui"
+        ui_file.open(QtCore.QFile.ReadOnly)
+        loader = QUiLoader()
+        self.winAddonManager = loader.load(ui_file, parentWidget=parent)
+        ui_file.close()
+
+        self.winAddonManager.setWindowFlags(
+            QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint
         )
 
-        Ui_dlgAddonManager, base_class = uic.loadUiType(uifile)
-        self.uiAddonManager = Ui_dlgAddonManager()
-        self.uiAddonManager.setupUi(self.winAddonManager)
+        self.winAddonManager.btnBox.rejected.connect(self.btnBoxActivated)
 
-        self.uiAddonManager.btnBox.rejected.connect(self.btnBoxActivated)
-
-        self.uiAddonManager.btnAddonsMenu = QtWidgets.QMenu()
-        self.uiAddonManager.btnAddonsMenu.addAction(
-            self.uiAddonManager.actionAddonImport
+        self.winAddonManager.btnAddonsMenu = QtWidgets.QMenu()
+        self.winAddonManager.btnAddonsMenu.addAction(
+            self.winAddonManager.actionAddonImport
         )
-        self.uiAddonManager.actionAddonImport.triggered.connect(
+        self.winAddonManager.actionAddonImport.triggered.connect(
             self.actionAddonImportSelected
         )
-        self.uiAddonManager.btnAddons.setMenu(
-            self.uiAddonManager.btnAddonsMenu
+        self.winAddonManager.btnAddons.setMenu(
+            self.winAddonManager.btnAddonsMenu
         )
-        self.uiAddonManager.btnAddons.clicked.connect(self.btnAddonsClicked)
-        self.uiAddonManager.tabWidget.currentChanged.connect(
+        self.winAddonManager.btnAddons.clicked.connect(self.btnAddonsClicked)
+        self.winAddonManager.tabWidget.currentChanged.connect(
             self.tabWidgetIndexChanged
         )
-        self.uiAddonManager.tabWidgetInstalled.currentChanged.connect(
+        self.winAddonManager.tabWidgetInstalled.currentChanged.connect(
             self.tabWidgetInstalledIndexChanged
         )
-        self.uiAddonManager.tabWidgetFindMore.currentChanged.connect(
+        self.winAddonManager.tabWidgetFindMore.currentChanged.connect(
             self.tabWidgetRemoteIndexChanged
         )
 
-        self.uiAddonManager.txtLog.hide()
-        self.uiAddonManager.btnLog.clicked.connect(self.btnLogClicked)
+        self.winAddonManager.txtLog.hide()
+        self.winAddonManager.btnLog.clicked.connect(self.btnLogClicked)
 
-        self.uiAddonManager.txtSearchBar.setFocus()
-        self.uiAddonManager.txtSearchBar.textChanged.connect(
+        self.winAddonManager.txtSearchBar.setFocus()
+        self.winAddonManager.txtSearchBar.textChanged.connect(
             self.txtSearchBarTextChanged
         )
 
         for table in self.TABLE_LIST[:-2]:
             # Gets callable form from the string
-            table = getattr(self.uiAddonManager, table)
+            table = getattr(self.winAddonManager, table)
 
             # Hides ID column
             table.hideColumn(0)
@@ -135,10 +137,10 @@ class AddonManager:
 
         if currentGame.startswith("DDO"):
             # Removes plugin and music tabs when using DDO
-            self.uiAddonManager.tabWidgetFindMore.removeTab(0)
-            self.uiAddonManager.tabWidgetFindMore.removeTab(1)
-            self.uiAddonManager.tabWidgetInstalled.removeTab(0)
-            self.uiAddonManager.tabWidgetInstalled.removeTab(1)
+            self.winAddonManager.tabWidgetFindMore.removeTab(0)
+            self.winAddonManager.tabWidgetFindMore.removeTab(1)
+            self.winAddonManager.tabWidgetInstalled.removeTab(0)
+            self.winAddonManager.tabWidgetInstalled.removeTab(1)
 
             self.data_folder = osType.settingsDDO
 
@@ -146,10 +148,10 @@ class AddonManager:
                 self.data_folder, "ui", "skins"
             )
 
-            self.uiAddonManager.tableSkinsInstalled.setObjectName(
+            self.winAddonManager.tableSkinsInstalled.setObjectName(
                 "tableSkinsDDOInstalled"
             )
-            self.uiAddonManager.tableSkins.setObjectName("tableSkinsDDO")
+            self.winAddonManager.tableSkins.setObjectName("tableSkinsDDO")
             self.getInstalledSkins()
         else:
             self.data_folder = osType.settingsLOTRO
@@ -166,7 +168,7 @@ class AddonManager:
             self.getInstalledPlugins()
 
     def getInstalledSkins(self, folders_list=None):
-        if not self.uiAddonManager.tableSkinsInstalled.item(0, 1):
+        if not self.winAddonManager.tableSkinsInstalled.item(0, 1):
             folders_list = None
 
         os.makedirs(self.data_folder_skins, exist_ok=True)
@@ -193,7 +195,7 @@ class AddonManager:
         self.addInstalledSkinstoDB(skins_list, skins_list_compendium)
 
     def addInstalledSkinstoDB(self, skins_list, skins_list_compendium):
-        table = self.uiAddonManager.tableSkinsInstalled
+        table = self.winAddonManager.tableSkinsInstalled
 
         # Clears rows from db table if needed (This function is called to add
         # newly installed skins after initial load as well)
@@ -220,10 +222,10 @@ class AddonManager:
             self.addRowToDB(table.objectName(), items_row)
 
         # Populate user visible table
-        self.searchDB(self.uiAddonManager.tableSkinsInstalled, "")
+        self.searchDB(self.winAddonManager.tableSkinsInstalled, "")
 
     def getInstalledMusic(self, folders_list=None):
-        if not self.uiAddonManager.tableMusicInstalled.item(0, 1):
+        if not self.winAddonManager.tableMusicInstalled.item(0, 1):
             folders_list = None
 
         os.makedirs(self.data_folder_music, exist_ok=True)
@@ -256,7 +258,7 @@ class AddonManager:
         self.addInstalledMusictoDB(music_list, music_list_compendium)
 
     def addInstalledMusictoDB(self, music_list, music_list_compendium):
-        table = self.uiAddonManager.tableMusicInstalled
+        table = self.winAddonManager.tableMusicInstalled
 
         # Clears rows from db table if needed (This function is called
         # to add newly installed music after initial load as well)
@@ -295,7 +297,7 @@ class AddonManager:
         self.searchDB(table, "")
 
     def getInstalledPlugins(self, folders_list=None):
-        if not self.uiAddonManager.tablePluginsInstalled.item(0, 1):
+        if not self.winAddonManager.tablePluginsInstalled.item(0, 1):
             folders_list = None
         os.makedirs(self.data_folder_plugins, exist_ok=True)
 
@@ -351,7 +353,7 @@ class AddonManager:
         return plugins_list, plugins_list_compendium
 
     def addInstalledPluginstoDB(self, plugins_list, plugins_list_compendium):
-        table = self.uiAddonManager.tablePluginsInstalled
+        table = self.winAddonManager.tablePluginsInstalled
 
         # Clears rows from db table if needed (This function is called to
         # add newly installed plugins after initial load as well)
@@ -372,7 +374,7 @@ class AddonManager:
             self.addRowToDB(table.objectName(), items_row)
 
         # Populate user visible table
-        self.searchDB(self.uiAddonManager.tablePluginsInstalled, "")
+        self.searchDB(self.winAddonManager.tablePluginsInstalled, "")
 
     def getAddonDependencies(self, file):
         dependencies = ""
@@ -501,7 +503,7 @@ class AddonManager:
                             return
 
                         addon_type = "Plugin"
-                        table = self.uiAddonManager.tablePlugins
+                        table = self.winAddonManager.tablePlugins
                         folder = entry.split("/")[0]
                         path = self.data_folder_plugins
                         file.extractall(path=path)
@@ -547,7 +549,7 @@ class AddonManager:
                             return
 
                         addon_type = "Music"
-                        table = self.uiAddonManager.tableMusic
+                        table = self.winAddonManager.tableMusic
 
                         path, folder = self.getAddonInstallationFolder(
                             entry, addon, files_list, self.data_folder_music
@@ -571,7 +573,7 @@ class AddonManager:
                         return
                 if not addon_type:
                     addon_type = "Skin"
-                    table = self.uiAddonManager.tableSkins
+                    table = self.winAddonManager.tableSkins
                     path, folder = self.getAddonInstallationFolder(
                         entry, addon, files_list, self.data_folder_skins
                     )
@@ -822,44 +824,48 @@ class AddonManager:
     def txtSearchBarTextChanged(self, text):
         if self.currentGame.startswith("LOTRO"):
             # If in Installed tab
-            if self.uiAddonManager.tabWidget.currentIndex() == 0:
+            if self.winAddonManager.tabWidget.currentIndex() == 0:
                 # If in PluginsInstalled tab
-                if self.uiAddonManager.tabWidgetInstalled.currentIndex() == 0:
+                if self.winAddonManager.tabWidgetInstalled.currentIndex() == 0:
                     self.searchDB(
-                        self.uiAddonManager.tablePluginsInstalled, text
+                        self.winAddonManager.tablePluginsInstalled, text
                     )
                 # If in SkinsInstalled tab
                 elif (
-                    self.uiAddonManager.tabWidgetInstalled.currentIndex() == 1
+                    self.winAddonManager.tabWidgetInstalled.currentIndex() == 1
                 ):
                     self.searchDB(
-                        self.uiAddonManager.tableSkinsInstalled, text
+                        self.winAddonManager.tableSkinsInstalled, text
                     )
                 # If in MusicInstalled tab
                 elif (
-                    self.uiAddonManager.tabWidgetInstalled.currentIndex() == 2
+                    self.winAddonManager.tabWidgetInstalled.currentIndex() == 2
                 ):
                     self.searchDB(
-                        self.uiAddonManager.tableMusicInstalled, text
+                        self.winAddonManager.tableMusicInstalled, text
                     )
             # If in Find More tab
-            elif self.uiAddonManager.tabWidget.currentIndex() == 1:
+            elif self.winAddonManager.tabWidget.currentIndex() == 1:
                 # If in Plugins tab
-                if self.uiAddonManager.tabWidgetFindMore.currentIndex() == 0:
-                    self.searchDB(self.uiAddonManager.tablePlugins, text)
+                if self.winAddonManager.tabWidgetFindMore.currentIndex() == 0:
+                    self.searchDB(self.winAddonManager.tablePlugins, text)
                 # If in Skins tab
-                elif self.uiAddonManager.tabWidgetFindMore.currentIndex() == 1:
-                    self.searchDB(self.uiAddonManager.tableSkins, text)
+                elif (
+                    self.winAddonManager.tabWidgetFindMore.currentIndex() == 1
+                ):
+                    self.searchDB(self.winAddonManager.tableSkins, text)
                 # If in Music tab
-                elif self.uiAddonManager.tabWidgetFindMore.currentIndex() == 2:
-                    self.searchDB(self.uiAddonManager.tableMusic, text)
+                elif (
+                    self.winAddonManager.tabWidgetFindMore.currentIndex() == 2
+                ):
+                    self.searchDB(self.winAddonManager.tableMusic, text)
         else:
             # If in Installed tab
-            if self.uiAddonManager.tabWidget.currentIndex() == 0:
-                self.searchDB(self.uiAddonManager.tableSkinsInstalled, text)
+            if self.winAddonManager.tabWidget.currentIndex() == 0:
+                self.searchDB(self.winAddonManager.tableSkinsInstalled, text)
             # If in Find More tab
-            elif self.uiAddonManager.tabWidget.currentIndex() == 1:
-                self.searchDB(self.uiAddonManager.tableSkins, text)
+            elif self.winAddonManager.tabWidget.currentIndex() == 1:
+                self.searchDB(self.winAddonManager.tableSkins, text)
 
     def searchDB(self, table, text):
         table.clearContents()
@@ -944,36 +950,37 @@ class AddonManager:
         self.winAddonManager.accept()
 
     def btnLogClicked(self):
-        if self.uiAddonManager.txtLog.isHidden():
-            self.uiAddonManager.txtLog.show()
+        if self.winAddonManager.txtLog.isHidden():
+            self.winAddonManager.txtLog.show()
         else:
-            self.uiAddonManager.txtLog.hide()
+            self.winAddonManager.txtLog.hide()
 
     def addLog(self, message):
-        self.uiAddonManager.lblErrors.setText(
-            "Errors: " + str(int(self.uiAddonManager.lblErrors.text()[-1]) + 1)
+        self.winAddonManager.lblErrors.setText(
+            "Errors: "
+            + str(int(self.winAddonManager.lblErrors.text()[-1]) + 1)
         )
-        self.uiAddonManager.txtLog.append(message + "\n")
+        self.winAddonManager.txtLog.append(message + "\n")
 
     def btnAddonsClicked(self):
         # If on installed tab which means remove addons
-        if self.uiAddonManager.tabWidget.currentIndex() == 0:
+        if self.winAddonManager.tabWidget.currentIndex() == 0:
             if self.currentGame.startswith("LOTRO"):
-                if self.uiAddonManager.tabWidgetInstalled.currentIndex() == 0:
-                    table = self.uiAddonManager.tablePluginsInstalled
+                if self.winAddonManager.tabWidgetInstalled.currentIndex() == 0:
+                    table = self.winAddonManager.tablePluginsInstalled
                     uninstall_class = self.uninstallPlugins
                 elif (
-                    self.uiAddonManager.tabWidgetInstalled.currentIndex() == 1
+                    self.winAddonManager.tabWidgetInstalled.currentIndex() == 1
                 ):
-                    table = self.uiAddonManager.tableSkinsInstalled
+                    table = self.winAddonManager.tableSkinsInstalled
                     uninstall_class = self.uninstallSkins
                 elif (
-                    self.uiAddonManager.tabWidgetInstalled.currentIndex() == 2
+                    self.winAddonManager.tabWidgetInstalled.currentIndex() == 2
                 ):
-                    table = self.uiAddonManager.tableMusicInstalled
+                    table = self.winAddonManager.tableMusicInstalled
                     uninstall_class = self.uninstallMusic
             else:
-                table = self.uiAddonManager.tableSkinsInstalled
+                table = self.winAddonManager.tableSkinsInstalled
                 uninstall_class = self.uninstallSkins
 
             uninstallConfirm, addons = self.getUninstallConfirm(table)
@@ -981,19 +988,19 @@ class AddonManager:
                 uninstall_class(addons, table)
                 self.loadRemoteAddons()
 
-        elif self.uiAddonManager.tabWidget.currentIndex() == 1:
+        elif self.winAddonManager.tabWidget.currentIndex() == 1:
             self.installRemoteAddons()
 
     def installRemoteAddons(self):
         if self.currentGame.startswith("DDO"):
-            table = self.uiAddonManager.tableSkins
+            table = self.winAddonManager.tableSkins
         else:
-            if self.uiAddonManager.tabWidgetFindMore.currentIndex() == 0:
-                table = self.uiAddonManager.tablePlugins
-            elif self.uiAddonManager.tabWidgetFindMore.currentIndex() == 1:
-                table = self.uiAddonManager.tableSkins
-            elif self.uiAddonManager.tabWidgetFindMore.currentIndex() == 2:
-                table = self.uiAddonManager.tableMusic
+            if self.winAddonManager.tabWidgetFindMore.currentIndex() == 0:
+                table = self.winAddonManager.tablePlugins
+            elif self.winAddonManager.tabWidgetFindMore.currentIndex() == 1:
+                table = self.winAddonManager.tableSkins
+            elif self.winAddonManager.tabWidgetFindMore.currentIndex() == 2:
+                table = self.winAddonManager.tableMusic
 
         addons, details = self.getSelectedAddons(table)
         if addons and details:
@@ -1177,7 +1184,7 @@ class AddonManager:
     def confirmationPrompt(self, text, details):
         messageBox = QtWidgets.QMessageBox(self.parent)
         messageBox.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        messageBox.setIcon(4)
+        messageBox.setIcon(QtWidgets.QMessageBox.Question)
         messageBox.setStandardButtons(messageBox.Apply | messageBox.Cancel)
 
         messageBox.setInformativeText(text)
@@ -1193,18 +1200,18 @@ class AddonManager:
         """
             Used to re-search users' search when new tabs are selected
         """
-        user_search = self.uiAddonManager.txtSearchBar.text()
+        user_search = self.winAddonManager.txtSearchBar.text()
         self.txtSearchBarTextChanged(user_search)
 
     def tabWidgetInstalledIndexChanged(self, index):
         # Load in installed skins on first switch to tab
-        if index == 1 and not self.uiAddonManager.tableSkinsInstalled.item(
+        if index == 1 and not self.winAddonManager.tableSkinsInstalled.item(
             0, 0
         ):
             self.getInstalledSkins()
 
         # Load in installed music on first switch to tab
-        if index == 2 and not self.uiAddonManager.tableMusicInstalled.item(
+        if index == 2 and not self.winAddonManager.tableMusicInstalled.item(
             0, 0
         ):
             self.getInstalledMusic()
@@ -1216,14 +1223,14 @@ class AddonManager:
 
     def tabWidgetIndexChanged(self, index):
         if index == 0:
-            self.uiAddonManager.btnAddons.setText("-")
-            self.uiAddonManager.btnAddons.setToolTip("Remove addons")
+            self.winAddonManager.btnAddons.setText("-")
+            self.winAddonManager.btnAddons.setToolTip("Remove addons")
         else:
-            self.uiAddonManager.btnAddons.setText("+")
-            self.uiAddonManager.btnAddons.setToolTip("Install addons")
+            self.winAddonManager.btnAddons.setText("+")
+            self.winAddonManager.btnAddons.setToolTip("Install addons")
 
             # Populates remote addons tables if not done already
-            if not self.uiAddonManager.tableSkins.item(0, 0):
+            if not self.winAddonManager.tableSkins.item(0, 0):
                 self.loadRemoteAddons()
 
         self.searchSearchBarContents()
@@ -1231,17 +1238,17 @@ class AddonManager:
     def loadRemoteAddons(self):
         if self.currentGame.startswith("LOTRO"):
             self.getRemoteAddons(
-                self.PLUGINS_URL, self.uiAddonManager.tablePlugins
+                self.PLUGINS_URL, self.winAddonManager.tablePlugins
             )
             self.getRemoteAddons(
-                self.SKINS_URL, self.uiAddonManager.tableSkins
+                self.SKINS_URL, self.winAddonManager.tableSkins
             )
             self.getRemoteAddons(
-                self.MUSIC_URL, self.uiAddonManager.tableMusic
+                self.MUSIC_URL, self.winAddonManager.tableMusic
             )
         else:
             self.getRemoteAddons(
-                self.SKINS_DDO_URL, self.uiAddonManager.tableSkins
+                self.SKINS_DDO_URL, self.winAddonManager.tableSkins
             )
 
     def getRemoteAddons(self, favorites_url, table):
@@ -1302,12 +1309,12 @@ class AddonManager:
         else:
             raise ValueError from None
 
-        self.uiAddonManager.progressBar.setValue(0)
+        self.winAddonManager.progressBar.setValue(0)
 
     def handleDownloadProgress(self, index, frame, size):
         # Updates progress bar with download progress
         percent = 100 * index * frame // size
-        self.uiAddonManager.progressBar.setValue(percent)
+        self.winAddonManager.progressBar.setValue(percent)
 
     def Run(self):
         self.winAddonManager.exec()
