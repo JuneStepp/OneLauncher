@@ -35,7 +35,7 @@ from shutil import move, rmtree
 
 import os
 import errno
-from qtpy import QtCore, QtWidgets
+from PySide2 import QtCore, QtWidgets
 
 
 class BuiltInPrefix:

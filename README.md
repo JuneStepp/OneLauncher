@@ -33,8 +33,7 @@ It is recomended to use a virtual enviroment for development and
 building like venv, conda, or virtualenv.
 
 - Python (3.2+)
-- qtpy (Can be installed with pip)
-- PyQt5 (Can be installed with pip)
+- PySide2 (Can be installed with pip)
 - qdarkstyle (Can be installed with pip)
 - pkg_resources (Comes with setuptools. You probably have it, but it can be installed with pip)
 - keyring (Can be installed with pip)

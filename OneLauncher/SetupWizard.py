@@ -26,7 +26,8 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from qtpy import QtCore, QtWidgets, uic
+from PySide2 import QtCore, QtWidgets
+from PySide2.QtUiTools import QUiLoader
 import os.path
 import glob
 from pkg_resources import resource_filename
@@ -40,22 +41,22 @@ def toString(val):
 
 
 class SetupWizard:
-    def __init__(self, parent, homeDir, osType, rootDir):
+    def __init__(self, homeDir, osType, rootDir):
 
         self.homeDir = homeDir
         self.osType = osType
 
-        self.winSetupWizard = QtWidgets.QDialog(
-            parent, QtCore.Qt.FramelessWindowHint
+        ui_file = QtCore.QFile(
+            resource_filename(__name__, "ui" + os.sep + "winSetupWizard.ui")
         )
 
-        uifile = resource_filename(
-            __name__, "ui" + os.sep + "winSetupWizard.ui"
-        )
+        ui_file.open(QtCore.QFile.ReadOnly)
+        loader = QUiLoader()
+        self.winSetupWizard = loader.load(ui_file)
+        ui_file.close()
 
-        Ui_winSetupWizard, base_class = uic.loadUiType(uifile)
-        self.uiWizard = Ui_winSetupWizard()
-        self.uiWizard.setupUi(self.winSetupWizard)
+        self.winSetupWizard.setWindowFlags(QtCore.Qt.Dialog)
+        self.winSetupWizard.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.winSetupWizard.setWindowTitle("Setup Wizard")
 
         qr = self.winSetupWizard.frameGeometry()
@@ -63,36 +64,46 @@ class SetupWizard:
         qr.moveCenter(cp)
         self.winSetupWizard.move(qr.topLeft())
 
-        self.uiWizard.btnFindMenu = QtWidgets.QMenu()
-        self.uiWizard.btnFindMenu.addAction(self.uiWizard.actionShowTest)
-        self.uiWizard.btnFindMenu.addAction(self.uiWizard.actionShowNormal)
-        self.uiWizard.actionShowTest.triggered.connect(
+        self.winSetupWizard.btnFindMenu = QtWidgets.QMenu()
+        self.winSetupWizard.btnFindMenu.addAction(
+            self.winSetupWizard.actionShowTest
+        )
+        self.winSetupWizard.btnFindMenu.addAction(
+            self.winSetupWizard.actionShowNormal
+        )
+        self.winSetupWizard.actionShowTest.triggered.connect(
             self.actionShowTestSelected
         )
-        self.uiWizard.actionShowNormal.triggered.connect(
+        self.winSetupWizard.actionShowNormal.triggered.connect(
             self.actionShowNormalSelected
         )
-        self.uiWizard.btnFind.setMenu(self.uiWizard.btnFindMenu)
-        self.uiWizard.btnFind_2.setMenu(self.uiWizard.btnFindMenu)
+        self.winSetupWizard.btnFind.setMenu(self.winSetupWizard.btnFindMenu)
+        self.winSetupWizard.btnFind_2.setMenu(self.winSetupWizard.btnFindMenu)
 
-        self.uiWizard.btnFind.clicked.connect(self.btnFindClicked)
-        self.uiWizard.btnFind_2.clicked.connect(self.btnFindClicked)
+        self.winSetupWizard.btnFind.clicked.connect(self.btnFindClicked)
+        self.winSetupWizard.btnFind_2.clicked.connect(self.btnFindClicked)
 
-        self.uiWizard.btnBoxIntro.accepted.connect(self.btnBoxIntroAccepted)
-        self.uiWizard.btnBoxOptions.accepted.connect(
+        self.winSetupWizard.btnBoxIntro.accepted.connect(
+            self.btnBoxIntroAccepted
+        )
+        self.winSetupWizard.btnBoxOptions.accepted.connect(
             self.btnBoxOptionsAccepted
         )
-        self.uiWizard.btnBoxOptions_2.accepted.connect(
+        self.winSetupWizard.btnBoxOptions_2.accepted.connect(
             self.btnBoxOptionsAccepted
         )
 
-        self.uiWizard.btnBoxIntro.rejected.connect(self.btnBoxRejected)
-        self.uiWizard.btnBoxOptions.rejected.connect(self.btnBoxRejected)
-        self.uiWizard.btnBoxOptions_2.rejected.connect(self.btnBoxRejected)
+        self.winSetupWizard.btnBoxIntro.rejected.connect(self.btnBoxRejected)
+        self.winSetupWizard.btnBoxOptions.rejected.connect(self.btnBoxRejected)
+        self.winSetupWizard.btnBoxOptions_2.rejected.connect(
+            self.btnBoxRejected
+        )
 
     def btnBoxIntroAccepted(self):
-        self.uiWizard.actionShowNormal.setVisible(False)
-        self.uiWizard.stackedWidget.setCurrentWidget(self.uiWizard.GameFinder)
+        self.winSetupWizard.actionShowNormal.setVisible(False)
+        self.winSetupWizard.stackedWidget.setCurrentWidget(
+            self.winSetupWizard.GameFinder
+        )
 
     def btnBoxOptionsAccepted(self):
         self.winSetupWizard.accept()
@@ -101,14 +112,18 @@ class SetupWizard:
         self.winSetupWizard.reject()
 
     def actionShowTestSelected(self):
-        self.uiWizard.stackedWidget.setCurrentWidget(self.uiWizard.GameFinder2)
-        self.uiWizard.actionShowNormal.setVisible(True)
-        self.uiWizard.actionShowTest.setVisible(False)
+        self.winSetupWizard.stackedWidget.setCurrentWidget(
+            self.winSetupWizard.GameFinder2
+        )
+        self.winSetupWizard.actionShowNormal.setVisible(True)
+        self.winSetupWizard.actionShowTest.setVisible(False)
 
     def actionShowNormalSelected(self):
-        self.uiWizard.stackedWidget.setCurrentWidget(self.uiWizard.GameFinder)
-        self.uiWizard.actionShowTest.setVisible(True)
-        self.uiWizard.actionShowNormal.setVisible(False)
+        self.winSetupWizard.stackedWidget.setCurrentWidget(
+            self.winSetupWizard.GameFinder
+        )
+        self.winSetupWizard.actionShowTest.setVisible(True)
+        self.winSetupWizard.actionShowNormal.setVisible(False)
 
     def btnFindClicked(self):
         if self.osType.usingWindows:
@@ -175,44 +190,53 @@ class SetupWizard:
 
                 if self.client == "lotroclient.exe":
                     if "Bullroarer" in dirName:
-                        self.uiWizard.lstLOTROTest.addItem(
+                        self.winSetupWizard.lstLOTROTest.addItem(
                             path + os.sep + dirName
                         )
                     else:
-                        self.uiWizard.lstLOTRO.addItem(path + os.sep + dirName)
+                        self.winSetupWizard.lstLOTRO.addItem(
+                            path + os.sep + dirName
+                        )
                 elif self.client == "dndclient.exe":
                     if "(Preview)" in dirName:
-                        self.uiWizard.lstDDOTest.addItem(
+                        self.winSetupWizard.lstDDOTest.addItem(
                             path + os.sep + dirName
                         )
                     else:
-                        self.uiWizard.lstDDO.addItem(path + os.sep + dirName)
+                        self.winSetupWizard.lstDDO.addItem(
+                            path + os.sep + dirName
+                        )
 
             if os.path.isdir(name):
                 if not name.upper().endswith(os.sep + "BACKUP"):
                     self.trawl(path, name)
 
     def getGame(self):
-        if self.uiWizard.lstLOTRO.currentItem():
+        if self.winSetupWizard.lstLOTRO.currentItem():
             return "LOTRO"
-        elif self.uiWizard.lstDDO.currentItem():
+        elif self.winSetupWizard.lstDDO.currentItem():
             return "DDO"
-        elif self.uiWizard.lstLOTROTest.currentItem():
+        elif self.winSetupWizard.lstLOTROTest.currentItem():
             return "LOTRO.Test"
-        elif self.uiWizard.lstDDOTest.currentItem():
+        elif self.winSetupWizard.lstDDOTest.currentItem():
             return "DDO.Test"
         else:
             return None
 
     def getGameDir(self, game):
-        if game == "LOTRO" and self.uiWizard.lstLOTRO.currentItem():
-            return self.uiWizard.lstLOTRO.currentItem().text()
-        elif game == "DDO" and self.uiWizard.lstDDO.currentItem():
-            return self.uiWizard.lstDDO.currentItem().text()
-        elif game == "LOTRO.Test" and self.uiWizard.lstLOTROTest.currentItem():
-            return self.uiWizard.lstLOTROTest.currentItem().text()
-        elif game == "DDO.Test" and self.uiWizard.lstDDOTest.currentItem():
-            return self.uiWizard.lstDDOTest.currentItem().text()
+        if game == "LOTRO" and self.winSetupWizard.lstLOTRO.currentItem():
+            return self.winSetupWizard.lstLOTRO.currentItem().text()
+        elif game == "DDO" and self.winSetupWizard.lstDDO.currentItem():
+            return self.winSetupWizard.lstDDO.currentItem().text()
+        elif (
+            game == "LOTRO.Test"
+            and self.winSetupWizard.lstLOTROTest.currentItem()
+        ):
+            return self.winSetupWizard.lstLOTROTest.currentItem().text()
+        elif (
+            game == "DDO.Test" and self.winSetupWizard.lstDDOTest.currentItem()
+        ):
+            return self.winSetupWizard.lstDDOTest.currentItem().text()
         else:
             return None
 

@@ -30,7 +30,8 @@ import os
 import sys
 import defusedxml.minidom
 import zlib
-from qtpy import QtCore, QtGui, QtWidgets, uic
+from PySide2 import QtCore, QtGui, QtWidgets
+from PySide2.QtUiTools import QUiLoader
 import qdarkstyle
 from .SettingsWindow import SettingsWindow
 from .AddonManager import AddonManager
@@ -53,13 +54,14 @@ import keyring
 
 
 class MainWindow(QtWidgets.QMainWindow):
+    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
     app = QtWidgets.QApplication(sys.argv)
 
-    ReturnLog = QtCore.Signal("QString")
-    ReturnBaseConfig = QtCore.Signal("PyQt_PyObject")
-    ReturnGLSDataCentre = QtCore.Signal("PyQt_PyObject")
-    ReturnWorldQueueConfig = QtCore.Signal("PyQt_PyObject")
-    ReturnNews = QtCore.Signal("QString")
+    ReturnLog = QtCore.Signal(str)
+    ReturnBaseConfig = QtCore.Signal(BaseConfig)
+    ReturnGLSDataCentre = QtCore.Signal(BaseConfig)
+    ReturnWorldQueueConfig = QtCore.Signal(BaseConfig)
+    ReturnNews = QtCore.Signal(str)
 
     def __init__(self):
         super().__init__()
@@ -73,18 +75,22 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.rootDir = os.path.realpath(self.rootDir)
             self.rootDir = os.path.dirname(os.path.abspath(self.rootDir))
 
-        uifile = resource_filename(__name__, "ui" + os.sep + "winMain.ui")
+        ui_file = QtCore.QFile(
+            resource_filename(__name__, "ui" + os.sep + "winMain.ui")
+        )
 
         # Create the main window and set all text so that translations are handled via gettext
-        Ui_winMain, base_class = uic.loadUiType(uifile)
-        self.winMain = QtWidgets.QMainWindow(self)
-        self.setWindowFlags(QtCore.Qt.Dialog)
+        ui_file.open(QtCore.QFile.ReadOnly)
+        loader = QUiLoader()
+        self.winMain = loader.load(ui_file, parentWidget=self)
+        ui_file.close()
+        self.winMain.setWindowFlags(QtCore.Qt.Dialog)
+        self.winMain.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-        self.uiMain = Ui_winMain()
-        self.uiMain.setupUi(self)
+        self.setFixedSize(790, 470)
 
         # Set window style
-        self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+        self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyside2())
 
         # Centre window on screen
         self.center()
@@ -93,59 +99,59 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Sets some widgets to WA_NoMousePropagation to avoid window dragging issues
         mouse_ignore_list = [
-            self.uiMain.btnAbout,
-            self.uiMain.btnExit,
-            self.uiMain.btnLogin,
-            self.uiMain.btnMinimize,
-            self.uiMain.btnOptions,
-            self.uiMain.btnAddonManager,
-            self.uiMain.btnSwitchGame,
-            self.uiMain.cboRealm,
-            self.uiMain.chkSaveSettings,
+            self.winMain.btnAbout,
+            self.winMain.btnExit,
+            self.winMain.btnLogin,
+            self.winMain.btnMinimize,
+            self.winMain.btnOptions,
+            self.winMain.btnAddonManager,
+            self.winMain.btnSwitchGame,
+            self.winMain.cboRealm,
+            self.winMain.chkSaveSettings,
         ]
         for widget in mouse_ignore_list:
             widget.setAttribute(QtCore.Qt.WA_NoMousePropagation)
 
         # Connect signals to functions
-        self.uiMain.btnLogin.clicked.connect(self.btnLoginClicked)
-        self.uiMain.txtAccount.returnPressed.connect(self.txtAccountEnter)
-        self.uiMain.txtPassword.returnPressed.connect(self.txtPasswordEnter)
-        self.uiMain.btnExit.clicked.connect(self.close)
-        self.uiMain.btnMinimize.clicked.connect(self.showMinimized)
-        self.uiMain.btnAbout.clicked.connect(self.btnAboutSelected)
-        self.uiMain.btnLoginMenu = QtWidgets.QMenu()
-        self.uiMain.btnLoginMenu.addAction(self.uiMain.actionPatch)
-        self.uiMain.actionPatch.triggered.connect(self.actionPatchSelected)
-        self.uiMain.btnLogin.setMenu(self.uiMain.btnLoginMenu)
-        self.uiMain.btnOptions.setIcon(
+        self.winMain.btnLogin.clicked.connect(self.btnLoginClicked)
+        self.winMain.txtAccount.returnPressed.connect(self.txtAccountEnter)
+        self.winMain.txtPassword.returnPressed.connect(self.txtPasswordEnter)
+        self.winMain.btnExit.clicked.connect(self.close)
+        self.winMain.btnMinimize.clicked.connect(self.showMinimized)
+        self.winMain.btnAbout.clicked.connect(self.btnAboutSelected)
+        self.winMain.btnLoginMenu = QtWidgets.QMenu()
+        self.winMain.btnLoginMenu.addAction(self.winMain.actionPatch)
+        self.winMain.actionPatch.triggered.connect(self.actionPatchSelected)
+        self.winMain.btnLogin.setMenu(self.winMain.btnLoginMenu)
+        self.winMain.btnOptions.setIcon(
             QtGui.QIcon(
                 resource_filename(
                     __name__, "images" + os.sep + "SettingsGear.png"
                 )
             )
         )
-        self.uiMain.btnOptions.clicked.connect(self.btnOptionsSelected)
-        self.uiMain.btnAddonManager.setIcon(
+        self.winMain.btnOptions.clicked.connect(self.btnOptionsSelected)
+        self.winMain.btnAddonManager.setIcon(
             QtGui.QIcon(
                 resource_filename(
                     __name__, "images" + os.sep + "AddonManager.png"
                 )
             )
         )
-        self.uiMain.btnAddonManager.clicked.connect(
+        self.winMain.btnAddonManager.clicked.connect(
             self.btnAddonManagerSelected
         )
-        self.uiMain.btnSwitchGame.clicked.connect(self.btnSwitchGameClicked)
-        self.uiMain.btnSwitchGameMenu = QtWidgets.QMenu()
-        self.uiMain.btnSwitchGameMenu.addAction(self.uiMain.actionLOTROTest)
-        self.uiMain.actionLOTROTest.triggered.connect(self.SwitchToLOTROTest)
-        self.uiMain.btnSwitchGameMenu.addAction(self.uiMain.actionDDOTest)
-        self.uiMain.actionDDOTest.triggered.connect(self.SwitchToDDOTest)
-        self.uiMain.btnSwitchGameMenu.addAction(self.uiMain.actionLOTRO)
-        self.uiMain.actionLOTRO.triggered.connect(self.SwitchToLOTRO)
-        self.uiMain.btnSwitchGameMenu.addAction(self.uiMain.actionDDO)
-        self.uiMain.actionDDO.triggered.connect(self.SwitchToDDO)
-        self.uiMain.btnSwitchGame.setMenu(self.uiMain.btnSwitchGameMenu)
+        self.winMain.btnSwitchGame.clicked.connect(self.btnSwitchGameClicked)
+        self.winMain.btnSwitchGameMenu = QtWidgets.QMenu()
+        self.winMain.btnSwitchGameMenu.addAction(self.winMain.actionLOTROTest)
+        self.winMain.actionLOTROTest.triggered.connect(self.SwitchToLOTROTest)
+        self.winMain.btnSwitchGameMenu.addAction(self.winMain.actionDDOTest)
+        self.winMain.actionDDOTest.triggered.connect(self.SwitchToDDOTest)
+        self.winMain.btnSwitchGameMenu.addAction(self.winMain.actionLOTRO)
+        self.winMain.actionLOTRO.triggered.connect(self.SwitchToLOTRO)
+        self.winMain.btnSwitchGameMenu.addAction(self.winMain.actionDDO)
+        self.winMain.actionDDO.triggered.connect(self.SwitchToDDO)
+        self.winMain.btnSwitchGame.setMenu(self.winMain.btnSwitchGameMenu)
 
         self.ReturnLog = self.ReturnLog
         self.ReturnLog.connect(self.AddLog)
@@ -159,8 +165,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ReturnNews.connect(self.GetNews)
 
         # Disable login and save settings buttons
-        self.uiMain.btnLogin.setEnabled(False)
-        self.uiMain.chkSaveSettings.setEnabled(False)
+        self.winMain.btnLogin.setEnabled(False)
+        self.winMain.chkSaveSettings.setEnabled(False)
 
         # Initialise variables
         self.settings = None
@@ -176,10 +182,10 @@ class MainWindow(QtWidgets.QMainWindow):
         sys.exit(self.app.exec_())
 
     def resetFocus(self):
-        if self.uiMain.txtAccount.text() == "":
-            self.uiMain.txtAccount.setFocus()
-        elif self.uiMain.txtPassword.text() == "":
-            self.uiMain.txtPassword.setFocus()
+        if self.winMain.txtAccount.text() == "":
+            self.winMain.txtAccount.setFocus()
+        elif self.winMain.txtPassword.text() == "":
+            self.winMain.txtPassword.setFocus()
 
     def center(self):
         qr = self.frameGeometry()
@@ -189,27 +195,38 @@ class MainWindow(QtWidgets.QMainWindow):
 
     # The two functions below handle dragging the window
     def mousePressEvent(self, event):
-        self.dragPos = event.globalPos()
+        if event.button() == QtCore.Qt.LeftButton:
+            self.dragPosition = (
+                event.globalPos() - self.frameGeometry().topLeft()
+            )
+            event.accept()
 
     def mouseMoveEvent(self, event):
-        self.move(self.pos() + event.globalPos() - self.dragPos)
-        self.dragPos = event.globalPos()
+        if event.buttons() == QtCore.Qt.LeftButton:
+            self.move(event.globalPos() - self.dragPosition)
+            event.accept()
 
     def btnAboutSelected(self):
-        dlgAbout = QtWidgets.QDialog(self, QtCore.Qt.FramelessWindowHint)
+        ui_file = QtCore.QFile(
+            resource_filename(__name__, "ui" + os.sep + "winAbout.ui")
+        )
 
-        uifile = resource_filename(__name__, "ui" + os.sep + "winAbout.ui")
+        ui_file.open(QtCore.QFile.ReadOnly)
+        loader = QUiLoader()
+        dlgAbout = loader.load(ui_file, parentWidget=self)
+        ui_file.close()
 
-        Ui_dlgAbout, base_class = uic.loadUiType(uifile)
-        ui = Ui_dlgAbout()
-        ui.setupUi(dlgAbout)
-        ui.lblDescription.setText(Information.LongDescription)
-        ui.lblWebsite.setText(Information.Website)
-        ui.lblCopyright.setText(Information.Copyright)
-        ui.lblVersion.setText("<b>Version:</b> " + Information.Version)
-        ui.lblPyLotROReference.setText(Information.PyLotROReference)
-        ui.lblCLIReference.setText(Information.CLIReference)
-        ui.lblLotROLinuxReference.setText(Information.LotROLinuxReference)
+        dlgAbout.setWindowFlags(QtCore.Qt.Popup)
+
+        dlgAbout.lblDescription.setText(Information.LongDescription)
+        dlgAbout.lblWebsite.setText(Information.Website)
+        dlgAbout.lblCopyright.setText(Information.Copyright)
+        dlgAbout.lblVersion.setText("<b>Version:</b> " + Information.Version)
+        dlgAbout.lblPyLotROReference.setText(Information.PyLotROReference)
+        dlgAbout.lblCLIReference.setText(Information.CLIReference)
+        dlgAbout.lblLotROLinuxReference.setText(
+            Information.LotROLinuxReference
+        )
 
         dlgAbout.exec_()
         self.resetFocus()
@@ -222,8 +239,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.settings.wineProg = winBuiltInPrefix.Run()
             self.settings.SaveSettings(
-                saveAccountDetails=self.uiMain.chkSaveSettings.isChecked(),
-                savePassword=self.uiMain.chkSavePassword.isChecked(),
+                saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
+                savePassword=self.winMain.chkSavePassword.isChecked(),
             )
 
     def actionPatchSelected(self):
@@ -278,8 +295,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.settings.winePrefix = winSettings.getPrefix()
 
             self.settings.SaveSettings(
-                saveAccountDetails=self.uiMain.chkSaveSettings.isChecked(),
-                savePassword=self.uiMain.chkSavePassword.isChecked(),
+                saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
+                savePassword=self.winMain.chkSavePassword.isChecked(),
             )
             self.resetFocus()
             self.InitialSetup()
@@ -301,9 +318,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.resetFocus()
 
     def settings_wizard_called(self):
-        winWizard = SetupWizard(
-            self.winMain, self.valHomeDir, self.osType, self.rootDir
-        )
+        winWizard = SetupWizard(self.valHomeDir, self.osType, self.rootDir)
         self.hide()
 
         if winWizard.Run() == QtWidgets.QDialog.Accepted:
@@ -349,45 +364,46 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def btnLoginClicked(self):
         if (
-            self.uiMain.txtAccount.text() == ""
-            or self.uiMain.txtPassword.text() == ""
+            self.winMain.txtAccount.text() == ""
+            or self.winMain.txtPassword.text() == ""
         ):
             self.AddLog(
                 '<font color="Khaki">Please enter account name and password</font>'
             )
         else:
-            if self.uiMain.chkSaveSettings.isChecked():
-                self.settings.account = self.uiMain.txtAccount.text()
-                self.settings.realm = self.uiMain.cboRealm.currentText()
+            if self.winMain.chkSaveSettings.isChecked():
+                self.settings.account = self.winMain.txtAccount.text()
+                self.settings.realm = self.winMain.cboRealm.currentText()
 
                 self.settings.SaveSettings(
-                    saveAccountDetails=self.uiMain.chkSaveSettings.isChecked(),
-                    savePassword=self.uiMain.chkSavePassword.isChecked(),
+                    saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
+                    savePassword=self.winMain.chkSavePassword.isChecked(),
                 )
 
-                if self.uiMain.chkSavePassword.isChecked():
+                if self.winMain.chkSavePassword.isChecked():
                     if self.settings.currentGame.startswith("DDO"):
                         keyring.set_password(
                             "OneLauncherDDO",
-                            self.uiMain.txtAccount.text(),
-                            self.uiMain.txtPassword.text(),
+                            self.winMain.txtAccount.text(),
+                            self.winMain.txtPassword.text(),
                         )
                     else:
                         keyring.set_password(
                             "OneLauncherLOTRO",
-                            self.uiMain.txtAccount.text(),
-                            self.uiMain.txtPassword.text(),
+                            self.winMain.txtAccount.text(),
+                            self.winMain.txtPassword.text(),
                         )
                 else:
                     try:
                         if self.settings.currentGame.startswith("DDO"):
                             keyring.delete_password(
-                                "OneLauncherDDO", self.uiMain.txtAccount.text()
+                                "OneLauncherDDO",
+                                self.winMain.txtAccount.text(),
                             )
                         else:
                             keyring.delete_password(
                                 "OneLauncherLOTRO",
-                                self.uiMain.txtAccount.text(),
+                                self.winMain.txtAccount.text(),
                             )
                     except:
                         pass
@@ -395,7 +411,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.AuthAccount()
 
     def txtAccountEnter(self):
-        self.uiMain.txtPassword.setFocus()
+        self.winMain.txtPassword.setFocus()
 
     def txtPasswordEnter(self):
         self.btnLoginClicked()
@@ -410,16 +426,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.account = AuthenticateUser(
             self.dataCentre.authServer,
-            self.uiMain.txtAccount.text(),
-            self.uiMain.txtPassword.text(),
+            self.winMain.txtAccount.text(),
+            self.winMain.txtPassword.text(),
             self.baseConfig.gameName,
             self.valHomeDir,
             self.osType,
         )
 
         # don't keep password longer in memory than required
-        if not self.uiMain.chkSavePassword.isChecked():
-            self.uiMain.txtPassword.clear()
+        if not self.winMain.chkSavePassword.isChecked():
+            self.winMain.txtPassword.clear()
 
         if self.account.authSuccess:
             self.AddLog("Account authenticated")
@@ -427,27 +443,29 @@ class MainWindow(QtWidgets.QMainWindow):
             tempRealm = ""
 
             if len(self.account.gameList) > 1:
-                dlgChooseAccount = QtWidgets.QDialog(
-                    self, QtCore.Qt.FramelessWindowHint
+                ui_file = QtCore.QFile(
+                    resource_filename(
+                        __name__, "ui" + os.sep + "winSelectAccount.ui"
+                    )
                 )
 
-                uifile = resource_filename(
-                    __name__, "ui" + os.sep + "winSelectAccount.ui"
-                )
+                ui_file.open(QtCore.QFile.ReadOnly)
+                loader = QUiLoader()
+                dlgChooseAccount = loader.load(ui_file, parentWidget=self)
+                ui_file.close()
 
-                Ui_dlgChooseAccount, base_class = uic.loadUiType(uifile)
-                ui = Ui_dlgChooseAccount()
-                ui.setupUi(dlgChooseAccount)
-                ui.lblMessage.setText(
+                dlgChooseAccount.setWindowFlags(QtCore.Qt.Popup)
+
+                dlgChooseAccount.lblMessage.setText(
                     "Multiple game accounts found\n\nPlease select the required game"
                 )
 
                 for game in self.account.gameList:
-                    ui.comboBox.addItem(game.description)
+                    dlgChooseAccount.comboBox.addItem(game.description)
 
                 if dlgChooseAccount.exec_() == QtWidgets.QDialog.Accepted:
                     self.accNumber = self.account.gameList[
-                        ui.comboBox.currentIndex()
+                        dlgChooseAccount.comboBox.currentIndex()
                     ].name
                     self.resetFocus()
                 else:
@@ -458,7 +476,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.accNumber = self.account.gameList[0].name
 
             tempRealm = self.dataCentre.realmList[
-                self.uiMain.cboRealm.currentIndex()
+                self.winMain.cboRealm.currentIndex()
             ]
             tempRealm.CheckRealm(self.valHomeDir, self.osType)
 
@@ -504,8 +522,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.worldQueueConfig.supporturl,
             self.worldQueueConfig.supportserviceurl,
             self.worldQueueConfig.glsticketlifetime,
-            self.uiMain.cboRealm.currentText(),
-            self.uiMain.txtAccount.text(),
+            self.winMain.cboRealm.currentText(),
+            self.winMain.txtAccount.text(),
             self,
         )
         self.hide()
@@ -555,19 +573,19 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def InitialSetup(self):
         self.gameDirExists = False
-        self.uiMain.txtAccount.setEnabled(False)
-        self.uiMain.txtPassword.setEnabled(False)
-        self.uiMain.btnLogin.setEnabled(False)
-        self.uiMain.chkSaveSettings.setEnabled(False)
-        self.uiMain.chkSavePassword.setEnabled(False)
+        self.winMain.txtAccount.setEnabled(False)
+        self.winMain.txtPassword.setEnabled(False)
+        self.winMain.btnLogin.setEnabled(False)
+        self.winMain.chkSaveSettings.setEnabled(False)
+        self.winMain.chkSavePassword.setEnabled(False)
         self.valHomeDir = self.GetHomeDir()
 
         if self.settings is None:
             self.settings = Settings(self.valHomeDir, self.osType)
 
-        self.uiMain.txtAccount.setText("")
-        self.uiMain.txtPassword.setText("")
-        self.uiMain.cboRealm.clear()
+        self.winMain.txtAccount.setText("")
+        self.winMain.txtPassword.setText("")
+        self.winMain.cboRealm.clear()
         self.ClearLog()
         self.ClearNews()
 
@@ -586,30 +604,30 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.AddLog("[E01] Error loading settings")
         else:
             if self.settings.focusAccount:
-                self.uiMain.txtAccount.setFocus()
-                self.uiMain.chkSaveSettings.setChecked(False)
+                self.winMain.txtAccount.setFocus()
+                self.winMain.chkSaveSettings.setChecked(False)
             else:
-                self.uiMain.txtAccount.setText(self.settings.account)
-                self.uiMain.chkSaveSettings.setChecked(True)
+                self.winMain.txtAccount.setText(self.settings.account)
+                self.winMain.chkSaveSettings.setChecked(True)
 
-                self.uiMain.chkSavePassword.setChecked(False)
+                self.winMain.chkSavePassword.setChecked(False)
 
                 if self.settings.savePassword:
-                    self.uiMain.chkSavePassword.setChecked(True)
+                    self.winMain.chkSavePassword.setChecked(True)
                     if self.settings.currentGame.startswith("DDO"):
-                        self.uiMain.txtPassword.setText(
+                        self.winMain.txtPassword.setText(
                             keyring.get_password(
                                 "OneLauncherDDO", self.settings.account
                             )
                         )
                     else:
-                        self.uiMain.txtPassword.setText(
+                        self.winMain.txtPassword.setText(
                             keyring.get_password(
                                 "OneLauncherLOTRO", self.settings.account
                             )
                         )
                 else:
-                    self.uiMain.txtPassword.setFocus()
+                    self.winMain.txtPassword.setFocus()
 
         self.gameType.GetSettings(self.settings.currentGame)
 
@@ -620,75 +638,75 @@ class MainWindow(QtWidgets.QMainWindow):
             __name__, self.gameType.iconFile.replace("\\", "/")
         )
 
-        self.uiMain.imgMain.setPixmap(QtGui.QPixmap(pngFile))
+        self.winMain.imgMain.setPixmap(QtGui.QPixmap(pngFile))
         self.setWindowTitle(self.gameType.title)
         self.setWindowIcon(QtGui.QIcon(iconFile))
 
         # Set icon and dropdown options of switch game button acording to game running
         if self.settings.currentGame == "DDO":
-            self.uiMain.btnSwitchGame.setIcon(
+            self.winMain.btnSwitchGame.setIcon(
                 QtGui.QIcon(
                     resource_filename(
                         __name__, "images" + os.sep + "LOTROSwitchIcon.png"
                     )
                 )
             )
-            self.uiMain.actionLOTROTest.setEnabled(False)
-            self.uiMain.actionLOTROTest.setVisible(False)
-            self.uiMain.actionDDOTest.setEnabled(True)
-            self.uiMain.actionDDOTest.setVisible(True)
-            self.uiMain.actionLOTRO.setEnabled(False)
-            self.uiMain.actionLOTRO.setVisible(False)
-            self.uiMain.actionDDO.setEnabled(False)
-            self.uiMain.actionDDO.setVisible(False)
+            self.winMain.actionLOTROTest.setEnabled(False)
+            self.winMain.actionLOTROTest.setVisible(False)
+            self.winMain.actionDDOTest.setEnabled(True)
+            self.winMain.actionDDOTest.setVisible(True)
+            self.winMain.actionLOTRO.setEnabled(False)
+            self.winMain.actionLOTRO.setVisible(False)
+            self.winMain.actionDDO.setEnabled(False)
+            self.winMain.actionDDO.setVisible(False)
         elif self.settings.currentGame == "DDO.Test":
-            self.uiMain.btnSwitchGame.setIcon(
+            self.winMain.btnSwitchGame.setIcon(
                 QtGui.QIcon(
                     resource_filename(
                         __name__, "images" + os.sep + "LOTROSwitchIcon.png"
                     )
                 )
             )
-            self.uiMain.actionLOTROTest.setEnabled(False)
-            self.uiMain.actionLOTROTest.setVisible(False)
-            self.uiMain.actionDDOTest.setEnabled(False)
-            self.uiMain.actionDDOTest.setVisible(False)
-            self.uiMain.actionLOTRO.setEnabled(False)
-            self.uiMain.actionLOTRO.setVisible(False)
-            self.uiMain.actionDDO.setEnabled(True)
-            self.uiMain.actionDDO.setVisible(True)
+            self.winMain.actionLOTROTest.setEnabled(False)
+            self.winMain.actionLOTROTest.setVisible(False)
+            self.winMain.actionDDOTest.setEnabled(False)
+            self.winMain.actionDDOTest.setVisible(False)
+            self.winMain.actionLOTRO.setEnabled(False)
+            self.winMain.actionLOTRO.setVisible(False)
+            self.winMain.actionDDO.setEnabled(True)
+            self.winMain.actionDDO.setVisible(True)
         elif self.settings.currentGame == "LOTRO.Test":
-            self.uiMain.btnSwitchGame.setIcon(
+            self.winMain.btnSwitchGame.setIcon(
                 QtGui.QIcon(
                     resource_filename(
                         __name__, "images" + os.sep + "DDOSwitchIcon.png"
                     )
                 )
             )
-            self.uiMain.actionLOTROTest.setEnabled(False)
-            self.uiMain.actionLOTROTest.setVisible(False)
-            self.uiMain.actionDDOTest.setEnabled(False)
-            self.uiMain.actionDDOTest.setVisible(False)
-            self.uiMain.actionLOTRO.setEnabled(True)
-            self.uiMain.actionLOTRO.setVisible(True)
-            self.uiMain.actionDDO.setEnabled(False)
-            self.uiMain.actionDDO.setVisible(False)
+            self.winMain.actionLOTROTest.setEnabled(False)
+            self.winMain.actionLOTROTest.setVisible(False)
+            self.winMain.actionDDOTest.setEnabled(False)
+            self.winMain.actionDDOTest.setVisible(False)
+            self.winMain.actionLOTRO.setEnabled(True)
+            self.winMain.actionLOTRO.setVisible(True)
+            self.winMain.actionDDO.setEnabled(False)
+            self.winMain.actionDDO.setVisible(False)
         else:
-            self.uiMain.btnSwitchGame.setIcon(
+            self.winMain.btnSwitchGame.setIcon(
                 QtGui.QIcon(
                     resource_filename(
                         __name__, "images" + os.sep + "DDOSwitchIcon.png"
                     )
                 )
             )
-            self.uiMain.actionDDOTest.setEnabled(False)
-            self.uiMain.actionDDOTest.setVisible(False)
-            self.uiMain.actionLOTROTest.setEnabled(True)
-            self.uiMain.actionLOTROTest.setVisible(True)
-            self.uiMain.actionLOTRO.setEnabled(False)
-            self.uiMain.actionLOTRO.setVisible(False)
-            self.uiMain.actionDDO.setEnabled(False)
-            self.uiMain.actionDDO.setVisible(False)
+            self.winMain.actionDDOTest.setEnabled(False)
+            self.winMain.actionDDOTest.setVisible(False)
+            self.winMain.actionLOTROTest.setEnabled(True)
+            self.winMain.actionLOTROTest.setVisible(True)
+            self.winMain.actionLOTRO.setEnabled(False)
+            self.winMain.actionLOTRO.setVisible(False)
+            self.winMain.actionDDO.setEnabled(False)
+            self.winMain.actionDDO.setVisible(False)
 
         self.configFile = "%s%s" % (
             self.settings.gameDir,
@@ -727,34 +745,34 @@ class MainWindow(QtWidgets.QMainWindow):
         setPos = 0
 
         for realm in self.dataCentre.realmList:
-            self.uiMain.cboRealm.addItem(realm.name)
+            self.winMain.cboRealm.addItem(realm.name)
             if realm.name == self.settings.realm:
-                self.uiMain.cboRealm.setCurrentIndex(setPos)
+                self.winMain.cboRealm.setCurrentIndex(setPos)
 
             setPos += 1
 
     def GetWorldQueueConfig(self, worldQueueConfig):
         self.worldQueueConfig = worldQueueConfig
 
-        self.uiMain.actionPatch.setEnabled(True)
-        self.uiMain.actionPatch.setVisible(True)
-        self.uiMain.btnLogin.setEnabled(True)
-        self.uiMain.chkSaveSettings.setEnabled(True)
-        self.uiMain.chkSavePassword.setEnabled(True)
-        self.uiMain.txtAccount.setEnabled(True)
-        self.uiMain.txtPassword.setEnabled(True)
+        self.winMain.actionPatch.setEnabled(True)
+        self.winMain.actionPatch.setVisible(True)
+        self.winMain.btnLogin.setEnabled(True)
+        self.winMain.chkSaveSettings.setEnabled(True)
+        self.winMain.chkSavePassword.setEnabled(True)
+        self.winMain.txtAccount.setEnabled(True)
+        self.winMain.txtPassword.setEnabled(True)
 
         if self.settings.focusAccount:
-            self.uiMain.txtAccount.setFocus()
-            self.uiMain.chkSaveSettings.setChecked(False)
+            self.winMain.txtAccount.setFocus()
+            self.winMain.chkSaveSettings.setChecked(False)
         else:
-            self.uiMain.txtAccount.setText(self.settings.account)
-            self.uiMain.chkSaveSettings.setChecked(True)
-            if not self.uiMain.chkSavePassword.isChecked():
-                self.uiMain.txtPassword.setFocus()
+            self.winMain.txtAccount.setText(self.settings.account)
+            self.winMain.chkSaveSettings.setChecked(True)
+            if not self.winMain.chkSavePassword.isChecked():
+                self.winMain.txtPassword.setFocus()
 
     def GetNews(self, news):
-        self.uiMain.txtFeed.setHtml(news)
+        self.winMain.txtFeed.setHtml(news)
 
     def GetHomeDir(self):
         temp = os.environ.get("HOME")
@@ -768,16 +786,16 @@ class MainWindow(QtWidgets.QMainWindow):
         return temp
 
     def ClearLog(self):
-        self.uiMain.txtStatus.setText("")
+        self.winMain.txtStatus.setText("")
 
     def ClearNews(self):
-        self.uiMain.txtFeed.setText("")
+        self.winMain.txtFeed.setText("")
 
     def AddLog(self, message):
         for line in message.splitlines():
             if line.startswith("[E"):
                 line = '<font color="red">' + message + "</font>"
-            self.uiMain.txtStatus.append(line)
+            self.winMain.txtStatus.append(line)
 
 
 class MainWindowThread(QtCore.QThread):
@@ -900,7 +918,9 @@ class MainWindowThread(QtCore.QThread):
             else:
                 tempxml = webresp.read()
 
-            doc = defusedxml.minidom.parseString(tempxml, forbid_entities=False)
+            doc = defusedxml.minidom.parseString(
+                tempxml, forbid_entities=False
+            )
 
             nodes = doc.getElementsByTagName("div")
             for node in nodes:
