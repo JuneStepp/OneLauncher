@@ -9,7 +9,7 @@ It is actually mainly being developed as a fun learning experience and to show m
 love for these games.
 
 OneLauncher
-(c) 2019 Jeremy Stepp
+(c) 2020 Jeremy Stepp
 
 Based on PyLotRO
 (C) 2009 AJackson
@@ -19,6 +19,14 @@ Based on LotROLinux
 
 Based on CLI launcher for
 LOTRO (C) 2007-2009 SNy
+
+# Features Overview
+
+- Patching and launchering of DDO and LOTRO
+- Plugins, skins, and music manager (Currently only in source)
+- Auto optimum WINE setup for Mac and Linux
+- Easy game detection
+- Password saving
 
 # Basic Use
 
