@@ -39,8 +39,8 @@ from PySide2 import QtCore, QtWidgets
 
 
 class BuiltInPrefix:
-    WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/5.0/wine-5.0-staging-improved-amd64.tar.xz"
-    DXVK_URL = "https://github.com/doitsujin/dxvk/releases/download/v1.5.2/dxvk-1.5.2.tar.gz"
+    WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/5.7/wine-5.7-staging-improved-amd64.tar.xz"
+    DXVK_URL = "https://github.com/doitsujin/dxvk/releases/download/v1.6.1/dxvk-1.6.1.tar.gz"
 
     def __init__(self, settingsDir, winePrefix, parent):
         self.settingsDir = settingsDir
@@ -181,7 +181,7 @@ class BuiltInPrefix:
             self.winePrefix + "/drive_c/windows/syswow64", exist_ok=True
         )
 
-        dll_list = os.listdir(self.latest_dxvk_path + "/x64")
+        dll_list = ["dxgi.dll", "d3d10core.dll", "d3d11.dll", "d3d9.dll"]
 
         # Removes current dlls
         for dll in dll_list:
