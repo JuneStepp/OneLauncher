@@ -489,7 +489,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 else:
                     self.EnterWorldQueue(tempWorld.queueURL)
             else:
-                self.AddLog("[E10] Error getting world status")
+                self.AddLog(
+                    "[E10] Error getting world status. You may want to check "
+                    "the news feed for a scheduled down time."
+                )
         else:
             self.AddLog(self.account.messError)
 
@@ -564,7 +567,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 )
 
                 if not self.worldQueue.joinSuccess:
-                    self.AddLog("[E10] Error getting world status")
+                    self.AddLog("[E10] Error getting world status.")
 
         if self.worldQueue.joinSuccess:
             self.LaunchGame()
