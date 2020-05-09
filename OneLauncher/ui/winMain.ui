@@ -222,7 +222,7 @@
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="btnAbout">
+   <widget class="QToolButton" name="btnAbout">
     <property name="geometry">
      <rect>
       <x>670</x>
@@ -238,7 +238,7 @@
      <string>?</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="btnExit">
+   <widget class="QToolButton" name="btnExit">
     <property name="geometry">
      <rect>
       <x>750</x>
@@ -270,7 +270,7 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="btnMinimize">
+   <widget class="QToolButton" name="btnMinimize">
     <property name="geometry">
      <rect>
       <x>710</x>
@@ -314,7 +314,7 @@
      <enum>Qt::ToolButtonIconOnly</enum>
     </property>
    </widget>
-   <widget class="QPushButton" name="btnOptions">
+   <widget class="QToolButton" name="btnOptions">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -328,6 +328,9 @@
     </property>
     <property name="text">
      <string/>
+    </property>
+    <property name="autoRaise">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QCheckBox" name="chkSavePassword">
@@ -351,7 +354,7 @@
      <string>Remember password</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="btnAddonManager">
+   <widget class="QToolButton" name="btnAddonManager">
     <property name="geometry">
      <rect>
       <x>50</x>
