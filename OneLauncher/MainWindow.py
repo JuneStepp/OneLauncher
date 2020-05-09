@@ -408,6 +408,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     except:
                         pass
 
+            self.manageBuiltInPrefix()
             self.AuthAccount()
 
     def txtAccountEnter(self):
@@ -497,8 +498,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.AddLog(self.account.messError)
 
     def LaunchGame(self):
-        self.manageBuiltInPrefix()
-
         game = StartGame(
             self.worldQueueConfig.gameClientFilename,
             self.settings.x86Enabled,
