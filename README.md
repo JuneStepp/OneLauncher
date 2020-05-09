@@ -9,7 +9,7 @@ It is actually mainly being developed as a fun learning experience and to show m
 love for these games.
 
 OneLauncher
-(c) 2020 Jeremy Stepp
+(c) 2019-2020 Jeremy Stepp
 
 Based on PyLotRO
 (C) 2009 AJackson
@@ -22,7 +22,7 @@ LOTRO (C) 2007-2009 SNy
 
 # Features Overview
 
-- Patching and launchering of DDO and LOTRO
+- Patching and launching of LOTRO and DDO
 - Plugins, skins, and music manager (Currently only in source)
 - Auto optimum WINE setup for Mac and Linux
 - Easy game detection
@@ -37,10 +37,10 @@ installs are met.
 # Development Install
 
 The following items are required to run OneLauncher from source.
-It is recomended to use a virtual enviroment for development and
+It is recommended to use a virtual environment for development and
 building like venv, conda, or virtualenv.
 
-- Python (3.2+)
+- Python (3.7.3+)
 - PySide2 (Can be installed with pip)
 - qdarkstyle (Can be installed with pip)
 - pkg_resources (Comes with setuptools. You probably have it, but it can be installed with pip)
@@ -77,7 +77,7 @@ features I plan to implement. Requests, contributions, and critiques, on anythin
 are always welcome.
 
 - 1.2 -- Add addon manager (plugins, themes, and abc files)
-- 1.3 -- Implement extended lua plugin api (More keyboard action interupts, ect)
+- 1.3 -- Implement extended lua plugin api (More keyboard action interrupts, ect)
 - 1.4 -- Full game install from OneLauncher (There was more stuff here, but I already did it)
 
 # Addon Manager Info For Developers
@@ -90,9 +90,9 @@ your addon needs to be added.
 
 ## Archive Format
 
-- Addons must be upploaded as a zip!
+- Addons must be uploaded as a zip!
 - Zip should have descriptive name (i.e not "skin" or "plugin")
-- It's not recomended, but ok if zip has no root folder, multiple root folders, or includes part of the path to the data folder like "ui/skins" or "Plugins".
+- It's not recommended, but ok if zip has no root folder, multiple root folders, or includes part of the path to the data folder like "ui/skins" or "Plugins".
 
 ## Compendium Files
 

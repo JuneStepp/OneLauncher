@@ -11,7 +11,7 @@
 # (C) 2007-2008 AJackson <ajackson@bcs.org.uk>
 #
 #
-# (C) 2019 Jeremy Stepp <jeremy@bluetecno.com>
+# (C) 2019-2020 Jeremy Stepp <mail@JeremyStepp.me>
 #
 # This file is part of OneLauncher
 #

@@ -9,7 +9,7 @@
 # (C) 2007-2008 AJackson <ajackson@bcs.org.uk>
 #
 #
-# (C) 2019 Jeremy Stepp <jeremy@bluetecno.com>
+# (C) 2019-2020 Jeremy Stepp <mail@JeremyStepp.me>
 #
 # This file is part of OneLauncher
 #
@@ -321,7 +321,10 @@ class AddonManager:
                 elif file.endswith(".plugin"):
                     plugins_list.append(os.path.join(folder, file))
 
-        plugins_list, plugins_list_compendium = self.removeManagedPluginsFromList(
+        (
+            plugins_list,
+            plugins_list_compendium,
+        ) = self.removeManagedPluginsFromList(
             plugins_list, plugins_list_compendium
         )
 
@@ -529,7 +532,10 @@ class AddonManager:
                             )
                             plugins_list_compendium = [compendium_file]
 
-                        plugins_list, plugins_list_compendium = self.removeManagedPluginsFromList(
+                        (
+                            plugins_list,
+                            plugins_list_compendium,
+                        ) = self.removeManagedPluginsFromList(
                             plugins_list, plugins_list_compendium
                         )
 
