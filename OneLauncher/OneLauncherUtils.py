@@ -265,22 +265,22 @@ class GLSDataCentre:
                     ].childNodes
                 )
 
-                self.realmList = []
+                self.worldList = []
 
                 name = ""
                 urlChatServer = ""
                 urlStatusServer = ""
 
                 for node in doc.getElementsByTagName("World"):
-                    for realm in node.childNodes:
-                        if realm.nodeName == "Name":
-                            name = realm.firstChild.nodeValue
-                        elif realm.nodeName == "ChatServerUrl":
-                            urlChatServer = realm.firstChild.nodeValue
-                        elif realm.nodeName == "StatusServerUrl":
-                            urlStatusServer = realm.firstChild.nodeValue
-                    self.realmList.append(
-                        Realm(name, urlChatServer, urlStatusServer)
+                    for world in node.childNodes:
+                        if world.nodeName == "Name":
+                            name = world.firstChild.nodeValue
+                        elif world.nodeName == "ChatServerUrl":
+                            urlChatServer = world.firstChild.nodeValue
+                        elif world.nodeName == "StatusServerUrl":
+                            urlStatusServer = world.firstChild.nodeValue
+                    self.worldList.append(
+                        World(name, urlChatServer, urlStatusServer)
                     )
 
                 self.loadSuccess = True
@@ -302,17 +302,17 @@ class LanguageConfig:
             self.langList.append(temp)
 
 
-class Realm:
+class World:
     def __init__(self, name, urlChatServer, urlServerStatus):
         self.name = name
         self.urlChatServer = urlChatServer
         self.urlServerStatus = urlServerStatus
-        self.realmAvailable = False
+        self.worldAvailable = False
         self.nowServing = ""
         self.loginServer = ""
         self.queueURL = ""
 
-    def CheckRealm(self, baseDir, osType):
+    def CheckWorld(self, baseDir, osType):
         try:
             webservice, post = WebConnection(self.urlServerStatus)
 
@@ -328,7 +328,7 @@ class Realm:
                 outfile.write(tempxml)
 
             if tempxml == "":
-                self.realmAvailable = False
+                self.worldAvailable = False
             else:
                 doc = defusedxml.minidom.parseString(tempxml)
 
@@ -352,9 +352,9 @@ class Realm:
                     doc.getElementsByTagName("loginservers")[0].childNodes
                 ).split(";")[0]
 
-                self.realmAvailable = True
+                self.worldAvailable = True
         except:
-            self.realmAvailable = False
+            self.worldAvailable = False
 
 
 class WorldQueueConfig:

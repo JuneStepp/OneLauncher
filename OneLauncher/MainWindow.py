@@ -106,7 +106,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.winMain.btnOptions,
             self.winMain.btnAddonManager,
             self.winMain.btnSwitchGame,
-            self.winMain.cboRealm,
+            self.winMain.cboWorld,
             self.winMain.chkSaveSettings,
         ]
         for widget in mouse_ignore_list:
@@ -373,7 +373,7 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             if self.winMain.chkSaveSettings.isChecked():
                 self.settings.account = self.winMain.txtAccount.text()
-                self.settings.realm = self.winMain.cboRealm.currentText()
+                self.settings.world = self.winMain.cboWorld.currentText()
 
                 self.settings.SaveSettings(
                     saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
@@ -440,7 +440,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.account.authSuccess:
             self.AddLog("Account authenticated")
 
-            tempRealm = ""
+            tempWorld = ""
 
             if len(self.account.gameList) > 1:
                 ui_file = QtCore.QFile(
@@ -475,21 +475,21 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 self.accNumber = self.account.gameList[0].name
 
-            tempRealm = self.dataCentre.realmList[
-                self.winMain.cboRealm.currentIndex()
+            tempWorld = self.dataCentre.worldList[
+                self.winMain.cboWorld.currentIndex()
             ]
-            tempRealm.CheckRealm(self.valHomeDir, self.osType)
+            tempWorld.CheckWorld(self.valHomeDir, self.osType)
 
-            if tempRealm.realmAvailable:
-                self.urlChatServer = tempRealm.urlChatServer
-                self.urlLoginServer = tempRealm.loginServer
+            if tempWorld.worldAvailable:
+                self.urlChatServer = tempWorld.urlChatServer
+                self.urlLoginServer = tempWorld.loginServer
 
-                if tempRealm.queueURL == "":
+                if tempWorld.queueURL == "":
                     self.LaunchGame()
                 else:
-                    self.EnterWorldQueue(tempRealm.queueURL)
+                    self.EnterWorldQueue(tempWorld.queueURL)
             else:
-                self.AddLog("[E10] Error getting realm status")
+                self.AddLog("[E10] Error getting world status")
         else:
             self.AddLog(self.account.messError)
 
@@ -522,7 +522,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.worldQueueConfig.supporturl,
             self.worldQueueConfig.supportserviceurl,
             self.worldQueueConfig.glsticketlifetime,
-            self.winMain.cboRealm.currentText(),
+            self.winMain.cboWorld.currentText(),
             self.winMain.txtAccount.text(),
             self,
         )
@@ -564,7 +564,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 )
 
                 if not self.worldQueue.joinSuccess:
-                    self.AddLog("[E10] Error getting realm status")
+                    self.AddLog("[E10] Error getting world status")
 
         if self.worldQueue.joinSuccess:
             self.LaunchGame()
@@ -585,7 +585,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.winMain.txtAccount.setText("")
         self.winMain.txtPassword.setText("")
-        self.winMain.cboRealm.clear()
+        self.winMain.cboWorld.clear()
         self.ClearLog()
         self.ClearNews()
 
@@ -744,10 +744,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         setPos = 0
 
-        for realm in self.dataCentre.realmList:
-            self.winMain.cboRealm.addItem(realm.name)
-            if realm.name == self.settings.realm:
-                self.winMain.cboRealm.setCurrentIndex(setPos)
+        for world in self.dataCentre.worldList:
+            self.winMain.cboWorld.addItem(world.name)
+            if world.name == self.settings.world:
+                self.winMain.cboWorld.setCurrentIndex(setPos)
 
             setPos += 1
 
@@ -871,7 +871,7 @@ class MainWindowThread(QtCore.QThread):
         if self.dataCentre.loadSuccess:
             self.ReturnLog.emit("Fetched details from GLS data centre.")
             self.ReturnGLSDataCentre.emit(self.dataCentre)
-            self.ReturnLog.emit("Realm list obtained.")
+            self.ReturnLog.emit("World list obtained.")
 
             self.GetWorldQueueConfig(self.dataCentre.launchConfigServer)
         else:

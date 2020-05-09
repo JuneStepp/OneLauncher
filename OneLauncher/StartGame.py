@@ -61,7 +61,7 @@ class StartGame:
         supporturl,
         supportserviceurl,
         glsticketlifetime,
-        realmName,
+        worldName,
         accountText,
         parent,
     ):
@@ -72,7 +72,7 @@ class StartGame:
 
         self.homeDir = homeDir
         self.osType = osType
-        self.realmName = realmName
+        self.worldName = worldName
         self.accountText = accountText
         self.parent = parent
 
@@ -173,7 +173,7 @@ class StartGame:
 
             self.process.setProcessEnvironment(processEnviroment)
 
-        self.winLog.txtLog.append("Connecting to server: " + realmName)
+        self.winLog.txtLog.append("Connecting to server: " + worldName)
         self.winLog.txtLog.append("Account: " + accountText)
         self.winLog.txtLog.append("Game Directory: " + runDir)
         self.winLog.txtLog.append("Game Client: " + appName)

@@ -42,7 +42,7 @@ class Settings:
 
     def LoadSettings(self, useGame=None):
         self.hiResEnabled = True
-        self.realm = ""
+        self.world = ""
         self.language = "EN"
         self.account = ""
         self.wineProg = "wine"
@@ -101,8 +101,8 @@ class Settings:
                             self.savePassword = False
                     elif node.nodeName == "Game.Directory":
                         self.gameDir = GetText(node.childNodes)
-                    elif node.nodeName == "Realm":
-                        self.realm = GetText(node.childNodes)
+                    elif node.nodeName == "World":
+                        self.world = GetText(node.childNodes)
                     elif node.nodeName == "Language":
                         self.language = GetText(node.childNodes)
                     elif node.nodeName == "Account":
@@ -224,8 +224,8 @@ class Settings:
         gameConfigNode.appendChild(tempNode)
 
         if saveAccountDetails:
-            tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Realm")
-            tempNode.appendChild(doc.createTextNode("%s" % (self.realm)))
+            tempNode = doc.createElementNS(EMPTY_NAMESPACE, "World")
+            tempNode.appendChild(doc.createTextNode("%s" % (self.world)))
             gameConfigNode.appendChild(tempNode)
 
             tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Account")
