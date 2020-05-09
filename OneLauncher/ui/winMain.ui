@@ -35,7 +35,7 @@
    <bool>false</bool>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QLabel" name="lblRealm">
+   <widget class="QLabel" name="lblWorld">
     <property name="geometry">
      <rect>
       <x>400</x>
@@ -92,7 +92,7 @@
      <string>Password</string>
     </property>
    </widget>
-   <widget class="QComboBox" name="cboRealm">
+   <widget class="QComboBox" name="cboWorld">
     <property name="geometry">
      <rect>
       <x>525</x>
