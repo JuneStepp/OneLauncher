@@ -580,6 +580,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.winMain.btnLogin.setEnabled(False)
         self.winMain.chkSaveSettings.setEnabled(False)
         self.winMain.chkSavePassword.setEnabled(False)
+        self.winMain.btnOptions.setEnabled(False)
+        self.winMain.btnSwitchGame.setEnabled(False)
         self.valHomeDir = self.GetHomeDir()
 
         if self.settings is None:
@@ -644,7 +646,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle(self.gameType.title)
         self.setWindowIcon(QtGui.QIcon(iconFile))
 
-        # Set icon and dropdown options of switch game button acording to game running
+        # Set icon and dropdown options of switch game button according to game running
         if self.settings.currentGame == "DDO":
             self.winMain.btnSwitchGame.setIcon(
                 QtGui.QIcon(
@@ -776,6 +778,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def GetNews(self, news):
         self.winMain.txtFeed.setHtml(news)
 
+        self.configThreadFinished()
+
     def GetHomeDir(self):
         temp = os.environ.get("HOME")
 
@@ -798,6 +802,10 @@ class MainWindow(QtWidgets.QMainWindow):
             if line.startswith("[E"):
                 line = '<font color="red">' + message + "</font>"
             self.winMain.txtStatus.append(line)
+
+    def configThreadFinished(self):
+        self.winMain.btnOptions.setEnabled(True)
+        self.winMain.btnSwitchGame.setEnabled(True)
 
 
 class MainWindowThread(QtCore.QThread):
