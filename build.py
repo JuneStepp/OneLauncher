@@ -46,6 +46,8 @@ build_command = (
     "python -O -m PyInstaller RunOneLauncher --name {name} -w -y -F "
     "--add-data OneLauncher/certificates{sep}OneLauncher/certificates --add-data OneLauncher/"
     "ui{sep}OneLauncher/ui --add-data OneLauncher/images{sep}OneLauncher/images"
-    " --hidden-import qdarkstyle".format(sep=os.pathsep, name=binary_name)
+    " --hidden-import qdarkstyle --hidden-import PySide2.QtXml --hidden-import pkg_resources.py2_warn".format(
+        sep=os.pathsep, name=binary_name
+    )
 )
 os.system(build_command)

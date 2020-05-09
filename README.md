@@ -48,7 +48,7 @@ building like venv, conda, or virtualenv.
 - defusedxml (Can be installed with pip)
 
 - PyInstaller (Needed to build. Can be installed with pip.
-  Currently [custom development version](https://github.com/JuneStepp/pyinstaller/archive/develop.zip) is needed)
+  Currently [edited version](https://github.com/JuneStepp/pyinstaller/releases/download/v3.5/PyInstaller-3.6.zip) is needed)
 - pywin32-ctypes (Needed for Windows building. Can be installed with pip)
 
 # To run
