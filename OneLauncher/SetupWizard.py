@@ -28,7 +28,7 @@
 ###########################################################################
 from PySide2 import QtCore, QtWidgets
 from PySide2.QtUiTools import QUiLoader
-import os.path
+import os
 import glob
 from pkg_resources import resource_filename
 
@@ -91,6 +91,19 @@ class SetupWizard:
         )
         self.winSetupWizard.btnBoxOptions_2.accepted.connect(
             self.btnBoxOptionsAccepted
+        )
+
+        self.winSetupWizard.btnGameDirLOTRO.clicked.connect(
+            self.btnGameDirLOTROClicked
+        )
+        self.winSetupWizard.btnGameDirDDO.clicked.connect(
+            self.btnGameDirDDOClicked
+        )
+        self.winSetupWizard.btnGameDirLOTROTest.clicked.connect(
+            self.btnGameDirLOTROTestClicked
+        )
+        self.winSetupWizard.btnGameDirDDOTest.clicked.connect(
+            self.btnGameDirDDOTestClicked
         )
 
         self.winSetupWizard.btnBoxIntro.rejected.connect(self.btnBoxRejected)
@@ -244,6 +257,66 @@ class SetupWizard:
             return self.winSetupWizard.lstDDOTest.currentItem().text()
         else:
             return None
+
+    def btnGameDirLOTROClicked(self):
+        self.browseForGameDir(self.winSetupWizard.lstLOTRO)
+
+    def btnGameDirDDOClicked(self):
+        self.browseForGameDir(self.winSetupWizard.lstDDO)
+
+    def btnGameDirLOTROTestClicked(self):
+        self.browseForGameDir(self.winSetupWizard.lstLOTROTest)
+
+    def btnGameDirDDOTestClicked(self):
+        self.browseForGameDir(self.winSetupWizard.lstDDOTest)
+
+    def browseForGameDir(self, output_list):
+        if self.osType.usingWindows:
+            starting_dir = os.environ.get("ProgramFiles")
+        else:
+            starting_dir = self.homeDir
+
+        folder = QtWidgets.QFileDialog.getExistingDirectory(
+            self.winSetupWizard,
+            "Game Directory",
+            starting_dir,
+            options=QtWidgets.QFileDialog.ShowDirsOnly,
+        )
+
+        if folder != "":
+            # Detect if folder is already in list
+            if not output_list.findItems(folder, QtCore.Qt.MatchExactly):
+
+                if self.checkGameDirForClientExecutable(folder):
+                    output_list.addItem(folder)
+                else:
+                    self.raiseWarningMessage(
+                        "The folder selected doesn't conain a game client "
+                        "executable. Please chose a valid game folder"
+                    )
+
+    def checkGameDirForClientExecutable(self, folder):
+        """
+        Checks for the game's client .exe to validate that the
+        folder is a valid game folder.
+        """
+        folder_contents = os.listdir(folder)
+        if (
+            "dndclient.exe" in folder_contents
+            or "lotroclient.exe" in folder_contents
+        ):
+            return True
+        else:
+            return False
+
+    def raiseWarningMessage(self, message):
+        messageBox = QtWidgets.QMessageBox(self.winSetupWizard)
+        messageBox.setWindowFlag(QtCore.Qt.FramelessWindowHint)
+        messageBox.setIcon(QtWidgets.QMessageBox.Warning)
+        messageBox.setStandardButtons(messageBox.Ok)
+        messageBox.setInformativeText(message)
+
+        messageBox.exec()
 
     def getHiRes(self, gameDir):
         if os.path.exists(gameDir + os.sep + "client_highres.dat"):
