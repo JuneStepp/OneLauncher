@@ -167,16 +167,19 @@ class SettingsWindow:
                 self.winSettings.btnPrefixDir.setVisible(False)
 
     def btnGameDirClicked(self):
-        tempdir = self.winSettings.txtGameDir.text()
+        starting_dir = self.winSettings.txtGameDir.text()
 
-        if tempdir == "":
+        if starting_dir == "":
             if self.osType.usingWindows:
-                tempdir = os.environ.get("ProgramFiles")
+                starting_dir = os.environ.get("ProgramFiles")
             else:
-                tempdir = self.homeDir
+                starting_dir = self.homeDir
 
         filename = QtWidgets.QFileDialog.getExistingDirectory(
-            self.winSettings, "Game Directory", tempdir
+            self.winSettings,
+            "Game Directory",
+            starting_dir,
+            options=QtWidgets.QFileDialog.ShowDirsOnly,
         )
 
         if filename != "":
@@ -196,13 +199,16 @@ class SettingsWindow:
             self.setLanguageButtons()
 
     def btnPrefixDirClicked(self):
-        tempdir = self.winSettings.txtPrefix.text()
+        starting_dir = self.winSettings.txtPrefix.text()
 
-        if tempdir == "":
-            tempdir = self.homeDir
+        if starting_dir == "":
+            starting_dir = self.homeDir
 
         filename = QtWidgets.QFileDialog.getExistingDirectory(
-            self.winSettings, "Prefix Directory", tempdir
+            self.winSettings,
+            "Prefix Directory",
+            starting_dir,
+            options=QtWidgets.QFileDialog.ShowDirsOnly,
         )
 
         if filename != "":
