@@ -302,7 +302,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.InitialSetup()
         else:
             if winSettings.getSetupWizardClicked():
-                self.settings_wizard_called()
+                self.settingsWizardCalled()
             else:
                 self.resetFocus()
 
@@ -317,7 +317,7 @@ class MainWindow(QtWidgets.QMainWindow):
         winAddonManager.Run()
         self.resetFocus()
 
-    def settings_wizard_called(self):
+    def settingsWizardCalled(self):
         winWizard = SetupWizard(self.valHomeDir, self.osType, self.rootDir)
         self.hide()
 
@@ -609,7 +609,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # Checks if the user is running OneLauncher for the first time
             #  and calls the setup Wizard
             if not os.path.exists(self.settings.settingsFile):
-                self.settings_wizard_called()
+                self.settingsWizardCalled()
 
                 if not os.path.exists(self.settings.settingsFile):
                     self.AddLog(
