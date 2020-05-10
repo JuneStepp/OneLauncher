@@ -126,6 +126,11 @@ class SetupWizard:
         self.winSetupWizard.actionShowNormal.setVisible(False)
 
     def btnFindClicked(self):
+        self.winSetupWizard.lstLOTRO.clear()
+        self.winSetupWizard.lstDDO.clear()
+        self.winSetupWizard.lstLOTROTest.clear()
+        self.winSetupWizard.lstDDOTest.clear()
+
         if self.osType.usingWindows:
             startDir = "C:\\"
             for client in ["lotroclient.exe", "dndclient.exe"]:
