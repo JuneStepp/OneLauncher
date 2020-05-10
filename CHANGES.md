@@ -14,6 +14,7 @@ Launcher for Linux, Windows, and Mac OS X
                  *  music (.abc files/collections off files)
         * Self updater
         * Multiple accounts support
+        * Custom directory selection in setup wizard
         * Many more smaller improvements
 
 1.1
