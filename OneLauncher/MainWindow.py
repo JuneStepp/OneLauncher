@@ -593,6 +593,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ClearLog()
         self.ClearNews()
 
+        self.winMain.txtFeed.setHtml(
+            '<html><body><p style="text-align:center;">Loading ...</p></body></html>'
+        )
+
         self.AddLog("Initialising, please wait...")
 
         settings_load_success = self.settings.LoadSettings(self.currentGame)
