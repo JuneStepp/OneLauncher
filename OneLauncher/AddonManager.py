@@ -92,6 +92,13 @@ class AddonManager:
             QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint
         )
 
+        if currentGame.startswith("DDO"):
+            # Removes plugin and music tabs when using DDO
+            self.winAddonManager.tabWidgetFindMore.removeTab(0)
+            self.winAddonManager.tabWidgetFindMore.removeTab(1)
+            self.winAddonManager.tabWidgetInstalled.removeTab(0)
+            self.winAddonManager.tabWidgetInstalled.removeTab(1)
+
         self.winAddonManager.btnBox.rejected.connect(self.btnBoxActivated)
 
         self.winAddonManager.btnAddonsMenu = QtWidgets.QMenu()
@@ -136,12 +143,6 @@ class AddonManager:
         self.openDB()
 
         if currentGame.startswith("DDO"):
-            # Removes plugin and music tabs when using DDO
-            self.winAddonManager.tabWidgetFindMore.removeTab(0)
-            self.winAddonManager.tabWidgetFindMore.removeTab(1)
-            self.winAddonManager.tabWidgetInstalled.removeTab(0)
-            self.winAddonManager.tabWidgetInstalled.removeTab(1)
-
             self.data_folder = osType.settingsDDO
 
             self.data_folder_skins = os.path.join(
@@ -168,7 +169,7 @@ class AddonManager:
             self.getInstalledPlugins()
 
     def getInstalledSkins(self, folders_list=None):
-        if not self.winAddonManager.tableSkinsInstalled.item(0, 1):
+        if self.isTableEmpty(self.winAddonManager.tableSkinsInstalled):
             folders_list = None
 
         os.makedirs(self.data_folder_skins, exist_ok=True)
@@ -199,7 +200,7 @@ class AddonManager:
 
         # Clears rows from db table if needed (This function is called to add
         # newly installed skins after initial load as well)
-        if not table.item(0, 1):
+        if self.isTableEmpty(table):
             self.c.execute(
                 "DELETE FROM {table}".format(table=table.objectName())  # nosec
             )
@@ -210,7 +211,7 @@ class AddonManager:
                 items_row = self.getOnlineAddonInfo(items_row, "tableSkins")
             else:
                 items_row = self.getOnlineAddonInfo(items_row, "tableSkinsDDO")
-            self.addRowToDB(table.objectName(), items_row)
+            self.addRowToDB(table, items_row)
 
         for skin in skins_list:
             items_row = [""] * (len(self.COLUMN_LIST) - 1)
@@ -219,13 +220,13 @@ class AddonManager:
             items_row[5] = skin
             items_row[1] = "Unmanaged"
 
-            self.addRowToDB(table.objectName(), items_row)
+            self.addRowToDB(table, items_row)
 
         # Populate user visible table
-        self.searchDB(self.winAddonManager.tableSkinsInstalled, "")
+        self.reloadSearch(self.winAddonManager.tableSkinsInstalled)
 
     def getInstalledMusic(self, folders_list=None):
-        if not self.winAddonManager.tableMusicInstalled.item(0, 1):
+        if self.isTableEmpty(self.winAddonManager.tableMusicInstalled):
             folders_list = None
 
         os.makedirs(self.data_folder_music, exist_ok=True)
@@ -262,13 +263,13 @@ class AddonManager:
 
         # Clears rows from db table if needed (This function is called
         # to add newly installed music after initial load as well)
-        if not table.item(0, 1):
+        if self.isTableEmpty(table):
             self.c.execute("DELETE FROM tableMusicInstalled")
 
         for music in music_list_compendium:
             items_row = self.parseCompediumFile(music, "MusicConfig")
             items_row = self.getOnlineAddonInfo(items_row, "tableMusic")
-            self.addRowToDB(table.objectName(), items_row)
+            self.addRowToDB(table, items_row)
 
         for music in music_list:
             items_row = [""] * (len(self.COLUMN_LIST) - 1)
@@ -291,13 +292,13 @@ class AddonManager:
             items_row[5] = music
             items_row[1] = "Unmanaged"
 
-            self.addRowToDB(table.objectName(), items_row)
+            self.addRowToDB(table, items_row)
 
         # Populate user visible table
-        self.searchDB(table, "")
+        self.reloadSearch(table)
 
     def getInstalledPlugins(self, folders_list=None):
-        if not self.winAddonManager.tablePluginsInstalled.item(0, 1):
+        if self.isTableEmpty(self.winAddonManager.tablePluginsInstalled):
             folders_list = None
         os.makedirs(self.data_folder_plugins, exist_ok=True)
 
@@ -360,7 +361,7 @@ class AddonManager:
 
         # Clears rows from db table if needed (This function is called to
         # add newly installed plugins after initial load as well)
-        if not table.item(0, 1):
+        if self.isTableEmpty(table):
             self.c.execute("DELETE FROM tablePluginsInstalled")
 
         for plugin in plugins_list_compendium + plugins_list:
@@ -374,10 +375,10 @@ class AddonManager:
                 items_row = self.parseCompediumFile(plugin, "Information")
                 items_row[1] = "Unmanaged"
 
-            self.addRowToDB(table.objectName(), items_row)
+            self.addRowToDB(table, items_row)
 
         # Populate user visible table
-        self.searchDB(self.winAddonManager.tablePluginsInstalled, "")
+        self.reloadSearch(self.winAddonManager.tablePluginsInstalled)
 
     def getAddonDependencies(self, file):
         dependencies = ""
@@ -905,6 +906,41 @@ class AddonManager:
             ):
                 self.addRowToTable(table, row)
 
+    def isTableEmpty(self, table):
+        if table.item(0, 1):
+            return False
+        else:
+            return True
+
+    def reloadSearch(self, table):
+        """Re-searches the current search"""
+        self.searchDB(table, self.winAddonManager.txtSearchBar.text())
+
+    def resetRemoteAddonsTables(self):
+        for i in range(self.winAddonManager.tabWidgetFindMore.count()):
+            tab = self.winAddonManager.tabWidgetFindMore.widget(i)
+            table = getattr(
+                self.winAddonManager, tab.objectName().replace("tab", "table")
+            )
+            if not self.isTableEmpty(table):
+                self.searchDB(table, "")
+
+    def setRemoteAddonToUninstalled(self, addon, remote_table):
+        self.c.execute(
+            "UPDATE {table} SET Name = ? WHERE InterfaceID == ?".format(  # nosec
+                table=remote_table.objectName()
+            ),
+            (addon[2], addon[0],),
+        )
+
+    def setRemoteAddonToInstalled(self, addon, remote_table):
+        self.c.execute(
+            "UPDATE {table} SET Name = ? WHERE InterfaceID == ?".format(  # nosec
+                table=remote_table.objectName()
+            ),
+            ("(Installed) " + addon[2], addon[0],),
+        )
+
     # Adds row to a visible table. First value in list is row name
     def addRowToTable(self, table, list):
         table.setSortingEnabled(False)
@@ -947,7 +983,7 @@ class AddonManager:
 
         self.c.execute(
             "INSERT INTO {table} VALUES({})".format(
-                question_marks, table=table
+                question_marks, table=table.objectName()
             ),
             (list),  # nosec
         )
@@ -992,7 +1028,7 @@ class AddonManager:
             uninstallConfirm, addons = self.getUninstallConfirm(table)
             if uninstallConfirm:
                 uninstall_class(addons, table)
-                self.loadRemoteAddons()
+                self.resetRemoteAddonsTables()
 
         elif self.winAddonManager.tabWidget.currentIndex() == 1:
             self.installRemoteAddons()
@@ -1012,8 +1048,10 @@ class AddonManager:
         if addons and details:
             for addon in addons:
                 self.installRemoteAddon(addon[1], addon[2], addon[0])
+                self.setRemoteAddonToInstalled(addon, table)
 
-        self.loadRemoteAddons()
+            self.resetRemoteAddonsTables()
+            self.searchSearchBarContents()
 
     def installRemoteAddon(self, url, name, interface_id):
         path = os.path.join(self.data_folder, "Downloads", name + ".zip")
@@ -1120,6 +1158,10 @@ class AddonManager:
             if os.path.exists(plugin[1]):
                 os.remove(plugin[1])
 
+            self.setRemoteAddonToUninstalled(
+                plugin, self.winAddonManager.tablePlugins
+            )
+
         # Reloads plugins
         table.clearContents()
         self.getInstalledPlugins()
@@ -1127,30 +1169,38 @@ class AddonManager:
     def uninstallSkins(self, skins, table):
         for skin in skins:
             if skin[1].endswith(".skincompendium"):
-                skin = os.path.split(skin[1])[0]
+                skin_path = os.path.split(skin[1])[0]
             else:
-                skin = skin[1]
-            rmtree(skin)
+                skin_path = skin[1]
+            rmtree(skin_path)
 
-            # Reloads skins
-            table.clearContents()
-            self.getInstalledSkins()
+            self.setRemoteAddonToUninstalled(
+                skin, self.winAddonManager.tableSkins
+            )
+
+        # Reloads skins
+        table.clearContents()
+        self.getInstalledSkins()
 
     def uninstallMusic(self, musics, table):
         for music in musics:
             if music[1].endswith(".musiccompendium"):
-                music = os.path.split(music[1])[0]
+                music_path = os.path.split(music[1])[0]
             else:
-                music = music[1]
+                music_path = music[1]
 
-            if music.endswith(".abc"):
-                os.remove(music)
+            if music_path.endswith(".abc"):
+                os.remove(music_path)
             else:
-                rmtree(music)
+                rmtree(music_path)
 
-            # Reloads music
-            table.clearContents()
-            self.getInstalledMusic()
+            self.setRemoteAddonToUninstalled(
+                music, self.winAddonManager.tableMusic
+            )
+
+        # Reloads music
+        table.clearContents()
+        self.getInstalledMusic()
 
     def checkAddonForDependencies(self, addon, table):
         # Turbine Utilities is treated as having ID 0
@@ -1211,14 +1261,14 @@ class AddonManager:
 
     def tabWidgetInstalledIndexChanged(self, index):
         # Load in installed skins on first switch to tab
-        if index == 1 and not self.winAddonManager.tableSkinsInstalled.item(
-            0, 0
+        if index == 1 and self.isTableEmpty(
+            self.winAddonManager.tableSkinsInstalled
         ):
             self.getInstalledSkins()
 
         # Load in installed music on first switch to tab
-        if index == 2 and not self.winAddonManager.tableMusicInstalled.item(
-            0, 0
+        if index == 2 and self.isTableEmpty(
+            self.winAddonManager.tableMusicInstalled
         ):
             self.getInstalledMusic()
 
@@ -1236,7 +1286,7 @@ class AddonManager:
             self.winAddonManager.btnAddons.setToolTip("Install addons")
 
             # Populates remote addons tables if not done already
-            if not self.winAddonManager.tableSkins.item(0, 0):
+            if self.isTableEmpty(self.winAddonManager.tableSkins):
                 self.loadRemoteAddons()
 
         self.searchSearchBarContents()
@@ -1301,10 +1351,10 @@ class AddonManager:
             if items_row[6] in installed_IDs:
                 items_row[0] = "(Installed) " + items_row[0]
 
-            self.addRowToDB(table.objectName(), items_row)
+            self.addRowToDB(table, items_row)
 
         # Populate user visible table
-        self.searchDB(table, "")
+        self.reloadSearch(table)
 
     # Downloads file from url to path and shows progress with self.handleDownloadProgress
     def downloader(self, url, path):
