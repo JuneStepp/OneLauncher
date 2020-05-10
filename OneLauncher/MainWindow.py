@@ -337,6 +337,7 @@ class MainWindow(QtWidgets.QMainWindow):
                         self.settings.SaveSettings(game=game)
 
                 self.InitialSetup()
+
         self.show()
 
     def btnSwitchGameClicked(self):
@@ -610,10 +611,11 @@ class MainWindow(QtWidgets.QMainWindow):
             if not os.path.exists(self.settings.settingsFile):
                 self.settings_wizard_called()
 
-                self.AddLog(
-                    "[E17] Settings file does not exist. Please "
-                    "restart the program to access setup wizard."
-                )
+                if not os.path.exists(self.settings.settingsFile):
+                    self.AddLog(
+                        "[E17] Settings file does not exist. Please "
+                        "restart the program to access setup wizard."
+                    )
 
                 return False
             else:
