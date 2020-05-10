@@ -593,21 +593,29 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ClearLog()
         self.ClearNews()
 
+        # Set news feed to say "Loading ..." until it is replaced by the news.
         self.winMain.txtFeed.setHtml(
             '<html><body><p style="text-align:center;">Loading ...</p></body></html>'
         )
 
-        self.AddLog("Initialising, please wait...")
+        self.AddLog("Initializing, please wait...")
 
         settings_load_success = self.settings.LoadSettings(self.currentGame)
-        if settings_load_success and settings_load_success != True:
+        # Prints error message from settings if present.
+        if settings_load_success and settings_load_success is not True:
             self.AddLog(settings_load_success)
         elif not settings_load_success:
             # Checks if the user is running OneLauncher for the first time
             #  and calls the setup Wizard
-            if not os.path.exists(self.settings.settingsDir):
+            if not os.path.exists(self.settings.settingsFile):
                 self.settings_wizard_called()
-                return None
+
+                self.AddLog(
+                    "[E17] Settings file does not exist. Please "
+                    "restart the program to access setup wizard."
+                )
+
+                return False
             else:
                 self.AddLog("[E01] Error loading settings")
         else:
