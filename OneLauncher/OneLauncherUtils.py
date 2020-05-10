@@ -73,7 +73,10 @@ def WebConnection(urlIn):
     else:
         url = urlIn[8:].split("/")[0]
         post = urlIn[8:].replace(url, "")
-        return HTTPSConnection(url, context=onelauncher_ssl_ctx), post
+        return (
+            HTTPSConnection(url, context=onelauncher_ssl_ctx),  # nosec
+            post,
+        )
 
 
 def GetText(nodelist):
@@ -620,7 +623,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
                     )
 
         except ssl.SSLError:
-            self.messError = "[E15] SSL Error occured in HTTPS connection"
+            self.messError = "[E15] SSL Error occurred in HTTPS connection"
         except:
             if webresp and webresp.status == 500:
                 self.messError = "[E07] Account details incorrect"
