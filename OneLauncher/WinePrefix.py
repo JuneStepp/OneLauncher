@@ -76,7 +76,7 @@ class BuiltInPrefix:
             self.dlgDownloader.reset()
             self.dlgDownloader.setLabelText("Extracting wine...")
             self.dlgDownloader.setValue(99)
-            self.wine_extracter(latest_wine_path + ".tar.xz")
+            self.wine_extractor(latest_wine_path + ".tar.xz")
             self.dlgDownloader.setValue(100)
 
             return (
@@ -101,26 +101,26 @@ class BuiltInPrefix:
             self.dlgDownloader.reset()
             self.dlgDownloader.setLabelText("Extracting dxvk...")
             self.dlgDownloader.setValue(99)
-            self.dxvk_extracter(self.latest_dxvk_path + ".tar.gz")
+            self.dxvk_extracor(self.latest_dxvk_path + ".tar.gz")
             self.dlgDownloader.setValue(100)
 
-            self.dxvk_injecter()
+            self.dxvk_injector()
 
         elif not os.path.islink(
             self.winePrefix + "/drive_c/windows/system32/d3d11.dll"
         ):
-            self.dxvk_injecter()
+            self.dxvk_injector()
 
     def downloader(self, url, path):
         # Downloads file from url to path and shows progress with self.handleDownloadProgress
-        request.urlretrieve(url, path, self.handleDownloadProgress)
+        request.urlretrieve(url, path, self.handleDownloadProgress)  # nosec
 
     def handleDownloadProgress(self, index, frame, size):
         # Updates progress bar with download progress
         percent = 100 * index * frame // size
         self.dlgDownloader.setValue(percent)
 
-    def wine_extracter(self, path):
+    def wine_extractor(self, path):
         split_path = os.path.splitext(os.path.splitext(path)[0])[0]
 
         # Extracts tar.xz file
@@ -146,7 +146,7 @@ class BuiltInPrefix:
             ):
                 rmtree(os.path.join(self.settingsDir + "wine", dir))
 
-    def dxvk_extracter(self, path):
+    def dxvk_extracor(self, path):
         split_path = os.path.splitext(os.path.splitext(path)[0])[0]
 
         # Extracts tar.gz file
@@ -172,7 +172,7 @@ class BuiltInPrefix:
                 rmtree(os.path.join(self.settingsDir + "wine", dir))
 
     # Adds dxvk to the wine prefix
-    def dxvk_injecter(self):
+    def dxvk_injector(self):
         # Makes directories for dxvk dlls in case wine prefix hasn't been run yet
         os.makedirs(
             self.winePrefix + "/drive_c/windows/system32", exist_ok=True

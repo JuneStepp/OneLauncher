@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # coding=utf-8
 ###########################################################################
-# Patching prgress analyzer for OneLauncher.
+# Patching progress analyzer for OneLauncher.
 #
 # Based on PyLotRO
 # (C) 2009 AJackson <ajackson@bcs.org.uk>

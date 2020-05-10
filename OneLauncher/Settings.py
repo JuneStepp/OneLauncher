@@ -30,7 +30,7 @@
 import os
 from .OneLauncherUtils import GetText
 from xml.dom import EMPTY_NAMESPACE
-from xml.dom.minidom import Document
+from xml.dom.minidom import Document  # nosec
 import defusedxml.minidom
 
 
@@ -159,29 +159,29 @@ class Settings:
             doc.appendChild(settingsNode)
 
         if game:
-            currGame = game
+            current_game = game
         else:
-            currGame = self.currentGame
+            current_game = self.currentGame
 
         # Set default game to current game
         defaultGameNode = doc.getElementsByTagName("Default.Game")
         if len(defaultGameNode) > 0:
-            defaultGameNode[0].firstChild.nodeValue = currGame
+            defaultGameNode[0].firstChild.nodeValue = current_game
         else:
             defaultGameNode = doc.createElementNS(
                 EMPTY_NAMESPACE, "Default.Game"
             )
-            defaultGameNode.appendChild(doc.createTextNode(currGame))
+            defaultGameNode.appendChild(doc.createTextNode(current_game))
             settingsNode.appendChild(defaultGameNode)
 
         # Remove old game block
-        tempNode = doc.getElementsByTagName(currGame)
+        tempNode = doc.getElementsByTagName(current_game)
         if len(tempNode) > 0:
             doc.documentElement.removeChild(tempNode[0])
 
         # Create new game block
         settingsNode = doc.getElementsByTagName("Settings")[0]
-        gameConfigNode = doc.createElementNS(EMPTY_NAMESPACE, currGame)
+        gameConfigNode = doc.createElementNS(EMPTY_NAMESPACE, current_game)
         settingsNode.appendChild(gameConfigNode)
 
         tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Program")

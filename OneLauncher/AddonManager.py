@@ -32,7 +32,7 @@ import os
 from pkg_resources import resource_filename
 from glob import glob
 from xml.dom import EMPTY_NAMESPACE
-from xml.dom.minidom import Document
+from xml.dom.minidom import Document  # nosec
 import defusedxml.minidom
 from .OneLauncherUtils import GetText
 import sqlite3
@@ -193,9 +193,9 @@ class AddonManager:
                     skins_list.remove(folder)
                     break
 
-        self.addInstalledSkinstoDB(skins_list, skins_list_compendium)
+        self.addInstalledSkinsToDB(skins_list, skins_list_compendium)
 
-    def addInstalledSkinstoDB(self, skins_list, skins_list_compendium):
+    def addInstalledSkinsToDB(self, skins_list, skins_list_compendium):
         table = self.winAddonManager.tableSkinsInstalled
 
         # Clears rows from db table if needed (This function is called to add
@@ -206,7 +206,7 @@ class AddonManager:
             )
 
         for skin in skins_list_compendium:
-            items_row = self.parseCompediumFile(skin, "SkinConfig")
+            items_row = self.parseCompendiumFile(skin, "SkinConfig")
             if self.currentGame.startswith("LOTRO"):
                 items_row = self.getOnlineAddonInfo(items_row, "tableSkins")
             else:
@@ -256,9 +256,9 @@ class AddonManager:
             if file.endswith(".abc"):
                 music_list.append(os.path.join(self.data_folder_music, file))
 
-        self.addInstalledMusictoDB(music_list, music_list_compendium)
+        self.addInstalledMusicToDB(music_list, music_list_compendium)
 
-    def addInstalledMusictoDB(self, music_list, music_list_compendium):
+    def addInstalledMusicToDB(self, music_list, music_list_compendium):
         table = self.winAddonManager.tableMusicInstalled
 
         # Clears rows from db table if needed (This function is called
@@ -267,7 +267,7 @@ class AddonManager:
             self.c.execute("DELETE FROM tableMusicInstalled")
 
         for music in music_list_compendium:
-            items_row = self.parseCompediumFile(music, "MusicConfig")
+            items_row = self.parseCompendiumFile(music, "MusicConfig")
             items_row = self.getOnlineAddonInfo(items_row, "tableMusic")
             self.addRowToDB(table, items_row)
 
@@ -329,7 +329,7 @@ class AddonManager:
             plugins_list, plugins_list_compendium
         )
 
-        self.addInstalledPluginstoDB(plugins_list, plugins_list_compendium)
+        self.addInstalledPluginsToDB(plugins_list, plugins_list_compendium)
 
     def removeManagedPluginsFromList(
         self, plugins_list, plugins_list_compendium
@@ -356,7 +356,7 @@ class AddonManager:
 
         return plugins_list, plugins_list_compendium
 
-    def addInstalledPluginstoDB(self, plugins_list, plugins_list_compendium):
+    def addInstalledPluginsToDB(self, plugins_list, plugins_list_compendium):
         table = self.winAddonManager.tablePluginsInstalled
 
         # Clears rows from db table if needed (This function is called to
@@ -367,12 +367,12 @@ class AddonManager:
         for plugin in plugins_list_compendium + plugins_list:
             # Sets tag for plugin file xml search and category for unmanaged plugins
             if plugin.endswith(".plugincompendium"):
-                items_row = self.parseCompediumFile(plugin, "PluginConfig")
+                items_row = self.parseCompendiumFile(plugin, "PluginConfig")
                 items_row = self.getOnlineAddonInfo(items_row, "tablePlugins")
 
                 items_row[7] = self.getAddonDependencies(plugin)
             else:
-                items_row = self.parseCompediumFile(plugin, "Information")
+                items_row = self.parseCompendiumFile(plugin, "Information")
                 items_row[1] = "Unmanaged"
 
             self.addRowToDB(table, items_row)
@@ -393,7 +393,7 @@ class AddonManager:
             return dependencies[1:]
 
     # Returns list of common values for compendium or .plugin files
-    def parseCompediumFile(self, file, tag):
+    def parseCompendiumFile(self, file, tag):
         items_row = [""] * (len(self.COLUMN_LIST) - 1)
 
         doc = defusedxml.minidom.parse(file)
@@ -500,6 +500,7 @@ class AddonManager:
             addon_type = ""
             with ZipFile(addon, "r") as file:
                 files_list = file.namelist()
+
                 for entry in files_list:
                     if entry.endswith(".plugin"):
                         if self.currentGame.startswith("DDO"):
@@ -540,7 +541,7 @@ class AddonManager:
                             plugins_list, plugins_list_compendium
                         )
 
-                        self.addInstalledPluginstoDB(
+                        self.addInstalledPluginsToDB(
                             plugins_list, plugins_list_compendium
                         )
 
@@ -616,12 +617,12 @@ class AddonManager:
         ):
             dependencies = item[0]
 
-        for dependencie in dependencies.split(","):
-            if dependencie:
+        for dependency in dependencies.split(","):
+            if dependency:
                 # 0 is the arbitrary ID for Turbine Utilities. 1064 is the ID
                 # of OneLauncher's upload of the utilities on LotroInterface
-                if dependencie == "0":
-                    dependencie = "1064"
+                if dependency == "0":
+                    dependency = "1064"
 
                 for item in self.c.execute(  # nosec
                     "SELECT File, Name FROM {table} WHERE InterfaceID = ? AND InterfaceID NOT IN "
@@ -629,9 +630,9 @@ class AddonManager:
                         table=table.split("Installed")[0],
                         table_installed=table,
                     ),
-                    (dependencie,),
+                    (dependency,),
                 ):
-                    self.installRemoteAddon(item[0], item[1], dependencie)
+                    self.installRemoteAddon(item[0], item[1], dependency)
 
     # Gets folder and makes one if there is no root folder
     def getAddonInstallationFolder(
@@ -793,14 +794,14 @@ class AddonManager:
                 )
                 mainNode.appendChild(dependenciesNode)
 
-                # If compendium file from plugin already exisited
+                # If compendium file from plugin already existed
                 if dependencies:
-                    for dependencie in dependencies.split(","):
+                    for dependency in dependencies.split(","):
                         tempNode = doc.createElementNS(
                             EMPTY_NAMESPACE, "dependency"
                         )
                         tempNode.appendChild(
-                            doc.createTextNode("%s" % (dependencie))
+                            doc.createTextNode("%s" % (dependency))
                         )
                         dependenciesNode.appendChild(tempNode)
 
