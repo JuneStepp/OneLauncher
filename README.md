@@ -82,7 +82,7 @@ are always welcome.
 
 # Addon Manager Info For Developers
 
-## Getting in Addon Manager
+## Getting your addon in OneLauncher
 
 I follow the the RSS feed on LotroInterface and will add any addons that look
 to be in the correct format. You can open an issue here or email me if you feel
@@ -148,6 +148,19 @@ An example is:
 </PluginConfig>
 ```
 
-## Patches/Addons
+## Patches
 
-Patches/addons must follow the same format as the addon that is being patched. The most common issue is leaving out folders farther up the tree from what is changed.
+Patches must follow the same format as the addon that is being patched. The most common issue is leaving out folders farther up the tree from what is changed.
+
+Here is a list of possible issues to keep in mind when making a patch:
+
+Make sure patch...
+
+- Follows the exact same folder structure as the addon being patched.
+- Doesn't edit the compendium file of the addon being patched.
+- Is installed after what is being patched.
+- Has clear name.
+
+## Collections
+
+Collections of addons can be made by listing the addons you would like in the collection as dependencies of your addon. See the [Compendium Files](#Compendium-Files) section for how to add dependencies to your addon.
