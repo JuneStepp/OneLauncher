@@ -24,6 +24,7 @@ LOTRO (C) 2007-2009 SNy
 
 - Patching and launching of LOTRO and DDO
 - Plugins, skins, and music manager (Currently only in source)
+- Multiple accounts support (Currently only in source)
 - Auto optimum WINE setup for Mac and Linux
 - Easy game detection
 - Password saving

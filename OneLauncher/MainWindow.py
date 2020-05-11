@@ -424,7 +424,46 @@ class MainWindow(QtWidgets.QMainWindow):
             self.AuthAccount()
 
     def cboAccountChanged(self):
+        self.setCurrentAccountWorld()
+        self.setCurrentAccountPassword()
         self.winMain.txtPassword.setFocus()
+
+    def loadAllSavedAccounts(self):
+        accounts = list(self.settings.accountsDictionary.keys())
+
+        # Accounts are read backwards, so they
+        # are in order of most recentally played
+        for account in accounts[::-1]:
+            self.winMain.cboAccount.addItem(account)
+
+    def setCurrentAccountWorld(self):
+        if not self.settings.focusAccount:
+            current_account = self.winMain.cboAccount.currentText()
+            account_world = self.settings.accountsDictionary[current_account][
+                0
+            ]
+
+            self.winMain.cboWorld.setCurrentText(account_world)
+
+    def setCurrentAccountPassword(self):
+        if self.settings.savePassword:
+            self.winMain.chkSavePassword.setChecked(True)
+            if self.settings.currentGame.startswith("DDO"):
+                self.winMain.txtPassword.setText(
+                    keyring.get_password(
+                        "OneLauncherDDO",
+                        self.winMain.cboAccount.currentText(),
+                    )
+                )
+            else:
+                self.winMain.txtPassword.setText(
+                    keyring.get_password(
+                        "OneLauncherLOTRO",
+                        self.winMain.cboAccount.currentText(),
+                    )
+                )
+        else:
+            self.winMain.txtPassword.setFocus()
 
     def txtPasswordEnter(self):
         self.btnLoginClicked()
@@ -637,6 +676,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.winMain.cboAccount.setFocus()
                 self.winMain.chkSaveSettings.setChecked(False)
             else:
+                self.loadAllSavedAccounts()
                 self.winMain.cboAccount.setCurrentText(
                     list(self.settings.accountsDictionary.keys())[-1]
                 )
@@ -644,28 +684,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
                 self.winMain.chkSavePassword.setChecked(False)
 
-                if self.settings.savePassword:
-                    self.winMain.chkSavePassword.setChecked(True)
-                    if self.settings.currentGame.startswith("DDO"):
-                        self.winMain.txtPassword.setText(
-                            keyring.get_password(
-                                "OneLauncherDDO",
-                                list(self.settings.accountsDictionary.keys())[
-                                    -1
-                                ],
-                            )
-                        )
-                    else:
-                        self.winMain.txtPassword.setText(
-                            keyring.get_password(
-                                "OneLauncherLOTRO",
-                                list(self.settings.accountsDictionary.keys())[
-                                    -1
-                                ],
-                            )
-                        )
-                else:
-                    self.winMain.txtPassword.setFocus()
+                self.setCurrentAccountPassword()
 
         self.gameType.GetSettings(self.settings.currentGame)
 
@@ -780,24 +799,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def GetGLSDataCentre(self, dataCentre):
         self.dataCentre = dataCentre
 
-        setPos = 0
-
         for world in self.dataCentre.worldList:
             self.winMain.cboWorld.addItem(world.name)
 
-            account_world = ""
-
-            accounts = list(self.settings.accountsDictionary.keys())
-            if accounts:
-                last_account = accounts[-1]
-                account_world = self.settings.accountsDictionary[last_account][
-                    0
-                ]
-
-            if world.name == account_world:
-                self.winMain.cboWorld.setCurrentIndex(setPos)
-
-            setPos += 1
+        self.setCurrentAccountWorld()
 
     def GetWorldQueueConfig(self, worldQueueConfig):
         self.worldQueueConfig = worldQueueConfig
