@@ -83,16 +83,6 @@ class SetupWizard:
         self.winSetupWizard.btnFind.clicked.connect(self.btnFindClicked)
         self.winSetupWizard.btnFind_2.clicked.connect(self.btnFindClicked)
 
-        self.winSetupWizard.btnBoxIntro.accepted.connect(
-            self.btnBoxIntroAccepted
-        )
-        self.winSetupWizard.btnBoxOptions.accepted.connect(
-            self.btnBoxOptionsAccepted
-        )
-        self.winSetupWizard.btnBoxOptions_2.accepted.connect(
-            self.btnBoxOptionsAccepted
-        )
-
         self.winSetupWizard.btnGameDirLOTRO.clicked.connect(
             self.btnGameDirLOTROClicked
         )
@@ -112,14 +102,26 @@ class SetupWizard:
             self.btnBoxRejected
         )
 
+        self.winSetupWizard.btnBoxIntro.accepted.connect(
+            self.btnBoxIntroAccepted
+        )
+
+        self.winSetupWizard.btnBoxOptions.button(
+            QtWidgets.QDialogButtonBox.Apply
+        ).clicked.connect(self.btnBoxOptionsApplied)
+        self.winSetupWizard.btnBoxOptions_2.button(
+            QtWidgets.QDialogButtonBox.Apply
+        ).clicked.connect(self.btnBoxOptionsApplied)
+
     def btnBoxIntroAccepted(self):
         self.winSetupWizard.actionShowNormal.setVisible(False)
         self.winSetupWizard.stackedWidget.setCurrentWidget(
             self.winSetupWizard.GameFinder
         )
 
-    def btnBoxOptionsAccepted(self):
-        self.winSetupWizard.accept()
+    def btnBoxOptionsApplied(self, button):
+        if self.checkIfAnyGameFolderIsSelected():
+            self.winSetupWizard.accept()
 
     def btnBoxRejected(self):
         self.winSetupWizard.reject()
@@ -308,6 +310,20 @@ class SetupWizard:
             return True
         else:
             return False
+
+    def checkIfAnyGameFolderIsSelected(self):
+        """
+        Check if any game folders have been added and selected.
+        Brings up a warning message if not.
+        """
+        if not self.getGame():
+            self.raiseWarningMessage(
+                "There are no game folders selected. "
+                "Please select at least one game folder to continue."
+            )
+            return False
+        else:
+            return True
 
     def raiseWarningMessage(self, message):
         messageBox = QtWidgets.QMessageBox(self.winSetupWizard)
