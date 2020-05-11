@@ -114,7 +114,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Connect signals to functions
         self.winMain.btnLogin.clicked.connect(self.btnLoginClicked)
-        self.winMain.txtAccount.returnPressed.connect(self.txtAccountEnter)
+        self.winMain.cboAccount.textActivated.connect(self.cboAccountChanged)
         self.winMain.txtPassword.returnPressed.connect(self.txtPasswordEnter)
         self.winMain.btnExit.clicked.connect(self.close)
         self.winMain.btnMinimize.clicked.connect(self.showMinimized)
@@ -182,8 +182,8 @@ class MainWindow(QtWidgets.QMainWindow):
         sys.exit(self.app.exec_())
 
     def resetFocus(self):
-        if self.winMain.txtAccount.text() == "":
-            self.winMain.txtAccount.setFocus()
+        if self.winMain.cboAccount.currentText() == "":
+            self.winMain.cboAccount.setFocus()
         elif self.winMain.txtPassword.text() == "":
             self.winMain.txtPassword.setFocus()
 
@@ -365,7 +365,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def btnLoginClicked(self):
         if (
-            self.winMain.txtAccount.text() == ""
+            self.winMain.cboAccount.currentText() == ""
             or self.winMain.txtPassword.text() == ""
         ):
             self.AddLog(
@@ -373,8 +373,19 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         else:
             if self.winMain.chkSaveSettings.isChecked():
-                self.settings.account = self.winMain.txtAccount.text()
-                self.settings.world = self.winMain.cboWorld.currentText()
+                current_account = self.winMain.cboAccount.currentText()
+                current_world = self.winMain.cboWorld.currentText()
+
+                # Account is deleted first, because accounts are in order of
+                # the most recently played at the end.
+                try:
+                    del self.settings.accountsDictionary[current_account]
+                except KeyError:
+                    pass
+
+                self.settings.accountsDictionary[current_account] = [
+                    current_world
+                ]
 
                 self.settings.SaveSettings(
                     saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
@@ -385,13 +396,13 @@ class MainWindow(QtWidgets.QMainWindow):
                     if self.settings.currentGame.startswith("DDO"):
                         keyring.set_password(
                             "OneLauncherDDO",
-                            self.winMain.txtAccount.text(),
+                            self.winMain.cboAccount.currentText(),
                             self.winMain.txtPassword.text(),
                         )
                     else:
                         keyring.set_password(
                             "OneLauncherLOTRO",
-                            self.winMain.txtAccount.text(),
+                            self.winMain.cboAccount.currentText(),
                             self.winMain.txtPassword.text(),
                         )
                 else:
@@ -399,12 +410,12 @@ class MainWindow(QtWidgets.QMainWindow):
                         if self.settings.currentGame.startswith("DDO"):
                             keyring.delete_password(
                                 "OneLauncherDDO",
-                                self.winMain.txtAccount.text(),
+                                self.winMain.cboAccount.currentText(),
                             )
                         else:
                             keyring.delete_password(
                                 "OneLauncherLOTRO",
-                                self.winMain.txtAccount.text(),
+                                self.winMain.cboAccount.currentText(),
                             )
                     except:
                         pass
@@ -412,7 +423,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.manageBuiltInPrefix()
             self.AuthAccount()
 
-    def txtAccountEnter(self):
+    def cboAccountChanged(self):
         self.winMain.txtPassword.setFocus()
 
     def txtPasswordEnter(self):
@@ -428,7 +439,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.account = AuthenticateUser(
             self.dataCentre.authServer,
-            self.winMain.txtAccount.text(),
+            self.winMain.cboAccount.currentText(),
             self.winMain.txtPassword.text(),
             self.baseConfig.gameName,
             self.valHomeDir,
@@ -526,7 +537,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.worldQueueConfig.supportserviceurl,
             self.worldQueueConfig.glsticketlifetime,
             self.winMain.cboWorld.currentText(),
-            self.winMain.txtAccount.text(),
+            self.winMain.cboAccount.currentText(),
             self,
         )
         self.hide()
@@ -576,7 +587,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def InitialSetup(self):
         self.gameDirExists = False
-        self.winMain.txtAccount.setEnabled(False)
+        self.winMain.cboAccount.setEnabled(False)
         self.winMain.txtPassword.setEnabled(False)
         self.winMain.btnLogin.setEnabled(False)
         self.winMain.chkSaveSettings.setEnabled(False)
@@ -588,7 +599,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.settings is None:
             self.settings = Settings(self.valHomeDir, self.osType)
 
-        self.winMain.txtAccount.setText("")
+        self.winMain.cboAccount.clear()
+        self.winMain.cboAccount.setCurrentText("")
         self.winMain.txtPassword.setText("")
         self.winMain.cboWorld.clear()
         self.ClearLog()
@@ -622,10 +634,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.AddLog("[E01] Error loading settings")
         else:
             if self.settings.focusAccount:
-                self.winMain.txtAccount.setFocus()
+                self.winMain.cboAccount.setFocus()
                 self.winMain.chkSaveSettings.setChecked(False)
             else:
-                self.winMain.txtAccount.setText(self.settings.account)
+                self.winMain.cboAccount.setCurrentText(
+                    list(self.settings.accountsDictionary.keys())[-1]
+                )
                 self.winMain.chkSaveSettings.setChecked(True)
 
                 self.winMain.chkSavePassword.setChecked(False)
@@ -635,13 +649,19 @@ class MainWindow(QtWidgets.QMainWindow):
                     if self.settings.currentGame.startswith("DDO"):
                         self.winMain.txtPassword.setText(
                             keyring.get_password(
-                                "OneLauncherDDO", self.settings.account
+                                "OneLauncherDDO",
+                                list(self.settings.accountsDictionary.keys())[
+                                    -1
+                                ],
                             )
                         )
                     else:
                         self.winMain.txtPassword.setText(
                             keyring.get_password(
-                                "OneLauncherLOTRO", self.settings.account
+                                "OneLauncherLOTRO",
+                                list(self.settings.accountsDictionary.keys())[
+                                    -1
+                                ],
                             )
                         )
                 else:
@@ -764,7 +784,17 @@ class MainWindow(QtWidgets.QMainWindow):
 
         for world in self.dataCentre.worldList:
             self.winMain.cboWorld.addItem(world.name)
-            if world.name == self.settings.world:
+
+            account_world = ""
+
+            accounts = list(self.settings.accountsDictionary.keys())
+            if accounts:
+                last_account = accounts[-1]
+                account_world = self.settings.accountsDictionary[last_account][
+                    0
+                ]
+
+            if world.name == account_world:
                 self.winMain.cboWorld.setCurrentIndex(setPos)
 
             setPos += 1
@@ -777,14 +807,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.winMain.btnLogin.setEnabled(True)
         self.winMain.chkSaveSettings.setEnabled(True)
         self.winMain.chkSavePassword.setEnabled(True)
-        self.winMain.txtAccount.setEnabled(True)
+        self.winMain.cboAccount.setEnabled(True)
         self.winMain.txtPassword.setEnabled(True)
 
         if self.settings.focusAccount:
-            self.winMain.txtAccount.setFocus()
+            self.winMain.cboAccount.setFocus()
             self.winMain.chkSaveSettings.setChecked(False)
         else:
-            self.winMain.txtAccount.setText(self.settings.account)
+            self.winMain.cboAccount.setCurrentText(
+                list(self.settings.accountsDictionary.keys())[-1]
+            )
             self.winMain.chkSaveSettings.setChecked(True)
             if not self.winMain.chkSavePassword.isChecked():
                 self.winMain.txtPassword.setFocus()
