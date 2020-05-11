@@ -32,6 +32,7 @@ from .OneLauncherUtils import GetText
 from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minidom import Document  # nosec
 import defusedxml.minidom
+from collections import OrderedDict
 
 
 class Settings:
@@ -42,9 +43,9 @@ class Settings:
 
     def LoadSettings(self, useGame=None):
         self.hiResEnabled = True
-        self.world = ""
         self.language = "EN"
-        self.account = ""
+        # Key is account name and content is list of details relating to account.
+        self.accountsDictionary = OrderedDict()
         self.wineProg = "wine"
         self.wineDebug = "fixme-all"
         self.patchClient = "patchclient.dll"
@@ -101,12 +102,24 @@ class Settings:
                             self.savePassword = False
                     elif node.nodeName == "Game.Directory":
                         self.gameDir = GetText(node.childNodes)
-                    elif node.nodeName == "World":
-                        self.world = GetText(node.childNodes)
                     elif node.nodeName == "Language":
                         self.language = GetText(node.childNodes)
-                    elif node.nodeName == "Account":
-                        self.account = GetText(node.childNodes)
+                    elif node.nodeName == "Accounts":
+                        account_nodes = node.childNodes
+
+                        for account_node in account_nodes:
+                            account_name = account_node.nodeName
+                            # Create account settings list. The amount of
+                            # empty strings in the list represent the
+                            # amount of account settings.
+                            self.accountsDictionary[account_name] = [""]
+
+                            for node in account_node.childNodes:
+                                if node.nodeName == "World":
+                                    self.accountsDictionary[account_name][
+                                        0
+                                    ] = GetText(node.childNodes)
+
                         self.focusAccount = False
                     elif node.nodeName == "PatchClient":
                         self.patchClient = GetText(node.childNodes)
@@ -135,7 +148,8 @@ class Settings:
                     and not self.builtInPrefixEnabled
                 ):
                     success = "[E16] Wine executable set does not exist"
-        except:
+        except Exception as error:
+            print(error)
             success = False
 
         return success
@@ -224,13 +238,22 @@ class Settings:
         gameConfigNode.appendChild(tempNode)
 
         if saveAccountDetails:
-            tempNode = doc.createElementNS(EMPTY_NAMESPACE, "World")
-            tempNode.appendChild(doc.createTextNode("%s" % (self.world)))
-            gameConfigNode.appendChild(tempNode)
+            accountsNode = doc.createElementNS(EMPTY_NAMESPACE, "Accounts")
+            # Adds all saved accounts with their account specific settings.
+            for account in self.accountsDictionary:
+                accountNode = doc.createElementNS(EMPTY_NAMESPACE, account)
 
-            tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Account")
-            tempNode.appendChild(doc.createTextNode("%s" % (self.account)))
-            gameConfigNode.appendChild(tempNode)
+                tempNode = doc.createElementNS(EMPTY_NAMESPACE, "World")
+                tempNode.appendChild(
+                    doc.createTextNode(
+                        "%s" % (self.accountsDictionary[account][0])
+                    )
+                )
+                accountNode.appendChild(tempNode)
+
+                accountsNode.appendChild(accountNode)
+
+            gameConfigNode.appendChild(accountsNode)
 
             if savePassword:
                 tempNode = doc.createElementNS(

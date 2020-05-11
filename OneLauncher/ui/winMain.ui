@@ -110,21 +110,6 @@
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select game server&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="txtAccount">
-    <property name="geometry">
-     <rect>
-      <x>525</x>
-      <y>95</y>
-      <width>260</width>
-      <height>32</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Verdana</family>
-     </font>
-    </property>
-   </widget>
    <widget class="QLineEdit" name="txtPassword">
     <property name="geometry">
      <rect>
@@ -141,6 +126,9 @@
     </property>
     <property name="echoMode">
      <enum>QLineEdit::Password</enum>
+    </property>
+    <property name="clearButtonEnabled">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QLabel" name="imgMain">
@@ -330,7 +318,7 @@
      <string/>
     </property>
     <property name="autoRaise">
-     <bool>true</bool>
+     <bool>false</bool>
     </property>
    </widget>
    <widget class="QCheckBox" name="chkSavePassword">
@@ -370,6 +358,37 @@
      <string/>
     </property>
    </widget>
+   <widget class="QComboBox" name="cboAccount">
+    <property name="geometry">
+     <rect>
+      <x>525</x>
+      <y>95</y>
+      <width>260</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <property name="editable">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <zorder>lblWorld</zorder>
+   <zorder>lblAccount</zorder>
+   <zorder>lblPassword</zorder>
+   <zorder>cboWorld</zorder>
+   <zorder>txtPassword</zorder>
+   <zorder>imgMain</zorder>
+   <zorder>btnLogin</zorder>
+   <zorder>chkSaveSettings</zorder>
+   <zorder>txtStatus</zorder>
+   <zorder>btnAbout</zorder>
+   <zorder>btnExit</zorder>
+   <zorder>txtFeed</zorder>
+   <zorder>btnMinimize</zorder>
+   <zorder>btnSwitchGame</zorder>
+   <zorder>chkSavePassword</zorder>
+   <zorder>btnAddonManager</zorder>
+   <zorder>cboAccount</zorder>
+   <zorder>btnOptions</zorder>
   </widget>
   <action name="actionPatch">
    <property name="text">
