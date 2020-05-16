@@ -8,17 +8,17 @@ if people see that it is The OneLauncher to Rule Them All and use it for that re
 It is actually mainly being developed as a fun learning experience and to show my
 love for these games.
 
-OneLauncher
+[OneLauncher](https://github.com/JeremyStepp/OneLauncher)
 (c) 2019-2020 Jeremy Stepp
 
-Based on PyLotRO
+Based on [PyLotRO](https://github.com/nwestfal/pylotro)
 (C) 2009 AJackson
 
-Based on LotROLinux
+Based on [LotROLinux](https://web.archive.org/web/20120424132519/http://www.lotrolinux.com/)
 (C) 2007-2008 AJackson
 
-Based on CLI launcher for
-LOTRO (C) 2007-2009 SNy
+Based on [CLI launcher for
+LOTRO](https://sny.name/LOTRO/) (C) 2007-2009 SNy
 
 # Features Overview
 
@@ -85,7 +85,7 @@ are always welcome.
 
 ## Getting your addon in OneLauncher
 
-I follow the the RSS feed on LotroInterface and will add any addons that look
+I follow the the RSS feed on [LotroInterface](https://lotrointerface.com) and will add any addons that look
 to be in the correct format. You can open an issue here or email me if you feel
 your addon needs to be added.
 
