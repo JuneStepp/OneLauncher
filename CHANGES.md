@@ -1,7 +1,7 @@
 Lord of the Rings Online and Dungeons & Dragons Online
 Launcher for Linux, Windows, and Mac OS X
 
-(C) 2019-2020-2020 June Stepp
+(C) 2019-2020 June Stepp
 
 # Changes
 
@@ -197,3 +197,339 @@ Launcher for Linux, Windows, and Mac OS X
 0.1.0
 
     Initial version of PyLotRO, direct port from LotROLinux
+
+<hr>Below this is LotROLinux (C# Program).  Above is when it became PyLotRO (Python Program)<hr/>
+
+0.9.8 
+
+    Corrected problem with patching if in different
+        WINEPREFIX
+
+0.9.7 
+
+    If no login queue URLs are returned skip
+        the join world queue section of the LOTRO login
+
+0.9.6 
+
+    Fetch correct news stream based on language code
+
+0.9.5 
+
+    Fixed following bugs:
+        User/Pass error being misreported
+        Failing to run if bottle name contains spaces
+        Not displaying error if patch function not found
+        Mini-HTML not handling font tags
+
+0.9.4 
+
+    Fixed a bug where the patcher would abort if
+        there was no bindat or temp folders
+
+        Find correct path for CX using $CX_ROOT on Mac OSX
+
+0.9.3 
+
+    Removed complex patch window and recoded the
+        simple patch window to be more responsive
+
+        DDO falls back to dndlauncher.exe.config if
+        TurbineLauncher.exe.config not found in the
+        game directory
+
+0.9.2 
+
+    DDO seems to use TurbineLauncher.exe.config
+        now instead of dndlauncher.exe.config
+
+0.9.1 
+
+    Implement queue system (LOTRO only)
+
+        Remove old configuration import functions
+
+        Alter configuration so that all settings
+        are game dependant (like ULL)
+
+        Make Crossover functionality more
+        user friendly
+
+        Removed GTKHtml Browser to help use on Macs
+
+        Heavily improved Mac support
+
+0.9  
+
+    Added support for Crossover Games
+
+0.8   
+
+    Swapped to GPL v3.
+
+0.7.7 
+
+    When in DDO mode the settings window lets you specify
+        the name for patchclient.dll
+
+0.7.6 
+
+    If multiple game accounts exist for the specified
+        user account then display a window to allow user
+        to choose which account to use
+
+0.7.5 
+
+    Added a simple status window version of the
+        patch window as US version still causing problems.
+
+0.7.4 
+
+    Prevent launcher crashing if authentification
+        server is down
+
+        You can now have two versions of LOTRO and two of DDO
+        (for anyone who has the test client or just needs
+        more than one)
+
+        Switched to using gmcs & 2.0 of the framework for
+        better list and string handling.
+
+0.7.3 
+
+    Display warning if game directory
+        not found and disable patch function
+
+        Fixed problem with unicode characters
+        causing authentication problems
+
+        Various config files fetched from servers
+        now saved with same names as CLI launcher
+
+0.7.2 
+
+    Exceptions raised during patching
+        process should now be handled
+
+        Added option to save wine output
+        to file run.log in config directory
+
+        Patching process should handle
+        incorrect version of patchclient.dll
+        and the log file being locked
+
+        Added .desktop file & icon
+
+0.7.1 
+
+    Fixed problem with realm not being
+        saved correctly in config file and
+        a coredump problem with the gecko
+        browser when switching games
+
+0.7   
+
+    Install the game using make install,
+        no need to manually copy files also
+        can be ran from anywhere so no need
+        to change into the game directory
+
+        Converted GUI from Stetic to Glade
+
+0.6.1 
+
+    Fixed problem with status windows
+        not scrolling correctly
+
+0.6   
+
+    Patch option added under Options
+        tab. At present the hi-res graphics
+        files are not patched.
+
+        before attempting net access
+
+0.5.4 
+
+    Added option to disable hi-res
+        graphics
+
+0.5.3 
+
+    Fixed another authentication
+        problem caused by having an
+        active & inactive LOTRO subscription
+
+0.5.2 
+
+    Fixed another bug causing problems
+        authenticating some accounts
+
+0.5.1 
+
+    Fixed bug with game authenticating
+        wrong game if multiple game entries
+        exist on auth server (ie one for LOTRO
+        and one for DDO)
+
+0.5   
+
+    Launcher now detects if game folder
+        contains Lord of the Rings Online
+        or Dungeons & Dragons Online and
+        reconfigures itself accordingly.
+
+0.4   
+
+    News fetched in separate thread
+        to improve start up time.
+
+        Languages now shown in non-code
+        format.
+
+0.3.2 
+
+    Corrected configure instructions.
+
+        Launcher now randomly chooses which
+        login queue to use if there is more
+        than one.
+
+        Tidied code up a bit and recreated
+        the files needed to build the executable.
+
+0.3.1 
+
+    Disabled support for gecko/firefox
+
+0.3   
+
+    Executable name changed to LotROLinux.run
+        to avoid confusion with a .exe extension.
+
+        Package is now a source ball to avoid
+        library version compatability problems.
+
+0.2   
+
+    Account authentification should now work
+        for non-EU users.
+
+        Added support for gecko/firefox
+
+<hr>Below this is CLI launcher for
+LOTRO (Shell Script). Above is when it became LotROLinux (C# Program)<hr/>
+
+v.1.2.1 2016-06-10	
+
+    fixed link to urlencode.sh (.de -> .com)
+			broken link pointed out by Charles Tersteeg
+
+v1.2.0  2014-12-15	
+
+    update to configuration and template generation, /AGAIN/
+			contributor: blosco in the official LotRO forum
+
+v1.1.1  2014-11-27	
+
+    fixed bug in language for arg template, introduced by 1.1.0
+			contributor: Etienne Carriere
+
+v1.1.0  2014-11-25	
+
+    update to configuration "parser" and game template generation
+			 necessary to reflect changes to the game configuration files
+			contributor: blosco (and others) in the official LotRO forum
+
+v1.0.1  2014-04-09	
+
+    added comment for forcing SSLv3
+			minor cosmetic and typo fixes to the ChangeLog
+			contributor: Nicolas Trecourt (SSLv3 symptom and workaround)
+
+v1.0    2013-10-02	
+
+    added patch progress helper
+			also added updates to loading screens
+			enabled re-use of existing login ticket (for up to 12 hours)
+			other small changes and cleanups
+
+v1.0rc2 2011-08-09	
+
+    small update for global service (grep -F for server names)
+
+v1.0rc1 2010-11-25	
+
+    updates for F2P
+			added queue looping
+			minor cleanups
+			contributor: steelsnake (queue loop)
+
+v0.9.9d 2008-10-27	
+
+    added check for disabled world login queue
+
+v0.9.9c 2008-04-10	
+
+    added choice for patching (default: start without patching)
+			changed language check to now return the proper language
+			 code so that the patching works properly now wrt.
+			 the splash screen (ie: DE->de EN->en EN_GB->en_GB)
+			added choice for subscription to use when more than one
+			 <GameSubscription> sections exist in GLSAuthServer config
+			contributors: ct_traveller and JediMastyre (multiple subscriptions)
+
+v0.9.9b 2008-01-28	
+
+    fixed an issue with the GLSDataCenter config file downloaded
+			 from Turbine containing more than one <Datacenter> section
+
+v0.9.9  2008-01-02	
+
+    MAJOR breakthrough with the patching
+			earlier attempts at linking against the dll functions stalled
+			 due to missing function prototypes
+			blatantly simple call using the rundll interface does the trick
+			contributor: Robert Getter ("rundll32.exe PatchClient,Patch")
+
+v0.9.7  2007-11-20	
+
+    can now be called from elsewhere, will change to the game dir
+			 (still needs to reside there, of course)
+
+v0.9.6  2007-08-07	
+
+    changed account id extraction to look for the correct game, too
+			so that it works for subscribers of other turbine games (DDO)
+			contributor: thealb
+
+v0.9.5  2007-05-30	
+
+    changed to SOAP for LoginAccount as well (same reason as 0.9.4)
+			SOAP snippet taken from lotroeugls.com service description
+			also switched off wine debugging msgs to increase performance
+			contributor: kegie (suggested WINEDEBUG=fixme-all)
+
+v0.9.4  2007-05-29	
+
+    changed to SOAP for GetDatacenters due to non-EU LOTRO
+			datacenter (US/AU/others) not accepting HTTP GET
+			contributor: Fitzy_oz (SOAP request body)
+
+v0.9.3  2007-05-27	
+
+    fixed extractions for XML value="$VAL"
+			contributor: ajackson (problem identified)
+
+v0.9.2  2007-05-25	
+
+    added check for installed languages and chooser
+			contributor: Sinistral
+
+v0.9.1  2007-05-24	
+
+    "parsing" TurbineLauncher.exe.config
+
+v0.9    2007-05-05	
+
+    initial version
