@@ -39,20 +39,15 @@ from PySide2 import QtCore, QtWidgets
 
 
 class BuiltInPrefix:
-    WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/5.7/wine-5.7-staging-improved-amd64.tar.xz"
-    DXVK_URL = "https://github.com/doitsujin/dxvk/releases/download/v1.6.1/dxvk-1.6.1.tar.gz"
+    WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/5.9/wine-5.9-staging-improved-amd64.tar.xz"
+    DXVK_URL = "https://github.com/doitsujin/dxvk/releases/download/v1.7/dxvk-1.7.tar.gz"
 
     def __init__(self, settingsDir, winePrefix, parent):
         self.settingsDir = settingsDir
         self.winePrefix = winePrefix
 
         self.dlgDownloader = QtWidgets.QProgressDialog(
-            "Checking for updates...",
-            "",
-            0,
-            100,
-            parent,
-            QtCore.Qt.FramelessWindowHint,
+            "Checking for updates...", "", 0, 100, parent, QtCore.Qt.FramelessWindowHint,
         )
         self.dlgDownloader.setWindowModality(QtCore.Qt.WindowModal)
         self.dlgDownloader.setAutoClose(False)
@@ -60,55 +55,42 @@ class BuiltInPrefix:
 
     # Sets wine program and downloads wine if it is not there or a new version is needed
     def wineSetup(self):
-        self.latest_wine_version = self.WINE_URL.split("/download/")[1].split(
-            "/"
-        )[0]
-        latest_wine_path = (
-            self.settingsDir + "wine/wine-" + self.latest_wine_version
-        )
+        self.latest_wine_version = self.WINE_URL.split("/download/")[1].split("/")[0]
+        latest_wine_path = self.settingsDir + "wine/wine-" + self.latest_wine_version
 
         if os.path.exists(latest_wine_path):
             return latest_wine_path + "/bin/wine"
         else:
-            self.dlgDownloader.setLabelText("Downloading wine...")
+            self.dlgDownloader.setLabelText("Downloading Wine...")
             self.downloader(self.WINE_URL, latest_wine_path + ".tar.xz")
 
             self.dlgDownloader.reset()
-            self.dlgDownloader.setLabelText("Extracting wine...")
+            self.dlgDownloader.setLabelText("Extracting Wine...")
             self.dlgDownloader.setValue(99)
             self.wine_extractor(latest_wine_path + ".tar.xz")
             self.dlgDownloader.setValue(100)
 
             return (
-                self.settingsDir
-                + "wine/wine-"
-                + self.latest_wine_version
-                + "/bin/wine"
+                self.settingsDir + "wine/wine-" + self.latest_wine_version + "/bin/wine"
             )
 
     def dxvkSetup(self):
-        self.latest_dxvk_version = self.DXVK_URL.split("download/v")[1].split(
-            "/"
-        )[0]
-        self.latest_dxvk_path = (
-            self.settingsDir + "wine/dxvk-" + self.latest_dxvk_version
-        )
+        self.latest_dxvk_version = self.DXVK_URL.split("download/v")[1].split("/")[0]
+        self.latest_dxvk_path = self.settingsDir + "wine/dxvk-" + self.latest_dxvk_version
 
         if not os.path.exists(self.latest_dxvk_path):
-            self.dlgDownloader.setLabelText("Downloading dxvk...")
+            self.dlgDownloader.setLabelText("Downloading DXVK...")
             self.downloader(self.DXVK_URL, self.latest_dxvk_path + ".tar.gz")
 
             self.dlgDownloader.reset()
-            self.dlgDownloader.setLabelText("Extracting dxvk...")
+            self.dlgDownloader.setLabelText("Extracting DXVK...")
             self.dlgDownloader.setValue(99)
             self.dxvk_extracor(self.latest_dxvk_path + ".tar.gz")
             self.dlgDownloader.setValue(100)
 
             self.dxvk_injector()
 
-        elif not os.path.islink(
-            self.winePrefix + "/drive_c/windows/system32/d3d11.dll"
-        ):
+        elif not os.path.islink(self.winePrefix + "/drive_c/windows/system32/d3d11.dll"):
             self.dxvk_injector()
 
     def downloader(self, url, path):
@@ -132,18 +114,14 @@ class BuiltInPrefix:
         source_dir = (os.listdir(split_path))[0]
         move(os.path.join(split_path, source_dir), self.settingsDir + "wine")
         os.rmdir(split_path)
-        os.rename(
-            os.path.join(self.settingsDir + "wine", source_dir), split_path
-        )
+        os.rename(os.path.join(self.settingsDir + "wine", source_dir), split_path)
 
         # Removes downloaded tar.xz
         os.remove(path)
 
         # Removes old wine versions
         for dir in os.listdir(self.settingsDir + "wine"):
-            if dir.startswith("wine") and not dir.endswith(
-                self.latest_wine_version
-            ):
+            if dir.startswith("wine") and not dir.endswith(self.latest_wine_version):
                 rmtree(os.path.join(self.settingsDir + "wine", dir))
 
     def dxvk_extracor(self, path):
@@ -156,8 +134,7 @@ class BuiltInPrefix:
         # Moves files from nested directory to main one
         source_dir = (os.listdir(split_path + "_TEMP"))[0]
         move(
-            os.path.join(split_path + "_TEMP", source_dir),
-            self.settingsDir + "wine",
+            os.path.join(split_path + "_TEMP", source_dir), self.settingsDir + "wine",
         )
         os.rmdir(split_path + "_TEMP")
 
@@ -166,20 +143,14 @@ class BuiltInPrefix:
 
         # Removes old dxvk versions
         for dir in os.listdir(self.settingsDir + "wine"):
-            if dir.startswith("dxvk") and not dir.endswith(
-                self.latest_dxvk_version
-            ):
+            if dir.startswith("dxvk") and not dir.endswith(self.latest_dxvk_version):
                 rmtree(os.path.join(self.settingsDir + "wine", dir))
 
     # Adds dxvk to the wine prefix
     def dxvk_injector(self):
         # Makes directories for dxvk dlls in case wine prefix hasn't been run yet
-        os.makedirs(
-            self.winePrefix + "/drive_c/windows/system32", exist_ok=True
-        )
-        os.makedirs(
-            self.winePrefix + "/drive_c/windows/syswow64", exist_ok=True
-        )
+        os.makedirs(self.winePrefix + "/drive_c/windows/system32", exist_ok=True)
+        os.makedirs(self.winePrefix + "/drive_c/windows/syswow64", exist_ok=True)
 
         dll_list = ["dxgi.dll", "d3d10core.dll", "d3d11.dll", "d3d9.dll"]
 
