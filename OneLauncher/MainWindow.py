@@ -372,54 +372,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 '<font color="Khaki">Please enter account name and password</font>'
             )
         else:
-            if self.winMain.chkSaveSettings.isChecked():
-                current_account = self.winMain.cboAccount.currentText()
-                current_world = self.winMain.cboWorld.currentText()
-
-                # Account is deleted first, because accounts are in order of
-                # the most recently played at the end.
-                try:
-                    del self.settings.accountsDictionary[current_account]
-                except KeyError:
-                    pass
-
-                self.settings.accountsDictionary[current_account] = [
-                    current_world
-                ]
-
-                self.settings.SaveSettings(
-                    saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
-                    savePassword=self.winMain.chkSavePassword.isChecked(),
-                )
-
-                if self.winMain.chkSavePassword.isChecked():
-                    if self.settings.currentGame.startswith("DDO"):
-                        keyring.set_password(
-                            "OneLauncherDDO",
-                            self.winMain.cboAccount.currentText(),
-                            self.winMain.txtPassword.text(),
-                        )
-                    else:
-                        keyring.set_password(
-                            "OneLauncherLOTRO",
-                            self.winMain.cboAccount.currentText(),
-                            self.winMain.txtPassword.text(),
-                        )
-                else:
-                    try:
-                        if self.settings.currentGame.startswith("DDO"):
-                            keyring.delete_password(
-                                "OneLauncherDDO",
-                                self.winMain.cboAccount.currentText(),
-                            )
-                        else:
-                            keyring.delete_password(
-                                "OneLauncherLOTRO",
-                                self.winMain.cboAccount.currentText(),
-                            )
-                    except:
-                        pass
-
             self.manageBuiltInPrefix()
             self.AuthAccount()
 
@@ -491,6 +443,54 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if self.account.authSuccess:
             self.AddLog("Account authenticated")
+
+            if self.winMain.chkSaveSettings.isChecked():
+                current_account = self.winMain.cboAccount.currentText()
+                current_world = self.winMain.cboWorld.currentText()
+
+                # Account is deleted first, because accounts are in order of
+                # the most recently played at the end.
+                try:
+                    del self.settings.accountsDictionary[current_account]
+                except KeyError:
+                    pass
+
+                self.settings.accountsDictionary[current_account] = [
+                    current_world
+                ]
+
+                self.settings.SaveSettings(
+                    saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
+                    savePassword=self.winMain.chkSavePassword.isChecked(),
+                )
+
+                if self.winMain.chkSavePassword.isChecked():
+                    if self.settings.currentGame.startswith("DDO"):
+                        keyring.set_password(
+                            "OneLauncherDDO",
+                            self.winMain.cboAccount.currentText(),
+                            self.winMain.txtPassword.text(),
+                        )
+                    else:
+                        keyring.set_password(
+                            "OneLauncherLOTRO",
+                            self.winMain.cboAccount.currentText(),
+                            self.winMain.txtPassword.text(),
+                        )
+                else:
+                    try:
+                        if self.settings.currentGame.startswith("DDO"):
+                            keyring.delete_password(
+                                "OneLauncherDDO",
+                                self.winMain.cboAccount.currentText(),
+                            )
+                        else:
+                            keyring.delete_password(
+                                "OneLauncherLOTRO",
+                                self.winMain.cboAccount.currentText(),
+                            )
+                    except:
+                        pass
 
             tempWorld = ""
 
@@ -850,8 +850,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def AddLog(self, message):
         for line in message.splitlines():
+            # Make line red if it is an error
             if line.startswith("[E"):
                 line = '<font color="red">' + message + "</font>"
+
+                # Enable buttons that won't normally get re-enabled if MainWindowThread gets frozen.
+                self.winMain.btnOptions.setEnabled(True)
+                self.winMain.btnSwitchGame.setEnabled(True)
             self.winMain.txtStatus.append(line)
 
     def configThreadFinished(self):
