@@ -116,9 +116,9 @@ class Settings:
 
                             for node in account_node.childNodes:
                                 if node.nodeName == "World":
-                                    self.accountsDictionary[account_name][
-                                        0
-                                    ] = GetText(node.childNodes)
+                                    self.accountsDictionary[account_name][0] = GetText(
+                                        node.childNodes
+                                    )
 
                         self.focusAccount = False
                     elif node.nodeName == "PatchClient":
@@ -126,11 +126,7 @@ class Settings:
 
                 # Disables 64-bit client if it is unavailable for LOTRO
                 if not os.path.exists(
-                    self.gameDir
-                    + os.sep
-                    + "x64"
-                    + os.sep
-                    + "lotroclient64.exe"
+                    self.gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe"
                 ) and self.currentGame.startswith("LOTRO"):
                     self.x86Enabled = False
 
@@ -154,9 +150,7 @@ class Settings:
 
         return success
 
-    def SaveSettings(
-        self, saveAccountDetails=None, savePassword=None, game=None
-    ):
+    def SaveSettings(self, saveAccountDetails=None, savePassword=None, game=None):
         doc = None
 
         # Check if settings directory exists if not create
@@ -182,9 +176,7 @@ class Settings:
         if len(defaultGameNode) > 0:
             defaultGameNode[0].firstChild.nodeValue = current_game
         else:
-            defaultGameNode = doc.createElementNS(
-                EMPTY_NAMESPACE, "Default.Game"
-            )
+            defaultGameNode = doc.createElementNS(EMPTY_NAMESPACE, "Default.Game")
             defaultGameNode.appendChild(doc.createTextNode(current_game))
             settingsNode.appendChild(defaultGameNode)
 
@@ -245,9 +237,7 @@ class Settings:
 
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "World")
                 tempNode.appendChild(
-                    doc.createTextNode(
-                        "%s" % (self.accountsDictionary[account][0])
-                    )
+                    doc.createTextNode("%s" % (self.accountsDictionary[account][0]))
                 )
                 accountNode.appendChild(tempNode)
 
@@ -256,9 +246,7 @@ class Settings:
             gameConfigNode.appendChild(accountsNode)
 
             if savePassword:
-                tempNode = doc.createElementNS(
-                    EMPTY_NAMESPACE, "Save.Password"
-                )
+                tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Save.Password")
                 tempNode.appendChild(doc.createTextNode("True"))
                 gameConfigNode.appendChild(tempNode)
 
