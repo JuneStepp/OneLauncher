@@ -99,12 +99,12 @@ your addon needs to be added.
 
 You don't need to make a compendium file unless you need dependencies to be auto installed. One is auto generated during installation.
 
-Compendium file names follow the format
+Compendium files should be placed inside the top level directory of your addon and their names follow the format:
 
 `{NAME}.{plugin/skin/music}compendium`
 An example is `OneLauncher.plugincompendium`
 
-The compendium files follow the format:
+The contents of compendium files follow the format:
 
 ```
 <?xml version="1.0" ?>
