@@ -689,6 +689,11 @@
                 <string>Ctrl+I</string>
             </property>
         </action>
+        <action name="actionShow_on_lotrointerface">
+            <property name="text">
+                <string>Show on lotrointerface.com</string>
+            </property>
+        </action>
         <zorder>btnBox</zorder>
         <zorder>tabWidget</zorder>
         <zorder>txtSearchBar</zorder>
