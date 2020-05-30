@@ -694,6 +694,11 @@
                 <string>Show on lotrointerface.com</string>
             </property>
         </action>
+        <action name="actionShowSelectedOnLotrointerface">
+            <property name="text">
+                <string>Show selected addons on lotrointerface.com</string>
+            </property>
+        </action>
         <zorder>btnBox</zorder>
         <zorder>tabWidget</zorder>
         <zorder>txtSearchBar</zorder>
