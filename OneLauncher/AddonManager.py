@@ -70,9 +70,7 @@ class AddonManager:
     PLUGINS_URL = "https://api.lotrointerface.com/fav/OneLauncher-Plugins.xml"
     SKINS_URL = "https://api.lotrointerface.com/fav/OneLauncher-Themes.xml"
     MUSIC_URL = "https://api.lotrointerface.com/fav/OneLauncher-Music.xml"
-    SKINS_DDO_URL = (
-        "https://api.lotrointerface.com/fav/OneLauncher-Themes-DDO.xml"
-    )
+    SKINS_DDO_URL = "https://api.lotrointerface.com/fav/OneLauncher-Themes-DDO.xml"
 
     def __init__(self, currentGame, osType, settingsDir, parent):
         self.settingsDir = settingsDir
@@ -93,11 +91,18 @@ class AddonManager:
         )
 
         if currentGame.startswith("DDO"):
-            # Removes plugin and music tabs when using DDO
+            # Removes plugin and music tabs when using DDO.
+            # This has to be done before the tab switching signals are connected.
             self.winAddonManager.tabWidgetFindMore.removeTab(0)
             self.winAddonManager.tabWidgetFindMore.removeTab(1)
             self.winAddonManager.tabWidgetInstalled.removeTab(0)
             self.winAddonManager.tabWidgetInstalled.removeTab(1)
+
+        self.winAddonManager.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.winAddonManager.customContextMenuRequested.connect(self.contextMenuRequested)
+        self.winAddonManager.actionShow_on_lotrointerface.triggered.connect(
+            self.actionShowOnLotrointerfaceSelected
+        )
 
         self.winAddonManager.btnBox.rejected.connect(self.btnBoxActivated)
 
@@ -108,13 +113,9 @@ class AddonManager:
         self.winAddonManager.actionAddonImport.triggered.connect(
             self.actionAddonImportSelected
         )
-        self.winAddonManager.btnAddons.setMenu(
-            self.winAddonManager.btnAddonsMenu
-        )
+        self.winAddonManager.btnAddons.setMenu(self.winAddonManager.btnAddonsMenu)
         self.winAddonManager.btnAddons.clicked.connect(self.btnAddonsClicked)
-        self.winAddonManager.tabWidget.currentChanged.connect(
-            self.tabWidgetIndexChanged
-        )
+        self.winAddonManager.tabWidget.currentChanged.connect(self.tabWidgetIndexChanged)
         self.winAddonManager.tabWidgetInstalled.currentChanged.connect(
             self.tabWidgetInstalledIndexChanged
         )
@@ -145,9 +146,7 @@ class AddonManager:
         if currentGame.startswith("DDO"):
             self.data_folder = osType.settingsDDO
 
-            self.data_folder_skins = os.path.join(
-                self.data_folder, "ui", "skins"
-            )
+            self.data_folder_skins = os.path.join(self.data_folder, "ui", "skins")
 
             self.winAddonManager.tableSkinsInstalled.setObjectName(
                 "tableSkinsDDOInstalled"
@@ -157,12 +156,8 @@ class AddonManager:
         else:
             self.data_folder = osType.settingsLOTRO
 
-            self.data_folder_plugins = os.path.join(
-                self.data_folder, "Plugins"
-            )
-            self.data_folder_skins = os.path.join(
-                self.data_folder, "ui", "skins"
-            )
+            self.data_folder_plugins = os.path.join(self.data_folder, "Plugins")
+            self.data_folder_skins = os.path.join(self.data_folder, "ui", "skins")
             self.data_folder_music = os.path.join(self.data_folder, "Music")
 
             # Loads in installed plugins
@@ -178,8 +173,7 @@ class AddonManager:
             folders_list = glob(os.path.join(self.data_folder_skins, "*", ""))
         else:
             folders_list = [
-                os.path.join(self.data_folder_skins, folder)
-                for folder in folders_list
+                os.path.join(self.data_folder_skins, folder) for folder in folders_list
             ]
 
         skins_list = []
@@ -235,8 +229,7 @@ class AddonManager:
             folders_list = glob(os.path.join(self.data_folder_music, "*", ""))
         else:
             folders_list = [
-                os.path.join(self.data_folder_music, folder)
-                for folder in folders_list
+                os.path.join(self.data_folder_music, folder) for folder in folders_list
             ]
 
         music_list = []
@@ -303,13 +296,10 @@ class AddonManager:
         os.makedirs(self.data_folder_plugins, exist_ok=True)
 
         if not folders_list:
-            folders_list = glob(
-                os.path.join(self.data_folder_plugins, "*", "")
-            )
+            folders_list = glob(os.path.join(self.data_folder_plugins, "*", ""))
         else:
             folders_list = [
-                os.path.join(self.data_folder_plugins, folder)
-                for folder in folders_list
+                os.path.join(self.data_folder_plugins, folder) for folder in folders_list
             ]
 
         # Finds all plugins and adds their .plugincompendium files to a list
@@ -322,18 +312,13 @@ class AddonManager:
                 elif file.endswith(".plugin"):
                     plugins_list.append(os.path.join(folder, file))
 
-        (
-            plugins_list,
-            plugins_list_compendium,
-        ) = self.removeManagedPluginsFromList(
+        (plugins_list, plugins_list_compendium,) = self.removeManagedPluginsFromList(
             plugins_list, plugins_list_compendium
         )
 
         self.addInstalledPluginsToDB(plugins_list, plugins_list_compendium)
 
-    def removeManagedPluginsFromList(
-        self, plugins_list, plugins_list_compendium
-    ):
+    def removeManagedPluginsFromList(self, plugins_list, plugins_list_compendium):
         for plugin in plugins_list_compendium:
             doc = defusedxml.minidom.parse(plugin)
             nodes = doc.getElementsByTagName("Descriptors")[0].childNodes
@@ -344,11 +329,7 @@ class AddonManager:
                         plugins_list.remove(
                             os.path.join(
                                 self.data_folder_plugins,
-                                (
-                                    GetText(node.childNodes).replace(
-                                        "\\", os.sep
-                                    )
-                                ),
+                                (GetText(node.childNodes).replace("\\", os.sep)),
                             )
                         )
                     except ValueError:
@@ -387,9 +368,7 @@ class AddonManager:
             nodes = doc.getElementsByTagName("Dependencies")[0].childNodes
             for node in nodes:
                 if node.nodeName == "dependency":
-                    dependencies = (
-                        dependencies + "," + (GetText(node.childNodes))
-                    )
+                    dependencies = dependencies + "," + (GetText(node.childNodes))
             return dependencies[1:]
 
     # Returns list of common values for compendium or .plugin files
@@ -429,9 +408,7 @@ class AddonManager:
 
     def openDB(self):
         # Connects to addons_cache database and creates it if it does not exist
-        if not os.path.exists(
-            os.path.join(self.settingsDir, "addons_cache.sqlite")
-        ):
+        if not os.path.exists(os.path.join(self.settingsDir, "addons_cache.sqlite")):
             self.conn = sqlite3.connect(
                 os.path.join(self.settingsDir, "addons_cache.sqlite")
             )
@@ -518,9 +495,7 @@ class AddonManager:
                             if len(entry.split("/")) == 2:
                                 if entry.endswith(".plugin"):
                                     plugins_list.append(
-                                        os.path.join(
-                                            self.data_folder_plugins, entry
-                                        )
+                                        os.path.join(self.data_folder_plugins, entry)
                                     )
 
                         if interface_id:
@@ -551,9 +526,7 @@ class AddonManager:
                         return
                     elif entry.endswith(".abc"):
                         if self.currentGame.startswith("DDO"):
-                            self.addLog(
-                                "DDO does not support .abc/music files"
-                            )
+                            self.addLog("DDO does not support .abc/music files")
                             return
 
                         addon_type = "Music"
@@ -602,9 +575,7 @@ class AddonManager:
                         )
                     self.getInstalledSkins(folders_list=[folder])
 
-                    self.installAddonRemoteDependencies(
-                        table.objectName() + "Installed"
-                    )
+                    self.installAddonRemoteDependencies(table.objectName() + "Installed")
                     return
 
     # Installs the dependencies for the last installed addon
@@ -627,17 +598,14 @@ class AddonManager:
                 for item in self.c.execute(  # nosec
                     "SELECT File, Name FROM {table} WHERE InterfaceID = ? AND InterfaceID NOT IN "
                     "(SELECT InterfaceID FROM {table_installed})".format(
-                        table=table.split("Installed")[0],
-                        table_installed=table,
+                        table=table.split("Installed")[0], table_installed=table,
                     ),
                     (dependency,),
                 ):
                     self.installRemoteAddon(item[0], item[1], dependency)
 
     # Gets folder and makes one if there is no root folder
-    def getAddonInstallationFolder(
-        self, entry, addon, files_list, data_folder
-    ):
+    def getAddonInstallationFolder(self, entry, addon, files_list, data_folder):
         # Gets list of base folders in archive
         folders_list = []
         for file in files_list:
@@ -680,9 +648,7 @@ class AddonManager:
             folder = os.path.split(folder)[1]
             if folder in invalid_folder_names:
                 folders = os.path.join(folders, folder)
-                folders_list = glob(
-                    os.path.join(data_folder, folders, "*", "")
-                )
+                folders_list = glob(os.path.join(data_folder, folders, "*", ""))
                 output = self.moveAddonsFromInvalidFolder(
                     data_folder, "", folders_list=folders_list, folders=folders
                 )
@@ -721,24 +687,18 @@ class AddonManager:
                         path, tmp_folder, os.path.split(file)[1]
                     )
                     if os.path.exists(compendium_file_path):
-                        dependencies = self.getAddonDependencies(
-                            compendium_file_path
-                        )
+                        dependencies = self.getAddonDependencies(compendium_file_path)
                         os.remove(compendium_file_path)
                 else:
                     return
 
         for row in self.c.execute(
-            "SELECT * FROM {table} WHERE InterfaceID = ?".format(  # nosec
-                table=table
-            ),
+            "SELECT * FROM {table} WHERE InterfaceID = ?".format(table=table),  # nosec
             (interface_id,),
         ):
             if row[0]:
                 doc = Document()
-                mainNode = doc.createElementNS(
-                    EMPTY_NAMESPACE, addon_type + "Config"
-                )
+                mainNode = doc.createElementNS(EMPTY_NAMESPACE, addon_type + "Config")
                 doc.appendChild(mainNode)
 
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Id")
@@ -759,9 +719,7 @@ class AddonManager:
 
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "InfoUrl")
                 tempNode.appendChild(
-                    doc.createTextNode(
-                        "%s" % (self.getInterfaceInfoUrl(row[5]))
-                    )
+                    doc.createTextNode("%s" % (self.getInterfaceInfoUrl(row[5])))
                 )
                 mainNode.appendChild(tempNode)
 
@@ -771,38 +729,27 @@ class AddonManager:
 
                 if addon_type == "Plugin":
                     # Add addon's .plugin files
-                    descriptorsNode = doc.createElementNS(
-                        EMPTY_NAMESPACE, "Descriptors"
-                    )
+                    descriptorsNode = doc.createElementNS(EMPTY_NAMESPACE, "Descriptors")
                     mainNode.appendChild(descriptorsNode)
                     for file in files_list:
                         if file.endswith(".plugin"):
-                            tempNode = doc.createElementNS(
-                                EMPTY_NAMESPACE, "descriptor"
-                            )
+                            tempNode = doc.createElementNS(EMPTY_NAMESPACE, "descriptor")
                             tempNode.appendChild(
                                 doc.createTextNode(
-                                    "%s"
-                                    % (folder + "\\" + os.path.split(file)[1])
+                                    "%s" % (folder + "\\" + os.path.split(file)[1])
                                 )
                             )
                             descriptorsNode.appendChild(tempNode)
 
                 # Can't add dependencies, because they are defined in compendium files
-                dependenciesNode = doc.createElementNS(
-                    EMPTY_NAMESPACE, "Dependencies"
-                )
+                dependenciesNode = doc.createElementNS(EMPTY_NAMESPACE, "Dependencies")
                 mainNode.appendChild(dependenciesNode)
 
                 # If compendium file from plugin already existed
                 if dependencies:
                     for dependency in dependencies.split(","):
-                        tempNode = doc.createElementNS(
-                            EMPTY_NAMESPACE, "dependency"
-                        )
-                        tempNode.appendChild(
-                            doc.createTextNode("%s" % (dependency))
-                        )
+                        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "dependency")
+                        tempNode.appendChild(doc.createTextNode("%s" % (dependency)))
                         dependenciesNode.appendChild(tempNode)
 
                 # Write compendium file
@@ -812,9 +759,7 @@ class AddonManager:
                     folder = ""
 
                 compendium_file = os.path.join(
-                    path,
-                    folder,
-                    row[0] + "." + addon_type.lower() + "compendium",
+                    path, folder, row[0] + "." + addon_type.lower() + "compendium",
                 )
                 with open(compendium_file, "w+") as file:
                     file.write(doc.toxml())
@@ -835,37 +780,23 @@ class AddonManager:
             if self.winAddonManager.tabWidget.currentIndex() == 0:
                 # If in PluginsInstalled tab
                 if self.winAddonManager.tabWidgetInstalled.currentIndex() == 0:
-                    self.searchDB(
-                        self.winAddonManager.tablePluginsInstalled, text
-                    )
+                    self.searchDB(self.winAddonManager.tablePluginsInstalled, text)
                 # If in SkinsInstalled tab
-                elif (
-                    self.winAddonManager.tabWidgetInstalled.currentIndex() == 1
-                ):
-                    self.searchDB(
-                        self.winAddonManager.tableSkinsInstalled, text
-                    )
+                elif self.winAddonManager.tabWidgetInstalled.currentIndex() == 1:
+                    self.searchDB(self.winAddonManager.tableSkinsInstalled, text)
                 # If in MusicInstalled tab
-                elif (
-                    self.winAddonManager.tabWidgetInstalled.currentIndex() == 2
-                ):
-                    self.searchDB(
-                        self.winAddonManager.tableMusicInstalled, text
-                    )
+                elif self.winAddonManager.tabWidgetInstalled.currentIndex() == 2:
+                    self.searchDB(self.winAddonManager.tableMusicInstalled, text)
             # If in Find More tab
             elif self.winAddonManager.tabWidget.currentIndex() == 1:
                 # If in Plugins tab
                 if self.winAddonManager.tabWidgetFindMore.currentIndex() == 0:
                     self.searchDB(self.winAddonManager.tablePlugins, text)
                 # If in Skins tab
-                elif (
-                    self.winAddonManager.tabWidgetFindMore.currentIndex() == 1
-                ):
+                elif self.winAddonManager.tabWidgetFindMore.currentIndex() == 1:
                     self.searchDB(self.winAddonManager.tableSkins, text)
                 # If in Music tab
-                elif (
-                    self.winAddonManager.tabWidgetFindMore.currentIndex() == 2
-                ):
+                elif self.winAddonManager.tabWidgetFindMore.currentIndex() == 2:
                     self.searchDB(self.winAddonManager.tableMusic, text)
         else:
             # If in Installed tab
@@ -890,9 +821,7 @@ class AddonManager:
                 ):
                     # Detects duplicates from multi-word search
                     duplicate = False
-                    for item in table.findItems(
-                        row[1], QtCore.Qt.MatchExactly
-                    ):
+                    for item in table.findItems(row[1], QtCore.Qt.MatchExactly):
                         if int((table.item(item.row(), 0)).text()) == row[0]:
                             duplicate = True
                             break
@@ -901,9 +830,7 @@ class AddonManager:
         else:
             # Shows all plugins if the search bar is empty
             for row in self.c.execute(
-                "SELECT rowid, * FROM {table}".format(  # nosec
-                    table=table.objectName()
-                )
+                "SELECT rowid, * FROM {table}".format(table=table.objectName())  # nosec
             ):
                 self.addRowToTable(table, row)
 
@@ -1000,8 +927,7 @@ class AddonManager:
 
     def addLog(self, message):
         self.winAddonManager.lblErrors.setText(
-            "Errors: "
-            + str(int(self.winAddonManager.lblErrors.text()[-1]) + 1)
+            "Errors: " + str(int(self.winAddonManager.lblErrors.text()[-1]) + 1)
         )
         self.winAddonManager.txtLog.append(message + "\n")
 
@@ -1012,14 +938,10 @@ class AddonManager:
                 if self.winAddonManager.tabWidgetInstalled.currentIndex() == 0:
                     table = self.winAddonManager.tablePluginsInstalled
                     uninstall_class = self.uninstallPlugins
-                elif (
-                    self.winAddonManager.tabWidgetInstalled.currentIndex() == 1
-                ):
+                elif self.winAddonManager.tabWidgetInstalled.currentIndex() == 1:
                     table = self.winAddonManager.tableSkinsInstalled
                     uninstall_class = self.uninstallSkins
-                elif (
-                    self.winAddonManager.tabWidgetInstalled.currentIndex() == 2
-                ):
+                elif self.winAddonManager.tabWidgetInstalled.currentIndex() == 2:
                     table = self.winAddonManager.tableMusicInstalled
                     uninstall_class = self.uninstallMusic
             else:
@@ -1070,10 +992,7 @@ class AddonManager:
             else:
                 plural, plural1 = "these ", " addons?"
             text = (
-                "Are you sure you want to remove "
-                + plural
-                + str(len(addons))
-                + plural1
+                "Are you sure you want to remove " + plural + str(len(addons)) + plural1
             )
             if self.confirmationPrompt(text, details):
                 return True, addons
@@ -1086,9 +1005,7 @@ class AddonManager:
         if table.selectedItems():
             selected_addons = []
             details = ""
-            for item in table.selectedItems()[
-                0 :: (len(self.COLUMN_LIST) - 4)
-            ]:
+            for item in table.selectedItems()[0 :: (len(self.COLUMN_LIST) - 4)]:
                 # Gets db row id for selected row
                 selected_row = int((table.item(item.row(), 0)).text())
 
@@ -1115,19 +1032,13 @@ class AddonManager:
                 plugin_files = []
                 if self.checkAddonForDependencies(plugin, table):
                     doc = defusedxml.minidom.parse(plugin[1])
-                    nodes = doc.getElementsByTagName("Descriptors")[
-                        0
-                    ].childNodes
+                    nodes = doc.getElementsByTagName("Descriptors")[0].childNodes
                     for node in nodes:
                         if node.nodeName == "descriptor":
                             plugin_files.append(
                                 os.path.join(
                                     self.data_folder_plugins,
-                                    (
-                                        GetText(node.childNodes).replace(
-                                            "\\", os.sep
-                                        )
-                                    ),
+                                    (GetText(node.childNodes).replace("\\", os.sep)),
                                 )
                             )
                 else:
@@ -1145,23 +1056,15 @@ class AddonManager:
 
                             # Removes plugin and all related files
                             if os.path.exists(
-                                self.data_folder_plugins
-                                + os.sep
-                                + plugin_folder
+                                self.data_folder_plugins + os.sep + plugin_folder
                             ):
-                                rmtree(
-                                    self.data_folder_plugins
-                                    + os.sep
-                                    + plugin_folder
-                                )
+                                rmtree(self.data_folder_plugins + os.sep + plugin_folder)
                     if os.path.exists(plugin_file):
                         os.remove(plugin_file)
             if os.path.exists(plugin[1]):
                 os.remove(plugin[1])
 
-            self.setRemoteAddonToUninstalled(
-                plugin, self.winAddonManager.tablePlugins
-            )
+            self.setRemoteAddonToUninstalled(plugin, self.winAddonManager.tablePlugins)
 
         # Reloads plugins
         table.clearContents()
@@ -1175,9 +1078,7 @@ class AddonManager:
                 skin_path = skin[1]
             rmtree(skin_path)
 
-            self.setRemoteAddonToUninstalled(
-                skin, self.winAddonManager.tableSkins
-            )
+            self.setRemoteAddonToUninstalled(skin, self.winAddonManager.tableSkins)
 
         # Reloads skins
         table.clearContents()
@@ -1195,9 +1096,7 @@ class AddonManager:
             else:
                 rmtree(music_path)
 
-            self.setRemoteAddonToUninstalled(
-                music, self.winAddonManager.tableMusic
-            )
+            self.setRemoteAddonToUninstalled(music, self.winAddonManager.tableMusic)
 
         # Reloads music
         table.clearContents()
@@ -1262,15 +1161,11 @@ class AddonManager:
 
     def tabWidgetInstalledIndexChanged(self, index):
         # Load in installed skins on first switch to tab
-        if index == 1 and self.isTableEmpty(
-            self.winAddonManager.tableSkinsInstalled
-        ):
+        if index == 1 and self.isTableEmpty(self.winAddonManager.tableSkinsInstalled):
             self.getInstalledSkins()
 
         # Load in installed music on first switch to tab
-        if index == 2 and self.isTableEmpty(
-            self.winAddonManager.tableMusicInstalled
-        ):
+        if index == 2 and self.isTableEmpty(self.winAddonManager.tableMusicInstalled):
             self.getInstalledMusic()
 
         self.searchSearchBarContents()
@@ -1294,25 +1189,15 @@ class AddonManager:
 
     def loadRemoteAddons(self):
         if self.currentGame.startswith("LOTRO"):
-            self.getRemoteAddons(
-                self.PLUGINS_URL, self.winAddonManager.tablePlugins
-            )
-            self.getRemoteAddons(
-                self.SKINS_URL, self.winAddonManager.tableSkins
-            )
-            self.getRemoteAddons(
-                self.MUSIC_URL, self.winAddonManager.tableMusic
-            )
+            self.getRemoteAddons(self.PLUGINS_URL, self.winAddonManager.tablePlugins)
+            self.getRemoteAddons(self.SKINS_URL, self.winAddonManager.tableSkins)
+            self.getRemoteAddons(self.MUSIC_URL, self.winAddonManager.tableMusic)
         else:
-            self.getRemoteAddons(
-                self.SKINS_DDO_URL, self.winAddonManager.tableSkins
-            )
+            self.getRemoteAddons(self.SKINS_DDO_URL, self.winAddonManager.tableSkins)
 
     def getRemoteAddons(self, favorites_url, table):
         # Clears rows from db table
-        self.c.execute(
-            "DELETE FROM {table}".format(table=table.objectName())  # nosec
-        )
+        self.c.execute("DELETE FROM {table}".format(table=table.objectName()))  # nosec
 
         # Gets list of Interface IDs for installed addons
         installed_IDs = []
@@ -1360,9 +1245,7 @@ class AddonManager:
     # Downloads file from url to path and shows progress with self.handleDownloadProgress
     def downloader(self, url, path):
         if url.lower().startswith("http"):
-            request.urlretrieve(  # nosec
-                url, path, self.handleDownloadProgress
-            )
+            request.urlretrieve(url, path, self.handleDownloadProgress)  # nosec
         else:
             raise ValueError from None
 
@@ -1376,3 +1259,60 @@ class AddonManager:
     def Run(self):
         self.winAddonManager.exec()
         self.closeDB()
+
+    def contextMenuRequested(self, cursor_position):
+        global_cursor_position = self.winAddonManager.mapToGlobal(cursor_position)
+
+        # It is not a local variable, because of garbage collection
+        self.winAddonManager.contextMenu = self.getContextMenu(global_cursor_position)
+        if self.winAddonManager.contextMenu:
+            self.winAddonManager.contextMenu.popup(global_cursor_position)
+
+    def getContextMenu(self, global_cursor_position):
+        selected_widget = QtWidgets.QApplication.instance().widgetAt(
+            global_cursor_position
+        )
+
+        parent_widget = selected_widget.parent()
+        if parent_widget.objectName().startswith("table"):
+            self.context_menu_selected_table = parent_widget
+            selected_item = self.context_menu_selected_table.itemAt(
+                selected_widget.mapFromGlobal(global_cursor_position)
+            )
+            if selected_item:
+                selected_row = selected_item.row()
+                # If addon has online page
+                self.context_menu_selected_interface_ID = self.getTableRowInterfaceID(
+                    self.context_menu_selected_table, selected_row
+                )
+                if self.context_menu_selected_interface_ID:
+                    menu = QtWidgets.QMenu()
+                    menu.addAction(self.winAddonManager.actionShow_on_lotrointerface)
+                    return menu
+
+    def getTableRowInterfaceID(self, table, row):
+        addon_db_id = table.item(row, 0).text()
+
+        for interface_ID in self.c.execute(
+            "SELECT InterfaceID FROM {table} WHERE rowid = ?".format(  # nosec
+                table=table.objectName()
+            ),
+            (addon_db_id,),
+        ):
+            if interface_ID[0]:
+                return interface_ID[0]
+            else:
+                return None
+
+    def actionShowOnLotrointerfaceSelected(self):
+        table = self.context_menu_selected_table.objectName().split("Installed")[0]
+
+        for addon_url in self.c.execute(
+            "SELECT File FROM {table} WHERE InterfaceID = ?".format(  # nosec
+                table=table
+            ),
+            (self.context_menu_selected_interface_ID,),
+        ):
+            if addon_url[0]:
+                url = self.getInterfaceInfoUrl(addon_url[0])
+                QtGui.QDesktopServices.openUrl(url)
