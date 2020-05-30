@@ -100,7 +100,7 @@ class AddonManager:
 
         self.winAddonManager.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.winAddonManager.customContextMenuRequested.connect(self.contextMenuRequested)
-        self.winAddonManager.actionShow_on_lotrointerface.triggered.connect(
+        self.winAddonManager.actionShowOnLotrointerface.triggered.connect(
             self.actionShowOnLotrointerfaceSelected
         )
 
@@ -1287,7 +1287,7 @@ class AddonManager:
                 )
                 if self.context_menu_selected_interface_ID:
                     menu = QtWidgets.QMenu()
-                    menu.addAction(self.winAddonManager.actionShow_on_lotrointerface)
+                    menu.addAction(self.winAddonManager.actionShowOnLotrointerface)
                     return menu
 
     def getTableRowInterfaceID(self, table, row):
@@ -1308,9 +1308,7 @@ class AddonManager:
         table = self.context_menu_selected_table.objectName().split("Installed")[0]
 
         for addon_url in self.c.execute(
-            "SELECT File FROM {table} WHERE InterfaceID = ?".format(  # nosec
-                table=table
-            ),
+            "SELECT File FROM {table} WHERE InterfaceID = ?".format(table=table),  # nosec
             (self.context_menu_selected_interface_ID,),
         ):
             if addon_url[0]:
