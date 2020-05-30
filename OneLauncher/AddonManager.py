@@ -110,8 +110,14 @@ class AddonManager:
         self.winAddonManager.btnAddonsMenu.addAction(
             self.winAddonManager.actionAddonImport
         )
+        self.winAddonManager.btnAddonsMenu.addAction(
+            self.winAddonManager.actionShowSelectedOnLotrointerface
+        )
         self.winAddonManager.actionAddonImport.triggered.connect(
             self.actionAddonImportSelected
+        )
+        self.winAddonManager.actionShowSelectedOnLotrointerface.triggered.connect(
+            self.showSelectedOnLotrointerface
         )
         self.winAddonManager.btnAddons.setMenu(self.winAddonManager.btnAddonsMenu)
         self.winAddonManager.btnAddons.clicked.connect(self.btnAddonsClicked)
@@ -932,21 +938,16 @@ class AddonManager:
         self.winAddonManager.txtLog.append(message + "\n")
 
     def btnAddonsClicked(self):
+        table = self.getCurrentTable()
+
         # If on installed tab which means remove addons
-        if self.winAddonManager.tabWidget.currentIndex() == 0:
-            if self.currentGame.startswith("LOTRO"):
-                if self.winAddonManager.tabWidgetInstalled.currentIndex() == 0:
-                    table = self.winAddonManager.tablePluginsInstalled
-                    uninstall_class = self.uninstallPlugins
-                elif self.winAddonManager.tabWidgetInstalled.currentIndex() == 1:
-                    table = self.winAddonManager.tableSkinsInstalled
-                    uninstall_class = self.uninstallSkins
-                elif self.winAddonManager.tabWidgetInstalled.currentIndex() == 2:
-                    table = self.winAddonManager.tableMusicInstalled
-                    uninstall_class = self.uninstallMusic
-            else:
-                table = self.winAddonManager.tableSkinsInstalled
+        if table.objectName().endswith("Installed"):
+            if "Skins" in table.objectName():
                 uninstall_class = self.uninstallSkins
+            elif "Plugins" in table.objectName():
+                uninstall_class = self.uninstallPlugins
+            elif "Music" in table.objectName():
+                uninstall_class = self.uninstallMusic
 
             uninstallConfirm, addons = self.getUninstallConfirm(table)
             if uninstallConfirm:
@@ -957,15 +958,7 @@ class AddonManager:
             self.installRemoteAddons()
 
     def installRemoteAddons(self):
-        if self.currentGame.startswith("DDO"):
-            table = self.winAddonManager.tableSkins
-        else:
-            if self.winAddonManager.tabWidgetFindMore.currentIndex() == 0:
-                table = self.winAddonManager.tablePlugins
-            elif self.winAddonManager.tabWidgetFindMore.currentIndex() == 1:
-                table = self.winAddonManager.tableSkins
-            elif self.winAddonManager.tabWidgetFindMore.currentIndex() == 2:
-                table = self.winAddonManager.tableMusic
+        table = self.getCurrentTable()
 
         addons, details = self.getSelectedAddons(table)
         if addons and details:
@@ -975,6 +968,31 @@ class AddonManager:
 
             self.resetRemoteAddonsTables()
             self.searchSearchBarContents()
+
+    def getCurrentTable(self):
+        """Return the table that the user currently sees based on what tabs they are in"""
+        if self.winAddonManager.tabWidget.currentIndex() == 0:
+            if self.currentGame.startswith("LOTRO"):
+                if self.winAddonManager.tabWidgetInstalled.currentIndex() == 0:
+                    table = self.winAddonManager.tablePluginsInstalled
+                elif self.winAddonManager.tabWidgetInstalled.currentIndex() == 1:
+                    table = self.winAddonManager.tableSkinsInstalled
+                elif self.winAddonManager.tabWidgetInstalled.currentIndex() == 2:
+                    table = self.winAddonManager.tableMusicInstalled
+            else:
+                table = self.winAddonManager.tableSkinsInstalled
+        elif self.winAddonManager.tabWidget.currentIndex() == 1:
+            if self.currentGame.startswith("DDO"):
+                table = self.winAddonManager.tableSkins
+            else:
+                if self.winAddonManager.tabWidgetFindMore.currentIndex() == 0:
+                    table = self.winAddonManager.tablePlugins
+                elif self.winAddonManager.tabWidgetFindMore.currentIndex() == 1:
+                    table = self.winAddonManager.tableSkins
+                elif self.winAddonManager.tabWidgetFindMore.currentIndex() == 2:
+                    table = self.winAddonManager.tableMusic
+
+        return table
 
     def installRemoteAddon(self, url, name, interface_id):
         path = os.path.join(self.data_folder, "Downloads", name + ".zip")
@@ -1305,12 +1323,31 @@ class AddonManager:
                 return None
 
     def actionShowOnLotrointerfaceSelected(self):
-        table = self.context_menu_selected_table.objectName().split("Installed")[0]
+        table = self.context_menu_selected_table
+        interface_ID = self.context_menu_selected_interface_ID
+
+        url = self.getAddonInfoUrlFromInterfaceID(interface_ID, table)
+
+        if url:
+            QtGui.QDesktopServices.openUrl(url)
+
+    def getAddonInfoUrlFromInterfaceID(self, interface_ID, table):
+        # URL is only in remote version of table
+        table = table.objectName().split("Installed")[0]
 
         for addon_url in self.c.execute(
             "SELECT File FROM {table} WHERE InterfaceID = ?".format(table=table),  # nosec
-            (self.context_menu_selected_interface_ID,),
+            (interface_ID,),
         ):
             if addon_url[0]:
                 url = self.getInterfaceInfoUrl(addon_url[0])
-                QtGui.QDesktopServices.openUrl(url)
+
+                return url
+
+    def showSelectedOnLotrointerface(self):
+        table = self.getCurrentTable()
+        selected_addons = self.getSelectedAddons(table)
+
+        for addon in selected_addons[0]:
+            url = self.getAddonInfoUrlFromInterfaceID(addon[0], table)
+            QtGui.QDesktopServices.openUrl(url)
