@@ -97,8 +97,8 @@ class AddonManager:
         if currentGame.startswith("DDO"):
             # Removes plugin and music tabs when using DDO.
             # This has to be done before the tab switching signals are connected.
-            self.winAddonManager.tabWidgetFindMore.removeTab(0)
-            self.winAddonManager.tabWidgetFindMore.removeTab(1)
+            self.winAddonManager.tabWidgetRemote.removeTab(0)
+            self.winAddonManager.tabWidgetRemote.removeTab(1)
             self.winAddonManager.tabWidgetInstalled.removeTab(0)
             self.winAddonManager.tabWidgetInstalled.removeTab(1)
 
@@ -123,13 +123,36 @@ class AddonManager:
         self.winAddonManager.actionShowSelectedOnLotrointerface.triggered.connect(
             self.showSelectedOnLotrointerface
         )
+        self.winAddonManager.actionShowAddonInFileManager.triggered.connect(
+            self.actionShowAddonInFileManagerSelected
+        )
+        self.winAddonManager.btnAddonsMenu.addAction(
+            self.winAddonManager.actionShowPluginsFolderInFileManager
+        )
+        self.winAddonManager.actionShowPluginsFolderInFileManager.triggered.connect(
+            self.actionShowPluginsFolderSelected
+        )
+        self.winAddonManager.btnAddonsMenu.addAction(
+            self.winAddonManager.actionShowSkinsFolderInFileManager
+        )
+        self.winAddonManager.actionShowSkinsFolderInFileManager.triggered.connect(
+            self.actionShowSkinsFolderSelected
+        )
+        self.winAddonManager.btnAddonsMenu.addAction(
+            self.winAddonManager.actionShowMusicFolderInFileManager
+        )
+        self.winAddonManager.actionShowMusicFolderInFileManager.triggered.connect(
+            self.actionShowMusicFolderSelected
+        )
+
+        self.updateAddonFolderActions(0)
+
         self.winAddonManager.actionInstallAddon.triggered.connect(
             self.actionInstallAddonSelected
         )
         self.winAddonManager.actionUninstallAddon.triggered.connect(
             self.actionUninstallAddonSelected
         )
-        self.winAddonManager.actionShowAddonInFileManager.triggered.connect(self.actionShowAddonInFileManagerSelected)
 
         self.winAddonManager.btnAddons.setMenu(self.winAddonManager.btnAddonsMenu)
         self.winAddonManager.btnAddons.clicked.connect(self.btnAddonsClicked)
@@ -137,7 +160,7 @@ class AddonManager:
         self.winAddonManager.tabWidgetInstalled.currentChanged.connect(
             self.tabWidgetInstalledIndexChanged
         )
-        self.winAddonManager.tabWidgetFindMore.currentChanged.connect(
+        self.winAddonManager.tabWidgetRemote.currentChanged.connect(
             self.tabWidgetRemoteIndexChanged
         )
 
@@ -796,25 +819,28 @@ class AddonManager:
         if self.currentGame.startswith("LOTRO"):
             # If in Installed tab
             if self.winAddonManager.tabWidget.currentIndex() == 0:
+                index_installed = self.winAddonManager.tabWidgetInstalled.currentIndex()
+
                 # If in PluginsInstalled tab
-                if self.winAddonManager.tabWidgetInstalled.currentIndex() == 0:
+                if index_installed == 0:
                     self.searchDB(self.winAddonManager.tablePluginsInstalled, text)
                 # If in SkinsInstalled tab
-                elif self.winAddonManager.tabWidgetInstalled.currentIndex() == 1:
+                elif index_installed == 1:
                     self.searchDB(self.winAddonManager.tableSkinsInstalled, text)
                 # If in MusicInstalled tab
-                elif self.winAddonManager.tabWidgetInstalled.currentIndex() == 2:
+                elif index_installed == 2:
                     self.searchDB(self.winAddonManager.tableMusicInstalled, text)
             # If in Find More tab
             elif self.winAddonManager.tabWidget.currentIndex() == 1:
+                index_remote = self.winAddonManager.tabWidgetRemote.currentIndex()
                 # If in Plugins tab
-                if self.winAddonManager.tabWidgetFindMore.currentIndex() == 0:
+                if index_remote == 0:
                     self.searchDB(self.winAddonManager.tablePlugins, text)
                 # If in Skins tab
-                elif self.winAddonManager.tabWidgetFindMore.currentIndex() == 1:
+                elif index_remote == 1:
                     self.searchDB(self.winAddonManager.tableSkins, text)
                 # If in Music tab
-                elif self.winAddonManager.tabWidgetFindMore.currentIndex() == 2:
+                elif index_remote == 2:
                     self.searchDB(self.winAddonManager.tableMusic, text)
         else:
             # If in Installed tab
@@ -863,8 +889,8 @@ class AddonManager:
         self.searchDB(table, self.winAddonManager.txtSearchBar.text())
 
     def resetRemoteAddonsTables(self):
-        for i in range(self.winAddonManager.tabWidgetFindMore.count()):
-            tab = self.winAddonManager.tabWidgetFindMore.widget(i)
+        for i in range(self.winAddonManager.tabWidgetRemote.count()):
+            tab = self.winAddonManager.tabWidgetRemote.widget(i)
             table = getattr(
                 self.winAddonManager, tab.objectName().replace("tab", "table")
             )
@@ -989,11 +1015,13 @@ class AddonManager:
         """Return the table that the user currently sees based on what tabs they are in"""
         if self.winAddonManager.tabWidget.currentIndex() == 0:
             if self.currentGame.startswith("LOTRO"):
-                if self.winAddonManager.tabWidgetInstalled.currentIndex() == 0:
+                index_installed = self.winAddonManager.tabWidgetInstalled.currentIndex()
+
+                if index_installed == 0:
                     table = self.winAddonManager.tablePluginsInstalled
-                elif self.winAddonManager.tabWidgetInstalled.currentIndex() == 1:
+                elif index_installed == 1:
                     table = self.winAddonManager.tableSkinsInstalled
-                elif self.winAddonManager.tabWidgetInstalled.currentIndex() == 2:
+                elif index_installed == 2:
                     table = self.winAddonManager.tableMusicInstalled
             else:
                 table = self.winAddonManager.tableSkinsInstalled
@@ -1001,11 +1029,13 @@ class AddonManager:
             if self.currentGame.startswith("DDO"):
                 table = self.winAddonManager.tableSkins
             else:
-                if self.winAddonManager.tabWidgetFindMore.currentIndex() == 0:
+                index_remote = self.winAddonManager.tabWidgetRemote.currentIndex()
+
+                if index_remote == 0:
                     table = self.winAddonManager.tablePlugins
-                elif self.winAddonManager.tabWidgetFindMore.currentIndex() == 1:
+                elif index_remote == 1:
                     table = self.winAddonManager.tableSkins
-                elif self.winAddonManager.tabWidgetFindMore.currentIndex() == 2:
+                elif index_remote == 2:
                     table = self.winAddonManager.tableMusic
 
         return table
@@ -1194,6 +1224,8 @@ class AddonManager:
         self.txtSearchBarTextChanged(user_search)
 
     def tabWidgetInstalledIndexChanged(self, index):
+        self.updateAddonFolderActions(index)
+
         # Load in installed skins on first switch to tab
         if index == 1 and self.isTableEmpty(self.winAddonManager.tableSkinsInstalled):
             self.getInstalledSkins()
@@ -1205,15 +1237,23 @@ class AddonManager:
         self.searchSearchBarContents()
 
     def tabWidgetRemoteIndexChanged(self, index):
+        self.updateAddonFolderActions(index)
+
         self.searchSearchBarContents()
 
     def tabWidgetIndexChanged(self, index):
         if index == 0:
             self.winAddonManager.btnAddons.setText("-")
             self.winAddonManager.btnAddons.setToolTip("Remove addons")
-        else:
+
+            index_installed = self.winAddonManager.tabWidgetInstalled.currentIndex()
+            self.updateAddonFolderActions(index_installed)
+        elif index == 1:
             self.winAddonManager.btnAddons.setText("+")
             self.winAddonManager.btnAddons.setToolTip("Install addons")
+
+            index_remote = self.winAddonManager.tabWidgetRemote.currentIndex()
+            self.updateAddonFolderActions(index_remote)
 
             # Populates remote addons tables if not done already
             if self.isTableEmpty(self.winAddonManager.tableSkins):
@@ -1393,9 +1433,9 @@ class AddonManager:
         table = self.getRemoteOrLocalTableFromOne(table, remote=False)
 
         for file in self.c.execute(
-            "SELECT File FROM {table} WHERE InterfaceID = ?".format(
+            "SELECT File FROM {table} WHERE InterfaceID = ?".format(  # nosec
                 table=table.objectName()
-            ),  # nosec
+            ),
             (interface_ID,),
         ):
             if file[0]:
@@ -1484,3 +1524,34 @@ class AddonManager:
 
         addon_folder = os.path.dirname(addon[1])
         QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(addon_folder))
+
+    def actionShowPluginsFolderSelected(self):
+        folder = self.data_folder_plugins
+        QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(folder))
+
+    def actionShowSkinsFolderSelected(self):
+        folder = self.data_folder_skins
+        QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(folder))
+
+    def actionShowMusicFolderSelected(self):
+        folder = self.data_folder_music
+        QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(folder))
+
+    def updateAddonFolderActions(self, index):
+        """Makes only action for opening addon folder associated with tab visible"""
+        if self.currentGame.startswith("DDO"):
+            self.winAddonManager.actionShowPluginsFolderInFileManager.setVisible(False)
+            self.winAddonManager.actionShowSkinsFolderInFileManager.setVisible(True)
+            self.winAddonManager.actionShowMusicFolderInFileManager.setVisible(False)
+        elif index == 0:
+            self.winAddonManager.actionShowPluginsFolderInFileManager.setVisible(True)
+            self.winAddonManager.actionShowSkinsFolderInFileManager.setVisible(False)
+            self.winAddonManager.actionShowMusicFolderInFileManager.setVisible(False)
+        elif index == 1:
+            self.winAddonManager.actionShowPluginsFolderInFileManager.setVisible(False)
+            self.winAddonManager.actionShowSkinsFolderInFileManager.setVisible(True)
+            self.winAddonManager.actionShowMusicFolderInFileManager.setVisible(False)
+        elif index == 2:
+            self.winAddonManager.actionShowPluginsFolderInFileManager.setVisible(False)
+            self.winAddonManager.actionShowSkinsFolderInFileManager.setVisible(False)
+            self.winAddonManager.actionShowMusicFolderInFileManager.setVisible(True)

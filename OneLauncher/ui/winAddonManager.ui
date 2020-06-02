@@ -353,7 +353,7 @@
                 <attribute name="title">
                     <string>Find More</string>
                 </attribute>
-                <widget class="QTabWidget" name="tabWidgetFindMore">
+                <widget class="QTabWidget" name="tabWidgetRemote">
                     <property name="geometry">
                         <rect>
                             <x>0</x>
@@ -709,9 +709,24 @@
                 <string>Uninstall</string>
             </property>
         </action>
-         <action name="actionShowAddonInFileManager">
+        <action name="actionShowAddonInFileManager">
             <property name="text">
                 <string>Show in file manager</string>
+            </property>
+        </action>
+        <action name="actionShowPluginsFolderInFileManager">
+            <property name="text">
+                <string>Show plugins folder in file manager</string>
+            </property>
+        </action>
+        <action name="actionShowSkinsFolderInFileManager">
+            <property name="text">
+                <string>Show skins folder in file manager</string>
+            </property>
+        </action>
+        <action name="actionShowMusicFolderInFileManager">
+            <property name="text">
+                <string>Show music folder in file manager</string>
             </property>
         </action>
         <zorder>btnBox</zorder>
