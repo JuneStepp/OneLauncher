@@ -699,6 +699,16 @@
                 <string>Show selected addons on lotrointerface.com</string>
             </property>
         </action>
+        <action name="actionInstallAddon">
+            <property name="text">
+                <string>Install</string>
+            </property>
+        </action>
+        <action name="actionUninstallAddon">
+            <property name="text">
+                <string>Uninstall</string>
+            </property>
+        </action>
         <zorder>btnBox</zorder>
         <zorder>tabWidget</zorder>
         <zorder>txtSearchBar</zorder>

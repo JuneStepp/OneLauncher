@@ -90,6 +90,10 @@ class AddonManager:
             QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint
         )
 
+        # Creates backround color for addons that are installed already in remote tables
+        self.installed_addons_color = QtGui.QColor()
+        self.installed_addons_color.setRgb(63, 73, 83)
+
         if currentGame.startswith("DDO"):
             # Removes plugin and music tabs when using DDO.
             # This has to be done before the tab switching signals are connected.
@@ -119,6 +123,13 @@ class AddonManager:
         self.winAddonManager.actionShowSelectedOnLotrointerface.triggered.connect(
             self.showSelectedOnLotrointerface
         )
+        self.winAddonManager.actionInstallAddon.triggered.connect(
+            self.actionInstallAddonSelected
+        )
+        self.winAddonManager.actionUninstallAddon.triggered.connect(
+            self.actionUninstallAddonSelected
+        )
+
         self.winAddonManager.btnAddons.setMenu(self.winAddonManager.btnAddonsMenu)
         self.winAddonManager.btnAddons.clicked.connect(self.btnAddonsClicked)
         self.winAddonManager.tabWidget.currentChanged.connect(self.tabWidgetIndexChanged)
@@ -880,8 +891,6 @@ class AddonManager:
         table.setSortingEnabled(False)
 
         disable_row = False
-        installed_color = QtGui.QColor()
-        installed_color.setRgb(63, 73, 83)
 
         rows = table.rowCount()
         table.setRowCount(rows + 1)
@@ -906,7 +915,7 @@ class AddonManager:
         if disable_row:
             for i in range(table.columnCount()):
                 table.item(rows, i).setFlags(QtCore.Qt.ItemIsEnabled)
-                table.item(rows, i).setBackground(installed_color)
+                table.item(rows, i).setBackground(self.installed_addons_color)
 
         table.setSortingEnabled(True)
 
@@ -942,20 +951,26 @@ class AddonManager:
 
         # If on installed tab which means remove addons
         if table.objectName().endswith("Installed"):
-            if "Skins" in table.objectName():
-                uninstall_class = self.uninstallSkins
-            elif "Plugins" in table.objectName():
-                uninstall_class = self.uninstallPlugins
-            elif "Music" in table.objectName():
-                uninstall_class = self.uninstallMusic
+            uninstall_function = self.getUninstallFunctionFromTable(table)
 
             uninstallConfirm, addons = self.getUninstallConfirm(table)
             if uninstallConfirm:
-                uninstall_class(addons, table)
+                uninstall_function(addons, table)
                 self.resetRemoteAddonsTables()
 
         elif self.winAddonManager.tabWidget.currentIndex() == 1:
             self.installRemoteAddons()
+
+    def getUninstallFunctionFromTable(self, table):
+        """Gives function to uninstall addon type for table"""
+        if "Skins" in table.objectName():
+            uninstall_function = self.uninstallSkins
+        elif "Plugins" in table.objectName():
+            uninstall_function = self.uninstallPlugins
+        elif "Music" in table.objectName():
+            uninstall_function = self.uninstallMusic
+
+        return uninstall_function
 
     def installRemoteAddons(self):
         table = self.getCurrentTable()
@@ -1102,8 +1117,8 @@ class AddonManager:
         table.clearContents()
         self.getInstalledSkins()
 
-    def uninstallMusic(self, musics, table):
-        for music in musics:
+    def uninstallMusic(self, music_list, table):
+        for music in music_list:
             if music[1].endswith(".musiccompendium"):
                 music_path = os.path.split(music[1])[0]
             else:
@@ -1287,6 +1302,8 @@ class AddonManager:
             self.winAddonManager.contextMenu.popup(global_cursor_position)
 
     def getContextMenu(self, global_cursor_position):
+        menu = QtWidgets.QMenu()
+
         selected_widget = QtWidgets.QApplication.instance().widgetAt(
             global_cursor_position
         )
@@ -1298,15 +1315,30 @@ class AddonManager:
                 selected_widget.mapFromGlobal(global_cursor_position)
             )
             if selected_item:
-                selected_row = selected_item.row()
+                self.context_menu_selected_row = selected_item.row()
+
                 # If addon has online page
-                self.context_menu_selected_interface_ID = self.getTableRowInterfaceID(
-                    self.context_menu_selected_table, selected_row
+                interface_ID = self.getTableRowInterfaceID(
+                    self.context_menu_selected_table, self.context_menu_selected_row
                 )
-                if self.context_menu_selected_interface_ID:
-                    menu = QtWidgets.QMenu()
+                if interface_ID:
                     menu.addAction(self.winAddonManager.actionShowOnLotrointerface)
-                    return menu
+
+                # If addon is installed
+                if self.context_menu_selected_table.objectName().endswith("Installed"):
+                    menu.addAction(self.winAddonManager.actionUninstallAddon)
+                else:
+                    # If addon in remote table is installed
+                    if selected_item.background().color() == self.installed_addons_color:
+                        menu.addAction(self.winAddonManager.actionUninstallAddon)
+                    else:
+                        menu.addAction(self.winAddonManager.actionInstallAddon)
+
+        # Only return menu if something has been added to it
+        if not menu.isEmpty():
+            return menu
+        else:
+            return None
 
     def getTableRowInterfaceID(self, table, row):
         addon_db_id = table.item(row, 0).text()
@@ -1324,30 +1356,116 @@ class AddonManager:
 
     def actionShowOnLotrointerfaceSelected(self):
         table = self.context_menu_selected_table
-        interface_ID = self.context_menu_selected_interface_ID
+        row = self.context_menu_selected_row
+        interface_ID = self.getAddonListObjectFromRow(table, row)[0]
 
-        url = self.getAddonInfoUrlFromInterfaceID(interface_ID, table)
+        url = self.getAddonUrlFromInterfaceID(interface_ID, table)
 
         if url:
             QtGui.QDesktopServices.openUrl(url)
 
-    def getAddonInfoUrlFromInterfaceID(self, interface_ID, table):
+    def getAddonUrlFromInterfaceID(self, interface_ID, table, download_url=False):
+        """Returns info URL for addon or download URL if download_url=True"""
         # URL is only in remote version of table
-        table = table.objectName().split("Installed")[0]
+        table = self.getRemoteOrLocalTableFromOne(table, remote=True)
 
         for addon_url in self.c.execute(
-            "SELECT File FROM {table} WHERE InterfaceID = ?".format(table=table),  # nosec
+            "SELECT File FROM {table} WHERE InterfaceID = ?".format(  # nosec
+                table=table.objectName()
+            ),
             (interface_ID,),
         ):
             if addon_url[0]:
-                url = self.getInterfaceInfoUrl(addon_url[0])
+                if not download_url:
+                    url = self.getInterfaceInfoUrl(addon_url[0])
+                else:
+                    url = addon_url[0]
 
                 return url
+
+    def getAddonFileFromInterfaceID(self, interface_ID, table):
+        """Returns file location of addon"""
+        # File is only in "Installed" version of table. The "File" field
+        # has the download url in the remote tables.
+        table = self.getRemoteOrLocalTableFromOne(table, remote=False)
+
+        for file in self.c.execute(
+            "SELECT File FROM {table} WHERE InterfaceID = ?".format(
+                table=table.objectName()
+            ),  # nosec
+            (interface_ID,),
+        ):
+            if file[0]:
+                return file[0]
 
     def showSelectedOnLotrointerface(self):
         table = self.getCurrentTable()
         selected_addons = self.getSelectedAddons(table)
 
         for addon in selected_addons[0]:
-            url = self.getAddonInfoUrlFromInterfaceID(addon[0], table)
+            url = self.getAddonUrlFromInterfaceID(addon[0], table)
             QtGui.QDesktopServices.openUrl(url)
+
+    def actionInstallAddonSelected(self):
+        """
+        Installs addon selected by context menu. This function
+        should only be called while in one of the remote/find more
+        tabs of the UI.
+        """
+        table = self.context_menu_selected_table
+        row = self.context_menu_selected_row
+        addon = self.getAddonListObjectFromRow(table, row)
+
+        self.installRemoteAddon(addon[1], addon[2], addon[0])
+        self.setRemoteAddonToInstalled(addon, table)
+
+        self.resetRemoteAddonsTables()
+        self.searchSearchBarContents()
+
+    def actionUninstallAddonSelected(self):
+        table = self.context_menu_selected_table
+        row = self.context_menu_selected_row
+        addon = self.getAddonListObjectFromRow(table, row, remote=False)
+
+        if self.confirmationPrompt(
+            "Are you sure you want to uninstall this addon?", addon[2]
+        ):
+            uninstall_function = self.getUninstallFunctionFromTable(table)
+
+            table_installed = self.getRemoteOrLocalTableFromOne(table, remote=False)
+            uninstall_function([addon], table_installed)
+
+            self.resetRemoteAddonsTables()
+            self.searchSearchBarContents()
+
+    def getAddonListObjectFromRow(self, table, row, remote=True):
+        interface_ID = self.getTableRowInterfaceID(table, row)
+
+        if remote:
+            table_remote = self.getRemoteOrLocalTableFromOne(table, remote=True)
+            file = self.getAddonUrlFromInterfaceID(
+                interface_ID, table_remote, download_url=True
+            )
+        else:
+            table_installed = self.getRemoteOrLocalTableFromOne(table, remote=False)
+            file = self.getAddonFileFromInterfaceID(interface_ID, table_installed)
+
+        addon = [interface_ID, file, table.item(row, 1).text()]
+
+        return addon
+
+    def getRemoteOrLocalTableFromOne(self, input_table, remote=False):
+        table_name = input_table.objectName()
+        # UI table object names are renamed with DDO in them when the current game is
+        # DDO for DB access, but the callable name for the UI tables stays the same.
+        table_name = table_name.replace("DDO", "")
+
+        if remote:
+            table = getattr(self.winAddonManager, table_name.split("Installed")[0])
+            return table
+        else:
+            if table_name.endswith("Installed"):
+                table = input_table
+            else:
+                table = getattr(self.winAddonManager, table_name + "Installed")
+            return table
