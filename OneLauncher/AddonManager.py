@@ -129,6 +129,7 @@ class AddonManager:
         self.winAddonManager.actionUninstallAddon.triggered.connect(
             self.actionUninstallAddonSelected
         )
+        self.winAddonManager.actionShowAddonInFileManager.triggered.connect(self.actionShowAddonInFileManagerSelected)
 
         self.winAddonManager.btnAddons.setMenu(self.winAddonManager.btnAddonsMenu)
         self.winAddonManager.btnAddons.clicked.connect(self.btnAddonsClicked)
@@ -1327,10 +1328,12 @@ class AddonManager:
                 # If addon is installed
                 if self.context_menu_selected_table.objectName().endswith("Installed"):
                     menu.addAction(self.winAddonManager.actionUninstallAddon)
+                    menu.addAction(self.winAddonManager.actionShowAddonInFileManager)
                 else:
                     # If addon in remote table is installed
                     if selected_item.background().color() == self.installed_addons_color:
                         menu.addAction(self.winAddonManager.actionUninstallAddon)
+                        menu.addAction(self.winAddonManager.actionShowAddonInFileManager)
                     else:
                         menu.addAction(self.winAddonManager.actionInstallAddon)
 
@@ -1439,6 +1442,10 @@ class AddonManager:
             self.searchSearchBarContents()
 
     def getAddonListObjectFromRow(self, table, row, remote=True):
+        """
+        Gives list of information for addon. The information is:
+        [Interface ID, File/URL (depending on if remote= True or False), Name]
+        """
         interface_ID = self.getTableRowInterfaceID(table, row)
 
         if remote:
@@ -1469,3 +1476,11 @@ class AddonManager:
             else:
                 table = getattr(self.winAddonManager, table_name + "Installed")
             return table
+
+    def actionShowAddonInFileManagerSelected(self):
+        table = self.context_menu_selected_table
+        row = self.context_menu_selected_row
+        addon = self.getAddonListObjectFromRow(table, row, remote=False)
+
+        addon_folder = os.path.dirname(addon[1])
+        QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(addon_folder))

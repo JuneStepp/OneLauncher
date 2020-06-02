@@ -709,6 +709,11 @@
                 <string>Uninstall</string>
             </property>
         </action>
+         <action name="actionShowAddonInFileManager">
+            <property name="text">
+                <string>Show in file manager</string>
+            </property>
+        </action>
         <zorder>btnBox</zorder>
         <zorder>tabWidget</zorder>
         <zorder>txtSearchBar</zorder>
