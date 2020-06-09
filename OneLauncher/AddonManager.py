@@ -1495,7 +1495,13 @@ class AddonManager:
             )
         else:
             table_installed = self.getRemoteOrLocalTableFromOne(table, remote=False)
-            file = self.getAddonFileFromInterfaceID(interface_ID, table_installed)
+            for item in self.c.execute(
+                "SELECT File FROM {table} WHERE rowid=?".format(
+                    table=table_installed.objectName()
+                ),
+                (table_installed.item(row, 0).text(),),
+            ):
+                file = item[0]
 
         addon = [interface_ID, file, table.item(row, 1).text()]
 
