@@ -655,7 +655,7 @@
             <property name="text">
                 <string>Log</string>
             </property>
-            <property name="flat">
+            <property name="flat" stdset="0">
                 <bool>true</bool>
             </property>
         </widget>
@@ -676,6 +676,44 @@
             </property>
             <property name="readOnly">
                 <bool>true</bool>
+            </property>
+        </widget>
+        <widget class="QToolButton" name="btnCheckForUpdates">
+            <property name="geometry">
+                <rect>
+                    <x>684</x>
+                    <y>59</y>
+                    <width>27</width>
+                    <height>24</height>
+                </rect>
+            </property>
+            <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check for updates&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+                <string/>
+            </property>
+            <property name="popupMode">
+                <enum>QToolButton::DelayedPopup</enum>
+            </property>
+            <property name="autoRaise">
+                <bool>false</bool>
+            </property>
+        </widget>
+        <widget class="QPushButton" name="btnUpdateAll">
+            <property name="geometry">
+                <rect>
+                    <x>576</x>
+                    <y>59</y>
+                    <width>101</width>
+                    <height>24</height>
+                </rect>
+            </property>
+            <property name="toolTip">
+                <string>Update all addons</string>
+            </property>
+            <property name="text">
+                <string>Update All</string>
             </property>
         </widget>
         <action name="actionAddonImport">
@@ -729,6 +767,16 @@
                 <string>Show music folder in file manager</string>
             </property>
         </action>
+        <action name="actionUpdateAllSelectedAddons">
+            <property name="text">
+                <string>Update all selected addons</string>
+            </property>
+        </action>
+        <action name="actionUpdateAddon">
+            <property name="text">
+                <string>Update</string>
+            </property>
+        </action>
         <zorder>btnBox</zorder>
         <zorder>tabWidget</zorder>
         <zorder>txtSearchBar</zorder>
@@ -736,6 +784,8 @@
         <zorder>progressBar</zorder>
         <zorder>lblErrors</zorder>
         <zorder>btnLog</zorder>
+        <zorder>btnCheckForUpdates</zorder>
+        <zorder>btnUpdateAll</zorder>
         <zorder>txtLog</zorder>
     </widget>
     <resources/>
