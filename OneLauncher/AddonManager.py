@@ -90,10 +90,6 @@ class AddonManager:
             QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint
         )
 
-        # Creates backround color for addons that are installed already in remote tables
-        self.installed_addons_color = QtGui.QColor()
-        self.installed_addons_color.setRgb(63, 73, 83)
-
         if currentGame.startswith("DDO"):
             # Removes plugin and music tabs when using DDO.
             # This has to be done before the tab switching signals are connected.
@@ -101,6 +97,10 @@ class AddonManager:
             self.winAddonManager.tabWidgetRemote.removeTab(1)
             self.winAddonManager.tabWidgetInstalled.removeTab(0)
             self.winAddonManager.tabWidgetInstalled.removeTab(1)
+
+        # Creates backround color for addons that are installed already in remote tables
+        self.installed_addons_color = QtGui.QColor()
+        self.installed_addons_color.setRgb(63, 73, 83)
 
         self.winAddonManager.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.winAddonManager.customContextMenuRequested.connect(self.contextMenuRequested)
@@ -144,6 +144,12 @@ class AddonManager:
         self.winAddonManager.actionShowMusicFolderInFileManager.triggered.connect(
             self.actionShowMusicFolderSelected
         )
+        self.winAddonManager.btnAddonsMenu.addAction(
+            self.winAddonManager.actionUpdateAllSelectedAddons
+        )
+        self.winAddonManager.actionUpdateAllSelectedAddons.triggered.connect(
+            self.updateAllSelectedAddons
+        )
 
         self.updateAddonFolderActions(0)
 
@@ -153,6 +159,15 @@ class AddonManager:
         self.winAddonManager.actionUninstallAddon.triggered.connect(
             self.actionUninstallAddonSelected
         )
+        self.winAddonManager.actionUpdateAddon.triggered.connect(
+            self.actionUpdateAddonSelected
+        )
+
+        self.winAddonManager.btnCheckForUpdates.setIcon(
+            QtGui.QIcon(resource_filename(__name__, "images" + os.sep + "refresh.png"))
+        )
+        self.winAddonManager.btnCheckForUpdates.pressed.connect(self.checkForUpdates)
+        self.winAddonManager.btnUpdateAll.pressed.connect(self.updateAll)
 
         self.winAddonManager.btnAddons.setMenu(self.winAddonManager.btnAddonsMenu)
         self.winAddonManager.btnAddons.clicked.connect(self.btnAddonsClicked)
@@ -905,6 +920,14 @@ class AddonManager:
             (addon[2], addon[0],),
         )
 
+        # Removes indicator that a new version of an installed addon is out if present.
+        # This is important, because addons are uninstalled and then reinstalled
+        # during the update process.
+        self.c.execute(
+            "UPDATE {table} SET Version = REPLACE(Version,'(Updated) ', '') WHERE "  # nosec
+            "Version LIKE '(Updated) %'".format(table=remote_table.objectName())
+        )
+
     def setRemoteAddonToInstalled(self, addon, remote_table):
         self.c.execute(
             "UPDATE {table} SET Name = ? WHERE InterfaceID == ?".format(  # nosec
@@ -927,17 +950,25 @@ class AddonManager:
         tbl_item.setText(str(list[0]))
 
         # Adds items to row
-        for i, item in enumerate(list):
+        for column, item in enumerate(list):
             tbl_item = QtWidgets.QTableWidgetItem()
 
             tbl_item.setText(str(item))
-            # Sets color to red if plugin is unmanaged
-            if item == "Unmanaged" and i == 2:
+            # Sets color to red if addon is unmanaged
+            if item == "Unmanaged" and column == 2:
                 tbl_item.setForeground(QtGui.QColor("darkred"))
-            elif str(item).startswith("(Installed)") and i == 1:
+            # Disable row if addon is Installed. This is only applicable to remote tables.
+            elif str(item).startswith("(Installed) ") and column == 1:
                 tbl_item.setText(item.split("(Installed) ")[1])
                 disable_row = True
-            table.setItem(rows, i, tbl_item)
+            elif str(item).startswith("(Updated) ") and column == 3:
+                tbl_item.setText(item.split("(Updated) ")[1])
+                tbl_item.setForeground(QtGui.QColor("green"))
+            elif str(item).startswith("(Outdated) ") and column == 3:
+                tbl_item.setText(item.split("(Outdated) ")[1])
+                tbl_item.setForeground(QtGui.QColor("crimson"))
+
+            table.setItem(rows, column, tbl_item)
 
         if disable_row:
             for i in range(table.columnCount()):
@@ -1227,14 +1258,22 @@ class AddonManager:
         self.updateAddonFolderActions(index)
 
         # Load in installed skins on first switch to tab
-        if index == 1 and self.isTableEmpty(self.winAddonManager.tableSkinsInstalled):
-            self.getInstalledSkins()
+        if index == 1:
+            self.loadSkinsIfNotDone()
 
         # Load in installed music on first switch to tab
-        if index == 2 and self.isTableEmpty(self.winAddonManager.tableMusicInstalled):
-            self.getInstalledMusic()
+        if index == 2:
+            self.loadMusicIfNotDone()
 
         self.searchSearchBarContents()
+
+    def loadSkinsIfNotDone(self):
+        if self.isTableEmpty(self.winAddonManager.tableSkinsInstalled):
+            self.getInstalledSkins()
+
+    def loadMusicIfNotDone(self):
+        if self.isTableEmpty(self.winAddonManager.tableMusicInstalled):
+            self.getInstalledMusic()
 
     def tabWidgetRemoteIndexChanged(self, index):
         self.updateAddonFolderActions(index)
@@ -1258,6 +1297,7 @@ class AddonManager:
             # Populates remote addons tables if not done already
             if self.isTableEmpty(self.winAddonManager.tableSkins):
                 self.loadRemoteAddons()
+                self.getOutOfDateAddons()
 
         self.searchSearchBarContents()
 
@@ -1377,6 +1417,14 @@ class AddonManager:
                     else:
                         menu.addAction(self.winAddonManager.actionInstallAddon)
 
+                # If addon has a new version available
+                version_item = self.context_menu_selected_table.item(
+                    self.context_menu_selected_row, 3
+                )
+                version_color = version_item.foreground().color()
+                if version_color in [QtGui.QColor("crimson"), QtGui.QColor("green")]:
+                    menu.addAction(self.winAddonManager.actionUpdateAddon)
+
         # Only return menu if something has been added to it
         if not menu.isEmpty():
             return menu
@@ -1445,9 +1493,10 @@ class AddonManager:
         table = self.getCurrentTable()
         selected_addons = self.getSelectedAddons(table)
 
-        for addon in selected_addons[0]:
-            url = self.getAddonUrlFromInterfaceID(addon[0], table)
-            QtGui.QDesktopServices.openUrl(url)
+        if selected_addons[0]:
+            for addon in selected_addons[0]:
+                info_url = self.getAddonUrlFromInterfaceID(addon[0], table, download_url=False)
+                QtGui.QDesktopServices.openUrl(info_url)
 
     def actionInstallAddonSelected(self):
         """
@@ -1496,7 +1545,7 @@ class AddonManager:
         else:
             table_installed = self.getRemoteOrLocalTableFromOne(table, remote=False)
             for item in self.c.execute(
-                "SELECT File FROM {table} WHERE rowid=?".format(
+                "SELECT File FROM {table} WHERE rowid=?".format(  # nosec
                     table=table_installed.objectName()
                 ),
                 (table_installed.item(row, 0).text(),),
@@ -1561,3 +1610,164 @@ class AddonManager:
             self.winAddonManager.actionShowPluginsFolderInFileManager.setVisible(False)
             self.winAddonManager.actionShowSkinsFolderInFileManager.setVisible(False)
             self.winAddonManager.actionShowMusicFolderInFileManager.setVisible(True)
+
+    def checkForUpdates(self):
+        self.loadRemoteAddons()
+
+        self.getOutOfDateAddons()
+        self.searchSearchBarContents()
+
+    def getOutOfDateAddons(self):
+        """
+        Marks addons as out of date in database with '(Outdated) '
+        in installed table and '(Updated) ' in remote table. These
+        are prepended to the Version column.
+        """
+        self.loadRemoteDataIfNotDone()
+        if not self.currentGame.startswith("DDO"):
+            self.loadSkinsIfNotDone()
+            self.loadMusicIfNotDone()
+
+        if self.currentGame.startswith("LOTRO"):
+            tables = self.TABLE_LIST[:3]
+        else:
+            tables = ["tableSkinsInstalled"]
+
+        for db_table in tables:
+            table_installed = getattr(self.winAddonManager, db_table)
+            table_remote = self.getRemoteOrLocalTableFromOne(table_installed, remote=True)
+
+            addons_info_remote = {}
+            for addon in self.c.execute(
+                "SELECT Version, InterfaceID, rowid FROM {table_remote} WHERE"  # nosec
+                " Name LIKE '(Installed) %'".format(
+                    table_remote=table_remote.objectName()
+                )
+            ):
+                addons_info_remote[addon[1]] = (addon[0], addon[2])
+
+            out_of_date_addons = []
+            for addon in self.c.execute(
+                "SELECT Version, InterfaceID, rowid FROM {table_installed} WHERE"  # nosec
+                " InterfaceID != ''".format(table_installed=table_installed.objectName())
+            ):
+                # Will raise KeyError if addon has Interface ID that isn't in remote table.
+                try:
+                    remote_addon_info = addons_info_remote[addon[1]]
+                except KeyError:
+                    continue
+
+                latest_version = remote_addon_info[0]
+                if addon[0] != latest_version:
+                    rowid_remote = remote_addon_info[1]
+                    out_of_date_addons.append((addon[2], rowid_remote, table_installed))
+
+            for addon in out_of_date_addons:
+                self.markAddonForUpdating(addon[0], addon[1], addon[2])
+
+    def markAddonForUpdating(self, rowid_local, rowid_remote, table_installed):
+        """
+        Marks addon as having having updates
+        available in installed and remote tables
+        """
+        table_remote = self.getRemoteOrLocalTableFromOne(table_installed, remote=True)
+
+        self.c.execute(
+            (
+                "UPDATE {table} SET Version=('(Outdated) ' || Version) WHERE rowid=?".format(  # nosec
+                    table=table_installed.objectName()
+                )
+            ),
+            (str(rowid_local),),
+        )
+        self.c.execute(
+            (
+                "UPDATE {table} SET Version=('(Updated) ' || Version) WHERE rowid=?".format(  # nosec
+                    table=table_remote.objectName()
+                )
+            ),
+            (str(rowid_remote),),
+        )
+
+    def updateAll(self):
+        self.loadRemoteDataIfNotDone()
+
+        if self.currentGame.startswith("LOTRO"):
+            tables = self.TABLE_LIST[:3]
+        else:
+            tables = ["tableSkinsInstalled"]
+
+        for db_table in tables:
+            table = getattr(self.winAddonManager, db_table)
+            for addon in self.c.execute(
+                "SELECT InterfaceID, File, Name FROM {table} WHERE"  # nosec
+                " Version LIKE '(Outdated) %'".format(table=table.objectName())
+            ):
+                self.updateAddon(addon, table)
+
+        self.resetRemoteAddonsTables()
+        self.searchSearchBarContents()
+
+    def updateAddon(self, addon, table):
+        uninstall_function = self.getUninstallFunctionFromTable(table)
+        table_installed = self.getRemoteOrLocalTableFromOne(table, remote=False)
+        table_remote = self.getRemoteOrLocalTableFromOne(table, remote=True)
+
+        uninstall_function([addon], table_installed)
+
+        for entry in self.c.execute(
+            "SELECT File FROM {table} WHERE"  # nosec
+            " InterfaceID = ?".format(table=table_remote.objectName()),
+            (addon[0],),
+        ):
+            url = entry[0]
+        self.installRemoteAddon(url, addon[2], addon[0])
+        self.setRemoteAddonToInstalled(addon, table_remote)
+
+    def actionUpdateAddonSelected(self):
+        self.loadRemoteDataIfNotDone()
+
+        table = self.context_menu_selected_table
+        row = self.context_menu_selected_row
+        addon = self.getAddonListObjectFromRow(table, row, remote=False)
+
+        self.updateAddon(addon, table)
+
+        self.resetRemoteAddonsTables()
+        self.searchSearchBarContents()
+
+    def updateAllSelectedAddons(self):
+        table = self.getCurrentTable()
+        addons, details = self.getSelectedAddons(table)
+
+        self.loadRemoteDataIfNotDone()
+
+        if addons:
+            for addon in addons:
+                if self.checkIfAddonHasUpdate(addon, table):
+                    self.updateAddon(addon, table)
+
+            self.resetRemoteAddonsTables()
+            self.searchSearchBarContents()
+
+    def checkIfAddonHasUpdate(self, addon, table):
+        for entry in self.c.execute(
+            "SELECT Version FROM {table} WHERE InterfaceID = ?".format(  # nosec
+                table=table.objectName()
+            ),
+            (addon[0],),
+        ):
+            version = entry[0]
+            if version.startswith("(Outdated) ") or version.startswith("(Updated) "):
+                return True
+            else:
+                return False
+
+    def loadRemoteDataIfNotDone(self):
+        """
+        Loads remote addons and checks if addons have updates if not done yet
+        """
+        # If remote addons haven't been loaded then out of date addons haven't been found.
+        if self.isTableEmpty(self.winAddonManager.tableSkins):
+            self.loadRemoteAddons()
+            self.getOutOfDateAddons()
