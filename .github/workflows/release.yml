@@ -39,7 +39,7 @@ jobs:
           pip install qdarkstyle
           pip install keyring
           pip install defusedxml
-          pip install https://github.com/JuneStepp/pyinstaller/releases/download/v3.5/PyInstaller-3.6.zipp
+          pip install https://github.com/JuneStepp/pyinstaller/releases/download/v3.5/PyInstaller-3.6.zip
       - name: Build
         run: python build.py
       - name: Make release
