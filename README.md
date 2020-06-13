@@ -41,7 +41,7 @@ The following items are required to run OneLauncher from source.
 It is recommended to use a virtual environment for development and
 building like venv, conda, or virtualenv.
 
-- Python (3.7.3+)
+- Python (3.7.*)
 - PySide2 (Can be installed with pip)
 - qdarkstyle (Can be installed with pip)
 - pkg_resources (Comes with setuptools. You probably have it, but it can be installed with pip)
@@ -67,19 +67,9 @@ Or.
 The project can only be built for the os that the build script is run on,
 so it has to be built on every target os individually. The building output
 for Linux can only be run on systems as up to date or more as the system it
-is built on, so an old os may want to be built on. The binary for is
-also not cross architecture compatible. Wine can be used for Windows builds
+is built on, so an old OS may want to be built on. The binary is
+also not cross architecture compatible. WINE can be used for Windows builds
 though.
-
-# Roadmap
-
-None of this is set in stone, but it gives a basic idea of some of the major
-features I plan to implement. Requests, contributions, and critiques, on anything
-are always welcome.
-
-- 1.2 -- Add addon manager (plugins, themes, and abc files)
-- 1.3 -- Implement extended lua plugin api (More keyboard action interrupts, ect)
-- 1.4 -- Full game install from OneLauncher (There was more stuff here, but I already did it)
 
 # Addon Manager Info For Developers
 
