@@ -11,7 +11,7 @@ Launcher for Linux, Windows, and Mac OS X
              Manage, update, and browse/download
                  *  plugins (with dependency checking)
                  *  themes (DDO support too!)
-                 *  music (.abc files/collections off files)
+                 *  music (.abc files/collections of files)
         * Self updater
         * Multiple accounts support
         * Custom directory selection in setup wizard
