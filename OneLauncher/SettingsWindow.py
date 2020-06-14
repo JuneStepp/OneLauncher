@@ -106,7 +106,7 @@ class SettingsWindow:
 
         self.winSettings.btnEN.setIcon(
             QtGui.QIcon(
-                resource_filename(__name__, "images" + os.sep + "EN.png")
+                resource_filename(__name__, "images" + os.sep + "EN-US.png")
             )
         )
 

@@ -21,3 +21,6 @@ Based on [LotROLinux](https://web.archive.org/web/20120424132519/http://www.lotr
 
 Based on [CLI launcher for
 LOTRO](https://sny.name/LOTRO/) (C) 2007-2009 SNy
+
+
+Flag icons by Mark James <mjames@gmail.com> at famfamfam.com
