@@ -424,7 +424,7 @@
   </action>
   <action name="actionDDO">
    <property name="text">
-    <string>Dungeions &amp; Dragons Online</string>
+    <string>Dungeons &amp; Dragons Online</string>
    </property>
   </action>
  </widget>
