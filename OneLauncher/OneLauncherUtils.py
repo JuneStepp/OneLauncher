@@ -82,17 +82,14 @@ def WebConnection(urlIn):
 def GetText(nodelist):
     rc = ""
     for node in nodelist:
-        if (
-            node.nodeType == node.TEXT_NODE
-            or node.nodeType == node.CDATA_SECTION_NODE
-        ):
+        if node.nodeType == node.TEXT_NODE or node.nodeType == node.CDATA_SECTION_NODE:
             rc = rc + node.data
     return rc
 
 
 class BaseConfig:
     def __init__(self, configFile):
-        self.GLSDataCentreService = ""
+        self.GLSDataCenterService = ""
         self.gameName = ""
 
         try:
@@ -101,11 +98,8 @@ class BaseConfig:
             nodes = doc.getElementsByTagName("appSettings")[0].childNodes
             for node in nodes:
                 if node.nodeType == node.ELEMENT_NODE:
-                    if (
-                        node.getAttribute("key")
-                        == "Launcher.DataCenterService.GLS"
-                    ):
-                        self.GLSDataCentreService = node.getAttribute("value")
+                    if node.getAttribute("key") == "Launcher.DataCenterService.GLS":
+                        self.GLSDataCenterService = node.getAttribute("value")
                     elif node.getAttribute("key") == "DataCenter.GameName":
                         self.gameName = node.getAttribute("value")
 
@@ -158,24 +152,18 @@ class DetermineOS:
             self.usingWindows = False
             self.appDir = "Library/Application Support/OneLauncher/"
             self.settingsLOTRO = os.path.join(
-                os.path.expanduser("~"),
-                "Documents",
-                "The Lord of the Rings Online",
+                os.path.expanduser("~"), "Documents", "The Lord of the Rings Online",
             )
             self.settingsDDO = os.path.join(
-                os.path.expanduser("~"),
-                "Documents",
-                "Dungeons and Dragons Online",
+                os.path.expanduser("~"), "Documents", "Dungeons and Dragons Online",
             )
             self.globalDir = "/Application"
-            self.settingsCXG = (
-                "Library/Application Support/CrossOver Games/Bottles"
-            )
+            self.settingsCXG = "Library/Application Support/CrossOver Games/Bottles"
             self.settingsCXO = "Library/Application Support/CrossOver/Bottles"
-            self.directoryCXG = "/CrossOver Games.app/Contents/SharedSupport/CrossOverGames/bin/"
-            self.directoryCXO = (
-                "/CrossOver.app/Contents/SharedSupport/CrossOver/bin/"
+            self.directoryCXG = (
+                "/CrossOver Games.app/Contents/SharedSupport/CrossOverGames/bin/"
             )
+            self.directoryCXO = "/CrossOver.app/Contents/SharedSupport/CrossOver/bin/"
             self.macPathCX = os.environ.get("CX_ROOT")
             if self.macPathCX is None:
                 self.macPathCX = ""
@@ -184,14 +172,10 @@ class DetermineOS:
             self.usingWindows = True
             self.appDir = "OneLauncher" + os.sep
             self.settingsLOTRO = os.path.join(
-                os.path.expanduser("~"),
-                "My Documents",
-                "The Lord of the Rings Online",
+                os.path.expanduser("~"), "My Documents", "The Lord of the Rings Online",
             )
             self.settingsDDO = os.path.join(
-                os.path.expanduser("~"),
-                "My Documents",
-                "Dungeons and Dragons Online",
+                os.path.expanduser("~"), "My Documents", "Dungeons and Dragons Online",
             )
             self.globalDir = ""
             self.settingsCXG = ""
@@ -204,14 +188,10 @@ class DetermineOS:
             self.usingWindows = False
             self.appDir = ".OneLauncher" + os.sep
             self.settingsLOTRO = os.path.join(
-                os.path.expanduser("~"),
-                "Documents",
-                "The Lord of the Rings Online",
+                os.path.expanduser("~"), "Documents", "The Lord of the Rings Online",
             )
             self.settingsDDO = os.path.join(
-                os.path.expanduser("~"),
-                "Documents",
-                "Dungeons and Dragons Online",
+                os.path.expanduser("~"), "Documents", "Dungeons and Dragons Online",
             )
             self.globalDir = "/opt"
             self.settingsCXG = ".cxgames"
@@ -221,8 +201,8 @@ class DetermineOS:
             self.macPathCX = ""
 
 
-class GLSDataCentre:
-    def __init__(self, urlGLSDataCentreService, gameName, baseDir, osType):
+class GLSDataCenter:
+    def __init__(self, urlGLSDataCenterService, gameName, baseDir, osType):
         SM_TEMPLATE = '<?xml version="1.0" encoding="utf-8"?>\
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
 <soap:Body><GetDatacenters xmlns="http://www.turbine.com/SE/GLS"><game>%s</game>\
@@ -232,7 +212,7 @@ class GLSDataCentre:
 
         try:
             msg = string_encode(SoapMessage)
-            webservice, post = WebConnection(urlGLSDataCentreService)
+            webservice, post = WebConnection(urlGLSDataCenterService)
 
             webservice.putrequest("POST", post)
             webservice.putheader("Content-type", 'text/xml; charset="UTF-8"')
@@ -263,9 +243,7 @@ class GLSDataCentre:
                     doc.getElementsByTagName("PatchServer")[0].childNodes
                 )
                 self.launchConfigServer = GetText(
-                    doc.getElementsByTagName("LauncherConfigurationServer")[
-                        0
-                    ].childNodes
+                    doc.getElementsByTagName("LauncherConfigurationServer")[0].childNodes
                 )
 
                 self.worldList = []
@@ -282,9 +260,7 @@ class GLSDataCentre:
                             urlChatServer = world.firstChild.nodeValue
                         elif world.nodeName == "StatusServerUrl":
                             urlStatusServer = world.firstChild.nodeValue
-                    self.worldList.append(
-                        World(name, urlChatServer, urlStatusServer)
-                    )
+                    self.worldList.append(World(name, urlChatServer, urlStatusServer))
 
                 self.loadSuccess = True
         except:
@@ -337,9 +313,7 @@ class World:
 
                 try:
                     self.nowServing = GetText(
-                        doc.getElementsByTagName("nowservingqueuenumber")[
-                            0
-                        ].childNodes
+                        doc.getElementsByTagName("nowservingqueuenumber")[0].childNodes
                     )
                 except:
                     self.nowServing = ""
@@ -399,82 +373,44 @@ class WorldQueueConfig:
                 nodes = doc.getElementsByTagName("appSettings")[0].childNodes
                 for node in nodes:
                     if node.nodeType == node.ELEMENT_NODE:
-                        if (
-                            node.getAttribute("key")
-                            == "GameClient.WIN64.Filename"
-                        ):
+                        if node.getAttribute("key") == "GameClient.WIN64.Filename":
                             if x86:
-                                self.gameClientFilename = node.getAttribute(
-                                    "value"
-                                )
-                        if (
-                            node.getAttribute("key")
-                            == "GameClient.WIN32.Filename"
-                        ):
+                                self.gameClientFilename = node.getAttribute("value")
+                        if node.getAttribute("key") == "GameClient.WIN32.Filename":
                             if x86 is False:
-                                self.gameClientFilename = node.getAttribute(
-                                    "value"
-                                )
-                        elif (
-                            node.getAttribute("key")
-                            == "GameClient.WIN32.ArgTemplate"
-                        ):
-                            self.gameClientArgTemplate = node.getAttribute(
-                                "value"
-                            )
-                        elif (
-                            node.getAttribute("key")
-                            == "GameClient.Arg.crashreceiver"
-                        ):
+                                self.gameClientFilename = node.getAttribute("value")
+                        elif node.getAttribute("key") == "GameClient.WIN32.ArgTemplate":
+                            self.gameClientArgTemplate = node.getAttribute("value")
+                        elif node.getAttribute("key") == "GameClient.Arg.crashreceiver":
                             self.crashreceiver = node.getAttribute("value")
                         elif (
                             node.getAttribute("key")
                             == "GameClient.Arg.DefaultUploadThrottleMbps"
                         ):
-                            self.DefaultUploadThrottleMbps = node.getAttribute(
-                                "value"
-                            )
-                        elif (
-                            node.getAttribute("key") == "GameClient.Arg.bugurl"
-                        ):
+                            self.DefaultUploadThrottleMbps = node.getAttribute("value")
+                        elif node.getAttribute("key") == "GameClient.Arg.bugurl":
                             self.bugurl = node.getAttribute("value")
-                        elif (
-                            node.getAttribute("key")
-                            == "GameClient.Arg.authserverurl"
-                        ):
+                        elif node.getAttribute("key") == "GameClient.Arg.authserverurl":
                             self.authserverurl = node.getAttribute("value")
-                        elif (
-                            node.getAttribute("key")
-                            == "GameClient.Arg.supporturl"
-                        ):
+                        elif node.getAttribute("key") == "GameClient.Arg.supporturl":
                             self.supporturl = node.getAttribute("value")
                         elif (
-                            node.getAttribute("key")
-                            == "GameClient.Arg.supportserviceurl"
+                            node.getAttribute("key") == "GameClient.Arg.supportserviceurl"
                         ):
                             self.supportserviceurl = node.getAttribute("value")
                         elif (
-                            node.getAttribute("key")
-                            == "GameClient.Arg.glsticketlifetime"
+                            node.getAttribute("key") == "GameClient.Arg.glsticketlifetime"
                         ):
                             self.glsticketlifetime = node.getAttribute("value")
-                        elif (
-                            node.getAttribute("key")
-                            == "Launcher.NewsFeedCSSUrl"
-                        ):
+                        elif node.getAttribute("key") == "Launcher.NewsFeedCSSUrl":
                             self.newsFeedCSSURL = node.getAttribute("value")
                         elif node.getAttribute("key") == "URL.NewsFeed":
                             self.newsFeedURL = node.getAttribute("value")
                         elif node.getAttribute("key") == "URL.NewsStyleSheet":
                             self.newsStyleSheetURL = node.getAttribute("value")
-                        elif (
-                            node.getAttribute("key") == "Patching.ProductCode"
-                        ):
+                        elif node.getAttribute("key") == "Patching.ProductCode":
                             self.patchProductCode = node.getAttribute("value")
-                        elif (
-                            node.getAttribute("key")
-                            == "WorldQueue.LoginQueue.URL"
-                        ):
+                        elif node.getAttribute("key") == "WorldQueue.LoginQueue.URL":
                             self.worldQueueURL = node.getAttribute("value")
                         elif (
                             node.getAttribute("key")
@@ -497,20 +433,13 @@ class WorldQueueConfig:
                     with uopen(filepath, "r", "utf-8") as infile:
                         tempxml = infile.read()
                     doc = defusedxml.minidom.parseString(tempxml)
-                    nodes = doc.getElementsByTagName("appSettings")[
-                        0
-                    ].childNodes
+                    nodes = doc.getElementsByTagName("appSettings")[0].childNodes
 
                     self.message = ""
                     for node in nodes:
                         if node.nodeType == node.ELEMENT_NODE:
-                            if (
-                                node.getAttribute("key")
-                                == "GameClient.WIN32.Filename"
-                            ):
-                                self.gameClientFilename = node.getAttribute(
-                                    "value"
-                                )
+                            if node.getAttribute("key") == "GameClient.WIN32.Filename":
+                                self.gameClientFilename = node.getAttribute("value")
                                 self.message = (
                                     '<font color="Khaki">'
                                     + filename
@@ -518,17 +447,10 @@ class WorldQueueConfig:
                                     " client override activated</font>"
                                 )
 
-                            if (
-                                node.getAttribute("key")
-                                == "GameClient.WIN64.Filename"
-                            ):
-                                self.gameClientFilename = node.getAttribute(
-                                    "value"
-                                )
+                            if node.getAttribute("key") == "GameClient.WIN64.Filename":
+                                self.gameClientFilename = node.getAttribute("value")
                                 self.message = (
-                                    '<font color="Khaki">'
-                                    + filename
-                                    + " 64-bit client"
+                                    '<font color="Khaki">' + filename + " 64-bit client"
                                     " override activated</font>"
                                 )
 
@@ -589,9 +511,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
             else:
                 doc = defusedxml.minidom.parseString(tempxml)
 
-                self.ticket = GetText(
-                    doc.getElementsByTagName("Ticket")[0].childNodes
-                )
+                self.ticket = GetText(doc.getElementsByTagName("Ticket")[0].childNodes)
 
                 for nodes in doc.getElementsByTagName("GameSubscription"):
                     game2 = ""
@@ -628,16 +548,13 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
             if webresp and webresp.status == 500:
                 self.messError = "[E07] Account details incorrect"
             else:
-                self.messError = (
-                    "[E08] Server not found - may be down (%s)"
-                    % (webresp and webresp.status or "N/A")
+                self.messError = "[E08] Server not found - may be down (%s)" % (
+                    webresp and webresp.status or "N/A"
                 )
 
 
 class JoinWorldQueue:
-    def __init__(
-        self, argTemplate, account, ticket, queue, urlIn, baseDir, osType
-    ):
+    def __init__(self, argTemplate, account, ticket, queue, urlIn, baseDir, osType):
         try:
             webservice, post = WebConnection(urlIn)
 
@@ -649,9 +566,7 @@ class JoinWorldQueue:
 
             msg = string_encode(argComplete)
             webservice.putrequest("POST", post)
-            webservice.putheader(
-                "Content-type", "application/x-www-form-urlencoded"
-            )
+            webservice.putheader("Content-type", "application/x-www-form-urlencoded")
             webservice.putheader("Content-length", "%d" % len(msg))
             webservice.putheader(
                 "SOAPAction", "http://www.turbine.com/SE/GLS/LoginAccount"
@@ -680,9 +595,7 @@ class JoinWorldQueue:
                         doc.getElementsByTagName("QueueNumber")[0].childNodes
                     )
                     self.serving = GetText(
-                        doc.getElementsByTagName("NowServingNumber")[
-                            0
-                        ].childNodes
+                        doc.getElementsByTagName("NowServingNumber")[0].childNodes
                     )
 
                     self.joinSuccess = True
