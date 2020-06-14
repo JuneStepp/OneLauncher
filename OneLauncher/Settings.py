@@ -40,6 +40,7 @@ class Settings:
         self.currentGame = "LOTRO"
         self.settingsDir = "%s%s" % (baseDir, osType.appDir)
         self.settingsFile = "%sOneLauncher.config" % (self.settingsDir)
+        self.osType = osType
 
     def LoadSettings(self, useGame=None):
         self.hiResEnabled = True
@@ -156,7 +157,8 @@ class Settings:
         # Check if settings directory exists if not create
         if not os.path.exists(self.settingsDir):
             os.mkdir(self.settingsDir)
-        os.makedirs(self.settingsDir + "wine/prefix", exist_ok=True)
+        if not self.osType.usingWindows:
+            os.makedirs(self.settingsDir + "wine/prefix", exist_ok=True)
 
         # Check if settings file exists if not create new settings XML
         if os.path.exists(self.settingsFile):
@@ -190,18 +192,19 @@ class Settings:
         gameConfigNode = doc.createElementNS(EMPTY_NAMESPACE, current_game)
         settingsNode.appendChild(gameConfigNode)
 
-        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Program")
-        tempNode.appendChild(doc.createTextNode("%s" % (self.wineProg)))
-        gameConfigNode.appendChild(tempNode)
-
-        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Debug")
-        tempNode.appendChild(doc.createTextNode("%s" % (self.wineDebug)))
-        gameConfigNode.appendChild(tempNode)
-
-        if self.winePrefix != "":
-            tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Prefix")
-            tempNode.appendChild(doc.createTextNode("%s" % (self.winePrefix)))
+        if not self.osType.usingWindows:
+            tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Program")
+            tempNode.appendChild(doc.createTextNode("%s" % (self.wineProg)))
             gameConfigNode.appendChild(tempNode)
+
+            tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Debug")
+            tempNode.appendChild(doc.createTextNode("%s" % (self.wineDebug)))
+            gameConfigNode.appendChild(tempNode)
+
+            if self.winePrefix != "":
+                tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Prefix")
+                tempNode.appendChild(doc.createTextNode("%s" % (self.winePrefix)))
+                gameConfigNode.appendChild(tempNode)
 
         tempNode = doc.createElementNS(EMPTY_NAMESPACE, "HiRes")
         if self.hiResEnabled:
