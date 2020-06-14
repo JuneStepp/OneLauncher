@@ -464,7 +464,7 @@ class MainWindow(QtWidgets.QMainWindow):
                             keyring.delete_password(
                                 "OneLauncherLOTRO", self.winMain.cboAccount.currentText(),
                             )
-                    except:
+                    except keyring.errors.PasswordDeleteError:
                         pass
 
             tempWorld = ""
