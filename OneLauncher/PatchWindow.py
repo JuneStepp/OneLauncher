@@ -56,17 +56,13 @@ class PatchWindow:
         self.homeDir = homeDir
         self.osType = osType
 
-        ui_file = QtCore.QFile(
-            resource_filename(__name__, "ui" + os.sep + "winPatch.ui")
-        )
+        ui_file = QtCore.QFile(resource_filename(__name__, "ui" + os.sep + "winPatch.ui"))
         ui_file.open(QtCore.QFile.ReadOnly)
         loader = QUiLoader()
         self.winLog = loader.load(ui_file, parentWidget=parent)
         ui_file.close()
 
-        self.winLog.setWindowFlags(
-            QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint
-        )
+        self.winLog.setWindowFlags(QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint)
 
         if self.osType.usingWindows:
             self.winLog.setWindowTitle("Output")
@@ -76,7 +72,7 @@ class PatchWindow:
         self.winLog.btnSave.setText("Save Log")
         self.winLog.btnSave.setEnabled(False)
         self.winLog.progressBar.reset()
-        self.winLog.btnStop.setText("Launcher")
+        self.winLog.btnStop.setText("Close")
         self.winLog.btnStart.setText("Patch")
         self.winLog.btnSave.clicked.connect(self.btnSaveClicked)
         self.winLog.btnStop.clicked.connect(self.btnStopClicked)
@@ -120,9 +116,11 @@ class PatchWindow:
                 self.arguments.append(arg)
 
         else:
-            patchParams = (
-                "rundll32.exe %s,Patch %s --language %s --productcode %s"
-                % (patchClient, urlPatchServer, language, prodCode)
+            patchParams = "rundll32.exe %s,Patch %s --language %s --productcode %s" % (
+                patchClient,
+                urlPatchServer,
+                language,
+                prodCode,
             )
 
             if hiResEnabled:
@@ -143,13 +141,11 @@ class PatchWindow:
         self.progressMonitor.parseOutput(line)
 
     def readErrors(self):
-        self.winLog.txtLog.append(
-            QByteArray2str(self.process.readAllStandardError())
-        )
+        self.winLog.txtLog.append(QByteArray2str(self.process.readAllStandardError()))
 
     def resetButtons(self):
         self.finished = True
-        self.winLog.btnStop.setText("Launcher")
+        self.winLog.btnStop.setText("Close")
         self.winLog.btnSave.setEnabled(True)
         self.winLog.btnStart.setEnabled(True)
         self.progressMonitor.reset()
