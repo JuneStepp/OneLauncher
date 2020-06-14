@@ -76,17 +76,13 @@ class StartGame:
         self.accountText = accountText
         self.parent = parent
 
-        ui_file = QtCore.QFile(
-            resource_filename(__name__, "ui" + os.sep + "winLog.ui")
-        )
+        ui_file = QtCore.QFile(resource_filename(__name__, "ui" + os.sep + "winLog.ui"))
         ui_file.open(QtCore.QFile.ReadOnly)
         loader = QUiLoader()
         self.winLog = loader.load(ui_file, parentWidget=parent)
         ui_file.close()
 
-        self.winLog.setWindowFlags(
-            QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint
-        )
+        self.winLog.setWindowFlags(QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint)
 
         if self.osType.usingWindows:
             self.winLog.setWindowTitle("Output")
@@ -94,7 +90,7 @@ class StartGame:
             self.winLog.setWindowTitle("Launch Game - Wine output")
 
         # self.winLog.btnStart.setVisible(False)
-        self.winLog.btnStart.setText("Close")
+        self.winLog.btnStart.setText("Back")
         self.winLog.btnStart.setEnabled(False)
         self.winLog.btnSave.setText("Save")
         self.winLog.btnSave.setEnabled(False)
@@ -167,9 +163,7 @@ class StartGame:
                             processEnviroment.insert("WINEESYNC", "1")
 
                 # Adds dll overrides for directx, so dxvk is used instead of wine3d
-                processEnviroment.insert(
-                    "WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10=n"
-                )
+                processEnviroment.insert("WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10=n")
 
             self.process.setProcessEnvironment(processEnviroment)
 
@@ -179,14 +173,10 @@ class StartGame:
         self.winLog.txtLog.append("Game Client: " + appName)
 
     def readOutput(self):
-        self.winLog.txtLog.append(
-            QByteArray2str(self.process.readAllStandardOutput())
-        )
+        self.winLog.txtLog.append(QByteArray2str(self.process.readAllStandardOutput()))
 
     def readErrors(self):
-        self.winLog.txtLog.append(
-            QByteArray2str(self.process.readAllStandardError())
-        )
+        self.winLog.txtLog.append(QByteArray2str(self.process.readAllStandardError()))
 
     def resetButtons(self, exitCode, exitStatus):
         self.finished = True
