@@ -53,7 +53,7 @@ class Settings:
         self.winePrefix = self.settingsDir + "wine/prefix"
         self.builtInPrefixEnabled = True
         self.gameDir = ""
-        self.x86Enabled = False
+        self.x86Enabled = True
         self.savePassword = False
         success = False
 
