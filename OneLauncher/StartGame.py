@@ -94,7 +94,7 @@ class StartGame:
             self.winLog.setWindowTitle("Launch Game - Wine output")
 
         # self.winLog.btnStart.setVisible(False)
-        self.winLog.btnStart.setText("Launcher")
+        self.winLog.btnStart.setText("Close")
         self.winLog.btnStart.setEnabled(False)
         self.winLog.btnSave.setText("Save")
         self.winLog.btnSave.setEnabled(False)
