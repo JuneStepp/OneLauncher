@@ -1342,7 +1342,7 @@ class AddonManager:
                     items_row[2] = GetText(node.childNodes)
                 elif node.nodeName == "UIUpdated":
                     items_row[4] = strftime(
-                        "%m-%d-%Y", localtime(int(GetText(node.childNodes)))
+                        "%Y-%m-%d", localtime(int(GetText(node.childNodes)))
                     )
                 elif node.nodeName == "UIFileURL":
                     items_row[5] = GetText(node.childNodes)
