@@ -213,19 +213,23 @@ class SetupWizard:
                         self.winSetupWizard.lstLOTROTest.addItem(
                             path + os.sep + dirName
                         )
+                        self.winSetupWizard.lstLOTROTest.setCurrentRow(0)
                     else:
                         self.winSetupWizard.lstLOTRO.addItem(
                             path + os.sep + dirName
                         )
+                        self.winSetupWizard.lstLOTRO.setCurrentRow(0)
                 elif self.client == "dndclient.exe":
                     if "(Preview)" in dirName:
                         self.winSetupWizard.lstDDOTest.addItem(
                             path + os.sep + dirName
                         )
+                        self.winSetupWizard.lstDDOTest.setCurrentRow(0)
                     else:
                         self.winSetupWizard.lstDDO.addItem(
                             path + os.sep + dirName
                         )
+                        self.winSetupWizard.lstDDO.setCurrentRow(0)
 
             if os.path.isdir(name):
                 if not name.upper().endswith(os.sep + "BACKUP"):
@@ -291,6 +295,10 @@ class SetupWizard:
 
                 if self.checkGameDirForClientExecutable(folder):
                     output_list.addItem(folder)
+
+                    # Select the added item
+                    item = output_list.findItems(folder, QtCore.Qt.MatchExactly)[0]
+                    output_list.setCurrentItem(item)
                 else:
                     self.raiseWarningMessage(
                         "The folder selected doesn't conain a game client "
