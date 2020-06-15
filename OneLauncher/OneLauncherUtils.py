@@ -51,18 +51,21 @@ def QByteArray2str(s):
     return str(s, encoding="utf8", errors="replace")
 
 
-# Try to locate the server certificates for HTTPS connections
-certfile = resource_filename(__name__, "certificates/ca_certs.pem")
+onelauncher_ssl_ctx = None
+def checkForCertificates(logger):
+    # Try to locate the server certificates for HTTPS connections
+    certfile = resource_filename(__name__, "certificates/ca_certs.pem")
 
-if certfile and not os.access(certfile, os.R_OK):
-    print("certificate file expected at '%s' but not found!" % certfile)
-    certfile = None
+    if certfile and not os.access(certfile, os.R_OK):
+        logger.error("certificate file expected at '%s' but not found!" % certfile)
+        certfile = None
 
-onelauncher_ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
-if certfile:
-    onelauncher_ssl_ctx.verify_mode = ssl.CERT_REQUIRED
-    onelauncher_ssl_ctx.load_verify_locations(certfile)
-    print("SSL certificate verification enabled!")
+    global onelauncher_ssl_ctx
+    onelauncher_ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+    if certfile:
+        onelauncher_ssl_ctx.verify_mode = ssl.CERT_REQUIRED
+        onelauncher_ssl_ctx.load_verify_locations(certfile)
+        logger.info("SSL certificate verification enabled!")
 
 
 def WebConnection(urlIn):

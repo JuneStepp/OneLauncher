@@ -33,6 +33,7 @@ from OneLauncher.OneLauncherUtils import QByteArray2str
 from OneLauncher.ProgressMonitor import ProgressMonitor
 import os.path
 from pkg_resources import resource_filename
+import logging
 
 
 class PatchWindow:
@@ -55,6 +56,7 @@ class PatchWindow:
 
         self.homeDir = homeDir
         self.osType = osType
+        self.logger = logging.getLogger("OneLauncher")
 
         ui_file = QtCore.QFile(resource_filename(__name__, "ui" + os.sep + "winPatch.ui"))
         ui_file.open(QtCore.QFile.ReadOnly)
@@ -139,9 +141,12 @@ class PatchWindow:
         line = QByteArray2str(self.process.readAllStandardOutput())
         self.winLog.txtLog.append(line)
         self.progressMonitor.parseOutput(line)
+        self.logger.debug("Patcher: " + line)
 
     def readErrors(self):
-        self.winLog.txtLog.append(QByteArray2str(self.process.readAllStandardError()))
+        line = QByteArray2str(self.process.readAllStandardError())
+        self.winLog.txtLog.append(line)
+        self.logger.debug("Patcher: " + line)
 
     def resetButtons(self):
         self.finished = True

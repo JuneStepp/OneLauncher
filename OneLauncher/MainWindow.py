@@ -40,9 +40,14 @@ from OneLauncher.PatchWindow import PatchWindow
 from OneLauncher.StartGame import StartGame
 from OneLauncher.Settings import Settings
 from OneLauncher.WinePrefix import BuiltInPrefix
-from OneLauncher.OneLauncherUtils import DetermineOS, DetermineGame, LanguageConfig
-from OneLauncher.OneLauncherUtils import BaseConfig, GLSDataCenter, WorldQueueConfig
 from OneLauncher.OneLauncherUtils import (
+    checkForCertificates,
+    DetermineOS,
+    DetermineGame,
+    LanguageConfig,
+    BaseConfig,
+    GLSDataCenter,
+    WorldQueueConfig,
     AuthenticateUser,
     JoinWorldQueue,
     GetText,
@@ -51,6 +56,9 @@ from OneLauncher.OneLauncherUtils import (
 from OneLauncher import Information
 from pkg_resources import resource_filename
 import keyring
+import logging
+from logging.handlers import RotatingFileHandler
+from platform import platform
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -595,6 +603,113 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.AddLog("[E11] Error joining world queue")
 
+    def setupLogging(self):
+        # Create or get custom logger
+        self.logger = logging.getLogger("OneLauncher")
+
+        # If logger has not already been setup
+        if not self.logger.hasHandlers():
+            # This is for the logger globally. Different handlers
+            # attached to it have their own levels.
+            self.logger.setLevel(logging.DEBUG)
+
+            # Create handlers
+            stream_handler = logging.StreamHandler()
+            stream_handler.setLevel(logging.WARNING)
+
+            log_file = os.path.join(self.settings.settingsDir, "OneLauncher.log")
+            file_handler = RotatingFileHandler(
+                log_file,
+                mode="a",
+                maxBytes=10 * 1024 * 1024,
+                backupCount=2,
+                encoding=None,
+                delay=0,
+            )
+            # Only log all information on dev builds
+            if Information.Version.endswith("Dev"):
+                file_handler.setLevel(logging.DEBUG)
+            else:
+                file_handler.setLevel(logging.ERROR)
+
+            # Create formatters and add it to handlers
+            stream_format = logging.Formatter("%(module)s - %(levelname)s - %(message)s")
+            stream_handler.setFormatter(stream_format)
+            file_format = logging.Formatter(
+                "%(asctime)s - %(module)s - %(levelname)s - %(lineno)d - %(message)s"
+            )
+            file_handler.setFormatter(file_format)
+
+            # Add handlers to the logger
+            self.logger.addHandler(stream_handler)
+            self.logger.addHandler(file_handler)
+
+            self.logger.info("Logging started")
+            self.logger.info("OneLauncher: " + Information.Version)
+            self.logger.info(platform())
+
+            # Setup handling of uncaught exceptions
+            sys.excepthook = self.handleUncaughtExceptions
+
+            # Setup Qt event logging
+            self.ignored_qt_events = [
+                QtCore.QEvent.HoverMove,
+                QtCore.QEvent.MouseMove,
+                QtCore.QEvent.Paint,
+                QtCore.QEvent.UpdateRequest,
+                QtCore.QEvent.UpdateLater,
+                QtCore.QEvent.ChildAdded,
+                QtCore.QEvent.ChildRemoved,
+                QtCore.QEvent.ParentChange,
+                QtCore.QEvent.PaletteChange,
+                QtCore.QEvent.DynamicPropertyChange,
+                QtCore.QEvent.FocusIn,
+                QtCore.QEvent.FocusOut,
+                QtCore.QEvent.FocusAboutToChange,
+                QtCore.QEvent.Move,
+                QtCore.QEvent.Resize,
+                QtCore.QEvent.Polish,
+                QtCore.QEvent.PolishRequest,
+                QtCore.QEvent.ChildPolished,
+                QtCore.QEvent.ShowToParent,
+                QtCore.QEvent.Timer,
+                QtCore.QEvent.ActivationChange,
+                QtCore.QEvent.WindowDeactivate,
+                QtCore.QEvent.WindowActivate,
+                QtCore.QEvent.ApplicationStateChange,
+                QtCore.QEvent.CursorChange,
+                QtCore.QEvent.MetaCall,
+                QtCore.QEvent.LayoutRequest,
+                QtCore.QEvent.Enter,
+                QtCore.QEvent.HoverEnter,
+                QtCore.QEvent.Leave,
+                QtCore.QEvent.HoverLeave,
+                QtCore.QEvent.StyleChange,
+                QtCore.QEvent.FontChange,
+                QtCore.QEvent.ContentsRectChange,
+                QtCore.QEvent.Create,
+                QtCore.QEvent.Wheel,
+            ]
+            self.app.installEventFilter(self)
+
+    def handleUncaughtExceptions(self, exc_type, exc_value, exc_traceback):
+        """Handler for uncaught exceptions that will write to the logs"""
+        if issubclass(exc_type, KeyboardInterrupt):
+            # call the default excepthook saved at __excepthook__
+            sys.__excepthook__(exc_type, exc_value, exc_traceback)
+            return
+        self.logger.critical(
+            "Uncaught exception:", exc_info=(exc_type, exc_value, exc_traceback)
+        )
+
+    def eventFilter(self, q_object, event):
+        """Logs Qt events not in self.ignored_qt_events"""
+        if event.type() not in self.ignored_qt_events:
+            self.logger.debug(str(event.type()) + " : " + q_object.objectName())
+
+        # standard event processing
+        return QtCore.QObject.eventFilter(self, q_object, event)
+
     def InitialSetup(self):
         self.gameDirExists = False
         self.winMain.cboAccount.setEnabled(False)
@@ -616,6 +731,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ClearLog()
         self.ClearNews()
 
+        self.setupLogging()
+
+        checkForCertificates(self.logger)
+
         # Set news feed to say "Loading ..." until it is replaced by the news.
         self.winMain.txtFeed.setHtml(
             '<html><body><p style="text-align:center;">Loading ...</p></body></html>'
@@ -631,6 +750,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # Checks if the user is running OneLauncher for the first time
             #  and calls the setup Wizard
             if not os.path.exists(self.settings.settingsFile):
+                self.logger.debug("First run/no settings file found")
                 self.settingsWizardCalled()
 
                 if not os.path.exists(self.settings.settingsFile):
@@ -808,11 +928,16 @@ class MainWindow(QtWidgets.QMainWindow):
         for line in message.splitlines():
             # Make line red if it is an error
             if line.startswith("[E"):
+                self.logger.error(line)
+
                 line = '<font color="red">' + message + "</font>"
 
                 # Enable buttons that won't normally get re-enabled if MainWindowThread gets frozen.
                 self.winMain.btnOptions.setEnabled(True)
                 self.winMain.btnSwitchGame.setEnabled(True)
+            else:
+                self.logger.info(line)
+
             self.winMain.txtStatus.append(line)
 
     def configThreadFinished(self):
@@ -846,6 +971,8 @@ class MainWindowThread(QtCore.QThread):
         self.ReturnGLSDataCenter = ReturnGLSDataCenter
         self.ReturnWorldQueueConfig = ReturnWorldQueueConfig
         self.ReturnNews = ReturnNews
+
+        self.logger = logging.getLogger("OneLauncher")
 
     def run(self):
         self.LoadLanguageList()
@@ -1038,5 +1165,6 @@ class MainWindowThread(QtCore.QThread):
             result += "</div></body></html>"
 
             self.ReturnNews.emit(result)
-        except:
-            self.ReturnLog.emit("[E12] Error gettings news")
+        except Exception as error:
+            self.ReturnLog.emit("[E12] Error getting news")
+            self.logger.warning(error)
