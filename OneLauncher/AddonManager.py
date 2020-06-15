@@ -34,7 +34,7 @@ from glob import glob
 from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minidom import Document  # nosec
 import defusedxml.minidom
-from .OneLauncherUtils import GetText
+from OneLauncher.OneLauncherUtils import GetText
 import sqlite3
 from shutil import rmtree, copy, move
 from zipfile import ZipFile

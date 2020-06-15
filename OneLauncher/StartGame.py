@@ -28,7 +28,7 @@
 ###########################################################################
 from PySide2 import QtCore, QtWidgets
 from PySide2.QtUiTools import QUiLoader
-from .OneLauncherUtils import QByteArray2str
+from OneLauncher.OneLauncherUtils import QByteArray2str
 import os.path
 from pkg_resources import resource_filename
 

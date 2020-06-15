@@ -28,7 +28,7 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import os
-from .OneLauncherUtils import GetText
+from OneLauncher.OneLauncherUtils import GetText
 from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minidom import Document  # nosec
 import defusedxml.minidom

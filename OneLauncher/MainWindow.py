@@ -33,22 +33,22 @@ import zlib
 from PySide2 import QtCore, QtGui, QtWidgets
 from PySide2.QtUiTools import QUiLoader
 import qdarkstyle
-from .SettingsWindow import SettingsWindow
-from .AddonManager import AddonManager
-from .SetupWizard import SetupWizard
-from .PatchWindow import PatchWindow
-from .StartGame import StartGame
-from .Settings import Settings
-from .WinePrefix import BuiltInPrefix
-from .OneLauncherUtils import DetermineOS, DetermineGame, LanguageConfig
-from .OneLauncherUtils import BaseConfig, GLSDataCenter, WorldQueueConfig
-from .OneLauncherUtils import (
+from OneLauncher.SettingsWindow import SettingsWindow
+from OneLauncher.AddonManager import AddonManager
+from OneLauncher.SetupWizard import SetupWizard
+from OneLauncher.PatchWindow import PatchWindow
+from OneLauncher.StartGame import StartGame
+from OneLauncher.Settings import Settings
+from OneLauncher.WinePrefix import BuiltInPrefix
+from OneLauncher.OneLauncherUtils import DetermineOS, DetermineGame, LanguageConfig
+from OneLauncher.OneLauncherUtils import BaseConfig, GLSDataCenter, WorldQueueConfig
+from OneLauncher.OneLauncherUtils import (
     AuthenticateUser,
     JoinWorldQueue,
     GetText,
     WebConnection,
 )
-from . import Information
+from OneLauncher import Information
 from pkg_resources import resource_filename
 import keyring
 
