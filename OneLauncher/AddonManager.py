@@ -40,6 +40,7 @@ from shutil import rmtree, copy, move
 from zipfile import ZipFile
 from urllib import request
 from time import strftime, localtime
+import logging
 
 
 class AddonManager:
@@ -76,6 +77,7 @@ class AddonManager:
         self.settingsDir = settingsDir
         self.currentGame = currentGame
         self.parent = parent
+        self.logger = logging.getLogger("OneLauncher")
 
         ui_file = QtCore.QFile(
             resource_filename(__name__, "ui" + os.sep + "winAddonManager.ui")
@@ -520,6 +522,7 @@ class AddonManager:
                 return
 
             copy(addon, self.data_folder_music)
+            self.logger.info(addon + " installed")
 
             self.getInstalledMusic()
         elif addon.endswith(".rar"):
@@ -575,6 +578,11 @@ class AddonManager:
                         self.addInstalledPluginsToDB(
                             plugins_list, plugins_list_compendium
                         )
+                        self.logger.info(
+                            "Installed addon corresponding to "
+                            + str(plugins_list)
+                            + str(plugins_list_compendium)
+                        )
 
                         self.installAddonRemoteDependencies(
                             table.objectName() + "Installed"
@@ -592,6 +600,7 @@ class AddonManager:
                             entry, addon, files_list, self.data_folder_music
                         )
                         file.extractall(path=path)
+                        self.logger.info(addon + " music installed")
 
                         if interface_id:
                             compendium_file = self.generateCompendiumFile(
@@ -615,6 +624,7 @@ class AddonManager:
                         entry, addon, files_list, self.data_folder_skins
                     )
                     file.extractall(path=path)
+                    self.logger.info(addon + " skin installed")
 
                     folder = self.moveAddonsFromInvalidFolder(
                         self.data_folder_skins, folder
@@ -1002,6 +1012,7 @@ class AddonManager:
         self.winAddonManager.lblErrors.setText(
             "Errors: " + str(int(self.winAddonManager.lblErrors.text()[-1]) + 1)
         )
+        self.logger.warning(message)
         self.winAddonManager.txtLog.append(message + "\n")
 
     def btnAddonsClicked(self):
@@ -1159,6 +1170,8 @@ class AddonManager:
             if os.path.exists(plugin[1]):
                 os.remove(plugin[1])
 
+            self.logger.info(str(plugin) + " plugin uninstalled")
+
             self.setRemoteAddonToUninstalled(plugin, self.winAddonManager.tablePlugins)
 
         # Reloads plugins
@@ -1172,6 +1185,8 @@ class AddonManager:
             else:
                 skin_path = skin[1]
             rmtree(skin_path)
+
+            self.logger.info(str(skin) + " skin uninstalled")
 
             self.setRemoteAddonToUninstalled(skin, self.winAddonManager.tableSkins)
 
@@ -1190,6 +1205,8 @@ class AddonManager:
                 os.remove(music_path)
             else:
                 rmtree(music_path)
+
+            self.logger.info(str(music) + " music uninstalled")
 
             self.setRemoteAddonToUninstalled(music, self.winAddonManager.tableMusic)
 
@@ -1495,7 +1512,9 @@ class AddonManager:
 
         if selected_addons[0]:
             for addon in selected_addons[0]:
-                info_url = self.getAddonUrlFromInterfaceID(addon[0], table, download_url=False)
+                info_url = self.getAddonUrlFromInterfaceID(
+                    addon[0], table, download_url=False
+                )
                 QtGui.QDesktopServices.openUrl(info_url)
 
     def actionInstallAddonSelected(self):

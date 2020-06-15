@@ -31,6 +31,7 @@ from PySide2.QtUiTools import QUiLoader
 from OneLauncher.OneLauncherUtils import QByteArray2str
 import os.path
 from pkg_resources import resource_filename
+import logging
 
 
 class StartGame:
@@ -75,6 +76,7 @@ class StartGame:
         self.worldName = worldName
         self.accountText = accountText
         self.parent = parent
+        self.logger = logging.getLogger("OneLauncher")
 
         ui_file = QtCore.QFile(resource_filename(__name__, "ui" + os.sep + "winLog.ui"))
         ui_file.open(QtCore.QFile.ReadOnly)
@@ -173,10 +175,14 @@ class StartGame:
         self.winLog.txtLog.append("Game Client: " + appName)
 
     def readOutput(self):
-        self.winLog.txtLog.append(QByteArray2str(self.process.readAllStandardOutput()))
+        text = QByteArray2str(self.process.readAllStandardOutput())
+        self.winLog.txtLog.append(text)
+        self.logger.debug("Game: " + text)
 
     def readErrors(self):
-        self.winLog.txtLog.append(QByteArray2str(self.process.readAllStandardError()))
+        text = QByteArray2str(self.process.readAllStandardError())
+        self.winLog.txtLog.append(text)
+        self.logger.debug("Game: " + text)
 
     def resetButtons(self, exitCode, exitStatus):
         self.finished = True
@@ -215,5 +221,6 @@ class StartGame:
 
         self.winLog.btnStop.setText("Abort")
         self.process.start(self.command, self.arguments)
+        self.logger.info("Game started with: " + str([self.command, self.arguments]))
 
         return self.winLog.exec_()
