@@ -26,7 +26,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from .MainWindow import MainWindow
+from OneLauncher.MainWindow import MainWindow
 
 
 def main():
