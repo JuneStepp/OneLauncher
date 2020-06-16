@@ -333,10 +333,10 @@
                 </item>
             </layout>
         </widget>
+        <zorder>horizontalLayoutWidget</zorder>
         <zorder>tabWidget</zorder>
         <zorder>btnBoxOptions</zorder>
         <zorder>chkAdvanced</zorder>
-        <zorder>horizontalLayoutWidget</zorder>
     </widget>
     <resources/>
     <connections>
