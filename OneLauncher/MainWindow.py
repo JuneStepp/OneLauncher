@@ -604,6 +604,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.AddLog("[E11] Error joining world queue")
 
     def setupLogging(self):
+        if not os.path.exists(self.settings.settingsDir):
+            os.mkdir(self.settings.settingsDir)
         # Create or get custom logger
         self.logger = logging.getLogger("OneLauncher")
 
