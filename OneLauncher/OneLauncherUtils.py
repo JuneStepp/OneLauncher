@@ -52,6 +52,8 @@ def QByteArray2str(s):
 
 
 onelauncher_ssl_ctx = None
+
+
 def checkForCertificates(logger):
     # Try to locate the server certificates for HTTPS connections
     certfile = resource_filename(__name__, "certificates/ca_certs.pem")
@@ -338,7 +340,7 @@ class World:
 
 
 class WorldQueueConfig:
-    def __init__(self, urlConfigServer, baseDir, osType, gameDir, x86):
+    def __init__(self, urlConfigServer, baseDir, osType, gameDir, x64Client):
         self.gameClientFilename = ""
         self.gameClientArgTemplate = ""
         self.crashreceiver = ""
@@ -377,10 +379,10 @@ class WorldQueueConfig:
                 for node in nodes:
                     if node.nodeType == node.ELEMENT_NODE:
                         if node.getAttribute("key") == "GameClient.WIN64.Filename":
-                            if x86:
+                            if x64Client:
                                 self.gameClientFilename = node.getAttribute("value")
                         if node.getAttribute("key") == "GameClient.WIN32.Filename":
-                            if x86 is False:
+                            if x64Client is False:
                                 self.gameClientFilename = node.getAttribute("value")
                         elif node.getAttribute("key") == "GameClient.WIN32.ArgTemplate":
                             self.gameClientArgTemplate = node.getAttribute("value")

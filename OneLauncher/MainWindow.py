@@ -262,7 +262,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def btnOptionsSelected(self):
         winSettings = SettingsWindow(
             self.settings.hiResEnabled,
-            self.settings.x86Enabled,
+            self.settings.x64ClientEnabled,
             self.settings.wineProg,
             self.settings.wineDebug,
             self.settings.patchClient,
@@ -277,7 +277,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if winSettings.Run() == QtWidgets.QDialog.Accepted:
             self.settings.hiResEnabled = winSettings.getHiRes()
-            self.settings.x86Enabled = winSettings.getx86()
+            self.settings.x64ClientEnabled = winSettings.getx64Client()
             self.settings.patchClient = winSettings.getPatchClient()
             self.settings.gameDir = winSettings.getGameDir()
             if winSettings.getLanguage():
@@ -530,7 +530,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def LaunchGame(self):
         game = StartGame(
             self.worldQueueConfig.gameClientFilename,
-            self.settings.x86Enabled,
+            self.settings.x64ClientEnabled,
             self.worldQueueConfig.gameClientArgTemplate,
             self.accNumber,
             self.urlLoginServer,
@@ -1027,7 +1027,7 @@ class MainWindowThread(QtCore.QThread):
             self.baseDir,
             self.osType,
             self.settings.gameDir,
-            self.settings.x86Enabled,
+            self.settings.x64ClientEnabled,
         )
 
         if self.worldQueueConfig.message:

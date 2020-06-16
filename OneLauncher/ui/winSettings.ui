@@ -1,376 +1,376 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>dlgSettings</class>
- <widget class="QDialog" name="dlgSettings">
-  <property name="windowModality">
-   <enum>Qt::ApplicationModal</enum>
-  </property>
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>460</width>
-    <height>366</height>
-   </rect>
-  </property>
-  <property name="font">
-   <font>
-    <family>Verdana</family>
-    <pointsize>12</pointsize>
-   </font>
-  </property>
-  <property name="windowTitle">
-   <string>Game Settings</string>
-  </property>
-  <property name="modal">
-   <bool>true</bool>
-  </property>
-  <widget class="QCheckBox" name="chkAdvanced">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>332</y>
-     <width>211</width>
-     <height>28</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable advanced options&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-   <property name="text">
-    <string>Advanced Options</string>
-   </property>
-   <property name="checked">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QTabWidget" name="tabWidget">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>471</width>
-     <height>371</height>
-    </rect>
-   </property>
-   <property name="currentIndex">
-    <number>0</number>
-   </property>
-   <widget class="QWidget" name="tabGame">
-    <attribute name="title">
-     <string>Game</string>
-    </attribute>
-    <widget class="QCheckBox" name="chkx86">
-     <property name="geometry">
-      <rect>
-       <x>14</x>
-       <y>79</y>
-       <width>181</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>64-bit Client</string>
-     </property>
+    <class>dlgSettings</class>
+    <widget class="QDialog" name="dlgSettings">
+        <property name="windowModality">
+            <enum>Qt::ApplicationModal</enum>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>460</width>
+                <height>366</height>
+            </rect>
+        </property>
+        <property name="font">
+            <font>
+                <family>Verdana</family>
+                <pointsize>12</pointsize>
+            </font>
+        </property>
+        <property name="windowTitle">
+            <string>Game Settings</string>
+        </property>
+        <property name="modal">
+            <bool>true</bool>
+        </property>
+        <widget class="QCheckBox" name="chkAdvanced">
+            <property name="geometry">
+                <rect>
+                    <x>20</x>
+                    <y>332</y>
+                    <width>211</width>
+                    <height>28</height>
+                </rect>
+            </property>
+            <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable advanced options&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+                <string>Advanced Options</string>
+            </property>
+            <property name="checked">
+                <bool>false</bool>
+            </property>
+        </widget>
+        <widget class="QTabWidget" name="tabWidget">
+            <property name="geometry">
+                <rect>
+                    <x>0</x>
+                    <y>0</y>
+                    <width>471</width>
+                    <height>371</height>
+                </rect>
+            </property>
+            <property name="currentIndex">
+                <number>0</number>
+            </property>
+            <widget class="QWidget" name="tabGame">
+                <attribute name="title">
+                    <string>Game</string>
+                </attribute>
+                <widget class="QCheckBox" name="chkx64Client">
+                    <property name="geometry">
+                        <rect>
+                            <x>14</x>
+                            <y>79</y>
+                            <width>181</width>
+                            <height>23</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>64-bit Client</string>
+                    </property>
+                </widget>
+                <widget class="QLabel" name="lblPatchClient">
+                    <property name="geometry">
+                        <rect>
+                            <x>7</x>
+                            <y>264</y>
+                            <width>141</width>
+                            <height>23</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>Patch Client DLL</string>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" name="txtPatchClient">
+                    <property name="geometry">
+                        <rect>
+                            <x>151</x>
+                            <y>260</y>
+                            <width>300</width>
+                            <height>31</height>
+                        </rect>
+                    </property>
+                </widget>
+                <widget class="QComboBox" name="cboGraphics">
+                    <property name="geometry">
+                        <rect>
+                            <x>151</x>
+                            <y>42</y>
+                            <width>300</width>
+                            <height>33</height>
+                        </rect>
+                    </property>
+                </widget>
+                <widget class="QToolButton" name="btnGameDir">
+                    <property name="geometry">
+                        <rect>
+                            <x>415</x>
+                            <y>6</y>
+                            <width>36</width>
+                            <height>30</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>...</string>
+                    </property>
+                </widget>
+                <widget class="QLabel" name="lblGraphics">
+                    <property name="geometry">
+                        <rect>
+                            <x>13</x>
+                            <y>47</y>
+                            <width>131</width>
+                            <height>23</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>Hi-Res Graphics</string>
+                    </property>
+                </widget>
+                <widget class="QLabel" name="lblGameDir">
+                    <property name="geometry">
+                        <rect>
+                            <x>13</x>
+                            <y>10</y>
+                            <width>131</width>
+                            <height>23</height>
+                        </rect>
+                    </property>
+                    <property name="toolTip">
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Where lotrolauncher is&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                    <property name="text">
+                        <string>Game Directory</string>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" name="txtGameDir">
+                    <property name="geometry">
+                        <rect>
+                            <x>151</x>
+                            <y>5</y>
+                            <width>260</width>
+                            <height>31</height>
+                        </rect>
+                    </property>
+                </widget>
+                <widget class="QPushButton" name="btnSetupWizard">
+                    <property name="geometry">
+                        <rect>
+                            <x>150</x>
+                            <y>110</y>
+                            <width>301</width>
+                            <height>25</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>Run Setup Wizard</string>
+                    </property>
+                </widget>
+            </widget>
+            <widget class="QWidget" name="tabWine">
+                <attribute name="title">
+                    <string>Wine</string>
+                </attribute>
+                <widget class="QLabel" name="lblPrefix">
+                    <property name="geometry">
+                        <rect>
+                            <x>41</x>
+                            <y>224</y>
+                            <width>101</width>
+                            <height>23</height>
+                        </rect>
+                    </property>
+                    <property name="toolTip">
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Where the drive_c folder is located&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                    <property name="text">
+                        <string>WINEPREFIX</string>
+                    </property>
+                </widget>
+                <widget class="QLabel" name="lblProgram">
+                    <property name="geometry">
+                        <rect>
+                            <x>28</x>
+                            <y>262</y>
+                            <width>121</width>
+                            <height>23</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>Wine Program</string>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" name="txtDebug">
+                    <property name="geometry">
+                        <rect>
+                            <x>150</x>
+                            <y>5</y>
+                            <width>300</width>
+                            <height>31</height>
+                        </rect>
+                    </property>
+                </widget>
+                <widget class="QLabel" name="lblDebug">
+                    <property name="geometry">
+                        <rect>
+                            <x>39</x>
+                            <y>12</y>
+                            <width>101</width>
+                            <height>23</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>WINEDEBUG</string>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" name="txtPrefix">
+                    <property name="enabled">
+                        <bool>true</bool>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>150</x>
+                            <y>220</y>
+                            <width>261</width>
+                            <height>31</height>
+                        </rect>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" name="txtProgram">
+                    <property name="geometry">
+                        <rect>
+                            <x>150</x>
+                            <y>258</y>
+                            <width>300</width>
+                            <height>31</height>
+                        </rect>
+                    </property>
+                </widget>
+                <widget class="QToolButton" name="btnPrefixDir">
+                    <property name="geometry">
+                        <rect>
+                            <x>414</x>
+                            <y>221</y>
+                            <width>36</width>
+                            <height>30</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>...</string>
+                    </property>
+                </widget>
+            </widget>
+        </widget>
+        <widget class="QDialogButtonBox" name="btnBoxOptions">
+            <property name="geometry">
+                <rect>
+                    <x>0</x>
+                    <y>332</y>
+                    <width>450</width>
+                    <height>32</height>
+                </rect>
+            </property>
+            <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="standardButtons">
+                <set>QDialogButtonBox::Cancel|QDialogButtonBox::Save</set>
+            </property>
+        </widget>
+        <widget class="QWidget" name="horizontalLayoutWidget">
+            <property name="geometry">
+                <rect>
+                    <x>310</x>
+                    <y>5</y>
+                    <width>141</width>
+                    <height>21</height>
+                </rect>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout">
+                <item>
+                    <widget class="QRadioButton" name="btnEN">
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
+                        <property name="toolTip">
+                            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Language unavailable. It must be selected in the official launcher, so that the client_local_English.dat file can be downloaded.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
+                        <property name="text">
+                            <string/>
+                        </property>
+                    </widget>
+                </item>
+                <item>
+                    <widget class="QRadioButton" name="btnDE">
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
+                        <property name="toolTip">
+                            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Language unavailable. It must be selected in the official launcher, so that the client_local_DE.dat file can be downloaded.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
+                        <property name="text">
+                            <string/>
+                        </property>
+                    </widget>
+                </item>
+                <item>
+                    <widget class="QRadioButton" name="btnFR">
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
+                        <property name="toolTip">
+                            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Language unavailable. It must be selected in the official launcher, so that the client_local_FR.dat file can be downloaded.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
+                        <property name="text">
+                            <string/>
+                        </property>
+                    </widget>
+                </item>
+            </layout>
+        </widget>
+        <zorder>tabWidget</zorder>
+        <zorder>btnBoxOptions</zorder>
+        <zorder>chkAdvanced</zorder>
+        <zorder>horizontalLayoutWidget</zorder>
     </widget>
-    <widget class="QLabel" name="lblPatchClient">
-     <property name="geometry">
-      <rect>
-       <x>7</x>
-       <y>264</y>
-       <width>141</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Patch Client DLL</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txtPatchClient">
-     <property name="geometry">
-      <rect>
-       <x>151</x>
-       <y>260</y>
-       <width>300</width>
-       <height>31</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="cboGraphics">
-     <property name="geometry">
-      <rect>
-       <x>151</x>
-       <y>42</y>
-       <width>300</width>
-       <height>33</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QToolButton" name="btnGameDir">
-     <property name="geometry">
-      <rect>
-       <x>415</x>
-       <y>6</y>
-       <width>36</width>
-       <height>30</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>...</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="lblGraphics">
-     <property name="geometry">
-      <rect>
-       <x>13</x>
-       <y>47</y>
-       <width>131</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Hi-Res Graphics</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="lblGameDir">
-     <property name="geometry">
-      <rect>
-       <x>13</x>
-       <y>10</y>
-       <width>131</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Where lotrolauncher is&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="text">
-      <string>Game Directory</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txtGameDir">
-     <property name="geometry">
-      <rect>
-       <x>151</x>
-       <y>5</y>
-       <width>260</width>
-       <height>31</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="btnSetupWizard">
-     <property name="geometry">
-      <rect>
-       <x>150</x>
-       <y>110</y>
-       <width>301</width>
-       <height>25</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Run Setup Wizard</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QWidget" name="tabWine">
-    <attribute name="title">
-     <string>Wine</string>
-    </attribute>
-    <widget class="QLabel" name="lblPrefix">
-     <property name="geometry">
-      <rect>
-       <x>41</x>
-       <y>224</y>
-       <width>101</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Where the drive_c folder is located&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="text">
-      <string>WINEPREFIX</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="lblProgram">
-     <property name="geometry">
-      <rect>
-       <x>28</x>
-       <y>262</y>
-       <width>121</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Wine Program</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txtDebug">
-     <property name="geometry">
-      <rect>
-       <x>150</x>
-       <y>5</y>
-       <width>300</width>
-       <height>31</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QLabel" name="lblDebug">
-     <property name="geometry">
-      <rect>
-       <x>39</x>
-       <y>12</y>
-       <width>101</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>WINEDEBUG</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txtPrefix">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>150</x>
-       <y>220</y>
-       <width>261</width>
-       <height>31</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txtProgram">
-     <property name="geometry">
-      <rect>
-       <x>150</x>
-       <y>258</y>
-       <width>300</width>
-       <height>31</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QToolButton" name="btnPrefixDir">
-     <property name="geometry">
-      <rect>
-       <x>414</x>
-       <y>221</y>
-       <width>36</width>
-       <height>30</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>...</string>
-     </property>
-    </widget>
-   </widget>
-  </widget>
-  <widget class="QDialogButtonBox" name="btnBoxOptions">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>332</y>
-     <width>450</width>
-     <height>32</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Save</set>
-   </property>
-  </widget>
-  <widget class="QWidget" name="horizontalLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>310</x>
-     <y>5</y>
-     <width>141</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <item>
-     <widget class="QRadioButton" name="btnEN">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Language unavailable. It must be selected in the official launcher, so that the client_local_English.dat file can be downloaded.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QRadioButton" name="btnDE">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Language unavailable. It must be selected in the official launcher, so that the client_local_DE.dat file can be downloaded.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QRadioButton" name="btnFR">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Language unavailable. It must be selected in the official launcher, so that the client_local_FR.dat file can be downloaded.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
-  <zorder>tabWidget</zorder>
-  <zorder>btnBoxOptions</zorder>
-  <zorder>chkAdvanced</zorder>
-  <zorder>horizontalLayoutWidget</zorder>
- </widget>
- <resources/>
- <connections>
-  <connection>
-   <sender>btnBoxOptions</sender>
-   <signal>accepted()</signal>
-   <receiver>dlgSettings</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnBoxOptions</sender>
-   <signal>rejected()</signal>
-   <receiver>dlgSettings</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+    <resources/>
+    <connections>
+        <connection>
+            <sender>btnBoxOptions</sender>
+            <signal>accepted()</signal>
+            <receiver>dlgSettings</receiver>
+            <slot>accept()</slot>
+            <hints>
+                <hint type="sourcelabel">
+                    <x>248</x>
+                    <y>254</y>
+                </hint>
+                <hint type="destinationlabel">
+                    <x>157</x>
+                    <y>274</y>
+                </hint>
+            </hints>
+        </connection>
+        <connection>
+            <sender>btnBoxOptions</sender>
+            <signal>rejected()</signal>
+            <receiver>dlgSettings</receiver>
+            <slot>reject()</slot>
+            <hints>
+                <hint type="sourcelabel">
+                    <x>316</x>
+                    <y>260</y>
+                </hint>
+                <hint type="destinationlabel">
+                    <x>286</x>
+                    <y>274</y>
+                </hint>
+            </hints>
+        </connection>
+    </connections>
 </ui>
