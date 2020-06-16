@@ -86,6 +86,20 @@ class PatchWindow:
         self.command = ""
         self.arguments = []
 
+        # Fix for the at least one person who has a title case patchclient.dll
+        if patchClient == "patchclient.dll" and not os.path.exists(
+            os.path.join(runDir, patchClient)
+        ):
+            patchClient = "PatchClient.dll"
+
+        # Make sure patchClient exists
+        if not os.path.exists(os.path.join(runDir, patchClient)):
+            self.winLog.txtLog.append(
+                '<font color="Khaki">Patch client %s not found</font>' % (patchClient)
+            )
+            self.logger.error("Patch client %s not found" % (patchClient))
+            return
+
         self.progressMonitor = ProgressMonitor(self.winLog)
 
         self.process = QtCore.QProcess()
