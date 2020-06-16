@@ -409,12 +409,12 @@
   </action>
   <action name="actionDDOTest">
    <property name="text">
-    <string>Dungeons &amp; Dragons Online (Test)</string>
+    <string>Dungeons and Dragons Online (Preview Client)</string>
    </property>
   </action>
   <action name="actionLOTROTest">
    <property name="text">
-    <string>Lord of the Rings Online (Test)</string>
+    <string>Lord of the Rings Online (Preview Client)</string>
    </property>
   </action>
   <action name="actionLOTRO">
@@ -424,7 +424,7 @@
   </action>
   <action name="actionDDO">
    <property name="text">
-    <string>Dungeons &amp; Dragons Online</string>
+    <string>Dungeons and Dragons Online</string>
    </property>
   </action>
  </widget>
