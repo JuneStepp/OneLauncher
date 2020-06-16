@@ -100,12 +100,12 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>381</width>
+       <width>391</width>
        <height>171</height>
       </rect>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;Game Detection:&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;This should detect any standard installations of LOTRO or DDO. Select the installations that you want to use with OneLauncher. If yours doesn't show up you can always add it manually in the settings.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Game Detection:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This should detect any standard installations of The Lord of The Rings Online or Dungeons and Dragons Online. Select the installations that you want to use with OneLauncher. If yours doesn't show up you can always add it manually in the settings.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -133,6 +133,9 @@
        <height>71</height>
       </rect>
      </property>
+     <property name="toolTip">
+      <string>The Lord of The Rings Online</string>
+     </property>
      <property name="text">
       <string>LOTRO</string>
      </property>
@@ -148,6 +151,9 @@
        <width>91</width>
        <height>71</height>
       </rect>
+     </property>
+     <property name="toolTip">
+      <string>Dungeons and Dragons Online</string>
      </property>
      <property name="text">
       <string>DDO</string>
@@ -220,12 +226,12 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>381</width>
+       <width>391</width>
        <height>171</height>
       </rect>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;Test Client Detection:&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;This should detect any standard test installations of LOTRO or DDO. Select the installations that you want to use with OneLauncher. If yours doesn't show up you can always add it manually in the settings.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Preview Client Detection:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This should detect any standard preview client installations of The Lord of The Rings Online or Dungeons and Dragons Online. Select the installations that you want to use with OneLauncher. If yours doesn't show up you can always add it manually in the settings.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -243,6 +249,9 @@
        <height>71</height>
       </rect>
      </property>
+     <property name="toolTip">
+      <string>The Lord of The Rings Online</string>
+     </property>
      <property name="text">
       <string>LOTRO</string>
      </property>
@@ -258,6 +267,9 @@
        <width>91</width>
        <height>71</height>
       </rect>
+     </property>
+     <property name="toolTip">
+      <string>Dungeons and Dragons Online</string>
      </property>
      <property name="text">
       <string>DDO</string>
@@ -354,7 +366,7 @@
   </widget>
   <action name="actionShowTest">
    <property name="text">
-    <string>Show test clients</string>
+    <string>Show preview clients</string>
    </property>
   </action>
   <action name="actionShowNormal">
