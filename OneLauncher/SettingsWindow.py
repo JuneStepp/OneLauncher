@@ -64,7 +64,9 @@ class SettingsWindow:
         self.winSettings = loader.load(ui_file, parentWidget=parent)
         ui_file.close()
 
-        self.winSettings.setWindowFlags(QtCore.Qt.Popup)
+        self.winSettings.setWindowFlags(
+            QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint
+        )
 
         if not self.osType.usingWindows:
             self.winSettings.txtPrefix.setText(winePrefix)
