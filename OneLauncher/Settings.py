@@ -54,7 +54,7 @@ class Settings:
         self.winePrefix = self.settingsDir + "wine/prefix"
         self.builtInPrefixEnabled = True
         self.gameDir = ""
-        self.x86Enabled = True
+        self.x64ClientEnabled = True
         self.savePassword = False
         success = False
 
@@ -91,11 +91,11 @@ class Settings:
                             self.hiResEnabled = True
                         else:
                             self.hiResEnabled = False
-                    elif node.nodeName == "x86":
+                    elif node.nodeName == "x64Client":
                         if GetText(node.childNodes) == "True":
-                            self.x86Enabled = True
+                            self.x64ClientEnabled = True
                         else:
-                            self.x86Enabled = False
+                            self.x64ClientEnabled = False
                     elif node.nodeName == "Save.Password":
                         if GetText(node.childNodes) == "True":
                             self.savePassword = True
@@ -129,13 +129,13 @@ class Settings:
                 if not os.path.exists(
                     self.gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe"
                 ) and self.currentGame.startswith("LOTRO"):
-                    self.x86Enabled = False
+                    self.x64ClientEnabled = False
 
                 # Disables 64-bit client if it is unavailable for DDO
                 if not os.path.exists(
                     self.gameDir + os.sep + "x64" + os.sep + "dndclient64.exe"
                 ) and self.currentGame.startswith("DDO"):
-                    self.x86Enabled = False
+                    self.x64ClientEnabled = False
 
                 success = True
 
@@ -213,8 +213,8 @@ class Settings:
             tempNode.appendChild(doc.createTextNode("False"))
         gameConfigNode.appendChild(tempNode)
 
-        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "x86")
-        if self.x86Enabled:
+        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "x64Client")
+        if self.x64ClientEnabled:
             tempNode.appendChild(doc.createTextNode("True"))
         else:
             tempNode.appendChild(doc.createTextNode("False"))

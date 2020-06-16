@@ -36,7 +36,7 @@ class SettingsWindow:
     def __init__(
         self,
         hiRes,
-        x86,
+        x64Client,
         wineProg,
         wineDebug,
         patchClient,
@@ -94,51 +94,37 @@ class SettingsWindow:
         # Only enables and sets up check box if 64-bit client is available
         if os.path.exists(
             gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe"
-        ) or os.path.exists(
-            gameDir + os.sep + "x64" + os.sep + "dndclient64.exe"
-        ):
-            if x86:
-                self.winSettings.chkx86.setChecked(True)
+        ) or os.path.exists(gameDir + os.sep + "x64" + os.sep + "dndclient64.exe"):
+            if x64Client:
+                self.winSettings.chkx64Client.setChecked(True)
             else:
-                self.winSettings.chkx86.setChecked(False)
+                self.winSettings.chkx64Client.setChecked(False)
         else:
-            self.winSettings.chkx86.setEnabled(False)
+            self.winSettings.chkx64Client.setEnabled(False)
 
         self.winSettings.btnEN.setIcon(
-            QtGui.QIcon(
-                resource_filename(__name__, "images" + os.sep + "EN-US.png")
-            )
+            QtGui.QIcon(resource_filename(__name__, "images" + os.sep + "EN-US.png"))
         )
 
         self.winSettings.btnDE.setIcon(
-            QtGui.QIcon(
-                resource_filename(__name__, "images" + os.sep + "DE.png")
-            )
+            QtGui.QIcon(resource_filename(__name__, "images" + os.sep + "DE.png"))
         )
 
         self.winSettings.btnFR.setIcon(
-            QtGui.QIcon(
-                resource_filename(__name__, "images" + os.sep + "FR.png")
-            )
+            QtGui.QIcon(resource_filename(__name__, "images" + os.sep + "FR.png"))
         )
 
         self.setLanguageButtons()
 
-        self.winSettings.btnSetupWizard.clicked.connect(
-            self.btnSetupWizardClicked
-        )
+        self.winSettings.btnSetupWizard.clicked.connect(self.btnSetupWizardClicked)
         self.start_setup_wizard = False
         self.winSettings.btnGameDir.clicked.connect(self.btnGameDirClicked)
         self.winSettings.txtGameDir.textChanged.connect(self.txtGameDirChanged)
         self.winSettings.chkAdvanced.clicked.connect(self.chkAdvancedClicked)
 
         if not self.osType.usingWindows:
-            self.winSettings.btnPrefixDir.clicked.connect(
-                self.btnPrefixDirClicked
-            )
-            self.winSettings.txtPrefix.textChanged.connect(
-                self.txtPrefixChanged
-            )
+            self.winSettings.btnPrefixDir.clicked.connect(self.btnPrefixDirClicked)
+            self.winSettings.txtPrefix.textChanged.connect(self.txtPrefixChanged)
 
     def chkAdvancedClicked(self):
         if self.osType.usingWindows:
@@ -189,12 +175,10 @@ class SettingsWindow:
         if text != "":
             if os.path.exists(
                 text + os.sep + "x64" + os.sep + "lotroclient64.exe"
-            ) or os.path.exists(
-                text + os.sep + "x64" + os.sep + "dndclient64.exe"
-            ):
-                self.winSettings.chkx86.setEnabled(True)
+            ) or os.path.exists(text + os.sep + "x64" + os.sep + "dndclient64.exe"):
+                self.winSettings.chkx64Client.setEnabled(True)
             else:
-                self.winSettings.chkx86.setEnabled(False)
+                self.winSettings.chkx64Client.setEnabled(False)
 
             self.setLanguageButtons()
 
@@ -282,8 +266,8 @@ class SettingsWindow:
         else:
             return False
 
-    def getx86(self):
-        if self.winSettings.chkx86.isChecked():
+    def getx64Client(self):
+        if self.winSettings.chkx64Client.isChecked():
             return True
         else:
             return False
