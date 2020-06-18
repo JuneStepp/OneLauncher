@@ -219,6 +219,9 @@
       <height>27</height>
      </rect>
     </property>
+    <property name="focusPolicy">
+     <enum>Qt::ClickFocus</enum>
+    </property>
     <property name="toolTip">
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;About&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
@@ -234,6 +237,9 @@
       <width>31</width>
       <height>27</height>
      </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::ClickFocus</enum>
     </property>
     <property name="toolTip">
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Exit&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -267,6 +273,9 @@
       <height>27</height>
      </rect>
     </property>
+    <property name="focusPolicy">
+     <enum>Qt::ClickFocus</enum>
+    </property>
     <property name="toolTip">
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Minimize&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
@@ -282,6 +291,9 @@
       <width>51</width>
       <height>27</height>
      </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::ClickFocus</enum>
     </property>
     <property name="toolTip">
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Switch game&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -310,6 +322,9 @@
       <width>31</width>
       <height>27</height>
      </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::ClickFocus</enum>
     </property>
     <property name="toolTip">
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Settings&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -350,6 +365,9 @@
       <width>31</width>
       <height>27</height>
      </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::ClickFocus</enum>
     </property>
     <property name="toolTip">
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Addon manager&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -428,6 +446,22 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>cboWorld</tabstop>
+  <tabstop>cboAccount</tabstop>
+  <tabstop>txtPassword</tabstop>
+  <tabstop>btnLogin</tabstop>
+  <tabstop>chkSaveSettings</tabstop>
+  <tabstop>chkSavePassword</tabstop>
+  <tabstop>txtFeed</tabstop>
+  <tabstop>btnMinimize</tabstop>
+  <tabstop>btnSwitchGame</tabstop>
+  <tabstop>btnOptions</tabstop>
+  <tabstop>btnExit</tabstop>
+  <tabstop>btnAddonManager</tabstop>
+  <tabstop>btnAbout</tabstop>
+  <tabstop>txtStatus</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
