@@ -41,6 +41,7 @@ jobs:
           pip install defusedxml
           pip install pywin32-ctypes
           pip install pywin32
+          pip install vkbeautify
           pip install https://github.com/JuneStepp/pyinstaller/releases/download/v3.5/PyInstaller-3.6.zip
       - name: Build
         run: python build.py

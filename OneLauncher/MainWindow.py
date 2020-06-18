@@ -380,7 +380,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.winMain.cboAccount.addItem(account)
 
     def setCurrentAccountWorld(self):
-        if not self.settings.focusAccount:
+        if not self.settings.focusAccount and self.settings.accountsDictionary:
             current_account = self.winMain.cboAccount.currentText()
             account_world = self.settings.accountsDictionary[current_account][0]
 
@@ -770,14 +770,15 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.winMain.chkSaveSettings.setChecked(False)
             else:
                 self.loadAllSavedAccounts()
-                self.winMain.cboAccount.setCurrentText(
-                    list(self.settings.accountsDictionary.keys())[-1]
-                )
-                self.winMain.chkSaveSettings.setChecked(True)
+                if self.settings.accountsDictionary:
+                    self.winMain.cboAccount.setCurrentText(
+                        list(self.settings.accountsDictionary.keys())[-1]
+                    )
+                    self.winMain.chkSaveSettings.setChecked(True)
 
-                self.winMain.chkSavePassword.setChecked(False)
+                    self.winMain.chkSavePassword.setChecked(False)
 
-                self.setCurrentAccountPassword()
+                    self.setCurrentAccountPassword()
 
         self.gameType.GetSettings(self.settings.currentGame)
 
@@ -897,12 +898,13 @@ class MainWindow(QtWidgets.QMainWindow):
             self.winMain.cboAccount.setFocus()
             self.winMain.chkSaveSettings.setChecked(False)
         else:
-            self.winMain.cboAccount.setCurrentText(
-                list(self.settings.accountsDictionary.keys())[-1]
-            )
-            self.winMain.chkSaveSettings.setChecked(True)
-            if not self.winMain.chkSavePassword.isChecked():
-                self.winMain.txtPassword.setFocus()
+            if self.settings.accountsDictionary:
+                self.winMain.cboAccount.setCurrentText(
+                    list(self.settings.accountsDictionary.keys())[-1]
+                )
+                self.winMain.chkSaveSettings.setChecked(True)
+                if not self.winMain.chkSavePassword.isChecked():
+                    self.winMain.txtPassword.setFocus()
 
     def GetNews(self, news):
         self.winMain.txtFeed.setHtml(news)

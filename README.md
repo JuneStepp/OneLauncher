@@ -47,6 +47,7 @@ building like venv, conda, or virtualenv.
 - pkg_resources (Comes with setuptools. You probably have it, but it can be installed with pip)
 - keyring (Can be installed with pip)
 - defusedxml (Can be installed with pip)
+- vkbeautify (Can be installed with pip)
 
 - PyInstaller (Needed to build. Can be installed with pip.
   Currently [edited version](https://github.com/JuneStepp/pyinstaller/releases/download/v3.5/PyInstaller-3.6.zip) is needed)
