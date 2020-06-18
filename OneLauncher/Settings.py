@@ -32,6 +32,7 @@ from OneLauncher.OneLauncherUtils import GetText
 from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minidom import Document  # nosec
 import defusedxml.minidom
+from vkbeautify import xml as prettify_xml
 from collections import OrderedDict
 
 
@@ -255,4 +256,5 @@ class Settings:
 
         # write new settings file
         with open(self.settingsFile, "w") as file:
-            file.write(doc.toxml())
+            pretty_xml = prettify_xml(doc.toxml())
+            file.write(pretty_xml)
