@@ -52,6 +52,7 @@ building like venv, conda, or virtualenv.
 - PyInstaller (Needed to build. Can be installed with pip.
   Currently [edited version](https://github.com/JuneStepp/pyinstaller/releases/download/v3.5/PyInstaller-3.6.zip) is needed)
 - pywin32-ctypes (Needed for Windows building. Can be installed with pip)
+- pywin32 (Needed for Windows building. Can be installed with pip)
 
 # To run
 
