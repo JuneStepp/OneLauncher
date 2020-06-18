@@ -39,6 +39,7 @@ jobs:
           pip install qdarkstyle
           pip install keyring
           pip install defusedxml
+          pip install vkbeautify
           pip install https://github.com/JeremyStepp/pyinstaller/releases/download/v3.5/PyInstaller-3.6.zip
       - name: Build
         run: python build.py
