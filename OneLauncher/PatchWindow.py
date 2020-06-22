@@ -114,7 +114,8 @@ class PatchWindow:
 
         if self.osType.usingWindows:
             self.arguments = [
-                patchClient + ",Patch",
+                patchClient,
+                "Patch",
                 urlPatchServer,
                 "--language",
                 language,
@@ -131,7 +132,8 @@ class PatchWindow:
 
             self.arguments = [
                 "rundll32.exe",
-                patchClient + ",Patch",
+                patchClient,
+                "Patch",
                 urlPatchServer,
                 "--language",
                 language,
