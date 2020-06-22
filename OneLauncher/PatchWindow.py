@@ -86,14 +86,15 @@ class PatchWindow:
         self.command = ""
         self.arguments = []
 
+        patchClient = os.path.join(runDir, patchClient)
         # Fix for the at least one person who has a title case patchclient.dll
-        if patchClient == "patchclient.dll" and not os.path.exists(
-            os.path.join(runDir, patchClient)
+        if os.path.split(patchClient)[1] == "patchclient.dll" and not os.path.exists(
+            patchClient
         ):
-            patchClient = "PatchClient.dll"
+            patchClient = os.path.join(runDir, "PatchClient.dll")
 
         # Make sure patchClient exists
-        if not os.path.exists(os.path.join(runDir, patchClient)):
+        if not os.path.exists(patchClient):
             self.winLog.txtLog.append(
                 '<font color="Khaki">Patch client %s not found</font>' % (patchClient)
             )
@@ -109,44 +110,40 @@ class PatchWindow:
 
         processEnvironment = QtCore.QProcessEnvironment.systemEnvironment()
 
-        if winePrefix != "":
-            processEnvironment.insert("WINEPREFIX", winePrefix)
-
         self.process.setProcessEnvironment(processEnvironment)
 
         if self.osType.usingWindows:
-            patchParams = "%s,Patch %s --language %s --productcode %s" % (
-                patchClient,
+            self.arguments = [
+                patchClient + ",Patch",
                 urlPatchServer,
+                "--language",
                 language,
+                "--productcode",
                 prodCode,
-            )
-
-            if hiResEnabled:
-                patchParams = patchParams + " --highres"
+            ]
 
             self.command = "rundll32.exe"
             self.process.setWorkingDirectory(runDir)
 
-            for arg in patchParams.split(" "):
-                self.arguments.append(arg)
-
         else:
-            patchParams = "rundll32.exe %s,Patch %s --language %s --productcode %s" % (
-                patchClient,
-                urlPatchServer,
-                language,
-                prodCode,
-            )
+            if winePrefix != "":
+                processEnvironment.insert("WINEPREFIX", winePrefix)
 
-            if hiResEnabled:
-                patchParams = patchParams + " --highres"
+            self.arguments = [
+                "rundll32.exe",
+                patchClient + ",Patch",
+                urlPatchServer,
+                "--language",
+                language,
+                "--productcode",
+                prodCode,
+            ]
 
             self.command = wineProgram
             self.process.setWorkingDirectory(runDir)
 
-            for arg in patchParams.split(" "):
-                self.arguments.append(arg)
+        if hiResEnabled:
+            self.arguments.append("--highres")
 
         self.file_arguments = self.arguments.copy()
         self.file_arguments.append("--filesonly")
