@@ -111,18 +111,19 @@ class Settings:
 
                         for account_node in account_nodes:
                             account_name = account_node.nodeName
-                            # Create account settings list. The amount of
-                            # empty strings in the list represent the
-                            # amount of account settings.
-                            self.accountsDictionary[account_name] = [""]
+                            if account_name != "#text":
+                                # Create account settings list. The amount of
+                                # empty strings in the list represent the
+                                # amount of account settings.
+                                self.accountsDictionary[account_name] = [""]
 
-                            for node in account_node.childNodes:
-                                if node.nodeName == "World":
-                                    self.accountsDictionary[account_name][0] = GetText(
-                                        node.childNodes
-                                    )
+                                for node in account_node.childNodes:
+                                    if node.nodeName == "World":
+                                        self.accountsDictionary[account_name][0] = GetText(
+                                            node.childNodes
+                                        )
 
-                        self.focusAccount = False
+                                self.focusAccount = False
                     elif node.nodeName == "PatchClient":
                         self.patchClient = GetText(node.childNodes)
 
