@@ -34,6 +34,7 @@ from xml.dom.minidom import Document  # nosec
 import defusedxml.minidom
 from vkbeautify import xml as prettify_xml
 from collections import OrderedDict
+import logging
 
 
 class Settings:
@@ -42,6 +43,7 @@ class Settings:
         self.settingsDir = "%s%s" % (baseDir, osType.appDir)
         self.settingsFile = "%sOneLauncher.config" % (self.settingsDir)
         self.osType = osType
+        self.logger = logging.getLogger("OneLauncher")
 
     def LoadSettings(self, useGame=None):
         self.hiResEnabled = True
@@ -148,7 +150,7 @@ class Settings:
                 ):
                     success = "[E16] Wine executable set does not exist"
         except Exception as error:
-            print(error)
+            self.logger.error(error, exc_info=True)
             success = False
 
         return success
