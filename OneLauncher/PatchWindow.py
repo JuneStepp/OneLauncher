@@ -86,6 +86,9 @@ class PatchWindow:
         self.command = ""
         self.arguments = []
 
+        self.process_status_timer = QtCore.QTimer()
+        self.process_status_timer.timeout.connect(self.activelyShowProcessStatus)
+
         patchClient = os.path.join(runDir, patchClient)
         # Fix for the at least one person who has a title case patchclient.dll
         if os.path.split(patchClient)[1] == "patchclient.dll" and not os.path.exists(
@@ -216,7 +219,21 @@ class PatchWindow:
         self.winLog.btnStart.setEnabled(False)
         self.winLog.btnStop.setText("Abort")
         self.winLog.btnSave.setEnabled(False)
+
         self.process.start(self.command, self.file_arguments)
+        self.winLog.txtLog.append("<b>***  Started  ***</b>")
+
+        if self.osType.usingWindows:
+            self.process_status_timer.start(1000)
+
+    def activelyShowProcessStatus(self):
+        """
+        Actively gives the user an indication that the process is running.
+        This is for Windows where the patcher output can't be gotten.
+        """
+        if self.process.state() == QtCore.QProcess.Running:
+            self.winLog.txtLog.append("...")
+            self.process_status_timer.start(1000)
 
     def Run(self, app):
         self.__app = app
