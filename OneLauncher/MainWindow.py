@@ -332,7 +332,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.show()
 
     def btnSwitchGameClicked(self):
-        if self.settings.currentGame == "DDO":
+        if self.settings.currentGame.startswith("DDO"):
             self.currentGame = "LOTRO"
         else:
             self.currentGame = "DDO"
