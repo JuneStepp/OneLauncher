@@ -139,13 +139,13 @@ class StartGame:
                 self.arguments.append(arg)
 
         else:
-            processEnviroment = QtCore.QProcessEnvironment.systemEnvironment()
+            processEnvironment = QtCore.QProcessEnvironment.systemEnvironment()
 
             if wineDebug != "":
-                processEnviroment.insert("WINEDEBUG", wineDebug)
+                processEnvironment.insert("WINEDEBUG", wineDebug)
 
             if winePrefix != "":
-                processEnviroment.insert("WINEPREFIX", winePrefix)
+                processEnvironment.insert("WINEPREFIX", winePrefix)
 
             self.command = wineProgram
             self.process.setWorkingDirectory(runDir)
@@ -155,19 +155,19 @@ class StartGame:
             for arg in gameParams.split(" "):
                 self.arguments.append(arg)
 
-            # Applies needed settings for the buit in wine prefix
+            # Applies needed settings for the builtin wine prefix
             if builtInPrefixEnabled:
                 # Enables esync if open file limit is high enough
                 if os.path.exists("/proc/sys/fs/file-max"):
                     with open("/proc/sys/fs/file-max") as file:
                         file_data = file.read()
                         if int(file_data) >= 524288:
-                            processEnviroment.insert("WINEESYNC", "1")
+                            processEnvironment.insert("WINEESYNC", "1")
 
                 # Adds dll overrides for directx, so dxvk is used instead of wine3d
-                processEnviroment.insert("WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10=n")
+                processEnvironment.insert("WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10=n")
 
-            self.process.setProcessEnvironment(processEnviroment)
+            self.process.setProcessEnvironment(processEnvironment)
 
         self.winLog.txtLog.append("Connecting to server: " + worldName)
         self.winLog.txtLog.append("Account: " + accountText)
