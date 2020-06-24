@@ -251,6 +251,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.gameType.iconFile,
             self.valHomeDir,
             self.settings.winePrefix,
+            self.settings.wineDebug,
             self.osType,
             self.rootDir,
             self,
