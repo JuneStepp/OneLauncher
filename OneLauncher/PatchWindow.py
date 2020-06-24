@@ -49,6 +49,7 @@ class PatchWindow:
         iconFileIn,
         homeDir,
         winePrefix,
+        wineDebug,
         osType,
         rootDir,
         parent,
@@ -113,8 +114,6 @@ class PatchWindow:
 
         processEnvironment = QtCore.QProcessEnvironment.systemEnvironment()
 
-        self.process.setProcessEnvironment(processEnvironment)
-
         if self.osType.usingWindows:
             self.arguments = [
                 patchClient,
@@ -127,11 +126,12 @@ class PatchWindow:
             ]
 
             self.command = "rundll32.exe"
-            self.process.setWorkingDirectory(runDir)
-
         else:
             if winePrefix != "":
                 processEnvironment.insert("WINEPREFIX", winePrefix)
+
+            if wineDebug != "":
+                processEnvironment.insert("WINEDEBUG", wineDebug)
 
             self.arguments = [
                 "rundll32.exe",
@@ -145,7 +145,9 @@ class PatchWindow:
             ]
 
             self.command = wineProgram
-            self.process.setWorkingDirectory(runDir)
+
+        self.process.setProcessEnvironment(processEnvironment)
+        self.process.setWorkingDirectory(runDir)
 
         if hiResEnabled:
             self.arguments.append("--highres")
