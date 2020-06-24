@@ -39,7 +39,7 @@ from PySide2 import QtCore, QtWidgets
 
 
 class BuiltInPrefix:
-    WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/5.10/wine-5.10-staging-tkg-amd64.tar.xz"
+    WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/5.11/wine-5.11-staging-tkg-amd64.tar.xz"
     DXVK_URL = "https://github.com/doitsujin/dxvk/releases/download/v1.7/dxvk-1.7.tar.gz"
 
     def __init__(self, settingsDir, winePrefix, parent):
