@@ -1100,9 +1100,13 @@ class MainWindowThread(QtCore.QThread):
                 'class="launcherNewsItemsContainer" style="width:auto">'
             )
 
-            urlNewsFeed = self.worldQueueConfig.newsFeedURL.replace(
-                "{lang}", self.settings.language.lower()
-            )
+            # DDO test client doesn't provide a news feed, so one from the forums is used.
+            if self.settings.currentGame == "DDO.Test":
+                urlNewsFeed = "https://www.ddo.com/forums/external.php?type=RSS2&forumids=266"
+            else:
+                urlNewsFeed = self.worldQueueConfig.newsFeedURL.replace(
+                    "{lang}", self.settings.language.lower()
+                )
 
             webservice, post = WebConnection(urlNewsFeed)
 
