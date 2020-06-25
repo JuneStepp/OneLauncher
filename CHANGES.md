@@ -12,9 +12,9 @@ Launcher for Linux, Windows, and Mac OS X
                  *  plugins (with dependency checking)
                  *  themes (DDO support too!)
                  *  music (.abc files/collections of files)
-        * Self updater
         * Multiple accounts support
-        * Custom directory selection in setup wizard
+        * Improved setup wizard
+        * Improved preview clients support
         * Many more smaller improvements
 
 1.1

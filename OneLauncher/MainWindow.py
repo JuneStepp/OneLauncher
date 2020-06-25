@@ -434,7 +434,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
             if self.winMain.chkSaveSettings.isChecked():
                 current_account = self.winMain.cboAccount.currentText()
-                current_world = self.winMain.cboWorld.currentText()
+
+                # Test servers only have one world and shouldn't
+                # overwrite world setting on normal servers
+                if self.settings.currentGame.endswith(".Test"):
+                    world = self.settings.accountsDictionary[current_account][0]
+                else:
+                    world = self.winMain.cboWorld.currentText()
 
                 # Account is deleted first, because accounts are in order of
                 # the most recently played at the end.
@@ -442,8 +448,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     del self.settings.accountsDictionary[current_account]
                 except KeyError:
                     pass
-
-                self.settings.accountsDictionary[current_account] = [current_world]
+                self.settings.accountsDictionary[current_account] = [world]
 
                 self.settings.SaveSettings(
                     saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),

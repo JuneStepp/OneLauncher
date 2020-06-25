@@ -108,26 +108,22 @@ class Settings:
                         self.gameDir = GetText(node.childNodes)
                     elif node.nodeName == "Language":
                         self.language = GetText(node.childNodes)
-                    elif node.nodeName == "Accounts":
-                        account_nodes = node.childNodes
-
-                        for account_node in account_nodes:
-                            account_name = account_node.nodeName
-                            if account_name != "#text":
-                                # Create account settings list. The amount of
-                                # empty strings in the list represent the
-                                # amount of account settings.
-                                self.accountsDictionary[account_name] = [""]
-
-                                for node in account_node.childNodes:
-                                    if node.nodeName == "World":
-                                        self.accountsDictionary[account_name][0] = GetText(
-                                            node.childNodes
-                                        )
-
-                                self.focusAccount = False
                     elif node.nodeName == "PatchClient":
                         self.patchClient = GetText(node.childNodes)
+                    elif node.nodeName == "Accounts" and not self.currentGame.endswith(
+                        ".Test"
+                    ):
+                        account_nodes = node.childNodes
+                        self.setAccountsSettings(account_nodes)
+
+                # Test/preview clients use accounts from normal clients
+                if self.currentGame.endswith(".Test"):
+                    normalClientNode = self.getNormalClientNode(self.currentGame, doc)
+                    if normalClientNode:
+                        accounts_node = normalClientNode.getElementsByTagName("Accounts")
+                        if accounts_node:
+                            account_nodes = accounts_node[0].childNodes
+                            self.setAccountsSettings(account_nodes)
 
                 # Disables 64-bit client if it is unavailable for LOTRO
                 if not os.path.exists(
@@ -154,6 +150,37 @@ class Settings:
             success = False
 
         return success
+
+    def setAccountsSettings(self, account_nodes):
+        for account_node in account_nodes:
+            account_name = account_node.nodeName
+            if account_name != "#text":
+                # Create account settings list. The amount of
+                # empty strings in the list represent the
+                # amount of account settings.
+                self.accountsDictionary[account_name] = [""]
+
+                for node in account_node.childNodes:
+                    if node.nodeName == "World":
+                        self.accountsDictionary[account_name][
+                            0
+                        ] = GetText(node.childNodes)
+
+                self.focusAccount = False
+
+    def getNormalClientNode(self, game, doc):
+        """
+        Get normal client node/make it if it doesn't exist.
+        Normal client as in not the test/preview client
+        """
+        if game.endswith(".Test"):
+            normalClient = game.split(".")[0]
+            normalClientNode = doc.getElementsByTagName(normalClient)
+            if normalClientNode:
+                normalClientNode = normalClientNode[0]
+                return normalClientNode
+            else:
+                return None
 
     def SaveSettings(self, saveAccountDetails=None, savePassword=None, game=None):
         doc = None
@@ -238,6 +265,7 @@ class Settings:
 
         if saveAccountDetails:
             accountsNode = doc.createElementNS(EMPTY_NAMESPACE, "Accounts")
+
             # Adds all saved accounts with their account specific settings.
             for account in self.accountsDictionary:
                 accountNode = doc.createElementNS(EMPTY_NAMESPACE, account)
@@ -250,7 +278,23 @@ class Settings:
 
                 accountsNode.appendChild(accountNode)
 
-            gameConfigNode.appendChild(accountsNode)
+            # Test/preview clients use normal client accounts. I.e they are
+            # saved and loaded to and from the normal client node rather than the test node
+            if current_game.endswith(".Test"):
+                normalClientNode = self.getNormalClientNode(current_game, doc)
+                if not normalClientNode:
+                    normalClientNode = doc.createElementNS(EMPTY_NAMESPACE, current_game)
+                    settingsNode.appendChild(normalClientNode)
+
+                # Delete current accounts node if present. All accounts that were originally
+                # there were loaded as if they were the test client's, so they are not lost.
+                originalAccountsNode = normalClientNode.getElementsByTagName("Accounts")
+                if originalAccountsNode:
+                    normalClientNode.removeChild(originalAccountsNode[0])
+
+                normalClientNode.appendChild(accountsNode)
+            else:
+                gameConfigNode.appendChild(accountsNode)
 
             if savePassword:
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Save.Password")
