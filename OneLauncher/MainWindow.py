@@ -59,6 +59,8 @@ import keyring
 import logging
 from logging.handlers import RotatingFileHandler
 from platform import platform
+import urllib
+from json import loads as jsonLoads
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -75,7 +77,6 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__()
         # Determine where module is located (needed for finding ICO & PNG files)
         try:
-            test = sys.frozen
             self.rootDir = os.path.dirname(sys.executable)
         except:
             self.rootDir = __file__.replace("library.zip", "")
@@ -175,7 +176,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.configFile = ""
         self.currentGame = None
 
-        self.InitialSetup()
+        self.InitialSetup(first_setup=True)
 
     def run(self):
         self.show()
@@ -215,7 +216,7 @@ class MainWindow(QtWidgets.QMainWindow):
         dlgAbout.setWindowFlags(QtCore.Qt.Popup)
 
         dlgAbout.lblDescription.setText(Information.LongDescription)
-        dlgAbout.lblWebsite.setText(Information.Website)
+        dlgAbout.lblRepoWebsite.setText(Information.RepoWebsite)
         dlgAbout.lblCopyright.setText(Information.Copyright)
         dlgAbout.lblVersion.setText("<b>Version:</b> " + Information.Version)
         dlgAbout.lblPyLotROReference.setText(Information.PyLotROReference)
@@ -607,7 +608,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.worldQueue.joinSuccess:
             self.LaunchGame()
         else:
-            self.AddLog("[E11] Error joining world queue")
+            self.AddLog("[E11] Error joining world queue.")
 
     def setupLogging(self):
         if not os.path.exists(self.settings.settingsDir):
@@ -718,7 +719,64 @@ class MainWindow(QtWidgets.QMainWindow):
         # standard event processing
         return QtCore.QObject.eventFilter(self, q_object, event)
 
-    def InitialSetup(self):
+    def checkForUpdate(self):
+        """Notifies user if their copy of OneLauncher is out of date"""
+        current_version = Information.Version
+        if current_version.endswith("Dev"):
+            self.logger.debug(
+                "Skipping update check, because development version detected"
+            )
+            return
+
+        repository_url = Information.repoUrl
+        if "github.com" not in repository_url.lower():
+            self.logger.warning(
+                "Repository URL set in Information.py is not "
+                "at github.com. The system for update notifications"
+                " only supports this site."
+            )
+            return
+
+        latest_release_template = (
+            "https://api.github.com/repos/{user_and_repo}/releases/latest"
+        )
+        latest_release_url = latest_release_template.format(
+            user_and_repo=repository_url.lower().split("github.com")[1].strip("/")
+        )
+
+        try:
+            with urllib.request.urlopen(latest_release_url) as response:
+                release_dictionary = jsonLoads(response.read())
+        except (urllib.error.URLError, urllib.error.HTTPError) as error:
+            self.AddLog("[E18] Error checking for OneLauncher updates.")
+            self.logger.error(error.reason, exc_info=True)
+
+        release_version = release_dictionary["tag_name"].split("v")[1]
+        if release_version == current_version:
+            self.AddLog("OneLauncher is up to date.")
+        else:
+            url = release_dictionary["html_url"]
+            name = release_dictionary["name"]
+            description = release_dictionary["body"]
+
+            messageBox = QtWidgets.QMessageBox(self.winMain)
+            messageBox.setWindowFlag(QtCore.Qt.FramelessWindowHint)
+            messageBox.setIcon(QtWidgets.QMessageBox.Information)
+            messageBox.setStandardButtons(messageBox.Ok)
+
+            centered_href = (
+                '<html><head/><body><p align="center"><a href="{url}">'
+                "<span>{name}</span></a></p></body></html>"
+            ).format(url=url, name=name)
+            messageBox.setInformativeText(
+                "There is a new version of OneLauncher available: {href}".format(
+                    href=centered_href
+                )
+            )
+            messageBox.setDetailedText(description)
+            messageBox.show()
+
+    def InitialSetup(self, first_setup=False):
         self.gameDirExists = False
         self.winMain.cboAccount.setEnabled(False)
         self.winMain.txtPassword.setEnabled(False)
@@ -740,6 +798,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ClearNews()
 
         self.setupLogging()
+
+        if first_setup:
+            self.checkForUpdate()
 
         checkForCertificates(self.logger)
 
@@ -1044,12 +1105,12 @@ class MainWindowThread(QtCore.QThread):
             self.ReturnLog.emit(self.worldQueueConfig.message)
 
         if self.worldQueueConfig.loadSuccess:
-            self.ReturnLog.emit("World queue configuration read")
+            self.ReturnLog.emit("World queue configuration read.")
             self.ReturnWorldQueueConfig.emit(self.worldQueueConfig)
 
             self.GetNews()
         else:
-            self.ReturnLog.emit("[E05] Error getting world queue configuration")
+            self.ReturnLog.emit("[E05] Error getting world queue configuration.")
 
     def GetNews(self):
         try:
@@ -1102,7 +1163,9 @@ class MainWindowThread(QtCore.QThread):
 
             # DDO test client doesn't provide a news feed, so one from the forums is used.
             if self.settings.currentGame == "DDO.Test":
-                urlNewsFeed = "https://www.ddo.com/forums/external.php?type=RSS2&forumids=266"
+                urlNewsFeed = (
+                    "https://www.ddo.com/forums/external.php?type=RSS2&forumids=266"
+                )
             else:
                 urlNewsFeed = self.worldQueueConfig.newsFeedURL.replace(
                     "{lang}", self.settings.language.lower()

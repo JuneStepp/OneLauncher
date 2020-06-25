@@ -1,13 +1,15 @@
 # coding=utf-8
+
+# Version should be in "number.number format with another .number added only if needed.
 Version = "1.2 Dev"
 Description = "LOTRO/DDO Custom Launcher"
-Website = (
-    '<a href="https://github.com/JuneStepp/OneLauncher">'
-    "Github.com/JuneStepp/OneLauncher</a>"
-)
+
+# Update checks only work with a repository hosted on Github.
+repoUrl = "https://github.com/JuneStepp/OneLauncher"
+RepoWebsite = '<a href="{url}">' "Github.com/JuneStepp/OneLauncher</a>".format(url=repoUrl)
+
 Author = "June Stepp"
 Email = "git@junestepp.me"
-WebSite = ""
 LongDescription = (
     "Lord of the Rings Online and Dungeons & Dragons"
     " Online\nLauncher for Linux, Mac, and Windows"
