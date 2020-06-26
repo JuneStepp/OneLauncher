@@ -54,7 +54,7 @@ from OneLauncher.OneLauncherUtils import (
     WebConnection,
 )
 from OneLauncher import Information
-from pkg_resources import resource_filename
+from pkg_resources import resource_filename, parse_version
 import keyring
 import logging
 from logging.handlers import RotatingFileHandler
@@ -731,13 +731,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def checkForUpdate(self):
         """Notifies user if their copy of OneLauncher is out of date"""
-        current_version = Information.Version
-        if current_version.endswith("Dev"):
-            self.logger.debug(
-                "Skipping update check, because development version detected"
-            )
-            return
-
+        current_version = parse_version(Information.Version)
         repository_url = Information.repoUrl
         if "github.com" not in repository_url.lower():
             self.logger.warning(
@@ -761,10 +755,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.AddLog("[E18] Error checking for OneLauncher updates.")
             self.logger.error(error.reason, exc_info=True)
 
-        release_version = release_dictionary["tag_name"].split("v")[1]
-        if release_version == current_version:
-            self.AddLog("OneLauncher is up to date.")
-        else:
+        release_version = parse_version(release_dictionary["tag_name"])
+
+        if release_version > current_version:
             url = release_dictionary["html_url"]
             name = release_dictionary["name"]
             description = release_dictionary["body"]
@@ -785,6 +778,8 @@ class MainWindow(QtWidgets.QMainWindow):
             )
             messageBox.setDetailedText(description)
             messageBox.show()
+        else:
+            self.AddLog("OneLauncher is up to date.")
 
     def InitialSetup(self, first_setup=False):
         self.gameDirExists = False

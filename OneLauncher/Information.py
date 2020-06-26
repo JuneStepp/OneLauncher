@@ -1,7 +1,8 @@
 # coding=utf-8
 
 # Version should be in "number.number format with another .number added only if needed.
-Version = "1.2 Dev"
+# "-Dev" should be added if it is not a release yet.
+Version = "1.2-Dev"
 Description = "LOTRO/DDO Custom Launcher"
 
 # Update checks only work with a repository hosted on Github.
