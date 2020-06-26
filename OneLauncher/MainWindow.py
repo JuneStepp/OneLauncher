@@ -232,34 +232,43 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.settings.settingsDir, self.settings.winePrefix, self
             )
 
-            self.settings.wineProg = winBuiltInPrefix.Run()
-            self.settings.SaveSettings(
-                saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
-                savePassword=self.winMain.chkSavePassword.isChecked(),
-            )
+            wineProg = winBuiltInPrefix.Run()
+            if wineProg:
+                self.settings.wineProg = wineProg
+                self.settings.SaveSettings(
+                    saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
+                    savePassword=self.winMain.chkSavePassword.isChecked(),
+                )
+                return True
+            else:
+                self.AddLog(
+                    "[E19] There was an error updating the WINE prefix. "
+                    "You may want to check your network connection."
+                )
+                return False
 
     def actionPatchSelected(self):
-        self.manageBuiltInPrefix()
+        prefix_status = self.manageBuiltInPrefix()
+        if prefix_status:
+            winPatch = PatchWindow(
+                self.dataCenter.patchServer,
+                self.worldQueueConfig.patchProductCode,
+                self.settings.language,
+                self.settings.gameDir,
+                self.settings.patchClient,
+                self.settings.wineProg,
+                self.settings.hiResEnabled,
+                self.gameType.iconFile,
+                self.valHomeDir,
+                self.settings.winePrefix,
+                self.settings.wineDebug,
+                self.osType,
+                self.rootDir,
+                self,
+            )
 
-        winPatch = PatchWindow(
-            self.dataCenter.patchServer,
-            self.worldQueueConfig.patchProductCode,
-            self.settings.language,
-            self.settings.gameDir,
-            self.settings.patchClient,
-            self.settings.wineProg,
-            self.settings.hiResEnabled,
-            self.gameType.iconFile,
-            self.valHomeDir,
-            self.settings.winePrefix,
-            self.settings.wineDebug,
-            self.osType,
-            self.rootDir,
-            self,
-        )
-
-        winPatch.Run(self.app)
-        self.resetFocus()
+            winPatch.Run(self.app)
+            self.resetFocus()
 
     def btnOptionsSelected(self):
         winSettings = SettingsWindow(
@@ -365,8 +374,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 '<font color="Khaki">Please enter account name and password</font>'
             )
         else:
-            self.manageBuiltInPrefix()
-            self.AuthAccount()
+            prefix_status = self.manageBuiltInPrefix()
+            if prefix_status:
+                self.AuthAccount()
 
     def cboAccountChanged(self):
         self.setCurrentAccountWorld()

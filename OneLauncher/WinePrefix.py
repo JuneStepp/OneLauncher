@@ -26,7 +26,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from urllib import request
+import urllib
 
 # Imports for extracting function
 import lzma
@@ -62,17 +62,18 @@ class BuiltInPrefix:
             return latest_wine_path + "/bin/wine"
         else:
             self.dlgDownloader.setLabelText("Downloading Wine...")
-            self.downloader(self.WINE_URL, latest_wine_path + ".tar.xz")
+            if self.downloader(self.WINE_URL, latest_wine_path + ".tar.xz"):
+                self.dlgDownloader.reset()
+                self.dlgDownloader.setLabelText("Extracting Wine...")
+                self.dlgDownloader.setValue(99)
+                self.wine_extractor(latest_wine_path + ".tar.xz")
+                self.dlgDownloader.setValue(100)
 
-            self.dlgDownloader.reset()
-            self.dlgDownloader.setLabelText("Extracting Wine...")
-            self.dlgDownloader.setValue(99)
-            self.wine_extractor(latest_wine_path + ".tar.xz")
-            self.dlgDownloader.setValue(100)
-
-            return (
-                self.settingsDir + "wine/wine-" + self.latest_wine_version + "/bin/wine"
-            )
+                return (
+                    self.settingsDir + "wine/wine-" + self.latest_wine_version + "/bin/wine"
+                )
+            else:
+                return False
 
     def dxvkSetup(self):
         self.latest_dxvk_version = self.DXVK_URL.split("download/v")[1].split("/")[0]
@@ -80,22 +81,26 @@ class BuiltInPrefix:
 
         if not os.path.exists(self.latest_dxvk_path):
             self.dlgDownloader.setLabelText("Downloading DXVK...")
-            self.downloader(self.DXVK_URL, self.latest_dxvk_path + ".tar.gz")
+            if self.downloader(self.DXVK_URL, self.latest_dxvk_path + ".tar.gz"):
+                self.dlgDownloader.reset()
+                self.dlgDownloader.setLabelText("Extracting DXVK...")
+                self.dlgDownloader.setValue(99)
+                self.dxvk_extracor(self.latest_dxvk_path + ".tar.gz")
+                self.dlgDownloader.setValue(100)
 
-            self.dlgDownloader.reset()
-            self.dlgDownloader.setLabelText("Extracting DXVK...")
-            self.dlgDownloader.setValue(99)
-            self.dxvk_extracor(self.latest_dxvk_path + ".tar.gz")
-            self.dlgDownloader.setValue(100)
-
-            self.dxvk_injector()
+                self.dxvk_injector()
 
         elif not os.path.islink(self.winePrefix + "/drive_c/windows/system32/d3d11.dll"):
             self.dxvk_injector()
 
     def downloader(self, url, path):
         # Downloads file from url to path and shows progress with self.handleDownloadProgress
-        request.urlretrieve(url, path, self.handleDownloadProgress)  # nosec
+        try:
+            urllib.request.urlretrieve(url, path, self.handleDownloadProgress)  # nosec
+            return True
+        except (urllib.error.URLError, urllib.error.HTTPError) as error:
+            self.logger.error(error.reason, exc_info=True)
+            return False
 
     def handleDownloadProgress(self, index, frame, size):
         # Updates progress bar with download progress

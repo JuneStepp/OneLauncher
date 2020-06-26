@@ -38,7 +38,7 @@ from OneLauncher.OneLauncherUtils import GetText
 import sqlite3
 from shutil import rmtree, copy, move
 from zipfile import ZipFile
-from urllib import request
+import urllib
 from time import strftime, localtime
 import logging
 
@@ -1085,9 +1085,10 @@ class AddonManager:
     def installRemoteAddon(self, url, name, interface_id):
         path = os.path.join(self.data_folder, "Downloads", name + ".zip")
         os.makedirs(os.path.split(path)[0], exist_ok=True)
-        self.downloader(url, path)
-        self.installAddon(path, interface_id=interface_id)
-        os.remove(path)
+        status = self.downloader(url, path)
+        if status:
+            self.installAddon(path, interface_id=interface_id)
+            os.remove(path)
 
     def getUninstallConfirm(self, table):
         addons, details = self.getSelectedAddons(table)
@@ -1340,7 +1341,15 @@ class AddonManager:
             if ID[0]:
                 installed_IDs.append(ID[0])
 
-        addons_file = request.urlopen(favorites_url).read().decode()  # nosec
+        try:
+            addons_file = urllib.request.urlopen(favorites_url).read().decode()  # nosec
+        except (urllib.error.URLError, urllib.error.HTTPError) as error:
+            self.logger.error(error.reason, exc_info=True)
+            self.addLog(
+                "There was a network error. You may want to check your connection."
+            )
+            return False
+
         doc = defusedxml.minidom.parseString(addons_file)
         tags = doc.getElementsByTagName("Ui")
         for tag in tags:
@@ -1376,11 +1385,21 @@ class AddonManager:
     # Downloads file from url to path and shows progress with self.handleDownloadProgress
     def downloader(self, url, path):
         if url.lower().startswith("http"):
-            request.urlretrieve(url, path, self.handleDownloadProgress)  # nosec
+            try:
+                urllib.request.urlretrieve(
+                    url, path, self.handleDownloadProgress
+                )  # nosec
+            except (urllib.error.URLError, urllib.error.HTTPError) as error:
+                self.logger.error(error.reason, exc_info=True)
+                self.addLog(
+                    "There was a network error. You may want to check your connection."
+                )
+                return False
         else:
             raise ValueError from None
 
         self.winAddonManager.progressBar.setValue(0)
+        return True
 
     def handleDownloadProgress(self, index, frame, size):
         # Updates progress bar with download progress
