@@ -34,6 +34,7 @@ from glob import glob
 from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minidom import Document  # nosec
 import defusedxml.minidom
+from vkbeautify import xml as prettify_xml
 from OneLauncher.OneLauncherUtils import GetText
 import sqlite3
 from shutil import rmtree, copy, move
@@ -828,7 +829,8 @@ class AddonManager:
                     path, folder, row[0] + "." + addon_type.lower() + "compendium",
                 )
                 with open(compendium_file, "w+") as file:
-                    file.write(doc.toxml())
+                    pretty_xml = prettify_xml(doc.toxml())
+                    file.write(pretty_xml)
 
                 return compendium_file
 
