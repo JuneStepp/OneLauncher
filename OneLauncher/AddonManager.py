@@ -1571,7 +1571,7 @@ class AddonManager:
     def getAddonListObjectFromRow(self, table, row, remote=True):
         """
         Gives list of information for addon. The information is:
-        [Interface ID, File/URL (depending on if remote= True or False), Name]
+        [Interface ID, URL/File (depending on if remote = True or False), Name]
         """
         interface_ID = self.getTableRowInterfaceID(table, row)
 
@@ -1582,13 +1582,19 @@ class AddonManager:
             )
         else:
             table_installed = self.getRemoteOrLocalTableFromOne(table, remote=False)
-            for item in self.c.execute(
-                "SELECT File FROM {table} WHERE rowid=?".format(  # nosec
-                    table=table_installed.objectName()
-                ),
-                (table_installed.item(row, 0).text(),),
-            ):
-                file = item[0]
+
+            if table.objectName().endswith("Installed"):
+                self.reloadSearch(table_installed)
+
+                for item in self.c.execute(
+                    "SELECT File FROM {table} WHERE rowid=?".format(  # nosec
+                        table=table_installed.objectName()
+                    ),
+                    (table_installed.item(row, 0).text(),),
+                ):
+                    file = item[0]
+            else:
+                file = self.getAddonFileFromInterfaceID(interface_ID, table_installed)
 
         addon = [interface_ID, file, table.item(row, 1).text()]
 
