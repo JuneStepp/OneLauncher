@@ -246,6 +246,8 @@ class MainWindow(QtWidgets.QMainWindow):
                     "You may want to check your network connection."
                 )
                 return False
+        else:
+            return True
 
     def actionPatchSelected(self):
         prefix_status = self.manageBuiltInPrefix()
