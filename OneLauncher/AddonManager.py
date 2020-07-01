@@ -1379,8 +1379,8 @@ class AddonManager:
 
             self.addRowToDB(table, items_row)
 
-        # Populate user visible table
-        self.reloadSearch(table)
+        # Populate user visible table. This should not reload the current search.
+        self.searchDB(table, "")
 
     # Downloads file from url to path and shows progress with self.handleDownloadProgress
     def downloader(self, url, path):
