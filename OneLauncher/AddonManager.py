@@ -365,11 +365,13 @@ class AddonManager:
         plugins_list_compendium = []
         plugins_list = []
         for folder in folders_list:
-            for file in os.listdir(folder):
+            for file in glob(folder + '/**/*.plugin*', recursive=True):
                 if file.endswith(".plugincompendium"):
-                    plugins_list_compendium.append(os.path.join(folder, file))
+                    # .plugincompenmdium file should be in author folder of plugin
+                    if os.path.split(file)[0].strip("/") == folder.strip("/"):
+                        plugins_list_compendium.append(file)
                 elif file.endswith(".plugin"):
-                    plugins_list.append(os.path.join(folder, file))
+                    plugins_list.append(file)
 
         (plugins_list, plugins_list_compendium,) = self.removeManagedPluginsFromList(
             plugins_list, plugins_list_compendium
@@ -384,15 +386,15 @@ class AddonManager:
 
             for node in nodes:
                 if node.nodeName == "descriptor":
-                    try:
-                        plugins_list.remove(
-                            os.path.join(
+                    descriptor_path = os.path.join(
                                 self.data_folder_plugins,
                                 (GetText(node.childNodes).replace("\\", os.sep)),
                             )
-                        )
+                    try:
+                        plugins_list.remove(descriptor_path)
                     except ValueError:
-                        self.addLog(plugin + " has misconfigured descriptors")
+                        if not os.path.exists(descriptor_path):
+                            self.addLog(plugin + " has misconfigured descriptors")
 
         return plugins_list, plugins_list_compendium
 
@@ -814,7 +816,7 @@ class AddonManager:
                             tempNode = doc.createElementNS(EMPTY_NAMESPACE, "descriptor")
                             tempNode.appendChild(
                                 doc.createTextNode(
-                                    "%s" % (folder + "\\" + os.path.split(file)[1])
+                                    "%s" % (file.replace("/", "\\"))
                                 )
                             )
                             descriptorsNode.appendChild(tempNode)
