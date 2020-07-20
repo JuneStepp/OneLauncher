@@ -29,7 +29,6 @@
 from PySide2 import QtCore, QtGui, QtWidgets
 from PySide2.QtUiTools import QUiLoader
 import os
-from pkg_resources import resource_filename
 from glob import glob
 from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minidom import Document  # nosec
@@ -74,14 +73,14 @@ class AddonManager:
     MUSIC_URL = "https://api.lotrointerface.com/fav/OneLauncher-Music.xml"
     SKINS_DDO_URL = "https://api.lotrointerface.com/fav/OneLauncher-Themes-DDO.xml"
 
-    def __init__(self, currentGame, osType, settingsDir, parent):
+    def __init__(self, currentGame, osType, settingsDir, parent, data_folder):
         self.settingsDir = settingsDir
         self.currentGame = currentGame
         self.parent = parent
         self.logger = logging.getLogger("OneLauncher")
 
         ui_file = QtCore.QFile(
-            resource_filename(__name__, "ui" + os.sep + "winAddonManager.ui")
+            os.path.join(data_folder, "ui", "winAddonManager.ui")
         )
 
         ui_file.open(QtCore.QFile.ReadOnly)
@@ -167,7 +166,7 @@ class AddonManager:
         )
 
         self.winAddonManager.btnCheckForUpdates.setIcon(
-            QtGui.QIcon(resource_filename(__name__, "images" + os.sep + "refresh.png"))
+            QtGui.QIcon(os.path.join(data_folder, "images", "refresh.png"))
         )
         self.winAddonManager.btnCheckForUpdates.pressed.connect(self.checkForUpdates)
         self.winAddonManager.btnUpdateAll.pressed.connect(self.updateAll)
