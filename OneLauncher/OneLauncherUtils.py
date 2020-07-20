@@ -31,12 +31,18 @@ import glob
 import defusedxml.minidom
 from xml.sax.saxutils import escape as xml_escape
 import ssl
-from pkg_resources import resource_filename
+import sys
 
 from codecs import open as uopen
 
 from http.client import HTTPConnection, HTTPSConnection
 from urllib.parse import quote
+
+if getattr(sys, 'frozen', False):
+    # The application is frozen
+        data_folder =  os.path.dirname(sys.executable)
+else:
+    data_folder = os.path.dirname(__file__)
 
 
 def string_encode(s):
@@ -56,7 +62,7 @@ onelauncher_ssl_ctx = None
 
 def checkForCertificates(logger):
     # Try to locate the server certificates for HTTPS connections
-    certfile = resource_filename(__name__, "certificates/ca_certs.pem")
+    certfile = os.path.join(data_folder, "certificates/ca_certs.pem")
 
     if certfile and not os.access(certfile, os.R_OK):
         logger.error("certificate file expected at '%s' but not found!" % certfile)

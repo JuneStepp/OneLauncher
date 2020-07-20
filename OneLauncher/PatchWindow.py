@@ -32,7 +32,6 @@ from PySide2.QtUiTools import QUiLoader
 from OneLauncher.OneLauncherUtils import QByteArray2str
 from OneLauncher.ProgressMonitor import ProgressMonitor
 import os.path
-from pkg_resources import resource_filename
 import logging
 
 
@@ -51,15 +50,15 @@ class PatchWindow:
         winePrefix,
         wineDebug,
         osType,
-        rootDir,
         parent,
+        data_folder,
     ):
 
         self.homeDir = homeDir
         self.osType = osType
         self.logger = logging.getLogger("OneLauncher")
 
-        ui_file = QtCore.QFile(resource_filename(__name__, "ui" + os.sep + "winPatch.ui"))
+        ui_file = QtCore.QFile(os.path.join(data_folder, "ui", "winPatch.ui"))
         ui_file.open(QtCore.QFile.ReadOnly)
         loader = QUiLoader()
         self.winLog = loader.load(ui_file, parentWidget=parent)
