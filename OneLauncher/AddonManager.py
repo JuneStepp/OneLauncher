@@ -594,6 +594,11 @@ class AddonManager:
                             self.addLog("DDO does not support .abc/music files")
                             return
 
+                        # Some plugins have .abc files, but music collections
+                        # shouldn't have .plugin files.
+                        if self.checkForPluginFile(files_list):
+                            continue
+
                         addon_type = "Music"
                         table = self.winAddonManager.tableMusic
 
@@ -645,8 +650,14 @@ class AddonManager:
                     self.installAddonRemoteDependencies(table.objectName() + "Installed")
                     return
 
-    # Installs the dependencies for the last installed addon
+    def checkForPluginFile(self, files_list):
+        """Returns True if list of files contains a .plugin file"""
+        for entry in files_list:
+            if entry.endswith(".plugin"):
+                return True
+
     def installAddonRemoteDependencies(self, table):
+        """Installs the dependencies for the last installed addon"""
         # Gets dependencies for last column in db
         for item in self.c.execute(
             "SELECT Dependencies FROM {table} ORDER BY rowid DESC LIMIT 1".format(  # nosec
