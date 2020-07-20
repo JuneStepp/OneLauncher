@@ -1,10 +1,9 @@
 from cx_Freeze import setup, Executable
-
-# Get program version from OneLauncher/Information.py
-from OneLauncher.Information import Version
+import OneLauncher.Information as info
 
 # For OS dependent executable name
 from platform import system
+
 platform = system()
 
 build_options = {
@@ -26,8 +25,13 @@ executables = [
 
 setup(
     name="OneLauncher",
-    version=Version,
-    description="The OneLauncher for LOTRO and DDO",
+    version=info.Version.strip("-Dev"),
+    license="GPL-3.0",
+    description=info.Description,
+    long_description=info.LongDescription,
+    author=info.Author,
+    author_email=info.Email,
+    url=info.repoUrl,
     options={"build_exe": build_options},
     executables=executables,
 )
