@@ -2,12 +2,12 @@
     <shortName>OneLauncher</shortName>
     <fullName>OneLauncher</fullName>
     <version>1.2-Dev</version>
-    <logoImage>build/images/OneLauncherIcon.png</logoImage>
+    <logoImage>${build_project_directory}/OneLauncher/images/OneLauncherIcon.png</logoImage>
     <componentList>
         <component>
             <name>default</name>
             <description>Default Component</description>
-            <canBeEdited>1</canBeEdited>
+            <canBeEdited>0</canBeEdited>
             <selected>1</selected>
             <show>1</show>
             <desktopShortcutList>
@@ -79,6 +79,13 @@
                     <destination>${installdir}</destination>
                     <name>programfileslinux64</name>
                     <platforms>linux-x64</platforms>
+                    <actionList>
+                        <createSymLink>
+                            <linkName>${product_fullname}1</linkName>
+                            <show>0</show>
+                            <target>${installdir}/build/OneLauncher</target>
+                        </createSymLink>
+                    </actionList>
                 </folder>
                 <folder>
                     <description>Program Files</description>
@@ -123,21 +130,48 @@
             </startMenuShortcutList>
         </component>
     </componentList>
+    <disableSplashScreen>1</disableSplashScreen>
+    <enableGtkDarkThemesSupport>1</enableGtkDarkThemesSupport>
     <enableRollback>1</enableRollback>
-    <enableTimestamp>1</enableTimestamp>
+    <enableTimestamp>0</enableTimestamp>
+    <osxApplicationBundleIdentifier>me.JeremyStepp.OneLauncher</osxApplicationBundleIdentifier>
+    <outputDirectory>${build_project_directory}/installer_build</outputDirectory>
     <saveRelativePaths>1</saveRelativePaths>
     <vendor>Jeremy Stepp</vendor>
+    <finalPageActionList>
+        <if>
+            <progressText>Run ${product_fullname}?</progressText>
+            <actionList>
+                <runProgram>
+                    <program>${installdir}/build/OneLauncher.exe</program>
+                    <programArguments></programArguments>
+                    <progressText>Run ${product_fullname}?</progressText>
+                </runProgram>
+            </actionList>
+            <conditionRuleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+            </conditionRuleList>
+            <elseActionList>
+                <runProgram>
+                    <program>${installdir}/build/OneLauncher</program>
+                    <programArguments></programArguments>
+                    <progressText>Run ${product_fullname}?</progressText>
+                </runProgram>
+            </elseActionList>
+        </if>
+    </finalPageActionList>
     <parameterList>
         <directoryParameter>
             <name>installdir</name>
             <description>Installer.Parameter.installdir.description</description>
             <explanation>Installer.Parameter.installdir.explanation</explanation>
             <value></value>
-            <default>${platform_install_prefix}/${product_shortname}-${product_version}</default>
+            <default>${platform_install_prefix}/${product_shortname}</default>
             <allowEmptyValue>0</allowEmptyValue>
-            <ask>yes</ask>
             <cliOptionName>prefix</cliOptionName>
-            <mustBeWritable>yes</mustBeWritable>
+            <mustBeWritable>1</mustBeWritable>
             <mustExist>0</mustExist>
             <width>30</width>
         </directoryParameter>
