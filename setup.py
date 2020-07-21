@@ -17,6 +17,7 @@ else:
     base = ""
 
 build_options = {
+    "build_exe": "build",
     "packages": packages_list,
     "excludes": [],
     "optimize": "2",
@@ -28,7 +29,7 @@ build_options = {
 }
 
 executables = [
-    Executable("RunOneLauncher", base=base, targetName="OneLauncher-" + platform)
+    Executable("RunOneLauncher", base=base, targetName="OneLauncher")
 ]
 
 setup(
