@@ -130,30 +130,22 @@ class DetermineGame:
     def GetSettings(self, currentGame):
         self.configFile = os.sep + "lotro.launcherconfig"
 
-        if os.name == "mac":
-            self.__os = " - Launcher for Mac OS X"
-        elif os.name == "nt":
-            self.__os = " - Launcher for Windows"
-        else:
-            self.__os = " - Launcher for Linux"
-
         if currentGame.endswith(".Test"):
-            self.__test = " (Test)"
+            self.__test = " (Preview)"
         else:
             self.__test = ""
 
+        self.iconFile = os.path.join("images", "OneLauncherIcon.png")
         if currentGame.startswith("DDO"):
             self.configFileAlt = os.sep + "ddo.launcherconfig"
-            self.iconFile = os.path.join("images", "DDOIcon.png")
             self.pngFile = os.path.join("images", "DDO.png")
 
-            self.title = "Dungeons & Dragons Online" + self.__test + self.__os
+            self.title = "OneLauncher - DDO" + self.__test
         else:
             self.configFileAlt = os.sep + "TurbineLauncher.exe.config"
-            self.iconFile = os.path.join("images", "LOTROIcon.png")
             self.pngFile = os.path.join("images", "LOTRO.png")
 
-            self.title = "Lord of the Rings Online" + self.__test + self.__os
+            self.title = "OneLauncher - LOTRO" + self.__test
 
 
 class DetermineOS:
