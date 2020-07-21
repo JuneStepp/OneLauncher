@@ -1,13 +1,23 @@
 from cx_Freeze import setup, Executable
 import OneLauncher.Information as info
-
-# For OS dependent executable name
 from platform import system
+
+packages_list = [
+    "OneLauncher.Information",
+    "keyring.backends",
+    "cryptography",
+]
 
 platform = system()
 
+if platform == "Windows":
+    base = "Win32GUI"
+    packages_list.append("win32timezone")
+else:
+    base = ""
+
 build_options = {
-    "packages": ["OneLauncher.Information", "keyring.backends", "cryptography"],
+    "packages": packages_list,
     "excludes": [],
     "optimize": "2",
     "include_files": [
@@ -16,8 +26,6 @@ build_options = {
         "OneLauncher/images",
     ],
 }
-
-base = "Win32GUI" if platform == "Windows" else None
 
 executables = [
     Executable("RunOneLauncher", base=base, targetName="OneLauncher-" + platform)
