@@ -79,13 +79,6 @@
                     <destination>${installdir}</destination>
                     <name>programfileslinux64</name>
                     <platforms>linux-x64</platforms>
-                    <actionList>
-                        <createSymLink>
-                            <linkName>${product_fullname}1</linkName>
-                            <show>0</show>
-                            <target>${installdir}/build/OneLauncher</target>
-                        </createSymLink>
-                    </actionList>
                 </folder>
                 <folder>
                     <description>Program Files</description>
