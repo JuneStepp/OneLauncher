@@ -13,8 +13,10 @@ Launcher for Linux, Windows, and Mac OS X
                  *  themes (DDO support too!)
                  *  music (.abc files/collections of files)
         * Multiple accounts support
+        * Fixed patching on Windows
         * Improved setup wizard
-        * Improved preview clients support
+        * Better preview clients support
+        * Switch to installer and cx-freeze for distribution
         * Many more smaller improvements
 
 1.1
@@ -25,7 +27,7 @@ Launcher for Linux, Windows, and Mac OS X
       *  Auto setup OneLauncher Wine prefix (In game stores should work)
             *  Built in dxvk support (Lets directx11 get used with lotro and ddo)
             *  Built in esync support
-            *  Built in wine downloading (Seperate wine should still be installed for dependencies)
+            *  Built in wine downloading (Separate wine should still be installed for dependencies)
       *  Option to securely remember account password
       *  Window dragging
       *  Redone language selection
@@ -37,7 +39,7 @@ Launcher for Linux, Windows, and Mac OS X
       * Redone ui
       * 64-bit client support
       * Update to PyQt5
-      * New pyinstaller based building system to one executable
+      * New PyInstaller based building system to one executable
       * Rebrand to OneLauncher
       * Many more smaller improvements
 
