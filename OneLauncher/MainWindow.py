@@ -264,7 +264,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.osType,
                 self,
                 self.data_folder,
-                self.currentGame
+                self.settings.currentGame
             )
 
             winPatch.Run(self.app)
