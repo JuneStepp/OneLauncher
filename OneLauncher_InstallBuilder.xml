@@ -138,8 +138,8 @@
             <progressText>Run ${product_fullname}?</progressText>
             <actionList>
                 <runProgram>
-                    <program>${installdir}/build/OneLauncher.exe</program>
-                    <programArguments></programArguments>
+                    <program>${windows_folder_system}\cmd.exe</program>
+                    <programArguments>/c "${installdir}\build\OneLauncher.exe"</programArguments>
                     <progressText>Run ${product_fullname}?</progressText>
                 </runProgram>
             </actionList>

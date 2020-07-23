@@ -790,7 +790,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.winMain.chkSavePassword.setEnabled(False)
         self.winMain.btnOptions.setEnabled(False)
         self.winMain.btnSwitchGame.setEnabled(False)
-        self.valHomeDir = self.GetHomeDir()
+        self.valHomeDir = self.GetConfigDir()
 
         if self.settings is None:
             self.settings = Settings(self.valHomeDir, self.osType)
@@ -983,16 +983,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.configThreadFinished()
 
-    def GetHomeDir(self):
-        temp = os.environ.get("HOME")
+    def GetConfigDir(self):
+        if self.osType.usingWindows:
+            config_dir = os.environ.get("APPDATA")
+        else:
+            config_dir = os.environ.get("HOME")
+            
+        if not config_dir.endswith(os.sep):
+            config_dir += os.sep
 
-        if temp is None:
-            temp = os.environ.get("APPDATA")
-
-        if not temp.endswith(os.sep):
-            temp += os.sep
-
-        return temp
+        return config_dir
 
     def ClearLog(self):
         self.winMain.txtStatus.setText("")
