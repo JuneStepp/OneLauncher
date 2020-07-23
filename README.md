@@ -1,5 +1,5 @@
 OneLauncher is a custom launcher for The Lord of the Rings Online and Dungeons & Dragons Online
-for Linux, Windows, and Mac OS X based on PyLotRO by AJackson. PyLotRO
+for Linux, Windows, and Mac OS X (testers needed) based on PyLotRO by AJackson. PyLotRO
 was originally made to allow Linux and Mac players to enjoy LOTRO, but fell
 out of relevance once it was no longer needed. This project aims to make a launcher
 with new and interesting features that will always be available whether it's for private

@@ -11,14 +11,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, windows-latest, macOS-10.15]
+        os: [ubuntu-18.04, windows-latest]
         include:
           - os: ubuntu-18.04
             artifact_name: OneLauncher-Linux
           - os: windows-latest
             artifact_name: OneLauncher-Windows
-          - os: macOs-10.15
-            artifact_name: OneLauncher-Mac
+          # - os: macOs-10.15
+          #   artifact_name: OneLauncher-Mac
 
     steps:
       - uses: actions/checkout@v1
