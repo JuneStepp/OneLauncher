@@ -105,7 +105,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Game Detection:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This should detect any standard installations of The Lord of The Rings Online or Dungeons and Dragons Online. Select the installations that you want to use with OneLauncher. If yours doesn't show up you can always add it manually in the settings.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Game Detection:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This should detect any standard installations of The Lord of The Rings Online or Dungeons and Dragons Online. Select the installations that you want to use with OneLauncher. If yours doesn't show up you can add it manually with the approipriate "..." button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -231,7 +231,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Preview Client Detection:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This should detect any standard preview client installations of The Lord of The Rings Online or Dungeons and Dragons Online. Select the installations that you want to use with OneLauncher. If yours doesn't show up you can always add it manually in the settings.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Preview Client Detection:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This should detect any standard preview client installations of The Lord of The Rings Online or Dungeons and Dragons Online. Select the installations that you want to use with OneLauncher. If yours doesn't show up you can add it manually with the approipriate "..." button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
