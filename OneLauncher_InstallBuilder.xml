@@ -2,6 +2,7 @@
     <shortName>OneLauncher</shortName>
     <fullName>OneLauncher</fullName>
     <version>1.2-Dev</version>
+    <leftImage>${build_project_directory}/OneLauncherInstallerSideImage.png</leftImage>
     <logoImage>${build_project_directory}/build/images/OneLauncherIcon.png</logoImage>
     <componentList>
         <component>
