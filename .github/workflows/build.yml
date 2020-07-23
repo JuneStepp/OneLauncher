@@ -43,6 +43,7 @@ jobs:
           pip install PySide2
           pip install qdarkstyle
           pip install keyring
+          pip install cryptography
           pip install defusedxml
           pip install vkbeautify
           pip install cx-freeze
