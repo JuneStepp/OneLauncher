@@ -96,6 +96,21 @@ class MainWindow(QtWidgets.QMainWindow):
         # Set window style
         self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyside2())
 
+        # Temporary fix for qdarkstyle dropdown issue.
+        # See https://github.com/ColinDuquesnoy/QDarkStyleSheet/issues/200
+        self.setStyleSheet(
+        """
+        QComboBox::item:checked {
+        height: 12px;
+        border: 1px solid #32414B;
+        margin-top: 0px;
+        margin-bottom: 0px;
+        padding: 4px;
+        padding-left: 0px;
+        }
+        """
+        )
+
         # center window on screen
         self.center()
 
