@@ -30,7 +30,6 @@ from PySide2 import QtCore, QtWidgets
 from PySide2.QtUiTools import QUiLoader
 from OneLauncher.OneLauncherUtils import QByteArray2str
 import os.path
-from pkg_resources import resource_filename
 import logging
 
 
@@ -54,7 +53,6 @@ class StartGame:
         osType,
         homeDir,
         iconFileIn,
-        rootDir,
         crashreceiver,
         DefaultUploadThrottleMbps,
         bugurl,
@@ -65,6 +63,7 @@ class StartGame:
         worldName,
         accountText,
         parent,
+        data_folder
     ):
 
         # Fixes binary path for 64-bit client
@@ -78,7 +77,7 @@ class StartGame:
         self.parent = parent
         self.logger = logging.getLogger("OneLauncher")
 
-        ui_file = QtCore.QFile(resource_filename(__name__, "ui" + os.sep + "winLog.ui"))
+        ui_file = QtCore.QFile(os.path.join(data_folder, "ui", "winLog.ui"))
         ui_file.open(QtCore.QFile.ReadOnly)
         loader = QUiLoader()
         self.winLog = loader.load(ui_file, parentWidget=parent)

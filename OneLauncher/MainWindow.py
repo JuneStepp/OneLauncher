@@ -54,7 +54,7 @@ from OneLauncher.OneLauncherUtils import (
     WebConnection,
 )
 from OneLauncher import Information
-from pkg_resources import resource_filename, parse_version
+from pkg_resources import parse_version
 import keyring
 import logging
 from logging.handlers import RotatingFileHandler
@@ -75,16 +75,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self):
         super().__init__()
-        # Determine where module is located (needed for finding ICO & PNG files)
-        try:
-            self.rootDir = os.path.dirname(sys.executable)
-        except:
-            self.rootDir = __file__.replace("library.zip", "")
-            if os.path.islink(self.rootDir):
-                self.rootDir = os.path.realpath(self.rootDir)
-            self.rootDir = os.path.dirname(os.path.abspath(self.rootDir))
+        if getattr(sys, 'frozen', False):
+        # The application is frozen
+            self.data_folder =  os.path.dirname(sys.executable)
+        else:
+            self.data_folder = os.path.dirname(__file__)
 
-        ui_file = QtCore.QFile(resource_filename(__name__, "ui" + os.sep + "winMain.ui"))
+        ui_file = QtCore.QFile(os.path.join(self.data_folder, "ui", "winMain.ui"))
 
         # Create the main window and set all text so that translations are handled via gettext
         ui_file.open(QtCore.QFile.ReadOnly)
@@ -132,13 +129,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.winMain.btnLogin.setMenu(self.winMain.btnLoginMenu)
         self.winMain.btnOptions.setIcon(
             QtGui.QIcon(
-                resource_filename(__name__, "images" + os.sep + "SettingsGear.png")
+                os.path.join(self.data_folder, "images", "SettingsGear.png")
             )
         )
         self.winMain.btnOptions.clicked.connect(self.btnOptionsSelected)
         self.winMain.btnAddonManager.setIcon(
             QtGui.QIcon(
-                resource_filename(__name__, "images" + os.sep + "AddonManager.png")
+                os.path.join(self.data_folder, "images", "AddonManager.png")
             )
         )
         self.winMain.btnAddonManager.clicked.connect(self.btnAddonManagerSelected)
@@ -206,7 +203,7 @@ class MainWindow(QtWidgets.QMainWindow):
             event.accept()
 
     def btnAboutSelected(self):
-        ui_file = QtCore.QFile(resource_filename(__name__, "ui" + os.sep + "winAbout.ui"))
+        ui_file = QtCore.QFile(os.path.join(self.data_folder, "ui", "winAbout.ui"))
 
         ui_file.open(QtCore.QFile.ReadOnly)
         loader = QUiLoader()
@@ -265,8 +262,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.settings.winePrefix,
                 self.settings.wineDebug,
                 self.osType,
-                self.rootDir,
                 self,
+                self.data_folder
             )
 
             winPatch.Run(self.app)
@@ -286,6 +283,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.settings,
             LanguageConfig,
             self,
+            self.data_folder
         )
 
         if winSettings.Run() == QtWidgets.QDialog.Accepted:
@@ -315,14 +313,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def btnAddonManagerSelected(self):
         winAddonManager = AddonManager(
-            self.settings.currentGame, self.osType, self.settings.settingsDir, self,
+            self.settings.currentGame, self.osType, self.settings.settingsDir, self, self.data_folder
         )
 
         winAddonManager.Run()
         self.resetFocus()
 
     def settingsWizardCalled(self):
-        winWizard = SetupWizard(self.valHomeDir, self.osType, self.rootDir)
+        winWizard = SetupWizard(self.valHomeDir, self.osType, self.data_folder)
         self.hide()
 
         if winWizard.Run() == QtWidgets.QDialog.Accepted:
@@ -498,7 +496,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             if len(self.account.gameList) > 1:
                 ui_file = QtCore.QFile(
-                    resource_filename(__name__, "ui" + os.sep + "winSelectAccount.ui")
+                    os.path.join(self.data_folder, "ui", "winSelectAccount.ui")
                 )
 
                 ui_file.open(QtCore.QFile.ReadOnly)
@@ -565,7 +563,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.osType,
             self.valHomeDir,
             self.gameType.iconFile,
-            self.rootDir,
             self.worldQueueConfig.crashreceiver,
             self.worldQueueConfig.DefaultUploadThrottleMbps,
             self.worldQueueConfig.bugurl,
@@ -576,6 +573,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.winMain.cboWorld.currentText(),
             self.winMain.cboAccount.currentText(),
             self,
+            self.data_folder
         )
         self.hide()
         game.Run()
@@ -792,7 +790,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.winMain.chkSavePassword.setEnabled(False)
         self.winMain.btnOptions.setEnabled(False)
         self.winMain.btnSwitchGame.setEnabled(False)
-        self.valHomeDir = self.GetHomeDir()
+        self.valHomeDir = self.GetConfigDir()
 
         if self.settings is None:
             self.settings = Settings(self.valHomeDir, self.osType)
@@ -856,8 +854,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.gameType.GetSettings(self.settings.currentGame)
 
-        pngFile = resource_filename(__name__, self.gameType.pngFile.replace("\\", "/"))
-        iconFile = resource_filename(__name__, self.gameType.iconFile.replace("\\", "/"))
+        pngFile = os.path.join(self.data_folder, self.gameType.pngFile.replace("\\", "/"))
+        iconFile = os.path.join(self.data_folder, self.gameType.iconFile.replace("\\", "/"))
 
         self.winMain.imgMain.setPixmap(QtGui.QPixmap(pngFile))
         self.setWindowTitle(self.gameType.title)
@@ -867,7 +865,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.settings.currentGame == "DDO":
             self.winMain.btnSwitchGame.setIcon(
                 QtGui.QIcon(
-                    resource_filename(__name__, "images" + os.sep + "LOTROSwitchIcon.png")
+                    os.path.join(self.data_folder, "images", "LOTROSwitchIcon.png")
                 )
             )
             self.winMain.actionLOTROTest.setEnabled(False)
@@ -881,7 +879,7 @@ class MainWindow(QtWidgets.QMainWindow):
         elif self.settings.currentGame == "DDO.Test":
             self.winMain.btnSwitchGame.setIcon(
                 QtGui.QIcon(
-                    resource_filename(__name__, "images" + os.sep + "LOTROSwitchIcon.png")
+                    os.path.join(self.data_folder, "images", "LOTROSwitchIcon.png")
                 )
             )
             self.winMain.actionLOTROTest.setEnabled(False)
@@ -895,7 +893,7 @@ class MainWindow(QtWidgets.QMainWindow):
         elif self.settings.currentGame == "LOTRO.Test":
             self.winMain.btnSwitchGame.setIcon(
                 QtGui.QIcon(
-                    resource_filename(__name__, "images" + os.sep + "DDOSwitchIcon.png")
+                    os.path.join(self.data_folder, "images", "DDOSwitchIcon.png")
                 )
             )
             self.winMain.actionLOTROTest.setEnabled(False)
@@ -909,7 +907,7 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.winMain.btnSwitchGame.setIcon(
                 QtGui.QIcon(
-                    resource_filename(__name__, "images" + os.sep + "DDOSwitchIcon.png")
+                    os.path.join(self.data_folder, "images", "DDOSwitchIcon.png")
                 )
             )
             self.winMain.actionDDOTest.setEnabled(False)
@@ -985,16 +983,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.configThreadFinished()
 
-    def GetHomeDir(self):
-        temp = os.environ.get("HOME")
+    def GetConfigDir(self):
+        if self.osType.usingWindows:
+            config_dir = os.environ.get("APPDATA")
+        else:
+            config_dir = os.environ.get("HOME")
+            
+        if not config_dir.endswith(os.sep):
+            config_dir += os.sep
 
-        if temp is None:
-            temp = os.environ.get("APPDATA")
-
-        if not temp.endswith(os.sep):
-            temp += os.sep
-
-        return temp
+        return config_dir
 
     def ClearLog(self):
         self.winMain.txtStatus.setText("")

@@ -10,7 +10,7 @@ repoUrl = "https://github.com/JuneStepp/OneLauncher"
 RepoWebsite = '<a href="{url}">' "Github.com/JuneStepp/OneLauncher</a>".format(url=repoUrl)
 
 Author = "June Stepp"
-Email = "git@junestepp.me"
+Email = "contact@JuneStepp.me"
 LongDescription = (
     "Lord of the Rings Online and Dungeons & Dragons"
     " Online\nLauncher for Linux, Mac, and Windows"

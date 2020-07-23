@@ -25,13 +25,14 @@ LOTRO](https://sny.name/LOTRO/) (C) 2007-2009 SNy
 - Patching and launching of LOTRO and DDO
 - Plugins, skins, and music manager (Currently only in source)
 - Multiple accounts support (Currently only in source)
+- Password saving
 - Auto optimum WINE setup for Mac and Linux
 - Easy game detection
-- Password saving
 
 # Basic Use
 
-Simply download the appropriate executable for your operating system and double click it!
+Simply download the executable for your operating system from 
+[the releases page](https://Github.com/JuneStepp/OneLauncher/releases) and install it.
 If on Linux or Mac make sure Wine is installed, so all dependencies for the version OneLauncher
 installs are met.
 
@@ -41,20 +42,24 @@ The following items are required to run OneLauncher from source.
 It is recommended to use a virtual environment for development and
 building like venv, conda, or virtualenv.
 
-- Python (3.7.*)
-- PySide2 (Can be installed with pip)
-- qdarkstyle (Can be installed with pip)
-- pkg_resources (Comes with setuptools. You probably have it, but it can be installed with pip)
-- keyring (Can be installed with pip)
-- defusedxml (Can be installed with pip)
-- vkbeautify (Can be installed with pip)
+- Python 3.7+
+- PySide2
+- qdarkstyle
+- keyring
+- defusedxml
+- vkbeautify
 
-- PyInstaller (Needed to build. Can be installed with pip.
-  Currently [edited version](https://github.com/JuneStepp/pyinstaller/releases/download/v3.5/PyInstaller-3.6.zip) is needed)
-- pywin32-ctypes (Needed for Windows building. Can be installed with pip)
-- pywin32 (Needed for Windows building. Can be installed with pip)
+## Building Dependencies
 
-# To run
+### All Platforms
+- cx-freeze
+- VMWare InstallBuilder (For building installer)
+
+### Windows
+- PySide2 5.14.1 (can be installed with `pip install PySide2==5.14.1`)
+- pywin32
+
+# To run from source
 
 `./RunOneLauncher`
 
@@ -64,14 +69,11 @@ Or.
 
 # To build
 
-`python3 build.py`
+`python3 setup.py build`
 
 The project can only be built for the os that the build script is run on,
-so it has to be built on every target os individually. The building output
-for Linux can only be run on systems as up to date or more as the system it
-is built on, so an old OS may want to be built on. The binary is
-also not cross architecture compatible. WINE can be used for Windows builds
-though.
+so it has to be built on every target os individually. The installers can be
+cross compiled with InstallBuilder though.
 
 # Addon Manager Info For Developers
 
