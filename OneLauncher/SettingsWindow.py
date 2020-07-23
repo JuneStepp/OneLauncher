@@ -29,7 +29,6 @@
 from PySide2 import QtCore, QtGui, QtWidgets
 from PySide2.QtUiTools import QUiLoader
 import os.path
-from pkg_resources import resource_filename
 
 
 class SettingsWindow:
@@ -47,6 +46,7 @@ class SettingsWindow:
         settings,
         LanguageConfig,
         parent,
+        data_folder,
     ):
 
         self.homeDir = homeDir
@@ -56,7 +56,7 @@ class SettingsWindow:
         self.LanguageConfig = LanguageConfig
 
         ui_file = QtCore.QFile(
-            resource_filename(__name__, "ui" + os.sep + "winSettings.ui")
+            os.path.join(data_folder, "ui", "winSettings.ui")
         )
 
         ui_file.open(QtCore.QFile.ReadOnly)
@@ -105,15 +105,15 @@ class SettingsWindow:
             self.winSettings.chkx64Client.setEnabled(False)
 
         self.winSettings.btnEN.setIcon(
-            QtGui.QIcon(resource_filename(__name__, "images" + os.sep + "EN-US.png"))
+            QtGui.QIcon(os.path.join(data_folder, "images", "EN-US.png"))
         )
 
         self.winSettings.btnDE.setIcon(
-            QtGui.QIcon(resource_filename(__name__, "images" + os.sep + "DE.png"))
+            QtGui.QIcon(os.path.join(data_folder, "images", "DE.png"))
         )
 
         self.winSettings.btnFR.setIcon(
-            QtGui.QIcon(resource_filename(__name__, "images" + os.sep + "FR.png"))
+            QtGui.QIcon(os.path.join(data_folder, "images", "FR.png"))
         )
 
         self.setLanguageButtons()

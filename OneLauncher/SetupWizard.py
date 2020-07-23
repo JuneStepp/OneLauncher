@@ -30,7 +30,6 @@ from PySide2 import QtCore, QtWidgets
 from PySide2.QtUiTools import QUiLoader
 import os
 import glob
-from pkg_resources import resource_filename
 
 
 def toString(val):
@@ -41,13 +40,13 @@ def toString(val):
 
 
 class SetupWizard:
-    def __init__(self, homeDir, osType, rootDir):
+    def __init__(self, homeDir, osType, data_folder):
 
         self.homeDir = homeDir
         self.osType = osType
 
         ui_file = QtCore.QFile(
-            resource_filename(__name__, "ui" + os.sep + "winSetupWizard.ui")
+            os.path.join(data_folder, "ui", "winSetupWizard.ui")
         )
 
         ui_file.open(QtCore.QFile.ReadOnly)
