@@ -48,6 +48,7 @@ building like venv, conda, or virtualenv.
 - keyring
 - defusedxml
 - vkbeautify
+- cryptography
 
 ## Building Dependencies
 
