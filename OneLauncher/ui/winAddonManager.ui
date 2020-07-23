@@ -683,8 +683,8 @@
                 <rect>
                     <x>684</x>
                     <y>59</y>
-                    <width>27</width>
-                    <height>24</height>
+                    <width>23</width>
+                    <height>20</height>
                 </rect>
             </property>
             <property name="toolTip">
@@ -705,8 +705,8 @@
                 <rect>
                     <x>576</x>
                     <y>59</y>
-                    <width>101</width>
-                    <height>24</height>
+                    <width>97</width>
+                    <height>20</height>
                 </rect>
             </property>
             <property name="toolTip">
