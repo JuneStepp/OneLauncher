@@ -263,7 +263,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.settings.wineDebug,
                 self.osType,
                 self,
-                self.data_folder
+                self.data_folder,
+                self.currentGame
             )
 
             winPatch.Run(self.app)
