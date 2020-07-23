@@ -31,7 +31,7 @@ from PySide2 import QtCore, QtWidgets
 from PySide2.QtUiTools import QUiLoader
 from OneLauncher.OneLauncherUtils import QByteArray2str
 from OneLauncher.ProgressMonitor import ProgressMonitor
-import os.path
+import os
 import logging
 
 
@@ -125,6 +125,19 @@ class PatchWindow:
             ]
 
             self.command = "rundll32.exe"
+
+            # Get log file to read patching details from, since
+            # rundll32 doesn't provide output on Windows
+            game_logs_folder = os.path.join(
+                os.path.split(os.environ.get("APPDATA"))[0],
+                "Local",
+                os.path.split(runDir)[1],
+            )
+            self.patch_log_file = os.path.join(game_logs_folder, "PatchClient.log")
+            if os.path.exists(self.patch_log_file):
+                os.remove(self.patch_log_file)
+                open(self.patch_log_file, "x")
+            self.patch_log_file = open(self.patch_log_file, "r")
         else:
             if winePrefix != "":
                 processEnvironment.insert("WINEPREFIX", winePrefix)
@@ -210,6 +223,8 @@ class PatchWindow:
             # finished
             self.lastRun = True
             self.resetButtons()
+            if self.osType.usingWindows:
+                self.patch_log_file.close()
         self.phase += 1
 
     def btnStartClicked(self):
@@ -225,16 +240,28 @@ class PatchWindow:
         self.winLog.txtLog.append("<b>***  Started  ***</b>")
 
         if self.osType.usingWindows:
-            self.process_status_timer.start(1000)
+            self.process_status_timer.start(100)
 
     def activelyShowProcessStatus(self):
         """
-        Actively gives the user an indication that the process is running.
-        This is for Windows where the patcher output can't be gotten.
+        Gives patching progress on Windows where rundll32
+        doesn't provide output.
         """
         if self.process.state() == QtCore.QProcess.Running:
-            self.winLog.txtLog.append("...")
-            self.process_status_timer.start(1000)
+            line = self.patch_log_file.readline()
+            if line:
+                # Ignore information only relevent to log
+                if not line.startswith("//"):
+                    line = line.split(": ")[1]
+
+                    self.winLog.txtLog.append(line)
+                    self.progressMonitor.parseOutput(line)
+                    self.logger.debug("Patcher: " + line)
+            else:
+                # Add "..." if log is not giving indicator of patching progress
+                self.winLog.txtLog.append("...")
+
+            self.process_status_timer.start(100)
 
     def Run(self, app):
         self.__app = app
