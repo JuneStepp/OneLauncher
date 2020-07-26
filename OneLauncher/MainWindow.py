@@ -591,7 +591,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self,
             self.data_folder
         )
-        self.hide()
         game.Run()
 
     def EnterWorldQueue(self, queueURL):

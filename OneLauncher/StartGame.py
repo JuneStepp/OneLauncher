@@ -195,12 +195,11 @@ class StartGame:
 
     def btnStartClicked(self):
         if self.finished:
-            self.parent.show()
             self.winLog.close()
 
     def btnStopClicked(self):
         if self.finished:
-            self.winLog.close()
+            self.parent.close()
         else:
             self.aborted = True
             self.process.kill()
