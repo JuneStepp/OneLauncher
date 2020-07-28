@@ -5,9 +5,11 @@ Launcher for Linux, Windows, and Mac OS X
 
 # Changes
 
-1.2 (Unreleased)
+1.2
 
-        *  Addon manager
+    The main feature of this release is the add-on manager, but a ton more was done. Thanks to everyone on the LOTRO discord server who helped out with testing. Especially the ever detail oriented ShoeMaker/Technical-13.
+
+        *  Add-on manager
              Manage, update, and browse/download
                  *  plugins (with dependency checking)
                  *  themes (DDO support too!)
@@ -17,7 +19,7 @@ Launcher for Linux, Windows, and Mac OS X
         * Improved setup wizard
         * Better preview clients support
         * Switch to installer and cx-freeze for distribution
-        * Many more smaller improvements
+        * Many smaller improvements
 
 1.1
 
@@ -31,7 +33,7 @@ Launcher for Linux, Windows, and Mac OS X
       *  Option to securely remember account password
       *  Window dragging
       *  Redone language selection
-      *  Many more smaller improvements
+      *  Many smaller improvements
 
 1.0
 
@@ -41,7 +43,7 @@ Launcher for Linux, Windows, and Mac OS X
       * Update to PyQt5
       * New PyInstaller based building system to one executable
       * Rebrand to OneLauncher
-      * Many more smaller improvements
+      * Many smaller improvements
 
 <hr>Below this is PyLotRO. Above is when it became OneLauncher<hr/>
 
