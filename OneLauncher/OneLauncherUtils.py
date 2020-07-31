@@ -180,7 +180,7 @@ class DetermineOS:
             SHGFP_TYPE_CURRENT = 0   # Get current, not default value
 
             buffer= ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
-            ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, bufffer)
+            ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buffer)
 
             win_documents_folder = buffer.value
 
