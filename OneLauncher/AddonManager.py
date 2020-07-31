@@ -367,7 +367,7 @@ class AddonManager:
             for file in glob(folder + '/**/*.plugin*', recursive=True):
                 if file.endswith(".plugincompendium"):
                     # .plugincompenmdium file should be in author folder of plugin
-                    if os.path.split(file)[0].strip("/") == folder.strip("/"):
+                    if os.path.split(file)[0].strip("/\\") == folder.strip("/\\"):
                         plugins_list_compendium.append(file)
                 elif file.endswith(".plugin"):
                     plugins_list.append(file)
