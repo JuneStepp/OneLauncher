@@ -237,7 +237,7 @@ class AddonManager:
         skins_list = []
         skins_list_compendium = []
         for folder in folders_list:
-            folder = folder[:-1] + folder[-1].replace("/", "")
+            folder = folder[:-1] + folder[-1].replace(os.sep, "")
             skins_list.append(folder)
             for file in os.listdir(folder):
                 if file.endswith(".skincompendium"):
@@ -293,7 +293,7 @@ class AddonManager:
         music_list = []
         music_list_compendium = []
         for folder in folders_list:
-            folder = folder[:-1] + folder[-1].replace("/", "")
+            folder = folder[:-1] + folder[-1].replace(os.sep, "")
             music_list.append(folder)
             for file in os.listdir(folder):
                 if file.endswith(".musiccompendium"):
