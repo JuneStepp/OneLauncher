@@ -714,6 +714,7 @@ class AddonManager:
             "Plugins",
             "Music",
             "My Documents",
+            "Documents"
             "The Lord of the Rings Online",
             "Dungeons and Dragons Online",
             "Dungeons & Dragons Online",

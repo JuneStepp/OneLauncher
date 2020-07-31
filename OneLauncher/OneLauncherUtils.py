@@ -38,6 +38,10 @@ from codecs import open as uopen
 from http.client import HTTPConnection, HTTPSConnection
 from urllib.parse import quote
 
+if os.name == "nt":
+    # Needed for getting Documents folder on Windows
+    import ctypes.wintypes
+
 if getattr(sys, 'frozen', False):
     # The application is frozen
         data_folder =  os.path.dirname(sys.executable)
@@ -171,14 +175,23 @@ class DetermineOS:
             if self.macPathCX is None:
                 self.macPathCX = ""
         elif os.name == "nt":
+            # Get documents folder dynamically since it can be changed on Windows
+            CSIDL_PERSONAL = 5       # Value for My Documents
+            SHGFP_TYPE_CURRENT = 0   # Get current, not default value
+
+            buffer= ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
+            ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, bufffer)
+
+            win_documents_folder = buffer.value
+
             self.usingMac = False
             self.usingWindows = True
             self.appDir = "OneLauncher" + os.sep
             self.settingsLOTRO = os.path.join(
-                os.path.expanduser("~"), "My Documents", "The Lord of the Rings Online",
+                win_documents_folder, "The Lord of the Rings Online",
             )
             self.settingsDDO = os.path.join(
-                os.path.expanduser("~"), "My Documents", "Dungeons and Dragons Online",
+                win_documents_folder, "Dungeons and Dragons Online",
             )
             self.globalDir = ""
             self.settingsCXG = ""
