@@ -106,6 +106,7 @@ class BaseConfig:
     def __init__(self, configFile):
         self.GLSDataCenterService = ""
         self.gameName = ""
+        self.gameDocumentsDir = ""
 
         try:
             doc = defusedxml.minidom.parse(configFile)
@@ -117,6 +118,8 @@ class BaseConfig:
                         self.GLSDataCenterService = node.getAttribute("value")
                     elif node.getAttribute("key") == "DataCenter.GameName":
                         self.gameName = node.getAttribute("value")
+                    elif node.getAttribute("key") == "Product.DocumentFolder":
+                        self.gameDocumentsDir = node.getAttribute("value")
 
             self.isConfigOK = True
         except:
@@ -132,7 +135,7 @@ class DetermineGame:
         self.title = ""
 
     def GetSettings(self, currentGame):
-        self.configFile = os.sep + "lotro.launcherconfig"
+        self.configFileAlt = os.sep + "TurbineLauncher.exe.config"
 
         if currentGame.endswith(".Test"):
             self.__test = " (Preview)"
@@ -141,12 +144,12 @@ class DetermineGame:
 
         self.iconFile = os.path.join("images", "OneLauncherIcon.png")
         if currentGame.startswith("DDO"):
-            self.configFileAlt = os.sep + "ddo.launcherconfig"
+            self.configFile = os.sep + "ddo.launcherconfig"
             self.pngFile = os.path.join("images", "DDO.png")
 
             self.title = "OneLauncher - DDO" + self.__test
         else:
-            self.configFileAlt = os.sep + "TurbineLauncher.exe.config"
+            self.configFile = os.sep + "lotro.launcherconfig"
             self.pngFile = os.path.join("images", "LOTRO.png")
 
             self.title = "OneLauncher - LOTRO" + self.__test
@@ -158,11 +161,8 @@ class DetermineOS:
             self.usingMac = True
             self.usingWindows = False
             self.appDir = "Library/Application Support/OneLauncher/"
-            self.settingsLOTRO = os.path.join(
-                os.path.expanduser("~"), "Documents", "The Lord of the Rings Online",
-            )
-            self.settingsDDO = os.path.join(
-                os.path.expanduser("~"), "Documents", "Dungeons and Dragons Online",
+            self.documentsDir = os.path.join(
+                os.path.expanduser("~"), "Documents",
             )
             self.globalDir = "/Application"
             self.settingsCXG = "Library/Application Support/CrossOver Games/Bottles"
@@ -187,12 +187,7 @@ class DetermineOS:
             self.usingMac = False
             self.usingWindows = True
             self.appDir = "OneLauncher" + os.sep
-            self.settingsLOTRO = os.path.join(
-                win_documents_folder, "The Lord of the Rings Online",
-            )
-            self.settingsDDO = os.path.join(
-                win_documents_folder, "Dungeons and Dragons Online",
-            )
+            self.documentsDir = win_documents_folder
             self.globalDir = ""
             self.settingsCXG = ""
             self.settingsCXO = ""
@@ -203,11 +198,8 @@ class DetermineOS:
             self.usingMac = False
             self.usingWindows = False
             self.appDir = ".OneLauncher" + os.sep
-            self.settingsLOTRO = os.path.join(
-                os.path.expanduser("~"), "Documents", "The Lord of the Rings Online",
-            )
-            self.settingsDDO = os.path.join(
-                os.path.expanduser("~"), "Documents", "Dungeons and Dragons Online",
+            self.documentsDir = os.path.join(
+                os.path.expanduser("~"), "Documents",
             )
             self.globalDir = "/opt"
             self.settingsCXG = ".cxgames"

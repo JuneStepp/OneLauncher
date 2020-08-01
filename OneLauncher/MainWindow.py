@@ -75,9 +75,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self):
         super().__init__()
-        if getattr(sys, 'frozen', False):
-        # The application is frozen
-            self.data_folder =  os.path.dirname(sys.executable)
+        if getattr(sys, "frozen", False):
+            # The application is frozen
+            self.data_folder = os.path.dirname(sys.executable)
         else:
             self.data_folder = os.path.dirname(__file__)
 
@@ -99,7 +99,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Temporary fix for qdarkstyle dropdown issue.
         # See https://github.com/ColinDuquesnoy/QDarkStyleSheet/issues/200
         self.setStyleSheet(
-        """
+            """
         QComboBox::item:checked {
         height: 12px;
         border: 1px solid #32414B;
@@ -143,15 +143,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.winMain.actionPatch.triggered.connect(self.actionPatchSelected)
         self.winMain.btnLogin.setMenu(self.winMain.btnLoginMenu)
         self.winMain.btnOptions.setIcon(
-            QtGui.QIcon(
-                os.path.join(self.data_folder, "images", "SettingsGear.png")
-            )
+            QtGui.QIcon(os.path.join(self.data_folder, "images", "SettingsGear.png"))
         )
         self.winMain.btnOptions.clicked.connect(self.btnOptionsSelected)
         self.winMain.btnAddonManager.setIcon(
-            QtGui.QIcon(
-                os.path.join(self.data_folder, "images", "AddonManager.png")
-            )
+            QtGui.QIcon(os.path.join(self.data_folder, "images", "AddonManager.png"))
         )
         self.winMain.btnAddonManager.clicked.connect(self.btnAddonManagerSelected)
         self.winMain.btnSwitchGame.clicked.connect(self.btnSwitchGameClicked)
@@ -279,7 +275,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.osType,
                 self,
                 self.data_folder,
-                self.settings.currentGame
+                self.settings.currentGame,
+                self.baseConfig.gameDocumentsDir,
             )
 
             winPatch.Run(self.app)
@@ -299,7 +296,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.settings,
             LanguageConfig,
             self,
-            self.data_folder
+            self.data_folder,
         )
 
         if winSettings.Run() == QtWidgets.QDialog.Accepted:
@@ -329,7 +326,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def btnAddonManagerSelected(self):
         winAddonManager = AddonManager(
-            self.settings.currentGame, self.osType, self.settings.settingsDir, self, self.data_folder
+            self.settings.currentGame,
+            self.osType,
+            self.settings.settingsDir,
+            self,
+            self.data_folder,
+            self.baseConfig.gameDocumentsDir,
         )
 
         winAddonManager.Run()
@@ -503,7 +505,8 @@ class MainWindow(QtWidgets.QMainWindow):
                             )
                         else:
                             keyring.delete_password(
-                                "OneLauncherLOTRO", self.winMain.cboAccount.currentText(),
+                                "OneLauncherLOTRO",
+                                self.winMain.cboAccount.currentText(),
                             )
                     except keyring.errors.PasswordDeleteError:
                         pass
@@ -589,7 +592,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.winMain.cboWorld.currentText(),
             self.winMain.cboAccount.currentText(),
             self,
-            self.data_folder
+            self.data_folder,
         )
         game.Run()
 
@@ -667,7 +670,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 file_handler.setLevel(logging.ERROR)
 
             # Create formatters and add it to handlers
-            stream_format = logging.Formatter("%(module)s - %(levelname)s - %(message)s")
+            stream_format = logging.Formatter(
+                "%(module)s - %(levelname)s - %(message)s"
+            )
             stream_handler.setFormatter(stream_format)
             file_format = logging.Formatter(
                 "%(asctime)s - %(module)s - %(levelname)s - %(lineno)d - %(message)s"
@@ -869,8 +874,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.gameType.GetSettings(self.settings.currentGame)
 
-        pngFile = os.path.join(self.data_folder, self.gameType.pngFile.replace("\\", "/"))
-        iconFile = os.path.join(self.data_folder, self.gameType.iconFile.replace("\\", "/"))
+        pngFile = os.path.join(
+            self.data_folder, self.gameType.pngFile.replace("\\", "/")
+        )
+        iconFile = os.path.join(
+            self.data_folder, self.gameType.iconFile.replace("\\", "/")
+        )
 
         self.winMain.imgMain.setPixmap(QtGui.QPixmap(pngFile))
         self.setWindowTitle(self.gameType.title)
@@ -1003,7 +1012,7 @@ class MainWindow(QtWidgets.QMainWindow):
             config_dir = os.environ.get("APPDATA")
         else:
             config_dir = os.environ.get("HOME")
-            
+
         if not config_dir.endswith(os.sep):
             config_dir += os.sep
 
