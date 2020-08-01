@@ -52,7 +52,8 @@ class PatchWindow:
         osType,
         parent,
         data_folder,
-        current_game
+        current_game,
+        gameDocumentsDir,
     ):
 
         self.homeDir = homeDir
@@ -129,15 +130,10 @@ class PatchWindow:
 
             # Get log file to read patching details from, since
             # rundll32 doesn't provide output on Windows
-            if current_game.startswith("LOTRO"):
-                log_folder_name = "The Lord of the Rings Online"
-            elif current_game.startswith("DDO"):
-                log_folder_name = "Dungeons and Dragons Online"
+            log_folder_name = gameDocumentsDir
 
             game_logs_folder = os.path.join(
-                os.path.split(os.environ.get("APPDATA"))[0],
-                "Local",
-                log_folder_name,
+                os.path.split(os.environ.get("APPDATA"))[0], "Local", log_folder_name,
             )
 
             self.patch_log_file = os.path.join(game_logs_folder, "PatchClient.log")
