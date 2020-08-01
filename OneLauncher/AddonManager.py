@@ -540,6 +540,9 @@ class AddonManager:
             addon_type = ""
             with ZipFile(addon, "r") as file:
                 files_list = file.namelist()
+                if not files_list:
+                    self.addLog("Add-on Zip is empty. Aborting")
+                    return
 
                 for entry in files_list:
                     if entry.endswith(".plugin"):
@@ -561,6 +564,7 @@ class AddonManager:
                                         os.path.join(self.data_folder_plugins, entry)
                                     )
 
+                        plugins_list_compendium = []
                         if interface_id:
                             compendium_file = self.generateCompendiumFile(
                                 files_list,
@@ -1059,6 +1063,8 @@ class AddonManager:
             uninstall_function = self.uninstallPlugins
         elif "Music" in table.objectName():
             uninstall_function = self.uninstallMusic
+        else:
+            raise IndexError(table.objectName() + " doesn't correspond to add-on type tab")
 
         return uninstall_function
 
@@ -1100,6 +1106,11 @@ class AddonManager:
                     table = self.winAddonManager.tableSkins
                 elif index_remote == 2:
                     table = self.winAddonManager.tableMusic
+        else:
+            raise IndexError(
+                str(self.winAddonManager.tabWidget.currentIndex())
+                + " isn't valid main tab index"
+            )
 
         return table
 
@@ -1409,9 +1420,9 @@ class AddonManager:
     def downloader(self, url, path):
         if url.lower().startswith("http"):
             try:
-                urllib.request.urlretrieve(
+                urllib.request.urlretrieve(     # nosec
                     url, path, self.handleDownloadProgress
-                )  # nosec
+                )
             except (urllib.error.URLError, urllib.error.HTTPError) as error:
                 self.logger.error(error.reason, exc_info=True)
                 self.addLog(
