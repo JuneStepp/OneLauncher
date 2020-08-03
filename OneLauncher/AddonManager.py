@@ -46,6 +46,7 @@ import logging
 class AddonManager:
     # ID is from the order plugins are found on the filesystem. InterfaceID is
     # the unique ID for plugins on lotrointerface.com
+    # Don't change order of list
     COLUMN_LIST = [
         "ID",
         "Name",
@@ -57,6 +58,7 @@ class AddonManager:
         "InterfaceID",
         "Dependencies",
     ]
+    # Don't change order of list
     TABLE_LIST = [
         "tablePluginsInstalled",
         "tableSkinsInstalled",
@@ -469,8 +471,74 @@ class AddonManager:
         return items_row
 
     def openDB(self):
-        # Connects to addons_cache database and creates it if it does not exist
-        if not os.path.exists(os.path.join(self.settingsDir, "addons_cache.sqlite")):
+        """
+        Opens addons_cache database and creates new database if 
+        one doesn't exist or the current one has an outdated structure
+        """
+        addons_cache_db_path = os.path.join(self.settingsDir, "addons_cache.sqlite")
+        if os.path.exists(addons_cache_db_path):
+            # Connects to addons_cache database
+            self.conn = sqlite3.connect(addons_cache_db_path)
+            self.c = self.conn.cursor()
+
+            # Replace old database if its structure is out of date
+            if self.isCurrentDBOutdated():
+                self.closeDB()
+                os.remove(addons_cache_db_path)
+                self.createDB()
+        else:
+            self.createDB()
+
+    def isCurrentDBOutdated(self):
+        """
+        Checks if currently loaded database's structure is up to date.
+        Returns True if it is outdated and False otherwise.
+        """
+
+        tables_dict = {}
+        # SQL returns all the columns in all the tables labled with what table they're from
+        for column_data in self.c.execute(
+            "SELECT m.name as tableName, p.name as columnName FROM sqlite_master"
+            " m left outer join pragma_table_info((m.name)) p on m.name <>"
+            " p.name ORDER BY tableName, columnName"
+        ):
+            # Ignore tables without actual information
+            if column_data[0].endswith(
+                ("_idx", "_docsize", "_data", "_content", "_config")
+            ):
+                continue
+            
+            if column_data[0] in tables_dict:
+                tables_dict[column_data[0]].append(column_data[1])
+            else:
+                tables_dict[column_data[0]] = [column_data[1]]
+        
+        for table in self.TABLE_LIST:
+            if table in tables_dict:
+                for column in self.COLUMN_LIST[1:]:
+                    try:
+                        tables_dict[table].remove(column)
+                    except ValueError:
+                        return True
+                
+                # Return true if there are extra columns in table
+                if tables_dict[table]:
+                    return True
+
+                # Delete table from dictionary, so program can
+                # check if there are extra tables in tables_dict afterwards
+                del tables_dict[table]
+            else:
+                return True
+        
+        # Only return False if there are no extra tables
+        if tables_dict:
+            return True
+        else:
+            return False
+
+    def createDB(self):
+        """Creates ans sets up addons_cache database"""
             self.conn = sqlite3.connect(
                 os.path.join(self.settingsDir, "addons_cache.sqlite")
             )
@@ -491,11 +559,6 @@ class AddonManager:
                         clmH=self.COLUMN_LIST[8],
                     )
                 )
-        else:
-            self.conn = sqlite3.connect(
-                os.path.join(self.settingsDir, "addons_cache.sqlite")
-            )
-            self.c = self.conn.cursor()
 
     def closeDB(self):
         self.conn.commit()
