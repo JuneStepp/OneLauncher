@@ -57,6 +57,7 @@ class AddonManager:
         "File",
         "InterfaceID",
         "Dependencies",
+        "StartupScript",
     ]
     # Don't change order of list
     TABLE_LIST = [
@@ -262,10 +263,9 @@ class AddonManager:
 
         for skin in skins_list_compendium:
             items_row = self.parseCompendiumFile(skin, "SkinConfig")
-            if self.currentGame.startswith("LOTRO"):
-                items_row = self.getOnlineAddonInfo(items_row, "tableSkins")
-            else:
-                items_row = self.getOnlineAddonInfo(items_row, "tableSkinsDDO")
+            items_row = self.getOnlineAddonInfo(
+                items_row, self.winAddonManager.tableSkins.objectName()
+            )
             self.addRowToDB(table, items_row)
 
         for skin in skins_list:
@@ -414,8 +414,6 @@ class AddonManager:
             if plugin.endswith(".plugincompendium"):
                 items_row = self.parseCompendiumFile(plugin, "PluginConfig")
                 items_row = self.getOnlineAddonInfo(items_row, "tablePlugins")
-
-                items_row[7] = self.getAddonDependencies(plugin)
             else:
                 items_row = self.parseCompendiumFile(plugin, "Information")
                 items_row[1] = "Unmanaged"
@@ -425,15 +423,12 @@ class AddonManager:
         # Populate user visible table
         self.reloadSearch(self.winAddonManager.tablePluginsInstalled)
 
-    def getAddonDependencies(self, file):
+    def getAddonDependencies(self, dependencies_node):
         dependencies = ""
-        doc = defusedxml.minidom.parse(file)
-        if doc.getElementsByTagName("Dependencies"):
-            nodes = doc.getElementsByTagName("Dependencies")[0].childNodes
-            for node in nodes:
-                if node.nodeName == "dependency":
-                    dependencies = dependencies + "," + (GetText(node.childNodes))
-            return dependencies[1:]
+        for node in dependencies_node.childNodes:
+            if node.nodeName == "dependency":
+                dependencies = dependencies + "," + (GetText(node.childNodes))
+        return dependencies[1:]
 
     # Returns list of common values for compendium or .plugin files
     def parseCompendiumFile(self, file, tag):
@@ -450,7 +445,11 @@ class AddonManager:
                 items_row[2] = GetText(node.childNodes)
             elif node.nodeName == "Id":
                 items_row[6] = GetText(node.childNodes)
-            items_row[5] = file
+            elif node.nodeName == "Dependencies":
+                items_row[7] = self.getAddonDependencies(node)
+            elif node.nodeName == "StartupScript":
+                items_row[8] = GetText(node.childNodes)
+        items_row[5] = file
 
         return items_row
 
@@ -507,12 +506,12 @@ class AddonManager:
                 ("_idx", "_docsize", "_data", "_content", "_config")
             ):
                 continue
-            
+
             if column_data[0] in tables_dict:
                 tables_dict[column_data[0]].append(column_data[1])
             else:
                 tables_dict[column_data[0]] = [column_data[1]]
-        
+
         for table in self.TABLE_LIST:
             if table in tables_dict:
                 for column in self.COLUMN_LIST[1:]:
@@ -520,7 +519,7 @@ class AddonManager:
                         tables_dict[table].remove(column)
                     except ValueError:
                         return True
-                
+
                 # Return true if there are extra columns in table
                 if tables_dict[table]:
                     return True
@@ -530,7 +529,7 @@ class AddonManager:
                 del tables_dict[table]
             else:
                 return True
-        
+
         # Only return False if there are no extra tables
         if tables_dict:
             return True
@@ -547,7 +546,7 @@ class AddonManager:
         for table in self.TABLE_LIST:
             self.c.execute(
                 "CREATE VIRTUAL TABLE {tbl_nm} USING FTS5({clmA}, {clmB}, {clmC}, "
-                "{clmD}, {clmE}, {clmF}, {clmG}, {clmH})".format(
+                "{clmD}, {clmE}, {clmF}, {clmG}, {clmH}, {clmI})".format(
                     tbl_nm=table,
                     clmA=self.COLUMN_LIST[1],
                     clmB=self.COLUMN_LIST[2],
@@ -557,6 +556,7 @@ class AddonManager:
                     clmF=self.COLUMN_LIST[6],
                     clmG=self.COLUMN_LIST[7],
                     clmH=self.COLUMN_LIST[8],
+                    clmI=self.COLUMN_LIST[9],
                 )
             )
 
@@ -565,6 +565,7 @@ class AddonManager:
         self.conn.close()
 
     def actionAddonImportSelected(self):
+        # DDO doesn't support playing music from .abc files
         if self.currentGame.startswith("DDO"):
             addon_formats = "*.zip *.rar"
         else:
@@ -825,23 +826,25 @@ class AddonManager:
         self, files_list, folder, interface_id, addon_type, path, table
     ):
         dependencies = []
+        startup_python_script = ""
         # Return if a compendium file already exists
         for file in files_list:
             if file.endswith(addon_type.lower() + "compendium"):
-                if addon_type == "Plugin":
-                    # Path includes folder when one has to be generated
-                    tmp_folder = folder
-                    if path.endswith(folder):
-                        tmp_folder = ""
+                # Path includes folder when one has to be generated
+                tmp_folder = folder
+                if path.endswith(folder):
+                    tmp_folder = ""
 
-                    compendium_file_path = os.path.join(
-                        path, tmp_folder, os.path.split(file)[1]
+                compendium_file_path = os.path.join(
+                    path, tmp_folder, os.path.split(file)[1]
+                )
+                if os.path.exists(compendium_file_path):
+                    existing_compendium_values = self.parseCompendiumFile(
+                        compendium_file_path, addon_type + "Config"
                     )
-                    if os.path.exists(compendium_file_path):
-                        dependencies = self.getAddonDependencies(compendium_file_path)
-                        os.remove(compendium_file_path)
-                else:
-                    return
+                    dependencies = existing_compendium_values[7]
+                    startup_python_script = existing_compendium_values[8]
+                    os.remove(compendium_file_path)
 
         for row in self.c.execute(
             "SELECT * FROM {table} WHERE InterfaceID = ?".format(table=table),  # nosec
@@ -898,12 +901,23 @@ class AddonManager:
                 dependenciesNode = doc.createElementNS(EMPTY_NAMESPACE, "Dependencies")
                 mainNode.appendChild(dependenciesNode)
 
-                # If compendium file from plugin already existed
+                # If compendium file from add-on already existed with dependencies
                 if dependencies:
                     for dependency in dependencies.split(","):
                         tempNode = doc.createElementNS(EMPTY_NAMESPACE, "dependency")
                         tempNode.appendChild(doc.createTextNode("%s" % (dependency)))
                         dependenciesNode.appendChild(tempNode)
+
+                # Can't add startup script, because it is defined in compendium files
+                startupScriptNode = doc.createElementNS(
+                    EMPTY_NAMESPACE, "StartupScript"
+                )
+                # If compendium file from add-on already existed with startup script
+                if startup_python_script:
+                    startupScriptNode.appendChild(
+                        doc.createTextNode("%s" % (startup_python_script))
+                    )
+                mainNode.appendChild(startupScriptNode)
 
                 # Write compendium file
 
@@ -1127,7 +1141,9 @@ class AddonManager:
         elif "Music" in table.objectName():
             uninstall_function = self.uninstallMusic
         else:
-            raise IndexError(table.objectName() + " doesn't correspond to add-on type tab")
+            raise IndexError(
+                table.objectName() + " doesn't correspond to add-on type tab"
+            )
 
         return uninstall_function
 
@@ -1207,7 +1223,8 @@ class AddonManager:
         if table.selectedItems():
             selected_addons = []
             details = ""
-            for item in table.selectedItems()[0 :: (len(self.COLUMN_LIST) - 4)]:
+            # Column count is minus one because of hidden ID column
+            for item in table.selectedItems()[0 :: (table.columnCount() - 1)]:
                 # Gets db row id for selected row
                 selected_row = int((table.item(item.row(), 0)).text())
 
@@ -1483,7 +1500,7 @@ class AddonManager:
     def downloader(self, url, path):
         if url.lower().startswith("http"):
             try:
-                urllib.request.urlretrieve(     # nosec
+                urllib.request.urlretrieve(  # nosec
                     url, path, self.handleDownloadProgress
                 )
             except (urllib.error.URLError, urllib.error.HTTPError) as error:
