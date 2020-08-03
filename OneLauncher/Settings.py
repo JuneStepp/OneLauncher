@@ -59,6 +59,7 @@ class Settings:
         self.gameDir = ""
         self.x64ClientEnabled = True
         self.savePassword = False
+        self.startupScripts = []
         success = False
 
         if self.winePrefix is None:
@@ -115,15 +116,28 @@ class Settings:
                     ):
                         account_nodes = node.childNodes
                         self.setAccountsSettings(account_nodes)
+                    elif node.nodeName == "StartupScripts" and not self.currentGame.endswith(
+                        ".Test"
+                    ):
+                        startup_script_nodes = node.childNodes
+                        self.setStartupScriptSettings(startup_script_nodes)
 
-                # Test/preview clients use accounts from normal clients
+                # Test/preview clients use accounts and startups scripts from normal clients
                 if self.currentGame.endswith(".Test"):
                     normalClientNode = self.getNormalClientNode(self.currentGame, doc)
                     if normalClientNode:
-                        accounts_node = normalClientNode.getElementsByTagName("Accounts")
-                        if accounts_node:
-                            account_nodes = accounts_node[0].childNodes
+                        # Load in accounts and their settings from normal client node
+                        accountsNode = normalClientNode.getElementsByTagName("Accounts")
+                        if accountsNode:
+                            account_nodes = accountsNode[0].childNodes
                             self.setAccountsSettings(account_nodes)
+                        
+                        # Load in startup scripts from normal client node
+                        startupScriptsNode = normalClientNode.getElementsByTagName("StartupScripts")
+                        if startupScriptsNode:
+                            startup_script_nodes = startupScriptsNode[0].childNodes
+                            self.setStartupScriptSettings(startup_script_nodes)
+                            
 
                 # Disables 64-bit client if it is unavailable for LOTRO
                 if not os.path.exists(
@@ -167,6 +181,11 @@ class Settings:
                         ] = GetText(node.childNodes)
 
                 self.focusAccount = False
+    
+    def setStartupScriptSettings(self, startup_script_nodes):
+        for node in startup_script_nodes:
+            if node.nodeName == "script":
+                self.startupScripts.append(GetText(node.childNodes))
 
     def getNormalClientNode(self, game, doc):
         """
@@ -222,6 +241,13 @@ class Settings:
         settingsNode = doc.getElementsByTagName("Settings")[0]
         gameConfigNode = doc.createElementNS(EMPTY_NAMESPACE, current_game)
         settingsNode.appendChild(gameConfigNode)
+
+        # Some settings for test/preview clients are saved in normal client settings
+        if self.currentGame.endswith(".Test"):
+            normalClientNode = self.getNormalClientNode(current_game, doc)
+            if not normalClientNode:
+                normalClientNode = doc.createElementNS(EMPTY_NAMESPACE, current_game)
+                settingsNode.appendChild(normalClientNode)
 
         if not self.osType.usingWindows:
             tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Program")
@@ -281,11 +307,6 @@ class Settings:
             # Test/preview clients use normal client accounts. I.e they are
             # saved and loaded to and from the normal client node rather than the test node
             if current_game.endswith(".Test"):
-                normalClientNode = self.getNormalClientNode(current_game, doc)
-                if not normalClientNode:
-                    normalClientNode = doc.createElementNS(EMPTY_NAMESPACE, current_game)
-                    settingsNode.appendChild(normalClientNode)
-
                 # Delete current accounts node if present. All accounts that were originally
                 # there were loaded as if they were the test client's, so they are not lost.
                 originalAccountsNode = normalClientNode.getElementsByTagName("Accounts")
@@ -300,6 +321,26 @@ class Settings:
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Save.Password")
                 tempNode.appendChild(doc.createTextNode("True"))
                 gameConfigNode.appendChild(tempNode)
+        
+        startupScriptsNode = doc.createElementNS(EMPTY_NAMESPACE, "StartupScripts")
+        for script in self.startupScripts:
+            scriptNode = doc.createElementNS(EMPTY_NAMESPACE, "script")
+            scriptNode.appendChild(doc.createTextNode("%s" % (script)))
+            startupScriptsNode.appendChild(scriptNode)
+        # Test/Preview clients store startup scripts in normal client settings, 
+        # because the add-ons folders are generally shared as well.
+        if current_game.endswith(".Test"):
+            # Delete current startup scripts node if present. All startup scripts
+            # that were originally there were loaded as if they were the test client's,
+            # so they are not lost.
+            originalStartupScriptsNode = normalClientNode.getElementsByTagName("StartupScripts")
+            if originalStartupScriptsNode:
+                normalClientNode.removeChild(originalStartupScriptsNode[0])
+
+            normalClientNode.appendChild(startupScriptsNode)
+        else:
+            gameConfigNode.appendChild(startupScriptsNode)
+
 
         # write new settings file
         with open(self.settingsFile, "w") as file:
