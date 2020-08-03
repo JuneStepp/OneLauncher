@@ -539,26 +539,26 @@ class AddonManager:
 
     def createDB(self):
         """Creates ans sets up addons_cache database"""
-            self.conn = sqlite3.connect(
-                os.path.join(self.settingsDir, "addons_cache.sqlite")
-            )
-            self.c = self.conn.cursor()
+        self.conn = sqlite3.connect(
+            os.path.join(self.settingsDir, "addons_cache.sqlite")
+        )
+        self.c = self.conn.cursor()
 
-            for table in self.TABLE_LIST:
-                self.c.execute(
-                    "CREATE VIRTUAL TABLE {tbl_nm} USING FTS5({clmA}, {clmB}, {clmC}, "
-                    "{clmD}, {clmE}, {clmF}, {clmG}, {clmH})".format(
-                        tbl_nm=table,
-                        clmA=self.COLUMN_LIST[1],
-                        clmB=self.COLUMN_LIST[2],
-                        clmC=self.COLUMN_LIST[3],
-                        clmD=self.COLUMN_LIST[4],
-                        clmE=self.COLUMN_LIST[5],
-                        clmF=self.COLUMN_LIST[6],
-                        clmG=self.COLUMN_LIST[7],
-                        clmH=self.COLUMN_LIST[8],
-                    )
+        for table in self.TABLE_LIST:
+            self.c.execute(
+                "CREATE VIRTUAL TABLE {tbl_nm} USING FTS5({clmA}, {clmB}, {clmC}, "
+                "{clmD}, {clmE}, {clmF}, {clmG}, {clmH})".format(
+                    tbl_nm=table,
+                    clmA=self.COLUMN_LIST[1],
+                    clmB=self.COLUMN_LIST[2],
+                    clmC=self.COLUMN_LIST[3],
+                    clmD=self.COLUMN_LIST[4],
+                    clmE=self.COLUMN_LIST[5],
+                    clmF=self.COLUMN_LIST[6],
+                    clmG=self.COLUMN_LIST[7],
+                    clmH=self.COLUMN_LIST[8],
                 )
+            )
 
     def closeDB(self):
         self.conn.commit()
