@@ -593,6 +593,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.winMain.cboAccount.currentText(),
             self,
             self.data_folder,
+            self.settings.startupScripts,
+            self.baseConfig.gameDocumentsDir,
         )
         game.Run()
 
