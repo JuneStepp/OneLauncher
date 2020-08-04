@@ -63,7 +63,9 @@ class StartGame:
         worldName,
         accountText,
         parent,
-        data_folder
+        data_folder,
+        startupScripts,
+        gameConfigDir,
     ):
 
         # Fixes binary path for 64-bit client
@@ -76,6 +78,8 @@ class StartGame:
         self.accountText = accountText
         self.parent = parent
         self.logger = logging.getLogger("OneLauncher")
+        self.startupScripts = startupScripts
+        self.gameConfigDirPath = os.path.join(osType.documentsDir, gameConfigDir)
 
         ui_file = QtCore.QFile(os.path.join(data_folder, "ui", "winLog.ui"))
         ui_file.open(QtCore.QFile.ReadOnly)
@@ -173,6 +177,10 @@ class StartGame:
         self.winLog.txtLog.append("Game Directory: " + runDir)
         self.winLog.txtLog.append("Game Client: " + appName)
 
+        self.winLog.show()
+
+        self.runStatupScripts()
+
     def readOutput(self):
         text = QByteArray2str(self.process.readAllStandardOutput())
         self.winLog.txtLog.append(text)
@@ -213,6 +221,25 @@ class StartGame:
         if filename != "":
             with open(filename, "w") as outfile:
                 outfile.write(self.winLog.txtLog.toPlainText())
+    
+    def runStatupScripts(self):
+        """Runs Python scripts from add-ons with one that is approved by user"""
+        for script in self.startupScripts:
+            file_path = os.path.join(self.gameConfigDirPath, script)
+            if os.path.exists(file_path):
+                self.winLog.txtLog.append(f"Running '{script}' startup script...")
+
+                # Set the working directory to where the script is. This is inherited by the script.
+                os.chdir(os.path.dirname(file_path))
+
+                code = open(file_path).read()
+                try:
+                    exec(code, {"__file__": file_path})
+                except SyntaxError as e:
+                    self.winLog.txtLog.append(f"'{script}' ran into syntax error: {e}")
+            else:
+                self.winLog.txtLog.append(f"'{script}' startup script does not exist")
+
 
     def Run(self):
         self.finished = False
