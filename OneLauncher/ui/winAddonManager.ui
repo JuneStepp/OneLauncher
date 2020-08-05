@@ -777,6 +777,16 @@
                 <string>Update</string>
             </property>
         </action>
+        <action name="actionEnableStartupScript">
+            <property name="text">
+                <string>Enable startup script</string>
+            </property>
+        </action>
+        <action name="actionDisableStartupScript">
+            <property name="text">
+                <string>Disable startup script</string>
+            </property>
+        </action>
         <zorder>btnBox</zorder>
         <zorder>tabWidget</zorder>
         <zorder>txtSearchBar</zorder>

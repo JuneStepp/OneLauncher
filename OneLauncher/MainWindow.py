@@ -332,9 +332,15 @@ class MainWindow(QtWidgets.QMainWindow):
             self,
             self.data_folder,
             self.baseConfig.gameDocumentsDir,
+            self.settings.startupScripts,
         )
 
         winAddonManager.Run()
+        self.settings.SaveSettings(
+            saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
+            savePassword=self.winMain.chkSavePassword.isChecked(),
+        )
+
         self.resetFocus()
 
     def settingsWizardCalled(self):
