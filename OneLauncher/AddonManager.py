@@ -77,12 +77,20 @@ class AddonManager:
     SKINS_DDO_URL = "https://api.lotrointerface.com/fav/OneLauncher-Themes-DDO.xml"
 
     def __init__(
-        self, currentGame, osType, settingsDir, parent, data_folder, gameDocumentsDir
+        self,
+        currentGame,
+        osType,
+        settingsDir,
+        parent,
+        data_folder,
+        gameDocumentsDir,
+        startupScripts,
     ):
         self.settingsDir = settingsDir
         self.currentGame = currentGame
         self.parent = parent
         self.logger = logging.getLogger("OneLauncher")
+        self.startupScripts = startupScripts
 
         ui_file = QtCore.QFile(os.path.join(data_folder, "ui", "winAddonManager.ui"))
 
@@ -168,6 +176,13 @@ class AddonManager:
         )
         self.winAddonManager.actionUpdateAddon.triggered.connect(
             self.actionUpdateAddonSelected
+        )
+
+        self.winAddonManager.actionEnableStartupScript.triggered.connect(
+            self.actionEnableStartupScriptSelected
+        )
+        self.winAddonManager.actionDisableStartupScript.triggered.connect(
+            self.actionDisableStartupScriptSelected
         )
 
         self.winAddonManager.btnCheckForUpdates.setIcon(
@@ -1549,10 +1564,10 @@ class AddonManager:
                 self.context_menu_selected_row = selected_item.row()
 
                 # If addon has online page
-                interface_ID = self.getTableRowInterfaceID(
+                self.context_menu_selected_interface_ID = self.getTableRowInterfaceID(
                     self.context_menu_selected_table, self.context_menu_selected_row
                 )
-                if interface_ID:
+                if self.context_menu_selected_interface_ID:
                     menu.addAction(self.winAddonManager.actionShowOnLotrointerface)
 
                 # If addon is installed
@@ -1579,6 +1594,18 @@ class AddonManager:
                 version_color = version_item.foreground().color()
                 if version_color in [QtGui.QColor("crimson"), QtGui.QColor("green")]:
                     menu.addAction(self.winAddonManager.actionUpdateAddon)
+
+                # If addon has a statup script
+                relative_script_path = self.getRelativeStartupScriptFromInterfaceID(
+                    self.context_menu_selected_table,
+                    self.context_menu_selected_interface_ID,
+                )
+                if relative_script_path:
+                    # If startup script is enabled
+                    if relative_script_path in self.startupScripts:
+                        menu.addAction(self.winAddonManager.actionDisableStartupScript)
+                    else:
+                        menu.addAction(self.winAddonManager.actionEnableStartupScript)
 
         # Only return menu if something has been added to it
         if not menu.isEmpty():
@@ -1938,3 +1965,48 @@ class AddonManager:
         if self.isTableEmpty(self.winAddonManager.tableSkins):
             self.loadRemoteAddons()
             self.getOutOfDateAddons()
+
+    def actionEnableStartupScriptSelected(self):
+        script = self.getRelativeStartupScriptFromInterfaceID(
+            self.context_menu_selected_table, self.context_menu_selected_interface_ID
+        )
+        full_script_path = os.path.join(self.data_folder, script)
+        if os.path.exists(full_script_path):
+            self.startupScripts.append(script)
+        else:
+            self.addLog(
+                f"'{full_script_path}' startup script does not exist, so it could not be enabled."
+            )
+
+    def actionDisableStartupScriptSelected(self):
+        script = self.getRelativeStartupScriptFromInterfaceID(
+            self.context_menu_selected_table, self.context_menu_selected_interface_ID
+        )
+        self.startupScripts.remove(script)
+
+    def getRelativeStartupScriptFromInterfaceID(self, table, interface_ID):
+        """Returns path of startup script relative to game documents settings directory"""
+        table_local = self.getRemoteOrLocalTableFromOne(table, remote=False)
+        for entry in self.c.execute(
+            f"SELECT StartupScript FROM {table_local.objectName()} WHERE InterfaceID = ?",
+            (interface_ID,),
+        ):
+            if entry[0]:
+                script = os.path.normpath(entry[0].replace("\\", "/"))
+                addon_data_folder_relative = self.getAddonTypeDataFolderFromTable(
+                    table_local
+                ).split(self.data_folder)[1]
+
+                script_relative_path = os.path.join(addon_data_folder_relative, script).strip(os.sep)
+                return script_relative_path
+
+    def getAddonTypeDataFolderFromTable(self, table):
+        table_name = table.objectName()
+        if "Plugins" in table_name:
+            return self.data_folder_plugins
+        elif "Skins" in table_name:
+            return self.data_folder_skins
+        elif "Music" in table_name:
+            return self.data_folder_music
+        else:
+            return None
