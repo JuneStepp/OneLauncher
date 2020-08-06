@@ -665,6 +665,8 @@ class AddonManager:
                         self.addInstalledPluginsToDB(
                             plugins_list, plugins_list_compendium
                         )
+
+                        self.handleStartupScriptActivationPrompt(table, interface_id)
                         self.logger.info(
                             "Installed addon corresponding to "
                             + str(plugins_list)
@@ -705,6 +707,8 @@ class AddonManager:
                             )
                         self.getInstalledMusic(folders_list=[folder])
 
+                        self.handleStartupScriptActivationPrompt(table, interface_id)
+
                         self.installAddonRemoteDependencies(
                             table.objectName() + "Installed"
                         )
@@ -732,6 +736,8 @@ class AddonManager:
                             table.objectName(),
                         )
                     self.getInstalledSkins(folders_list=[folder])
+
+                    self.handleStartupScriptActivationPrompt(table, interface_id)
 
                     self.installAddonRemoteDependencies(
                         table.objectName() + "Installed"
@@ -1997,7 +2003,9 @@ class AddonManager:
                     table_local
                 ).split(self.data_folder)[1]
 
-                script_relative_path = os.path.join(addon_data_folder_relative, script).strip(os.sep)
+                script_relative_path = os.path.join(
+                    addon_data_folder_relative, script
+                ).strip(os.sep)
                 return script_relative_path
 
     def getAddonTypeDataFolderFromTable(self, table):
@@ -2010,3 +2018,24 @@ class AddonManager:
             return self.data_folder_music
         else:
             return None
+
+    def handleStartupScriptActivationPrompt(self, table, interface_ID):
+        """Asks user if they want to enable an add-on's startup script if present"""
+        script = self.getRelativeStartupScriptFromInterfaceID(table, interface_ID)
+        if script:
+            script_contents = open(os.path.join(self.data_folder, script)).read()
+            for name in self.c.execute(
+                f"SELECT Name from {table.objectName()} WHERE InterfaceID = ?",
+                (interface_ID,),
+            ):
+                addon_name = name[0]
+                
+            activate_script = self.confirmationPrompt(
+                f"{addon_name} is requesting to run a Python script at every game launch."
+                " It is highly recommended to review the script's code in the details"
+                " box below to make sure it's safe.",
+                script_contents,
+            )
+            if activate_script:
+                self.startupScripts.append(script)
+
