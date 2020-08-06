@@ -1281,6 +1281,14 @@ class AddonManager:
                                     (GetText(node.childNodes).replace("\\", os.sep)),
                                 )
                             )
+                    # Check for startup scripts to remove them
+                    nodes = doc.getElementsByTagName("PluginConfig")[0].childNodes
+                    for node in nodes:
+                        if node.nodeName == "StartupScript":
+                            script = GetText(node.childNodes)
+                            self.uninstallStartupScript(
+                                script, self.data_folder_plugins
+                            )
                 else:
                     continue
 
@@ -1318,6 +1326,10 @@ class AddonManager:
         for skin in skins:
             if skin[1].endswith(".skincompendium"):
                 skin_path = os.path.split(skin[1])[0]
+
+                items_row = self.parseCompendiumFile(skin[1], "SkinConfig")
+                script = items_row[8]
+                self.uninstallStartupScript(script, self.data_folder_skins)
             else:
                 skin_path = skin[1]
             rmtree(skin_path)
@@ -1334,6 +1346,10 @@ class AddonManager:
         for music in music_list:
             if music[1].endswith(".musiccompendium"):
                 music_path = os.path.split(music[1])[0]
+
+                items_row = self.parseCompendiumFile(music[1], "MusicConfig")
+                script = items_row[8]
+                self.uninstallStartupScript(script, self.data_folder_music)
             else:
                 music_path = music[1]
 
@@ -1619,7 +1635,7 @@ class AddonManager:
         else:
             return None
 
-    def getTableRowInterfaceID(self, table, row):
+    def getTableRowInterfaceID(self, table: QtWidgets.QTableWidget, row: int):
         addon_db_id = table.item(row, 0).text()
 
         for interface_ID in self.c.execute(
@@ -1643,7 +1659,9 @@ class AddonManager:
         if url:
             QtGui.QDesktopServices.openUrl(url)
 
-    def getAddonUrlFromInterfaceID(self, interface_ID, table, download_url=False):
+    def getAddonUrlFromInterfaceID(
+        self, interface_ID, table: QtWidgets.QTableWidget, download_url: bool = False
+    ):
         """Returns info URL for addon or download URL if download_url=True"""
         # URL is only in remote version of table
         table = self.getRemoteOrLocalTableFromOne(table, remote=True)
@@ -1720,7 +1738,9 @@ class AddonManager:
             self.resetRemoteAddonsTables()
             self.searchSearchBarContents()
 
-    def getAddonListObjectFromRow(self, table, row, remote=True):
+    def getAddonListObjectFromRow(
+        self, table: QtWidgets.QTableWidget, row, remote=True
+    ):
         """
         Gives list of information for addon. The information is:
         [Interface ID, URL/File (depending on if remote = True or False), Name]
@@ -1752,7 +1772,9 @@ class AddonManager:
 
         return addon
 
-    def getRemoteOrLocalTableFromOne(self, input_table, remote=False):
+    def getRemoteOrLocalTableFromOne(
+        self, input_table: QtWidgets.QTableWidget, remote: bool = False
+    ):
         table_name = input_table.objectName()
         # UI table object names are renamed with DDO in them when the current game is
         # DDO for DB access, but the callable name for the UI tables stays the same.
@@ -1990,7 +2012,9 @@ class AddonManager:
         )
         self.startupScripts.remove(script)
 
-    def getRelativeStartupScriptFromInterfaceID(self, table, interface_ID):
+    def getRelativeStartupScriptFromInterfaceID(
+        self, table: QtWidgets.QTableWidget, interface_ID
+    ):
         """Returns path of startup script relative to game documents settings directory"""
         table_local = self.getRemoteOrLocalTableFromOne(table, remote=False)
         for entry in self.c.execute(
@@ -2008,7 +2032,7 @@ class AddonManager:
                 ).strip(os.sep)
                 return script_relative_path
 
-    def getAddonTypeDataFolderFromTable(self, table):
+    def getAddonTypeDataFolderFromTable(self, table: QtWidgets.QTableWidget):
         table_name = table.objectName()
         if "Plugins" in table_name:
             return self.data_folder_plugins
@@ -2019,7 +2043,9 @@ class AddonManager:
         else:
             return None
 
-    def handleStartupScriptActivationPrompt(self, table, interface_ID):
+    def handleStartupScriptActivationPrompt(
+        self, table: QtWidgets.QTableWidget, interface_ID: str
+    ):
         """Asks user if they want to enable an add-on's startup script if present"""
         script = self.getRelativeStartupScriptFromInterfaceID(table, interface_ID)
         if script:
@@ -2029,7 +2055,7 @@ class AddonManager:
                 (interface_ID,),
             ):
                 addon_name = name[0]
-                
+
             activate_script = self.confirmationPrompt(
                 f"{addon_name} is requesting to run a Python script at every game launch."
                 " It is highly recommended to review the script's code in the details"
@@ -2038,4 +2064,19 @@ class AddonManager:
             )
             if activate_script:
                 self.startupScripts.append(script)
+
+    def uninstallStartupScript(self, script: str, addon_data_folder: str):
+        if script:
+            script_path = os.path.join(
+                addon_data_folder, (script.replace("\\", os.sep)),
+            )
+
+            relative_to_game_documents_dir_script = script_path.replace(
+                self.data_folder, ""
+            ).strip(os.sep)
+            if relative_to_game_documents_dir_script in self.startupScripts:
+                self.startupScripts.remove(relative_to_game_documents_dir_script)
+
+            if os.path.exists(script_path):
+                os.remove(script_path)
 
