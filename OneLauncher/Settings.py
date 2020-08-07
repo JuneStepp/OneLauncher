@@ -213,6 +213,7 @@ class Settings:
         # Check if settings file exists if not create new settings XML
         if os.path.exists(self.settingsFile):
             doc = defusedxml.minidom.parse(self.settingsFile)
+            settingsNode = doc.getElementsByTagName("Settings")
         else:
             doc = Document()
             settingsNode = doc.createElementNS(EMPTY_NAMESPACE, "Settings")
@@ -243,7 +244,7 @@ class Settings:
         settingsNode.appendChild(gameConfigNode)
 
         # Some settings for test/preview clients are saved in normal client settings
-        if self.currentGame.endswith(".Test"):
+        if current_game.endswith(".Test"):
             normalClientNode = self.getNormalClientNode(current_game, doc)
             if not normalClientNode:
                 normalClientNode = doc.createElementNS(EMPTY_NAMESPACE, current_game)
