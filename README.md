@@ -28,6 +28,7 @@ LOTRO](https://sny.name/LOTRO/) (C) 2007-2009 SNy
 - Plugins, skins, and music manager
 - Multiple accounts support
 - Password saving
+- External scripting support for add-ons
 - Auto optimum WINE setup for Mac and Linux
 - Easy game detection
 
@@ -78,28 +79,28 @@ The project can only be built for the os that the build script is run on,
 so it has to be built on every target os individually. The installers can be
 cross compiled with InstallBuilder though.
 
-# Addon Manager Info For Developers
+# Add-on Manager Info For Developers
 
-## Getting your addon in OneLauncher
+## Getting Your Add-on in OneLauncher
 
-I follow the the RSS feed on [LotroInterface](https://lotrointerface.com) and will add any addons that look
+I follow the the RSS feed on [LotroInterface](https://lotrointerface.com) and will add any add-ons that look
 to be in the correct format. You can open an issue here or email me if you feel
-your addon needs to be added.
+your add-on needs to be added.
 
 ## Archive Format
 
-- Addons must be uploaded as a zip!
+- Add-ons must be uploaded as a zip!
 - Zip should have descriptive name (i.e not "skin" or "plugin")
 - It's not recommended, but ok if zip has no root folder, multiple root folders, or includes part of the path to the data folder like "ui/skins" or "Plugins".
 
 ## Compendium Files
 
-You don't need to make a compendium file unless you need dependencies to be auto installed. One is auto generated during installation.
+You don't need to make a compendium file unless you need dependencies to be auto installed or want a startup script to be run. One is auto generated during installation.
 
-Compendium files should be placed inside the top level directory of your addon and their names follow the format:
+Compendium files should be placed inside the top level directory of your add-on and their names follow the format:
 
 `{NAME}.{plugin/skin/music}compendium`
-An example is `OneLauncher.plugincompendium`
+An example is `Example Plugin.plugincompendium`
 
 The contents of compendium files follow the format:
 
@@ -115,13 +116,15 @@ The contents of compendium files follow the format:
     <!--Descriptors only needed for plugins-->
     <Descriptors>
         <descriptor>{AUTHOR}\{NAME}.plugin</descriptor>
-        <!--More descriptors can be added if more plugins are part of the main plugin-->
+        <!--More descriptors can be added if more plugins are part of the main plugin. This is a representation of the paths to all the .plugin files.-->
     </Descriptors>
-    <!--Dependencies can be added for any type of addon. The dependency doesn't have to be of the same addon type as what is dependent on it-->
+    <!--Dependencies can be added for any type of add-on. The dependency doesn't have to be of the same add-on type as what is dependent on it-->
     <Dependencies>
         <dependency>{INTERFACE ID OF DEPENDENCY}</dependency>
         <!--Any amount of dependencies are fine-->
-  </Dependencies>
+    </Dependencies>
+    <!--An add-on can request permission to run a Python script at every game launch.-->
+    <StartupScript>{PATH TO PYTHON SCRIPT IN SAME FORMAT AS DESCRIPTORS}</StartupScript>
 </{Plugin/Skin/Music}Config>
 ```
 
@@ -130,35 +133,45 @@ An example is:
 ```
 <?xml version="1.0" ?>
 <PluginConfig>
-    <Id>684</Id>
-    <Name>ChampionFervour</Name>
-    <Version>1.1</Version>
-    <Author>D.H1cks</Author>
-    <InfoUrl>http://www.lotrointerface.com/downloads/info684</InfoUrl>
-    <DownloadUrl>http://www.lotrointerface.com/downloads/download684</DownloadUrl>
+    <Id>314159</Id>
+    <Name>Example Plugin</Name>
+    <Version>4.0.4</Version>
+    <Author>June Stepp</Author>
+    <InfoUrl>http://www.lotrointerface.com/downloads/info314159</InfoUrl>
+    <DownloadUrl>http://www.lotrointerface.com/downloads/download314159</DownloadUrl>
     <Descriptors>
-        <descriptor>DhorPlugins\ChampionFervour.plugin</descriptor>
+        <descriptor>JuneStepp\Example.plugin</descriptor>
+        <descriptor>JuneStepp\Another Example.plugin</descriptor>
     </Descriptors>
     <Dependencies>
         <dependency>0</dependency>
         <dependency>367</dependency>
     </Dependencies>
+    <StartupScript>JuneStepp\example.py</StartupScript>
 </PluginConfig>
 ```
 
 ## Patches
 
-Patches must follow the same format as the addon that is being patched. The most common issue is leaving out folders farther up the tree from what is changed.
+Patches must follow the same format as the add-on that is being patched. The most common issue is leaving out folders farther up the tree from what is changed.
 
 Here is a list of possible issues to keep in mind when making a patch:
 
 Make sure patch...
 
-- Follows the exact same folder structure as the addon being patched.
-- Doesn't edit the compendium file of the addon being patched.
+- Follows the exact same folder structure as the add-on being patched.
+- Doesn't edit the compendium file of the add-on being patched.
 - Is installed after what is being patched.
 - Has clear name.
 
 ## Collections
 
-Collections of addons can be made by listing the addons you would like in the collection as dependencies of your addon. See the [Compendium Files](#Compendium-Files) section for how to add dependencies to your addon.
+Collections of add-ons can be made by listing the add-ons you would like in the collection as dependencies of your add-on. See the [Compendium Files](#Compendium-Files) section for how to add dependencies to your add-on.
+
+## Dependencies
+
+Dependencies will be installed automatically after your add-on. See the [Compendium Files](#Compendium-Files) section for how to add dependencies to your add-on.
+
+## Startup Scripts
+
+Startup scripts are Python scripts that will be run before every game launch. When installing an add-on with a startup script the user will be prompted for permission for the script to run and shown the contents of the script. It is likely that users will not give permission for your script to run, so make sure to program in a message for that situation. See the [Compendium Files](#Compendium-Files) section for how to add a startup script to your add-on.
