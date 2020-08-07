@@ -631,12 +631,28 @@ class AddonManager:
 
                         addon_type = "Plugin"
                         table = self.winAddonManager.tablePlugins
-                        folder = entry.split("/")[0]
+                        folder_original = entry.split("/")[0]
                         path = self.data_folder_plugins
                         file.extractall(path=path)
 
-                        plugins_list = []
+                        folder = self.moveAddonsFromInvalidFolder(
+                            self.data_folder_plugins, folder_original
+                        )
+                        updated_files_list = []
                         for entry in files_list:
+                            try:
+                                updated_files_list.append(
+                                    os.path.join(folder, entry.split(folder)[1].strip("/"))
+                                )
+                            except IndexError:
+                                # Anything that was in an invalid folder 
+                                # should be ignored. This also fixes issues 
+                                # with entries for the invalid folders such
+                                # as 'Plugins/'
+                                continue
+
+                        plugins_list = []
+                        for entry in updated_files_list:
                             if len(entry.split("/")) == 2:
                                 if entry.endswith(".plugin"):
                                     plugins_list.append(
@@ -646,7 +662,7 @@ class AddonManager:
                         plugins_list_compendium = []
                         if interface_id:
                             compendium_file = self.generateCompendiumFile(
-                                files_list,
+                                updated_files_list,
                                 folder,
                                 interface_id,
                                 addon_type,
@@ -695,6 +711,10 @@ class AddonManager:
                         )
                         file.extractall(path=path)
                         self.logger.info(addon + " music installed")
+
+                        folder = self.moveAddonsFromInvalidFolder(
+                            self.data_folder_music, folder
+                        )
 
                         if interface_id:
                             compendium_file = self.generateCompendiumFile(
