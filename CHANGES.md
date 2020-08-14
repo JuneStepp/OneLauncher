@@ -7,7 +7,7 @@ Launcher for Linux, Windows, and Mac OS X
 
 1.2.2
 
-    This release fixes language selection and allows specification of startup game with a launch argument. This can be used to make different shortcuts for quickely accessing OneLauncher with different games.
+    This release fixes language selection and allows specification of startup game with a launch argument. This can be used to make different shortcuts for quickly accessing OneLauncher with different games.
 
         * Fixed language selection
         * Startup game selection with `--game` launch argument
