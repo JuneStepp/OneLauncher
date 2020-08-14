@@ -5,6 +5,14 @@ Launcher for Linux, Windows, and Mac OS X
 
 # Changes
 
+1.2.2
+
+    This release fixes language selection and allows specification of startup game with a launch argument. This can be used to make different shortcuts for quickely accessing OneLauncher with different games.
+
+        * Fixed language selection
+        * Startup game selection with `--game` launch argument
+        * Advanced usage section in README.md
+
 1.2.1
 
     This release fixes some important bugs and allows developers to request a Python script to be run on every game launch. **The user has to give permission for every add-on that does this since these scripts have the equivalent power of an executable file.**
