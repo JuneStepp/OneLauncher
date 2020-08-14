@@ -28,6 +28,7 @@
 ###########################################################################
 import os
 import sys
+from typing import final
 import defusedxml.minidom
 import zlib
 from PySide2 import QtCore, QtGui, QtWidgets
@@ -834,6 +835,21 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if first_setup:
             self.checkForUpdate()
+
+            # Launch into specific game if specified in launch argument
+            launch_arguments = sys.argv
+            try:
+                game_modifier_index = launch_arguments.index("--game")
+            except ValueError:
+                pass
+            else:
+                try:
+                    game = launch_arguments[game_modifier_index + 1]
+                except IndexError:
+                    pass
+                else:
+                    if game in ["LOTRO", "LOTRO.Test", "DDO", "DDO.Test"]:
+                        self.currentGame = game
 
         checkForCertificates(self.logger)
 
