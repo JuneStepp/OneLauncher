@@ -286,14 +286,14 @@
    <property name="geometry">
     <rect>
      <x>310</x>
-     <y>5</y>
+     <y>2</y>
      <width>141</width>
-     <height>23</height>
+     <height>16</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout">
     <property name="bottomMargin">
-     <number>8</number>
+     <number>0</number>
     </property>
     <item>
      <widget class="QRadioButton" name="btnEN">
@@ -336,10 +336,10 @@
     </item>
    </layout>
   </widget>
-  <zorder>horizontalLayoutWidget</zorder>
   <zorder>tabWidget</zorder>
   <zorder>btnBoxOptions</zorder>
   <zorder>chkAdvanced</zorder>
+  <zorder>horizontalLayoutWidget</zorder>
  </widget>
  <resources/>
  <connections>
