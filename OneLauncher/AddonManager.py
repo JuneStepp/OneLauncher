@@ -1485,18 +1485,21 @@ class AddonManager:
 
             # Populates remote addons tables if not done already
             if self.isTableEmpty(self.winAddonManager.tableSkins):
-                self.loadRemoteAddons()
-                self.getOutOfDateAddons()
+                if self.loadRemoteAddons():
+                    self.getOutOfDateAddons()
 
         self.searchSearchBarContents()
 
     def loadRemoteAddons(self):
         if self.currentGame.startswith("LOTRO"):
-            self.getRemoteAddons(self.PLUGINS_URL, self.winAddonManager.tablePlugins)
-            self.getRemoteAddons(self.SKINS_URL, self.winAddonManager.tableSkins)
-            self.getRemoteAddons(self.MUSIC_URL, self.winAddonManager.tableMusic)
+            # Only keep loading remote add-ons if the first load doesn't run into issues
+            if self.getRemoteAddons(self.PLUGINS_URL, self.winAddonManager.tablePlugins):
+                self.getRemoteAddons(self.SKINS_URL, self.winAddonManager.tableSkins)
+                self.getRemoteAddons(self.MUSIC_URL, self.winAddonManager.tableMusic)
+                return True
         else:
-            self.getRemoteAddons(self.SKINS_DDO_URL, self.winAddonManager.tableSkins)
+            if self.getRemoteAddons(self.SKINS_DDO_URL, self.winAddonManager.tableSkins):
+                return True
 
     def getRemoteAddons(self, favorites_url, table):
         # Clears rows from db table
@@ -1519,6 +1522,7 @@ class AddonManager:
             self.addLog(
                 "There was a network error. You may want to check your connection."
             )
+            self.winAddonManager.tabWidget.setCurrentIndex(0)
             return False
 
         doc = defusedxml.minidom.parseString(addons_file)
@@ -1552,6 +1556,8 @@ class AddonManager:
 
         # Populate user visible table. This should not reload the current search.
         self.searchDB(table, "")
+
+        return True
 
     # Downloads file from url to path and shows progress with self.handleDownloadProgress
     def downloader(self, url, path):
@@ -1850,10 +1856,9 @@ class AddonManager:
             self.winAddonManager.actionShowMusicFolderInFileManager.setVisible(True)
 
     def checkForUpdates(self):
-        self.loadRemoteAddons()
-
-        self.getOutOfDateAddons()
-        self.searchSearchBarContents()
+        if self.loadRemoteAddons():
+            self.getOutOfDateAddons()
+            self.searchSearchBarContents()
 
     def getOutOfDateAddons(self):
         """
@@ -1861,7 +1866,9 @@ class AddonManager:
         in installed table and '(Updated) ' in remote table. These
         are prepended to the Version column.
         """
-        self.loadRemoteDataIfNotDone()
+        if not self.loadRemoteDataIfNotDone():
+            return
+
         if not self.currentGame.startswith("DDO"):
             self.loadSkinsIfNotDone()
             self.loadMusicIfNotDone()
@@ -1932,7 +1939,8 @@ class AddonManager:
         )
 
     def updateAll(self):
-        self.loadRemoteDataIfNotDone()
+        if not self.loadRemoteDataIfNotDone():
+            return
 
         if self.currentGame.startswith("LOTRO"):
             tables = self.TABLE_LIST[:3]
@@ -1967,7 +1975,8 @@ class AddonManager:
         self.setRemoteAddonToInstalled(addon, table_remote)
 
     def actionUpdateAddonSelected(self):
-        self.loadRemoteDataIfNotDone()
+        if not self.loadRemoteDataIfNotDone():
+            return
 
         table = self.context_menu_selected_table
         row = self.context_menu_selected_row
@@ -1982,7 +1991,8 @@ class AddonManager:
         table = self.getCurrentTable()
         addons, details = self.getSelectedAddons(table)
 
-        self.loadRemoteDataIfNotDone()
+        if not self.loadRemoteDataIfNotDone():
+            return
 
         if addons:
             for addon in addons:
@@ -2011,8 +2021,10 @@ class AddonManager:
         """
         # If remote addons haven't been loaded then out of date addons haven't been found.
         if self.isTableEmpty(self.winAddonManager.tableSkins):
-            self.loadRemoteAddons()
-            self.getOutOfDateAddons()
+            if self.loadRemoteAddons():
+                self.getOutOfDateAddons()
+        
+        return True
 
     def actionEnableStartupScriptSelected(self):
         script = self.getRelativeStartupScriptFromInterfaceID(
