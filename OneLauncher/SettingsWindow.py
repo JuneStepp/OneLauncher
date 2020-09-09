@@ -205,10 +205,7 @@ class SettingsWindow:
         self.winSettings.reject()
 
     def getSetupWizardClicked(self):
-        if self.start_setup_wizard:
-            return True
-        else:
-            return False
+        return bool(self.start_setup_wizard)
 
     def txtPrefixChanged(self, text):
         self.winePrefix = text
@@ -263,16 +260,10 @@ class SettingsWindow:
         return self.winSettings.txtGameDir.text()
 
     def getHiRes(self):
-        if self.winSettings.cboGraphics.currentIndex() == 0:
-            return True
-        else:
-            return False
+        return self.winSettings.cboGraphics.currentIndex() == 0
 
     def getx64Client(self):
-        if self.winSettings.chkx64Client.isChecked():
-            return True
-        else:
-            return False
+        return bool(self.winSettings.chkx64Client.isChecked())
 
     def Run(self):
         return self.winSettings.exec_()

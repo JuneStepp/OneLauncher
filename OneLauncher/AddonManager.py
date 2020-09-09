@@ -348,16 +348,12 @@ class AddonManager:
                 items_row[0] = os.path.splitext(items_row[0])[0]
 
                 with open(music, "r") as file:
-                    for i in range(3):
+                    for _ in range(3):
                         line = file.readline().strip()
                         if line.startswith("T: "):
                             items_row[0] = line[3:]
                         if line.startswith("Z: "):
-                            if line.startswith("Z: Transcribed by "):
-                                items_row[3] = line[18:]
-                            else:
-                                items_row[3] = line[3:]
-
+                            items_row[3] = line[18:] if line.startswith("Z: Transcribed by ") else line[3:]
             items_row[5] = music
             items_row[1] = "Unmanaged"
 
@@ -546,10 +542,7 @@ class AddonManager:
                 return True
 
         # Only return False if there are no extra tables
-        if tables_dict:
-            return True
-        else:
-            return False
+        return bool(tables_dict)
 
     def createDB(self):
         """Creates ans sets up addons_cache database"""
@@ -653,11 +646,12 @@ class AddonManager:
 
                         plugins_list = []
                         for entry in updated_files_list:
-                            if len(entry.split("/")) == 2:
-                                if entry.endswith(".plugin"):
-                                    plugins_list.append(
-                                        os.path.join(self.data_folder_plugins, entry)
-                                    )
+                            if len(entry.split("/")) == 2 and entry.endswith(
+                                ".plugin"
+                            ):
+                                plugins_list.append(
+                                    os.path.join(self.data_folder_plugins, entry)
+                                )
 
                         plugins_list_compendium = []
                         if interface_id:
@@ -842,10 +836,9 @@ class AddonManager:
             if folder in invalid_folder_names:
                 folders = os.path.join(folders, folder)
                 folders_list = glob(os.path.join(data_folder, folders, "*", ""))
-                output = self.moveAddonsFromInvalidFolder(
+                return self.moveAddonsFromInvalidFolder(
                     data_folder, "", folders_list=folders_list, folders=folders
                 )
-                return output
 
         if folders:
             # List of the folders that will be moved to the data folder
@@ -873,7 +866,7 @@ class AddonManager:
             if file.endswith(addon_type.lower() + "compendium"):
                 # Path includes folder when one has to be generated
                 tmp_folder = folder
-                if path.endswith(folder):
+                if path.endswith(tmp_folder):
                     tmp_folder = ""
 
                 compendium_file_path = os.path.join(
@@ -978,10 +971,9 @@ class AddonManager:
     # Replaces "download" with "info" in download url to make info url
     def getInterfaceInfoUrl(self, download_url):
         download_url_tail = os.path.split(download_url)[1]
-        info_url = download_url.replace(
+        return download_url.replace(
             download_url_tail, download_url_tail.replace("download", "info")
         )
-        return info_url
 
     def txtSearchBarTextChanged(self, text):
         if self.currentGame.startswith("LOTRO"):
@@ -1047,10 +1039,7 @@ class AddonManager:
                 self.addRowToTable(table, row)
 
     def isTableEmpty(self, table):
-        if table.item(0, 1):
-            return False
-        else:
-            return True
+        return not table.item(0, 1)
 
     def reloadSearch(self, table):
         """Re-searches the current search"""
@@ -1132,8 +1121,8 @@ class AddonManager:
 
     def addRowToDB(self, table, list):
         question_marks = "?"
-        for i in range(len(list) - 1):
-            question_marks = question_marks + ",?"
+        for _ in range(len(list) - 1):
+            question_marks += ",?"
 
         self.c.execute(
             "INSERT INTO {table} VALUES({})".format(
@@ -1261,28 +1250,27 @@ class AddonManager:
             return False, addons
 
     def getSelectedAddons(self, table):
-        if table.selectedItems():
-            selected_addons = []
-            details = ""
-            # Column count is minus one because of hidden ID column
-            for item in table.selectedItems()[0 :: (table.columnCount() - 1)]:
-                # Gets db row id for selected row
-                selected_row = int((table.item(item.row(), 0)).text())
-
-                selected_name = table.item(item.row(), 1).text()
-
-                for selected_addon in self.c.execute(
-                    "SELECT InterfaceID, File, Name FROM {table} WHERE rowid = ?".format(  # nosec
-                        table=table.objectName()
-                    ),
-                    (selected_row,),
-                ):
-                    selected_addons.append(selected_addon)
-                    details = details + selected_name + "\n"
-
-            return selected_addons, details
-        else:
+        if not table.selectedItems():
             return None, None
+        selected_addons = []
+        details = ""
+        # Column count is minus one because of hidden ID column
+        for item in table.selectedItems()[0 :: (table.columnCount() - 1)]:
+            # Gets db row id for selected row
+            selected_row = int((table.item(item.row(), 0)).text())
+
+            selected_name = table.item(item.row(), 1).text()
+
+            for selected_addon in self.c.execute(
+                "SELECT InterfaceID, File, Name FROM {table} WHERE rowid = ?".format(  # nosec
+                    table=table.objectName()
+                ),
+                (selected_row,),
+            ):
+                selected_addons.append(selected_addon)
+                details = details + selected_name + "\n"
+
+        return selected_addons, details
 
     def uninstallPlugins(self, plugins, table):
         for plugin in plugins:
@@ -1388,11 +1376,7 @@ class AddonManager:
 
     def checkAddonForDependencies(self, addon, table):
         # Turbine Utilities is treated as having ID 0
-        if addon[0] == "1064":
-            addon_ID = "0"
-        else:
-            addon_ID = addon[0]
-
+        addon_ID = "0" if addon[0] == "1064" else addon[0]
         details = ""
 
         for dependent in self.c.execute(
@@ -1406,10 +1390,7 @@ class AddonManager:
 
         if details:
             num_depends = len(details.split("\n")) - 1
-            if num_depends == 1:
-                plural = " addon depends"
-            else:
-                plural = " addons deppend"
+            plural = " addon depends" if num_depends == 1 else " addons deppend"
             text = (
                 str(num_depends)
                 + plural
@@ -1431,10 +1412,7 @@ class AddonManager:
         messageBox.setDetailedText(details)
 
         # Checks if user accepts dialogue
-        if messageBox.exec() == 33554432:
-            return True
-        else:
-            return False
+        return messageBox.exec() == 33554432
 
     def searchSearchBarContents(self):
         """
@@ -1693,12 +1671,7 @@ class AddonManager:
             (interface_ID,),
         ):
             if addon_url[0]:
-                if not download_url:
-                    url = self.getInterfaceInfoUrl(addon_url[0])
-                else:
-                    url = addon_url[0]
-
-                return url
+                return addon_url[0] if download_url else self.getInterfaceInfoUrl(addon_url[0])
 
     def getAddonFileFromInterfaceID(self, interface_ID, table):
         """Returns file location of addon"""
@@ -1788,9 +1761,7 @@ class AddonManager:
             else:
                 file = self.getAddonFileFromInterfaceID(interface_ID, table_installed)
 
-        addon = [interface_ID, file, table.item(row, 1).text()]
-
-        return addon
+        return [interface_ID, file, table.item(row, 1).text()]
 
     def getRemoteOrLocalTableFromOne(
         self, input_table: QtWidgets.QTableWidget, remote: bool = False
@@ -1802,13 +1773,13 @@ class AddonManager:
 
         if remote:
             table = getattr(self.winAddonManager, table_name.split("Installed")[0])
-            return table
         else:
             if table_name.endswith("Installed"):
                 table = input_table
             else:
                 table = getattr(self.winAddonManager, table_name + "Installed")
-            return table
+
+        return table
 
     def actionShowAddonInFileManagerSelected(self):
         table = self.context_menu_selected_table
@@ -1832,19 +1803,20 @@ class AddonManager:
 
     def updateAddonFolderActions(self, index):
         """Makes only action for opening addon folder associated with tab visible"""
-        if self.currentGame.startswith("DDO"):
+        if (
+            self.currentGame.startswith("DDO")
+            or not self.currentGame.startswith("DDO")
+            and index != 0
+            and index == 1
+        ):
             self.winAddonManager.actionShowPluginsFolderInFileManager.setVisible(False)
             self.winAddonManager.actionShowSkinsFolderInFileManager.setVisible(True)
             self.winAddonManager.actionShowMusicFolderInFileManager.setVisible(False)
-        elif index == 0:
+        elif not self.currentGame.startswith("DDO") and index == 0:
             self.winAddonManager.actionShowPluginsFolderInFileManager.setVisible(True)
             self.winAddonManager.actionShowSkinsFolderInFileManager.setVisible(False)
             self.winAddonManager.actionShowMusicFolderInFileManager.setVisible(False)
-        elif index == 1:
-            self.winAddonManager.actionShowPluginsFolderInFileManager.setVisible(False)
-            self.winAddonManager.actionShowSkinsFolderInFileManager.setVisible(True)
-            self.winAddonManager.actionShowMusicFolderInFileManager.setVisible(False)
-        elif index == 2:
+        elif not self.currentGame.startswith("DDO") and index == 2:
             self.winAddonManager.actionShowPluginsFolderInFileManager.setVisible(False)
             self.winAddonManager.actionShowSkinsFolderInFileManager.setVisible(False)
             self.winAddonManager.actionShowMusicFolderInFileManager.setVisible(True)
@@ -2000,10 +1972,10 @@ class AddonManager:
             (addon[0],),
         ):
             version = entry[0]
-            if version.startswith("(Outdated) ") or version.startswith("(Updated) "):
-                return True
-            else:
-                return False
+            return bool(
+                version.startswith("(Outdated) ")
+                or version.startswith("(Updated) ")
+            )
 
     def loadRemoteDataIfNotDone(self):
         """
@@ -2047,10 +2019,9 @@ class AddonManager:
                     table_local
                 ).split(self.data_folder)[1]
 
-                script_relative_path = os.path.join(
+                return os.path.join(
                     addon_data_folder_relative, script
                 ).strip(os.sep)
-                return script_relative_path
 
     def getAddonTypeDataFolderFromTable(self, table: QtWidgets.QTableWidget):
         table_name = table.objectName()

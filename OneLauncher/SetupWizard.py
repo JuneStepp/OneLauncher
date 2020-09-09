@@ -170,55 +170,45 @@ class SetupWizard:
                 startDir = dir
 
                 for name in glob.glob(startDir):
-                    if os.path.isdir(name):
-                        if os.path.exists(os.path.join(name, "drive_c")):
-                            for client in ["lotroclient.exe", "dndclient.exe"]:
-                                self.client = client
+                    if os.path.isdir(name) and os.path.exists(
+                        os.path.join(name, "drive_c")
+                    ):
+                        for client in ["lotroclient.exe", "dndclient.exe"]:
+                            self.client = client
 
+                            self.trawl(
+                                os.path.join(
+                                    name, "drive_c", "Program Files"
+                                ),
+                                os.path.join(
+                                    name, "drive_c", "Program Files"
+                                ),
+                            )
+
+                            if os.path.exists(
+                                os.path.join(
+                                    name, "drive_c", "Program Files (x86)"
+                                )
+                            ):
                                 self.trawl(
                                     os.path.join(
-                                        name, "drive_c", "Program Files"
+                                        name,
+                                        "drive_c",
+                                        "Program Files (x86)",
                                     ),
                                     os.path.join(
-                                        name, "drive_c", "Program Files"
+                                        name,
+                                        "drive_c",
+                                        "Program Files (x86)",
                                     ),
                                 )
-
-                                if os.path.exists(
-                                    os.path.join(
-                                        name, "drive_c", "Program Files (x86)"
-                                    )
-                                ):
-                                    self.trawl(
-                                        os.path.join(
-                                            name,
-                                            "drive_c",
-                                            "Program Files (x86)",
-                                        ),
-                                        os.path.join(
-                                            name,
-                                            "drive_c",
-                                            "Program Files (x86)",
-                                        ),
-                                    )
 
     def trawl(self, path, directory):
         for name in glob.glob(directory + os.sep + "*"):
             if name.lower().find(self.client) >= 0:
                 dirName = os.path.dirname(name.replace(path + os.sep, ""))
 
-                if self.client == "lotroclient.exe":
-                    if "Bullroarer" in dirName:
-                        self.winSetupWizard.lstLOTROTest.addItem(
-                            path + os.sep + dirName
-                        )
-                        self.winSetupWizard.lstLOTROTest.setCurrentRow(0)
-                    else:
-                        self.winSetupWizard.lstLOTRO.addItem(
-                            path + os.sep + dirName
-                        )
-                        self.winSetupWizard.lstLOTRO.setCurrentRow(0)
-                elif self.client == "dndclient.exe":
+                if self.client == "dndclient.exe":
                     if "(Preview)" in dirName:
                         self.winSetupWizard.lstDDOTest.addItem(
                             path + os.sep + dirName
@@ -230,9 +220,21 @@ class SetupWizard:
                         )
                         self.winSetupWizard.lstDDO.setCurrentRow(0)
 
-            if os.path.isdir(name):
-                if not name.upper().endswith(os.sep + "BACKUP"):
-                    self.trawl(path, name)
+                elif self.client == "lotroclient.exe":
+                    if "Bullroarer" in dirName:
+                        self.winSetupWizard.lstLOTROTest.addItem(
+                            path + os.sep + dirName
+                        )
+                        self.winSetupWizard.lstLOTROTest.setCurrentRow(0)
+                    else:
+                        self.winSetupWizard.lstLOTRO.addItem(
+                            path + os.sep + dirName
+                        )
+                        self.winSetupWizard.lstLOTRO.setCurrentRow(0)
+            if os.path.isdir(name) and not name.upper().endswith(
+                os.sep + "BACKUP"
+            ):
+                self.trawl(path, name)
 
     def getGame(self):
         if self.winSetupWizard.lstLOTRO.currentItem():
@@ -310,13 +312,10 @@ class SetupWizard:
         folder is a valid game folder.
         """
         folder_contents = os.listdir(folder)
-        if (
+        return (
             "dndclient.exe" in folder_contents
             or "lotroclient.exe" in folder_contents
-        ):
-            return True
-        else:
-            return False
+        )
 
     def checkIfAnyGameFolderIsSelected(self):
         """
@@ -342,10 +341,7 @@ class SetupWizard:
         messageBox.exec()
 
     def getHiRes(self, gameDir):
-        if os.path.exists(gameDir + os.sep + "client_highres.dat"):
-            return True
-        else:
-            return False
+        return bool(os.path.exists(gameDir + os.sep + "client_highres.dat"))
 
     def Run(self):
         return self.winSetupWizard.exec_()

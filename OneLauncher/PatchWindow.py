@@ -250,21 +250,23 @@ class PatchWindow:
         Gives patching progress on Windows where rundll32
         doesn't provide output.
         """
-        if self.process.state() == QtCore.QProcess.Running:
-            line = self.patch_log_file.readline()
-            if line:
-                # Ignore information only relevent to log
-                if not line.startswith("//"):
-                    line = line.split(": ")[1]
+        if self.process.state() != QtCore.QProcess.Running:
+            return
 
-                    self.winLog.txtLog.append(line)
-                    self.progressMonitor.parseOutput(line)
-                    self.logger.debug("Patcher: " + line)
-            else:
-                # Add "..." if log is not giving indicator of patching progress
-                self.winLog.txtLog.append("...")
+        line = self.patch_log_file.readline()
+        if line:
+            # Ignore information only relevent to log
+            if not line.startswith("//"):
+                line = line.split(": ")[1]
 
-            self.process_status_timer.start(100)
+                self.winLog.txtLog.append(line)
+                self.progressMonitor.parseOutput(line)
+                self.logger.debug("Patcher: " + line)
+        else:
+            # Add "..." if log is not giving indicator of patching progress
+            self.winLog.txtLog.append("...")
+
+        self.process_status_timer.start(100)
 
     def Run(self, app):
         self.__app = app

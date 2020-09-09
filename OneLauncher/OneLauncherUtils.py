@@ -97,8 +97,8 @@ def WebConnection(urlIn):
 def GetText(nodelist):
     rc = ""
     for node in nodelist:
-        if node.nodeType == node.TEXT_NODE or node.nodeType == node.CDATA_SECTION_NODE:
-            rc = rc + node.data
+        if node.nodeType in [node.TEXT_NODE, node.CDATA_SECTION_NODE]:
+            rc += node.data
     return rc
 
 
@@ -137,11 +137,7 @@ class DetermineGame:
     def GetSettings(self, currentGame):
         self.configFileAlt = os.sep + "TurbineLauncher.exe.config"
 
-        if currentGame.endswith(".Test"):
-            self.__test = " (Preview)"
-        else:
-            self.__test = ""
-
+        self.__test = " (Preview)" if currentGame.endswith(".Test") else ""
         self.iconFile = os.path.join("images", "OneLauncherIcon.png")
         if currentGame.startswith("DDO"):
             self.configFile = os.sep + "ddo.launcherconfig"
@@ -280,8 +276,8 @@ class LanguageConfig:
         self.langFound = False
         self.langList = []
 
+        self.langFound = True
         for name in glob.glob(os.path.join(runDir, "client_local_*.dat")):
-            self.langFound = True
             # remove "client_local_" (13 chars) and ".dat" (4 chars) from filename
             temp = os.path.basename(name)[13:-4]
             if temp == "English":
@@ -381,9 +377,11 @@ class WorldQueueConfig:
                 nodes = doc.getElementsByTagName("appSettings")[0].childNodes
                 for node in nodes:
                     if node.nodeType == node.ELEMENT_NODE:
-                        if node.getAttribute("key") == "GameClient.WIN64.Filename":
-                            if x64Client:
-                                self.gameClientFilename = node.getAttribute("value")
+                        if (
+                            node.getAttribute("key") == "GameClient.WIN64.Filename"
+                            and x64Client
+                        ):
+                            self.gameClientFilename = node.getAttribute("value")
                         if node.getAttribute("key") == "GameClient.WIN32.Filename":
                             if x64Client is False:
                                 self.gameClientFilename = node.getAttribute("value")

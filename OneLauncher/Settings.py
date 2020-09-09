@@ -91,20 +91,11 @@ class Settings:
                             self.winePrefix = winePrefix
                             self.builtInPrefixEnabled = False
                     elif node.nodeName == "HiRes":
-                        if GetText(node.childNodes) == "True":
-                            self.hiResEnabled = True
-                        else:
-                            self.hiResEnabled = False
+                        self.hiResEnabled = True if GetText(node.childNodes) == "True" else False
                     elif node.nodeName == "x64Client":
-                        if GetText(node.childNodes) == "True":
-                            self.x64ClientEnabled = True
-                        else:
-                            self.x64ClientEnabled = False
+                        self.x64ClientEnabled = True if GetText(node.childNodes) == "True" else False
                     elif node.nodeName == "Save.Password":
-                        if GetText(node.childNodes) == "True":
-                            self.savePassword = True
-                        else:
-                            self.savePassword = False
+                        self.savePassword = True if GetText(node.childNodes) == "True" else False
                     elif node.nodeName == "Game.Directory":
                         self.gameDir = GetText(node.childNodes)
                     elif node.nodeName == "Language":
@@ -131,13 +122,13 @@ class Settings:
                         if accountsNode:
                             account_nodes = accountsNode[0].childNodes
                             self.setAccountsSettings(account_nodes)
-                        
+
                         # Load in startup scripts from normal client node
                         startupScriptsNode = normalClientNode.getElementsByTagName("StartupScripts")
                         if startupScriptsNode:
                             startup_script_nodes = startupScriptsNode[0].childNodes
                             self.setStartupScriptSettings(startup_script_nodes)
-                            
+
 
                 # Disables 64-bit client if it is unavailable for LOTRO
                 if not os.path.exists(
@@ -219,11 +210,7 @@ class Settings:
             settingsNode = doc.createElementNS(EMPTY_NAMESPACE, "Settings")
             doc.appendChild(settingsNode)
 
-        if game:
-            current_game = game
-        else:
-            current_game = self.currentGame
-
+        current_game = game if game else self.currentGame
         # Set default game to current game
         defaultGameNode = doc.getElementsByTagName("Default.Game")
         if len(defaultGameNode) > 0:
@@ -322,7 +309,7 @@ class Settings:
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Save.Password")
                 tempNode.appendChild(doc.createTextNode("True"))
                 gameConfigNode.appendChild(tempNode)
-        
+
         startupScriptsNode = doc.createElementNS(EMPTY_NAMESPACE, "StartupScripts")
         for script in self.startupScripts:
             scriptNode = doc.createElementNS(EMPTY_NAMESPACE, "script")
