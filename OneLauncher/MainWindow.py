@@ -236,27 +236,26 @@ class MainWindow(QtWidgets.QMainWindow):
         self.resetFocus()
 
     def manageBuiltInPrefix(self):
-        if self.settings.builtInPrefixEnabled and not self.osType.usingWindows:
-            winBuiltInPrefix = BuiltInPrefix(
-                self.settings.settingsDir, self.settings.winePrefix, self
-            )
-
-            wineProg = winBuiltInPrefix.Run()
-            if wineProg:
-                self.settings.wineProg = wineProg
-                self.settings.SaveSettings(
-                    saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
-                    savePassword=self.winMain.chkSavePassword.isChecked(),
-                )
-                return True
-            else:
-                self.AddLog(
-                    "[E19] There was an error updating the WINE prefix. "
-                    "You may want to check your network connection."
-                )
-                return False
-        else:
+        if not self.settings.builtInPrefixEnabled or self.osType.usingWindows:
             return True
+        winBuiltInPrefix = BuiltInPrefix(
+            self.settings.settingsDir, self.settings.winePrefix, self
+        )
+
+        wineProg = winBuiltInPrefix.Run()
+        if wineProg:
+            self.settings.wineProg = wineProg
+            self.settings.SaveSettings(
+                saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
+                savePassword=self.winMain.chkSavePassword.isChecked(),
+            )
+            return True
+        else:
+            self.AddLog(
+                "[E19] There was an error updating the WINE prefix. "
+                "You may want to check your network connection."
+            )
+            return False
 
     def actionPatchSelected(self):
         prefix_status = self.manageBuiltInPrefix()
@@ -449,7 +448,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Force a small display to ensure message above is displayed
         # as program can look like it is not responding while validating
-        for i in range(4):
+        for _ in range(4):
             self.app.processEvents()
 
         self.account = AuthenticateUser(
@@ -1186,17 +1185,16 @@ class MainWindowThread(QtCore.QThread):
 
             nodes = doc.getElementsByTagName("div")
             for node in nodes:
-                if node.nodeType == node.ELEMENT_NODE:
-                    if (
-                        node.attributes.item(0).firstChild.nodeValue
-                        == "launcherNewsItemDate"
-                    ):
-                        timeCode = GetText(node.childNodes).strip()
-                        timeCode = (
-                            timeCode.replace("\t", "").replace(",", "").replace("-", "")
-                        )
-                        if len(timeCode) > 0:
-                            timeCode = " %s" % (timeCode)
+                if node.nodeType == node.ELEMENT_NODE and (
+                    node.attributes.item(0).firstChild.nodeValue
+                    == "launcherNewsItemDate"
+                ):
+                    timeCode = GetText(node.childNodes).strip()
+                    timeCode = (
+                        timeCode.replace("\t", "").replace(",", "").replace("-", "")
+                    )
+                    if len(timeCode) > 0:
+                        timeCode = " %s" % (timeCode)
 
             links = doc.getElementsByTagName("link")
             for link in links:
