@@ -28,7 +28,6 @@
 ###########################################################################
 import os
 import sys
-from typing import final
 import defusedxml.minidom
 import zlib
 from PySide2 import QtCore, QtGui, QtWidgets
