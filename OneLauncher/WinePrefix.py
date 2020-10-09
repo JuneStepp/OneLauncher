@@ -39,22 +39,35 @@ from PySide2 import QtCore, QtWidgets
 
 
 class BuiltInPrefix:
-    WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/5.14/wine-5.14-staging-tkg-amd64.tar.xz"
-    DXVK_URL = "https://github.com/doitsujin/dxvk/releases/download/v1.7.1/dxvk-1.7.1.tar.gz"
+    # Is currently setup to only use proton. Disable the documents_symlinker 
+    # function if using normal WINE
+    WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/5.0-9-proton/wine-5.0-9-proton-amd64.tar.xz"
+    DXVK_URL = (
+        "https://github.com/doitsujin/dxvk/releases/download/v1.7.2/dxvk-1.7.2.tar.gz"
+    )
 
-    def __init__(self, settingsDir, winePrefix, parent):
+    def __init__(self, settingsDir, winePrefix, documentsDir, parent):
         self.settingsDir = settingsDir
         self.winePrefix = winePrefix
+        self.documentsDir = documentsDir
 
         self.dlgDownloader = QtWidgets.QProgressDialog(
-            "Checking for updates...", "", 0, 100, parent, QtCore.Qt.FramelessWindowHint,
+            "Checking for updates...",
+            "",
+            0,
+            100,
+            parent,
+            QtCore.Qt.FramelessWindowHint,
         )
         self.dlgDownloader.setWindowModality(QtCore.Qt.WindowModal)
         self.dlgDownloader.setAutoClose(False)
         self.dlgDownloader.setCancelButton(None)
 
-    # Sets wine program and downloads wine if it is not there or a new version is needed
-    def wineSetup(self):
+    def wine_setup(self):
+        """Sets wine program and downloads wine if it is not there or a new version is needed"""
+
+        self.documents_symlinker()
+
         self.latest_wine_version = self.WINE_URL.split("/download/")[1].split("/")[0]
         latest_wine_path = self.settingsDir + "wine/wine-" + self.latest_wine_version
 
@@ -70,14 +83,19 @@ class BuiltInPrefix:
                 self.dlgDownloader.setValue(100)
 
                 return (
-                    self.settingsDir + "wine/wine-" + self.latest_wine_version + "/bin/wine"
+                    self.settingsDir
+                    + "wine/wine-"
+                    + self.latest_wine_version
+                    + "/bin/wine"
                 )
             else:
                 return False
 
-    def dxvkSetup(self):
+    def dxvk_setup(self):
         self.latest_dxvk_version = self.DXVK_URL.split("download/v")[1].split("/")[0]
-        self.latest_dxvk_path = self.settingsDir + "wine/dxvk-" + self.latest_dxvk_version
+        self.latest_dxvk_path = (
+            self.settingsDir + "wine/dxvk-" + self.latest_dxvk_version
+        )
 
         if not os.path.exists(self.latest_dxvk_path):
             self.dlgDownloader.setLabelText("Downloading DXVK...")
@@ -90,20 +108,24 @@ class BuiltInPrefix:
 
                 self.dxvk_injector()
 
-        elif not os.path.islink(self.winePrefix + "/drive_c/windows/system32/d3d11.dll"):
+        elif not os.path.islink(
+            self.winePrefix + "/drive_c/windows/system32/d3d11.dll"
+        ):
             self.dxvk_injector()
 
     def downloader(self, url, path):
-        # Downloads file from url to path and shows progress with self.handleDownloadProgress
+        """Downloads file from url to path and shows progress with self.handle_download_progress"""
         try:
-            urllib.request.urlretrieve(url, path, self.handleDownloadProgress)  # nosec
+            urllib.request.urlretrieve(
+                url, path, self.handle_download_progress
+            )  # nosec
             return True
         except (urllib.error.URLError, urllib.error.HTTPError) as error:
             self.logger.error(error.reason, exc_info=True)
             return False
 
-    def handleDownloadProgress(self, index, frame, size):
-        # Updates progress bar with download progress
+    def handle_download_progress(self, index, frame, size):
+        """Updates progress bar with download progress"""
         percent = 100 * index * frame // size
         self.dlgDownloader.setValue(percent)
 
@@ -151,8 +173,8 @@ class BuiltInPrefix:
             if dir.startswith("dxvk") and not dir.endswith(self.latest_dxvk_version):
                 rmtree(os.path.join(self.settingsDir + "wine", dir))
 
-    # Adds dxvk to the wine prefix
     def dxvk_injector(self):
+        """Adds dxvk to the wine prefix"""
         # Makes directories for dxvk dlls in case wine prefix hasn't been run yet
         os.makedirs(self.winePrefix + "/drive_c/windows/system32", exist_ok=True)
         os.makedirs(self.winePrefix + "/drive_c/windows/syswow64", exist_ok=True)
@@ -180,9 +202,28 @@ class BuiltInPrefix:
                 self.winePrefix + "/drive_c/windows/syswow64/" + dll,
             )
 
+    def documents_symlinker(self):
+        """Symlinks prefix documents folder to system documents folder"""
+        prefix_documents_folder = os.path.join(
+            self.winePrefix, "drive_c/users/steamuser/My Documents"
+        )
+
+        # Will assume that the user has set something else up for now if the folder already exists
+        if not os.path.exists(prefix_documents_folder) or not os.path.islink(
+            prefix_documents_folder
+        ):
+            # Make sure system documents folder  and prefix documents root folder exists
+            os.makedirs(self.documentsDir, exist_ok=True)
+            os.makedirs(os.path.split(prefix_documents_folder)[0], exist_ok=True)
+
+            # Make symlink to system documents folder
+            os.symlink(
+                self.documentsDir, prefix_documents_folder,
+            )
+
     def Run(self):
-        wineProg = self.wineSetup()
+        wineProg = self.wine_setup()
         self.dlgDownloader.reset()
-        self.dxvkSetup()
+        self.dxvk_setup()
         self.dlgDownloader.close()
         return wineProg
