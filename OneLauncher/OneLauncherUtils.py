@@ -280,13 +280,16 @@ class LanguageConfig:
         self.langFound = False
         self.langList = []
 
-        for name in glob.glob(os.path.join(runDir, "client_local_*.dat")):
+        language_data_files = glob.glob(os.path.join(runDir, "client_local_*.dat"))
+
+        if language_data_files:
             self.langFound = True
-            # remove "client_local_" (13 chars) and ".dat" (4 chars) from filename
-            temp = os.path.basename(name)[13:-4]
-            if temp == "English":
-                temp = "EN"
-            self.langList.append(temp)
+            for name in language_data_files:
+                # remove "client_local_" (13 chars) and ".dat" (4 chars) from filename
+                temp = os.path.basename(name)[13:-4]
+                if temp == "English":
+                    temp = "EN"
+                self.langList.append(temp)
 
 
 class World:
