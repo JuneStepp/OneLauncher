@@ -241,27 +241,28 @@ class MainWindow(QtWidgets.QMainWindow):
         self.resetFocus()
 
     def manageBuiltInPrefix(self):
-        if self.settings.builtInPrefixEnabled and not self.osType.usingWindows:
-            winBuiltInPrefix = BuiltInPrefix(
-                self.settings.settingsDir, self.settings.winePrefix, self.osType.documentsDir, self
-            )
-
-            wineProg = winBuiltInPrefix.Run()
-            if wineProg:
-                self.settings.wineProg = wineProg
-                self.settings.SaveSettings(
-                    saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
-                    savePassword=self.winMain.chkSavePassword.isChecked(),
-                )
-                return True
-            else:
-                self.AddLog(
-                    "[E19] There was an error updating the WINE prefix. "
-                    "You may want to check your network connection."
-                )
-                return False
-        else:
+        # Only manage prefix if prefix management is enabled and the program is on Linux or Mac
+        if not self.settings.builtInPrefixEnabled or self.osType.usingWindows:
             return True
+
+        winBuiltInPrefix = BuiltInPrefix(
+            self.settings.settingsDir, self.settings.winePrefix, self.osType.documentsDir, self
+        )
+
+        wineProg = winBuiltInPrefix.Run()
+        if wineProg:
+            self.settings.wineProg = wineProg
+            self.settings.SaveSettings(
+                saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
+                savePassword=self.winMain.chkSavePassword.isChecked(),
+            )
+            return True
+        else:
+            self.AddLog(
+                "[E19] There was an error updating the WINE prefix. "
+                "You may want to check your network connection."
+            )
+            return False
 
     def actionPatchSelected(self):
         prefix_status = self.manageBuiltInPrefix()
