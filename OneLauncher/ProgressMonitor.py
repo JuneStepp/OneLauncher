@@ -65,18 +65,12 @@ class ProgressMonitor:
         text_lines = (self.currentLine + text).splitlines()
         linePos = -1
         for line in text_lines:
-            if linePos < 0:
-                linePos = self.currentPos
-            else:
-                linePos = 0
+            linePos = self.currentPos if linePos < 0 else 0
             newPos = self.stateFunc(line, linePos)
 
             # if nothing is returned, assume the whole line has been parsed or discarded
-            if newPos:
-                linePos = newPos
-            else:
-                linePos = len(line)
-            # print(line, linePos)
+            linePos = newPos if newPos else len(line)
+                # print(line, linePos)
 
         # copy current line to buffer unless input ends with newline char
         if text[-1] == "\n":
