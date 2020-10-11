@@ -28,7 +28,6 @@
 ###########################################################################
 import os
 import sys
-from typing import final
 import defusedxml.minidom
 import zlib
 from PySide2 import QtCore, QtGui, QtWidgets
@@ -61,6 +60,9 @@ import logging
 from logging.handlers import RotatingFileHandler
 from platform import platform
 import urllib
+
+# For setting global timeout used by urllib
+import socket
 from json import loads as jsonLoads
 
 
@@ -81,6 +83,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.data_folder = os.path.dirname(sys.executable)
         else:
             self.data_folder = os.path.dirname(__file__)
+
+        # Set default timeout used by urllib
+        socket.setdefaulttimeout(6)
 
         ui_file = QtCore.QFile(os.path.join(self.data_folder, "ui", "winMain.ui"))
 
@@ -236,10 +241,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.resetFocus()
 
     def manageBuiltInPrefix(self):
+        # Only manage prefix if prefix management is enabled and the program is on Linux or Mac
         if not self.settings.builtInPrefixEnabled or self.osType.usingWindows:
             return True
+
         winBuiltInPrefix = BuiltInPrefix(
-            self.settings.settingsDir, self.settings.winePrefix, self
+            self.settings.settingsDir, self.settings.winePrefix, self.osType.documentsDir, self
         )
 
         wineProg = winBuiltInPrefix.Run()
@@ -777,11 +784,12 @@ class MainWindow(QtWidgets.QMainWindow):
         )
 
         try:
-            with urllib.request.urlopen(latest_release_url) as response:
+            with urllib.request.urlopen(latest_release_url, timeout=2) as response:
                 release_dictionary = jsonLoads(response.read())
         except (urllib.error.URLError, urllib.error.HTTPError) as error:
             self.AddLog("[E18] Error checking for OneLauncher updates.")
             self.logger.error(error.reason, exc_info=True)
+            return
 
         release_version = parse_version(release_dictionary["tag_name"])
 
