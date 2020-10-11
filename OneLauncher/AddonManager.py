@@ -1837,18 +1837,17 @@ class AddonManager:
         QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(folder))
 
     def updateAddonFolderActions(self, index):
-        """Makes only action for opening addon folder associated with tab visible"""
-        if self.currentGame.startswith("DDO"):
+        """
+        Makes action for opening addon folder associated with
+        current tab the only addon folder opening action visible.
+        """
+        if self.currentGame.startswith("DDO") or index == 1:
             self.winAddonManager.actionShowPluginsFolderInFileManager.setVisible(False)
             self.winAddonManager.actionShowSkinsFolderInFileManager.setVisible(True)
             self.winAddonManager.actionShowMusicFolderInFileManager.setVisible(False)
         elif index == 0:
             self.winAddonManager.actionShowPluginsFolderInFileManager.setVisible(True)
             self.winAddonManager.actionShowSkinsFolderInFileManager.setVisible(False)
-            self.winAddonManager.actionShowMusicFolderInFileManager.setVisible(False)
-        elif index == 1:
-            self.winAddonManager.actionShowPluginsFolderInFileManager.setVisible(False)
-            self.winAddonManager.actionShowSkinsFolderInFileManager.setVisible(True)
             self.winAddonManager.actionShowMusicFolderInFileManager.setVisible(False)
         elif index == 2:
             self.winAddonManager.actionShowPluginsFolderInFileManager.setVisible(False)
