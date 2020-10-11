@@ -455,7 +455,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Force a small display to ensure message above is displayed
         # as program can look like it is not responding while validating
-        for i in range(4):
+        for _ in range(4):
             self.app.processEvents()
 
         self.account = AuthenticateUser(
@@ -1193,17 +1193,16 @@ class MainWindowThread(QtCore.QThread):
 
             nodes = doc.getElementsByTagName("div")
             for node in nodes:
-                if node.nodeType == node.ELEMENT_NODE:
-                    if (
-                        node.attributes.item(0).firstChild.nodeValue
-                        == "launcherNewsItemDate"
-                    ):
-                        timeCode = GetText(node.childNodes).strip()
-                        timeCode = (
-                            timeCode.replace("\t", "").replace(",", "").replace("-", "")
-                        )
-                        if len(timeCode) > 0:
-                            timeCode = " %s" % (timeCode)
+                if node.nodeType == node.ELEMENT_NODE and (
+                    node.attributes.item(0).firstChild.nodeValue
+                    == "launcherNewsItemDate"
+                ):
+                    timeCode = GetText(node.childNodes).strip()
+                    timeCode = (
+                        timeCode.replace("\t", "").replace(",", "").replace("-", "")
+                    )
+                    if len(timeCode) > 0:
+                        timeCode = " %s" % (timeCode)
 
             links = doc.getElementsByTagName("link")
             for link in links:
