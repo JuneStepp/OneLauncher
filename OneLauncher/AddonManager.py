@@ -353,7 +353,11 @@ class AddonManager:
                         if line.startswith("T: "):
                             items_row[0] = line[3:]
                         if line.startswith("Z: "):
-                            items_row[3] = line[18:] if line.startswith("Z: Transcribed by ") else line[3:]
+                            items_row[3] = (
+                                line[18:]
+                                if line.startswith("Z: Transcribed by ")
+                                else line[3:]
+                            )
             items_row[5] = music
             items_row[1] = "Unmanaged"
 
@@ -593,14 +597,8 @@ class AddonManager:
     def installAddon(self, addon, interface_id=""):
         # Install .abc files
         if addon.endswith(".abc"):
-            if self.currentGame.startswith("DDO"):
-                self.addLog("DDO does not support .abc/music files")
-                return
-
-            copy(addon, self.data_folder_music)
-            self.logger.info(addon + " installed")
-
-            self.getInstalledMusic()
+            self.installAbcFile(addon)
+            return
         elif addon.endswith(".rar"):
             self.addLog(
                 "OneLauncher does not support .rar archives, because it"
@@ -609,154 +607,153 @@ class AddonManager:
             )
             return
         elif addon.endswith(".zip"):
-            addon_type = ""
-            with ZipFile(addon, "r") as file:
-                files_list = file.namelist()
-                if not files_list:
-                    self.addLog("Add-on Zip is empty. Aborting")
+            self.installZipAddon(addon, interface_id)
+
+    def installAbcFile(self, addon):
+        if self.currentGame.startswith("DDO"):
+            self.addLog("DDO does not support .abc/music files")
+            return
+
+        copy(addon, self.data_folder_music)
+        self.logger.info(addon + " installed")
+        
+        # Plain .abc files are installed to base music directory,
+        # so what is scanned can't be controlled
+        self.winAddonManager.tableMusicInstalled.clearContents()
+        self.getInstalledMusic()
+
+    def installZipAddon(self, addon, interface_id):
+        addon_type = ""
+        with ZipFile(addon, "r") as file:
+            files_list = file.namelist()
+            if not files_list:
+                self.addLog("Add-on Zip is empty. Aborting")
+                return
+
+            for entry in files_list:
+                if entry.endswith(".plugin"):
+                    self.installPluginZip(addon, interface_id, file, files_list, entry)
                     return
-
-                for entry in files_list:
-                    if entry.endswith(".plugin"):
-                        if self.currentGame.startswith("DDO"):
-                            self.addLog("DDO does not support plugins")
-                            return
-
-                        addon_type = "Plugin"
-                        table = self.winAddonManager.tablePlugins
-                        folder_original = entry.split("/")[0]
-                        path = self.data_folder_plugins
-                        file.extractall(path=path)
-
-                        folder = self.moveAddonsFromInvalidFolder(
-                            self.data_folder_plugins, folder_original
+                elif entry.endswith(".abc"):
+                    if (
+                        self.installMusicZip(
+                            addon, interface_id, file, files_list, entry
                         )
-                        updated_files_list = []
-                        for entry in files_list:
-                            try:
-                                updated_files_list.append(
-                                    os.path.join(folder, entry.split(folder)[1].strip("/"))
-                                )
-                            except IndexError:
-                                # Anything that was in an invalid folder 
-                                # should be ignored. This also fixes issues 
-                                # with entries for the invalid folders such
-                                # as 'Plugins/'
-                                continue
-
-                        plugins_list = []
-                        for entry in updated_files_list:
-                            if len(entry.split("/")) == 2 and entry.endswith(
-                                ".plugin"
-                            ):
-                                plugins_list.append(
-                                    os.path.join(self.data_folder_plugins, entry)
-                                )
-
-                        plugins_list_compendium = []
-                        if interface_id:
-                            compendium_file = self.generateCompendiumFile(
-                                updated_files_list,
-                                folder,
-                                interface_id,
-                                addon_type,
-                                path,
-                                table.objectName(),
-                            )
-                            plugins_list_compendium = [compendium_file]
-
-                        (
-                            plugins_list,
-                            plugins_list_compendium,
-                        ) = self.removeManagedPluginsFromList(
-                            plugins_list, plugins_list_compendium
-                        )
-
-                        self.addInstalledPluginsToDB(
-                            plugins_list, plugins_list_compendium
-                        )
-
-                        self.handleStartupScriptActivationPrompt(table, interface_id)
-                        self.logger.info(
-                            "Installed addon corresponding to "
-                            + str(plugins_list)
-                            + str(plugins_list_compendium)
-                        )
-
-                        self.installAddonRemoteDependencies(
-                            table.objectName() + "Installed"
-                        )
+                        == False
+                    ):
+                        continue
+                    else:
                         return
-                    elif entry.endswith(".abc"):
-                        if self.currentGame.startswith("DDO"):
-                            self.addLog("DDO does not support .abc/music files")
-                            return
+            self.installSkinZip(addon, interface_id, file, files_list, entry)
 
-                        # Some plugins have .abc files, but music collections
-                        # shouldn't have .plugin files.
-                        if self.checkForPluginFile(files_list):
-                            continue
+    def installPluginZip(self, addon, interface_id, file, files_list, entry):
+        if self.currentGame.startswith("DDO"):
+            self.addLog("DDO does not support plugins")
+            return
 
-                        addon_type = "Music"
-                        table = self.winAddonManager.tableMusic
+        table = self.winAddonManager.tablePlugins
+        folder_original = entry.split("/")[0]
+        path = self.data_folder_plugins
+        file.extractall(path=path)
 
-                        path, folder = self.getAddonInstallationFolder(
-                            entry, addon, files_list, self.data_folder_music
-                        )
-                        file.extractall(path=path)
-                        self.logger.info(addon + " music installed")
+        folder = self.moveAddonsFromInvalidFolder(
+            self.data_folder_plugins, folder_original
+        )
+        updated_files_list = []
+        for entry in files_list:
+            try:
+                updated_files_list.append(
+                    os.path.join(folder, entry.split(folder)[1].strip("/"))
+                )
+            except IndexError:
+                # Anything that was in an invalid folder
+                # should be ignored. This also fixes issues
+                # with entries for the invalid folders such
+                # as 'Plugins/'
+                continue
 
-                        folder = self.moveAddonsFromInvalidFolder(
-                            self.data_folder_music, folder
-                        )
+        plugins_list = [
+            os.path.join(self.data_folder_plugins, entry)
+            for entry in updated_files_list
+            if len(entry.split("/")) == 2 and entry.endswith(".plugin")
+        ]
 
-                        if interface_id:
-                            compendium_file = self.generateCompendiumFile(
-                                files_list,
-                                folder,
-                                interface_id,
-                                addon_type,
-                                path,
-                                table.objectName(),
-                            )
-                        self.getInstalledMusic(folders_list=[folder])
+        plugins_list_compendium = []
+        if interface_id:
+            compendium_file = self.generateCompendiumFile(
+                updated_files_list,
+                folder,
+                interface_id,
+                "Plugin",
+                path,
+                table.objectName(),
+            )
+            plugins_list_compendium = [compendium_file]
 
-                        self.handleStartupScriptActivationPrompt(table, interface_id)
+        (plugins_list, plugins_list_compendium,) = self.removeManagedPluginsFromList(
+            plugins_list, plugins_list_compendium
+        )
 
-                        self.installAddonRemoteDependencies(
-                            table.objectName() + "Installed"
-                        )
-                        return
-                if not addon_type:
-                    addon_type = "Skin"
-                    table = self.winAddonManager.tableSkins
-                    path, folder = self.getAddonInstallationFolder(
-                        entry, addon, files_list, self.data_folder_skins
-                    )
-                    file.extractall(path=path)
-                    self.logger.info(addon + " skin installed")
+        self.addInstalledPluginsToDB(plugins_list, plugins_list_compendium)
 
-                    folder = self.moveAddonsFromInvalidFolder(
-                        self.data_folder_skins, folder
-                    )
+        self.handleStartupScriptActivationPrompt(table, interface_id)
+        self.logger.info(
+            "Installed addon corresponding to "
+            + str(plugins_list)
+            + str(plugins_list_compendium)
+        )
 
-                    if interface_id:
-                        compendium_file = self.generateCompendiumFile(
-                            files_list,
-                            folder,
-                            interface_id,
-                            addon_type,
-                            path,
-                            table.objectName(),
-                        )
-                    self.getInstalledSkins(folders_list=[folder])
+        self.installAddonRemoteDependencies(table.objectName() + "Installed")
 
-                    self.handleStartupScriptActivationPrompt(table, interface_id)
+    def installMusicZip(self, addon, interface_id, file, files_list, entry):
+        if self.currentGame.startswith("DDO"):
+            self.addLog("DDO does not support .abc/music files")
+            return
 
-                    self.installAddonRemoteDependencies(
-                        table.objectName() + "Installed"
-                    )
-                    return
+        # Some plugins have .abc files, but music collections
+        # shouldn't have .plugin files.
+        if self.checkForPluginFile(files_list):
+            return False
+
+        table = self.winAddonManager.tableMusic
+
+        path, folder = self.getAddonInstallationFolder(
+            entry, addon, files_list, self.data_folder_music
+        )
+        file.extractall(path=path)
+        self.logger.info(addon + " music installed")
+
+        folder = self.moveAddonsFromInvalidFolder(self.data_folder_music, folder)
+
+        if interface_id:
+            compendium_file = self.generateCompendiumFile(
+                files_list, folder, interface_id, "Music", path, table.objectName(),
+            )
+        self.getInstalledMusic(folders_list=[folder])
+
+        self.handleStartupScriptActivationPrompt(table, interface_id)
+
+        self.installAddonRemoteDependencies(table.objectName() + "Installed")
+
+    def installSkinZip(self, addon, interface_id, file, files_list, entry):
+        table = self.winAddonManager.tableSkins
+        path, folder = self.getAddonInstallationFolder(
+            entry, addon, files_list, self.data_folder_skins
+        )
+        file.extractall(path=path)
+        self.logger.info(addon + " skin installed")
+
+        folder = self.moveAddonsFromInvalidFolder(self.data_folder_skins, folder)
+
+        if interface_id:
+            compendium_file = self.generateCompendiumFile(
+                files_list, folder, interface_id, "Skin", path, table.objectName(),
+            )
+        self.getInstalledSkins(folders_list=[folder])
+
+        self.handleStartupScriptActivationPrompt(table, interface_id)
+
+        self.installAddonRemoteDependencies(table.objectName() + "Installed")
 
     def checkForPluginFile(self, files_list):
         """Returns True if list of files contains a .plugin file"""
@@ -1471,12 +1468,16 @@ class AddonManager:
     def loadRemoteAddons(self):
         if self.currentGame.startswith("LOTRO"):
             # Only keep loading remote add-ons if the first load doesn't run into issues
-            if self.getRemoteAddons(self.PLUGINS_URL, self.winAddonManager.tablePlugins):
+            if self.getRemoteAddons(
+                self.PLUGINS_URL, self.winAddonManager.tablePlugins
+            ):
                 self.getRemoteAddons(self.SKINS_URL, self.winAddonManager.tableSkins)
                 self.getRemoteAddons(self.MUSIC_URL, self.winAddonManager.tableMusic)
                 return True
         else:
-            if self.getRemoteAddons(self.SKINS_DDO_URL, self.winAddonManager.tableSkins):
+            if self.getRemoteAddons(
+                self.SKINS_DDO_URL, self.winAddonManager.tableSkins
+            ):
                 return True
 
     def getRemoteAddons(self, favorites_url, table):
@@ -1677,7 +1678,11 @@ class AddonManager:
             (interface_ID,),
         ):
             if addon_url[0]:
-                return addon_url[0] if download_url else self.getInterfaceInfoUrl(addon_url[0])
+                return (
+                    addon_url[0]
+                    if download_url
+                    else self.getInterfaceInfoUrl(addon_url[0])
+                )
 
     def getAddonFileFromInterfaceID(self, interface_ID, table):
         """Returns file location of addon"""
@@ -1981,8 +1986,7 @@ class AddonManager:
         ):
             version = entry[0]
             return bool(
-                version.startswith("(Outdated) ")
-                or version.startswith("(Updated) ")
+                version.startswith("(Outdated) ") or version.startswith("(Updated) ")
             )
 
     def loadRemoteDataIfNotDone(self):
@@ -1993,7 +1997,7 @@ class AddonManager:
         if self.isTableEmpty(self.winAddonManager.tableSkins):
             if self.loadRemoteAddons():
                 self.getOutOfDateAddons()
-        
+
         return True
 
     def actionEnableStartupScriptSelected(self):
@@ -2029,9 +2033,7 @@ class AddonManager:
                     table_local
                 ).split(self.data_folder)[1]
 
-                return os.path.join(
-                    addon_data_folder_relative, script
-                ).strip(os.sep)
+                return os.path.join(addon_data_folder_relative, script).strip(os.sep)
 
     def getAddonTypeDataFolderFromTable(self, table: QtWidgets.QTableWidget):
         table_name = table.objectName()
