@@ -36,12 +36,13 @@ from shutil import move, rmtree
 import os
 import errno
 from PySide2 import QtCore, QtWidgets
+import logging
 
 
 class BuiltInPrefix:
-    # Is currently setup to only use proton. Disable the documents_symlinker 
-    # function if using normal WINE
-    WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/5.0-9-proton/wine-5.0-9-proton-amd64.tar.xz"
+    # To use Proton, replace link with Proton build and uncomment 
+    # `self.documents_symlinker()` in wine_setup
+    WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/5.21/wine-5.21-staging-tkg-amd64.tar.xz"
     DXVK_URL = (
         "https://github.com/doitsujin/dxvk/releases/download/v1.7.2/dxvk-1.7.2.tar.gz"
     )
@@ -67,7 +68,8 @@ class BuiltInPrefix:
     def wine_setup(self):
         """Sets wine program and downloads wine if it is not there or a new version is needed"""
 
-        self.documents_symlinker()
+        # Uncomment line below when using Proton
+        # self.proton_documents_symlinker()
 
         self.latest_wine_version = self.WINE_URL.split("/download/")[1].split("/")[0]
         latest_wine_path = self.settingsDir + "wine/wine-" + self.latest_wine_version
@@ -203,8 +205,11 @@ class BuiltInPrefix:
                 self.winePrefix + "/drive_c/windows/syswow64/" + dll,
             )
 
-    def documents_symlinker(self):
-        """Symlinks prefix documents folder to system documents folder"""
+    def proton_documents_symlinker(self):
+        """
+        Symlinks prefix documents folder to system documents folder.path
+        This is needed for Proton.
+        """
         prefix_documents_folder = os.path.join(
             self.winePrefix, "drive_c/users/steamuser/My Documents"
         )
