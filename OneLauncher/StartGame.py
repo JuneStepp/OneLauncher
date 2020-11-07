@@ -160,12 +160,16 @@ class StartGame:
 
             # Applies needed settings for the builtin wine prefix
             if builtInPrefixEnabled:
-                # Enables esync if open file limit is high enough
+                # Enables ESYNC if open file limit is high enough
                 if os.path.exists("/proc/sys/fs/file-max"):
                     with open("/proc/sys/fs/file-max") as file:
                         file_data = file.read()
                         if int(file_data) >= 524288:
                             processEnvironment.insert("WINEESYNC", "1")
+                
+                # Enables FSYNC. It overides ESYNC and will only be used if 
+                # the required kernel patches are installed.
+                processEnvironment.insert("WINEFSYNC", "1")
 
                 # Adds dll overrides for directx, so dxvk is used instead of wine3d
                 processEnvironment.insert("WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10=n")
