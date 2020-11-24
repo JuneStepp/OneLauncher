@@ -813,9 +813,26 @@ class MainWindow(QtWidgets.QMainWindow):
                 )
             )
             messageBox.setDetailedText(description)
+            self.showMessageBoxDetailsAsMarkdown(messageBox)
             messageBox.show()
         else:
             self.AddLog("OneLauncher is up to date.")
+
+    def showMessageBoxDetailsAsMarkdown(self, messageBox: QtWidgets.QMessageBox):
+        """Makes the detailed text of messageBox display in Markdown format"""
+        button_box = messageBox.findChild(
+            QtWidgets.QDialogButtonBox, str="qt_msgbox_buttonbox"
+        )
+        for button in button_box.buttons():
+            if (
+                messageBox.buttonRole(button) == QtWidgets.QMessageBox.ActionRole
+                and button.text() == "Show Details..."
+            ):
+                button.click()
+                detailed_text_widget = messageBox.findChild(QtWidgets.QTextEdit)
+                detailed_text_widget.setMarkdown(messageBox.detailedText())
+                button.click()
+                return
 
     def InitialSetup(self, first_setup=False):
         self.gameDirExists = False
