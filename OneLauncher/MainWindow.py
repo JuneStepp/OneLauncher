@@ -246,7 +246,10 @@ class MainWindow(QtWidgets.QMainWindow):
             return True
 
         winBuiltInPrefix = BuiltInPrefix(
-            self.settings.settingsDir, self.settings.winePrefix, self.osType.documentsDir, self
+            self.settings.settingsDir,
+            self.settings.winePrefix,
+            self.osType.documentsDir,
+            self,
         )
 
         wineProg = winBuiltInPrefix.Run()
@@ -435,13 +438,15 @@ class MainWindow(QtWidgets.QMainWindow):
             if self.settings.currentGame.startswith("DDO"):
                 self.winMain.txtPassword.setText(
                     keyring.get_password(
-                        "OneLauncherDDO", self.winMain.cboAccount.currentText(),
+                        "OneLauncherDDO",
+                        self.winMain.cboAccount.currentText(),
                     )
                 )
             else:
                 self.winMain.txtPassword.setText(
                     keyring.get_password(
-                        "OneLauncherLOTRO", self.winMain.cboAccount.currentText(),
+                        "OneLauncherLOTRO",
+                        self.winMain.cboAccount.currentText(),
                     )
                 )
         else:
@@ -514,7 +519,8 @@ class MainWindow(QtWidgets.QMainWindow):
                     try:
                         if self.settings.currentGame.startswith("DDO"):
                             keyring.delete_password(
-                                "OneLauncherDDO", self.winMain.cboAccount.currentText(),
+                                "OneLauncherDDO",
+                                self.winMain.cboAccount.currentText(),
                             )
                         else:
                             keyring.delete_password(
@@ -991,7 +997,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.winMain.actionDDO.setEnabled(False)
             self.winMain.actionDDO.setVisible(False)
 
-        self.configFile = "%s%s" % (self.settings.gameDir, self.gameType.configFile,)
+        self.configFile = "%s%s" % (
+            self.settings.gameDir,
+            self.gameType.configFile,
+        )
         self.configFileAlt = "%s%s" % (
             self.settings.gameDir,
             self.gameType.configFileAlt,
@@ -1130,6 +1139,10 @@ class MainWindowThread(QtCore.QThread):
             langConfig = LanguageConfig(self.settings.gameDir)
 
             if langConfig.langFound:
+                # Set language to first one detected if none are configured yet
+                if not self.settings.language:
+                    self.settings.language = langConfig.langList[0]
+
                 self.ReturnLog.emit("Available languages checked.")
 
                 self.LoadLauncherConfig()
@@ -1152,7 +1165,8 @@ class MainWindowThread(QtCore.QThread):
                 self.ReturnBaseConfig.emit(self.baseConfig)
 
                 self.AccessGLSDataCenter(
-                    self.baseConfig.GLSDataCenterService, self.baseConfig.gameName,
+                    self.baseConfig.GLSDataCenterService,
+                    self.baseConfig.gameName,
                 )
             else:
                 self.ReturnLog.emit("[E03] Error reading launcher configuration file.")

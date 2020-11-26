@@ -47,8 +47,11 @@ class Settings:
 
     def LoadSettings(self, useGame=None):
         self.hiResEnabled = True
-        self.language = "EN"
-        # Key is account name and content is list of details relating to account.
+        # If None isn't overwritten than it will automatically
+        # get set to the first installed language detected.
+        self.language = None
+        # Key is account name and content is list of details
+        # relating to account.
         self.accountsDictionary = OrderedDict()
         self.wineProg = "wine"
         self.wineDebug = "fixme-all"
@@ -273,9 +276,10 @@ class Settings:
         tempNode.appendChild(doc.createTextNode("%s" % (self.patchClient)))
         gameConfigNode.appendChild(tempNode)
 
-        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Language")
-        tempNode.appendChild(doc.createTextNode("%s" % (self.language)))
-        gameConfigNode.appendChild(tempNode)
+        if self.language:
+            tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Language")
+            tempNode.appendChild(doc.createTextNode("%s" % (self.language)))
+            gameConfigNode.appendChild(tempNode)
 
         if saveAccountDetails:
             accountsNode = doc.createElementNS(EMPTY_NAMESPACE, "Accounts")
