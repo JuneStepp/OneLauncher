@@ -51,7 +51,7 @@ OneLauncher supports custom game settings folders through the `ddo.launcherconfi
 
 ## Custom WINE Prefix
 
-A custom WINE prefix can be used by changing the WINE prefix path in the advanced section of the WINE settings tab. ESYNC and DXVK will not be automatically enabled on the custom prefix and the shipped version of WINE will not be kept up to date. A different WINE executable can be specified in the settings if that is an issue. The easiest way to enable the built-in prefix again is by re-running the setup wizard. Please don't complain about the games not working if there are only issues with your custom config.
+A custom WINE prefix can be used by changing the WINE prefix path in the advanced section of the WINE settings tab. ESYNC, FSYNC and DXVK will not be automatically enabled on the custom prefix and the shipped version of WINE will not be kept up to date. A different WINE executable can be specified in the settings if that is an issue. The easiest way to enable the built-in prefix again is by re-running the setup wizard. Please don't complain about the games not working if there are only issues with your custom config.
 
 # Development Install
 
