@@ -94,11 +94,17 @@ class Settings:
                             self.winePrefix = winePrefix
                             self.builtInPrefixEnabled = False
                     elif node.nodeName == "HiRes":
-                        self.hiResEnabled = True if GetText(node.childNodes) == "True" else False
+                        self.hiResEnabled = (
+                            True if GetText(node.childNodes) == "True" else False
+                        )
                     elif node.nodeName == "x64Client":
-                        self.x64ClientEnabled = True if GetText(node.childNodes) == "True" else False
+                        self.x64ClientEnabled = (
+                            True if GetText(node.childNodes) == "True" else False
+                        )
                     elif node.nodeName == "Save.Password":
-                        self.savePassword = True if GetText(node.childNodes) == "True" else False
+                        self.savePassword = (
+                            True if GetText(node.childNodes) == "True" else False
+                        )
                     elif node.nodeName == "Game.Directory":
                         self.gameDir = GetText(node.childNodes)
                     elif node.nodeName == "Language":
@@ -110,8 +116,9 @@ class Settings:
                     ):
                         account_nodes = node.childNodes
                         self.setAccountsSettings(account_nodes)
-                    elif node.nodeName == "StartupScripts" and not self.currentGame.endswith(
-                        ".Test"
+                    elif (
+                        node.nodeName == "StartupScripts"
+                        and not self.currentGame.endswith(".Test")
                     ):
                         startup_script_nodes = node.childNodes
                         self.setStartupScriptSettings(startup_script_nodes)
@@ -127,11 +134,12 @@ class Settings:
                             self.setAccountsSettings(account_nodes)
 
                         # Load in startup scripts from normal client node
-                        startupScriptsNode = normalClientNode.getElementsByTagName("StartupScripts")
+                        startupScriptsNode = normalClientNode.getElementsByTagName(
+                            "StartupScripts"
+                        )
                         if startupScriptsNode:
                             startup_script_nodes = startupScriptsNode[0].childNodes
                             self.setStartupScriptSettings(startup_script_nodes)
-
 
                 # Disables 64-bit client if it is unavailable for LOTRO
                 if not os.path.exists(
@@ -170,20 +178,21 @@ class Settings:
 
                 for node in account_node.childNodes:
                     if node.nodeName == "World":
-                        self.accountsDictionary[account_name][
-                            0
-                        ] = GetText(node.childNodes)
+                        self.accountsDictionary[account_name][0] = GetText(
+                            node.childNodes
+                        )
 
                 self.focusAccount = False
-    
+
     def setStartupScriptSettings(self, startup_script_nodes):
         for node in startup_script_nodes:
             if node.nodeName == "script":
                 self.startupScripts.append(GetText(node.childNodes))
 
-    def getNormalClientNode(self, game, doc):
+    def getNormalClientNode(self, game, doc, make_if_not_found=False):
         """
-        Get normal client node/make it if it doesn't exist.
+        Get normal client node. Will make it if
+        make_if_not_found=True and it doesn't exist.
         Normal client as in not the test/preview client
         """
         if game.endswith(".Test"):
@@ -193,7 +202,15 @@ class Settings:
                 normalClientNode = normalClientNode[0]
                 return normalClientNode
             else:
-                return None
+                if make_if_not_found:
+                    normalClientNode = doc.createElementNS(
+                        EMPTY_NAMESPACE, normalClient
+                    )
+                    settingsNode = doc.getElementsByTagName("Settings")[0]
+                    settingsNode.appendChild(normalClientNode)
+                    return normalClientNode
+                else:
+                    return None
 
     def SaveSettings(self, saveAccountDetails=None, savePassword=None, game=None):
         doc = None
@@ -235,10 +252,7 @@ class Settings:
 
         # Some settings for test/preview clients are saved in normal client settings
         if current_game.endswith(".Test"):
-            normalClientNode = self.getNormalClientNode(current_game, doc)
-            if not normalClientNode:
-                normalClientNode = doc.createElementNS(EMPTY_NAMESPACE, current_game)
-                settingsNode.appendChild(normalClientNode)
+            normalClientNode = self.getNormalClientNode(current_game, doc, make_if_not_found=True)
 
         if not self.osType.usingWindows:
             tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Program")
@@ -319,20 +333,21 @@ class Settings:
             scriptNode = doc.createElementNS(EMPTY_NAMESPACE, "script")
             scriptNode.appendChild(doc.createTextNode("%s" % (script)))
             startupScriptsNode.appendChild(scriptNode)
-        # Test/Preview clients store startup scripts in normal client settings, 
+        # Test/Preview clients store startup scripts in normal client settings,
         # because the add-ons folders are generally shared as well.
         if current_game.endswith(".Test"):
             # Delete current startup scripts node if present. All startup scripts
             # that were originally there were loaded as if they were the test client's,
             # so they are not lost.
-            originalStartupScriptsNode = normalClientNode.getElementsByTagName("StartupScripts")
+            originalStartupScriptsNode = normalClientNode.getElementsByTagName(
+                "StartupScripts"
+            )
             if originalStartupScriptsNode:
                 normalClientNode.removeChild(originalStartupScriptsNode[0])
 
             normalClientNode.appendChild(startupScriptsNode)
         else:
             gameConfigNode.appendChild(startupScriptsNode)
-
 
         # write new settings file
         with open(self.settingsFile, "w") as file:
