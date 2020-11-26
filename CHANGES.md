@@ -5,6 +5,22 @@ Launcher for Linux, Windows, and Mac OS X
 
 # Changes
 
+1.2.3
+
+    This release has some small fixes and improvements. Most notably FSYNC support is added and the first language detected is used by default rather than English. This makes the user experience better for those that don't have English installed with their client.
+
+        * Updated WINE and DXVK
+        * Fixed typo in changelog
+        * Improved handling of network errors
+        * Refactored code with Sourcery.ai
+        * Support for Proton (Has to be manually set up in WinePrefix.py)
+        * Manually refactored InstallAddon function
+        * Fixed logging in WinePrefix.py
+        * FSYNC support
+        * OneLauncher changelogs display in Markdown format
+        * Language defaults to first one detected rather than English
+        * Fixed getting normalClientNode when it doesn't exist yet
+
 1.2.2
 
     This release fixes language selection and allows specification of startup game with a launch argument. This can be used to make different shortcuts for quickly accessing OneLauncher with different games.
