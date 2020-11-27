@@ -74,12 +74,22 @@
                     <destination>${installdir}</destination>
                     <name>programfileslinux</name>
                     <platforms>linux</platforms>
+                    <distributionFileList>
+                        <distributionDirectory>
+                            <origin>lib</origin>
+                        </distributionDirectory>
+                    </distributionFileList>
                 </folder>
                 <folder>
                     <description>Program Files</description>
                     <destination>${installdir}</destination>
                     <name>programfileslinux64</name>
                     <platforms>linux-x64</platforms>
+                    <distributionFileList>
+                        <distributionDirectory>
+                            <origin>lib</origin>
+                        </distributionDirectory>
+                    </distributionFileList>
                 </folder>
                 <folder>
                     <description>Program Files</description>
@@ -172,3 +182,4 @@
         </directoryParameter>
     </parameterList>
 </project>
+

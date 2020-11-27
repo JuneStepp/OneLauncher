@@ -31,11 +31,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: ^3.7.3
+          python-version: ^3.9.0
       - name: Windows dependencies
         if: runner.os == 'Windows'
         run: |
-          pip install PySide2==5.14.1
           pip install pywin32
       - name: Install dependencies
         run: |

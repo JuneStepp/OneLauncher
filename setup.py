@@ -11,6 +11,7 @@ packages_list = [
     "cryptography",
     "PySide2.QtXml",
 ]
+zip_include_packages = []
 
 platform = system()
 
@@ -22,13 +23,14 @@ if platform == "Windows":
 else:
     base = ""
     plugins_path = os.path.join(PySide2.__path__[0], "Qt", "plugins")
+    zip_include_packages += ["PySide2", "PySide2.QtXml", "shiboken2", "encodings"]
 
 build_options = {
     "build_exe": "build",
     "packages": packages_list,
-    "zip_include_packages": ["PySide2", "PySide2.QtXml", "shiboken2", "encodings"],
     "excludes": ["tkinter", "unittest", "pydoc", "pdb"],
     "optimize": "2",
+    "zip_include_packages": zip_include_packages,
     "include_files": [
         "OneLauncher/ui",
         "OneLauncher/certificates",

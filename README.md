@@ -74,7 +74,6 @@ building like venv, conda, or virtualenv.
 - VMWare InstallBuilder (For building installer)
 
 ### Windows
-- PySide2 5.14.1 (can be installed with `pip install PySide2==5.14.1`)
 - pywin32
 
 # To run from source
