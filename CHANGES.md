@@ -7,17 +7,17 @@ Launcher for Linux, Windows, and Mac OS X
 
 1.2.3
 
-    This release has some small fixes and improvements. Most notably FSYNC support is added and the first language detected is used by default rather than English. This makes the user experience better for those that don't have English installed with their client.
+    This release has some small fixes and improvements. Most notably FSYNC support is added and the first language detected is used by default rather than English. This improves the user experience for those that don't have English installed with their client.
 
         * Updated WINE and DXVK
-        * Fixed typo in changelog
+        * Fixed typo in change log
         * Improved handling of network errors
         * Refactored code with Sourcery.ai
         * Support for Proton (Has to be manually set up in WinePrefix.py)
         * Manually refactored InstallAddon function
         * Fixed logging in WinePrefix.py
         * FSYNC support
-        * OneLauncher changelogs display in Markdown format
+        * OneLauncher change logs display in Markdown format
         * Language defaults to first one detected rather than English
         * Fixed getting normalClientNode when it doesn't exist yet
 
