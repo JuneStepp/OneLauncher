@@ -60,8 +60,7 @@ class Settings:
         self.winePrefix = self.settingsDir + "wine/prefix"
         self.builtInPrefixEnabled = True
         self.gameDir = ""
-        self.client = "WIN64"
-        self.x64ClientEnabled = True
+        self.client = ""
         self.savePassword = False
         self.startupScripts = []
         success = False
@@ -101,9 +100,8 @@ class Settings:
                     elif node.nodeName == "Client":
                         self.client = GetText(node.childNodes)
                     elif node.nodeName == "x64Client":
-                        self.x64ClientEnabled = (
-                            True if GetText(node.childNodes) == "True" else False
-                        )
+                        if (self.client == "" and GetText(node.childNodes) == "True"):
+                            self.client = "WIN64"
                     elif node.nodeName == "Save.Password":
                         self.savePassword = (
                             True if GetText(node.childNodes) == "True" else False
@@ -126,6 +124,9 @@ class Settings:
                         startup_script_nodes = node.childNodes
                         self.setStartupScriptSettings(startup_script_nodes)
 
+                if self.client == "":
+                    self.client = "WIN32"
+
                 # Test/preview clients use accounts and startups scripts from normal clients
                 if self.currentGame.endswith(".Test"):
                     normalClientNode = self.getNormalClientNode(self.currentGame, doc)
@@ -147,14 +148,14 @@ class Settings:
                 # Disables 64-bit client if it is unavailable for LOTRO
                 if not os.path.exists(
                     self.gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe"
-                ) and self.currentGame.startswith("LOTRO"):
-                    self.x64ClientEnabled = False
+                ) and self.currentGame.startswith("LOTRO") and self.client == "WIN64":
+                    self.client = "WIN32"
 
                 # Disables 64-bit client if it is unavailable for DDO
                 if not os.path.exists(
                     self.gameDir + os.sep + "x64" + os.sep + "dndclient64.exe"
-                ) and self.currentGame.startswith("DDO"):
-                    self.x64ClientEnabled = False
+                ) and self.currentGame.startswith("DDO") and self.client == "WIN64":
+                    self.client = "WIN32"
 
                 success = True
 
@@ -283,7 +284,7 @@ class Settings:
         gameConfigNode.appendChild(tempNode)
 
         tempNode = doc.createElementNS(EMPTY_NAMESPACE, "x64Client")
-        if self.x64ClientEnabled:
+        if self.client == "WIN64":
             tempNode.appendChild(doc.createTextNode("True"))
         else:
             tempNode.appendChild(doc.createTextNode("False"))
