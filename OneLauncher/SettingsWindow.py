@@ -82,8 +82,8 @@ class SettingsWindow:
         self.winSettings.txtGameDir.setText(gameDir)
         self.winSettings.cboGraphics.addItem("Enabled")
         self.winSettings.cboGraphics.addItem("Disabled")
-        self.winSettings.cboClient.addItem("32-bit Legacy")
         self.winSettings.cboClient.addItem("32-bit")
+        self.winSettings.cboClient.addItem("32-bit Legacy")
         self.winSettings.chkAdvanced.setChecked(False)
         self.winSettings.txtPatchClient.setText(patchClient)
         self.winSettings.txtPatchClient.setVisible(False)
@@ -98,9 +98,9 @@ class SettingsWindow:
         if settings.checkGameClient64():
             self.winSettings.cboClient.addItem("64-bit")
 
-        if settings.client == "WIN32Legacy":
+        if settings.client == "WIN32":
             self.winSettings.cboClient.setCurrentIndex(0)
-        elif settings.client == "WIN32":
+        elif settings.client == "WIN32Legacy":
             self.winSettings.cboClient.setCurrentIndex(1)
         elif settings.client == "WIN64":
             self.winSettings.cboClient.setCurrentIndex(2)
@@ -267,9 +267,9 @@ class SettingsWindow:
 
     def getClient(self):
         if self.winSettings.cboClient.currentIndex() == 0:
-            return "WIN32Legacy"
-        elif self.winSettings.cboClient.currentIndex() == 1:
             return "WIN32"
+        elif self.winSettings.cboClient.currentIndex() == 1:
+            return "WIN32Legacy"
         elif self.winSettings.cboClient.currentIndex() == 2:
             return "WIN64"
 
