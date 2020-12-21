@@ -125,7 +125,7 @@ class Settings:
                         self.setStartupScriptSettings(startup_script_nodes)
 
                 if self.client == "":
-                    self.client = "WIN32"
+                    self.client = "WIN64"
 
                 # Test/preview clients use accounts and startups scripts from normal clients
                 if self.currentGame.endswith(".Test"):
