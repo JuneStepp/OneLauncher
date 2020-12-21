@@ -84,7 +84,6 @@ class SettingsWindow:
         self.winSettings.cboGraphics.addItem("Disabled")
         self.winSettings.cboClient.addItem("32-bit Legacy")
         self.winSettings.cboClient.addItem("32-bit")
-        self.winSettings.cboClient.addItem("64-bit")
         self.winSettings.chkAdvanced.setChecked(False)
         self.winSettings.txtPatchClient.setText(patchClient)
         self.winSettings.txtPatchClient.setVisible(False)
@@ -95,6 +94,10 @@ class SettingsWindow:
         else:
             self.winSettings.cboGraphics.setCurrentIndex(1)
 
+        # Only enables 64-bit if client is available
+        if settings.checkGameClient64():
+            self.winSettings.cboClient.addItem("64-bit")
+
         if settings.client == "WIN32Legacy":
             self.winSettings.cboClient.setCurrentIndex(0)
         elif settings.client == "WIN32":
@@ -102,16 +105,6 @@ class SettingsWindow:
         elif settings.client == "WIN64":
             self.winSettings.cboClient.setCurrentIndex(2)
 
-        # Only enables and sets up check box if 64-bit client is available
-        #if os.path.exists(
-        #    gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe"
-        #) or os.path.exists(gameDir + os.sep + "x64" + os.sep + "dndclient64.exe"):
-        #    if x64Client:
-        #        self.winSettings.chkx64Client.setChecked(True)
-        #    else:
-        #        self.winSettings.chkx64Client.setChecked(False)
-        #else:
-        #    self.winSettings.chkx64Client.setEnabled(False)
 
         self.winSettings.btnEN.setIcon(
             QtGui.QIcon(os.path.join(data_folder, "images", "EN-US.png"))
@@ -184,12 +177,13 @@ class SettingsWindow:
 
     def txtGameDirChanged(self, text):
         if text != "":
-            #if os.path.exists(
-            #    text + os.sep + "x64" + os.sep + "lotroclient64.exe"
-            #) or os.path.exists(text + os.sep + "x64" + os.sep + "dndclient64.exe"):
-            #    self.winSettings.chkx64Client.setEnabled(True)
-            #else:
-            #    self.winSettings.chkx64Client.setEnabled(False)
+            if self.settings.checkGameClient64(text):
+                if self.winSettings.cboClient.count() < 3:
+                    self.winSettings.cboClient.addItem("64-bit")
+            else:
+                if self.winSettings.cboClient.currentIndex() == 2:
+                    self.winSettings.cboClient.setCurrentIndex(0)
+                self.winSettings.cboClient.removeItem(2)
 
             self.setLanguageButtons()
 
