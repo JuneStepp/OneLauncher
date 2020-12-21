@@ -60,6 +60,7 @@ class Settings:
         self.winePrefix = self.settingsDir + "wine/prefix"
         self.builtInPrefixEnabled = True
         self.gameDir = ""
+        self.client = "WIN64"
         self.x64ClientEnabled = True
         self.savePassword = False
         self.startupScripts = []
@@ -97,6 +98,8 @@ class Settings:
                         self.hiResEnabled = (
                             True if GetText(node.childNodes) == "True" else False
                         )
+                    elif node.nodeName == "Client":
+                        self.client = GetText(node.childNodes)
                     elif node.nodeName == "x64Client":
                         self.x64ClientEnabled = (
                             True if GetText(node.childNodes) == "True" else False
@@ -273,6 +276,10 @@ class Settings:
             tempNode.appendChild(doc.createTextNode("True"))
         else:
             tempNode.appendChild(doc.createTextNode("False"))
+        gameConfigNode.appendChild(tempNode)
+
+        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Client")
+        tempNode.appendChild(doc.createTextNode("%s" % (self.client)))
         gameConfigNode.appendChild(tempNode)
 
         tempNode = doc.createElementNS(EMPTY_NAMESPACE, "x64Client")

@@ -35,7 +35,6 @@ class SettingsWindow:
     def __init__(
         self,
         hiRes,
-        x64Client,
         wineProg,
         wineDebug,
         patchClient,
@@ -83,6 +82,9 @@ class SettingsWindow:
         self.winSettings.txtGameDir.setText(gameDir)
         self.winSettings.cboGraphics.addItem("Enabled")
         self.winSettings.cboGraphics.addItem("Disabled")
+        self.winSettings.cboClient.addItem("32-bit Legacy")
+        self.winSettings.cboClient.addItem("32-bit")
+        self.winSettings.cboClient.addItem("64-bit")
         self.winSettings.chkAdvanced.setChecked(False)
         self.winSettings.txtPatchClient.setText(patchClient)
         self.winSettings.txtPatchClient.setVisible(False)
@@ -93,16 +95,23 @@ class SettingsWindow:
         else:
             self.winSettings.cboGraphics.setCurrentIndex(1)
 
+        if settings.client == "WIN32Legacy":
+            self.winSettings.cboClient.setCurrentIndex(0)
+        elif settings.client == "WIN32":
+            self.winSettings.cboClient.setCurrentIndex(1)
+        elif settings.client == "WIN64":
+            self.winSettings.cboClient.setCurrentIndex(2)
+
         # Only enables and sets up check box if 64-bit client is available
-        if os.path.exists(
-            gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe"
-        ) or os.path.exists(gameDir + os.sep + "x64" + os.sep + "dndclient64.exe"):
-            if x64Client:
-                self.winSettings.chkx64Client.setChecked(True)
-            else:
-                self.winSettings.chkx64Client.setChecked(False)
-        else:
-            self.winSettings.chkx64Client.setEnabled(False)
+        #if os.path.exists(
+        #    gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe"
+        #) or os.path.exists(gameDir + os.sep + "x64" + os.sep + "dndclient64.exe"):
+        #    if x64Client:
+        #        self.winSettings.chkx64Client.setChecked(True)
+        #    else:
+        #        self.winSettings.chkx64Client.setChecked(False)
+        #else:
+        #    self.winSettings.chkx64Client.setEnabled(False)
 
         self.winSettings.btnEN.setIcon(
             QtGui.QIcon(os.path.join(data_folder, "images", "EN-US.png"))
@@ -175,12 +184,12 @@ class SettingsWindow:
 
     def txtGameDirChanged(self, text):
         if text != "":
-            if os.path.exists(
-                text + os.sep + "x64" + os.sep + "lotroclient64.exe"
-            ) or os.path.exists(text + os.sep + "x64" + os.sep + "dndclient64.exe"):
-                self.winSettings.chkx64Client.setEnabled(True)
-            else:
-                self.winSettings.chkx64Client.setEnabled(False)
+            #if os.path.exists(
+            #    text + os.sep + "x64" + os.sep + "lotroclient64.exe"
+            #) or os.path.exists(text + os.sep + "x64" + os.sep + "dndclient64.exe"):
+            #    self.winSettings.chkx64Client.setEnabled(True)
+            #else:
+            #    self.winSettings.chkx64Client.setEnabled(False)
 
             self.setLanguageButtons()
 
@@ -262,8 +271,13 @@ class SettingsWindow:
     def getHiRes(self):
         return self.winSettings.cboGraphics.currentIndex() == 0
 
-    def getx64Client(self):
-        return bool(self.winSettings.chkx64Client.isChecked())
+    def getClient(self):
+        if self.winSettings.cboClient.currentIndex() == 0:
+            return "WIN32Legacy"
+        elif self.winSettings.cboClient.currentIndex() == 1:
+            return "WIN32"
+        elif self.winSettings.cboClient.currentIndex() == 2:
+            return "WIN64"
 
     def Run(self):
         return self.winSettings.exec_()
