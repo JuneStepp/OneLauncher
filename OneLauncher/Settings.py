@@ -145,16 +145,8 @@ class Settings:
                             startup_script_nodes = startupScriptsNode[0].childNodes
                             self.setStartupScriptSettings(startup_script_nodes)
 
-                # Disables 64-bit client if it is unavailable for LOTRO
-                if not os.path.exists(
-                    self.gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe"
-                ) and self.currentGame.startswith("LOTRO") and self.client == "WIN64":
-                    self.client = "WIN32"
-
-                # Disables 64-bit client if it is unavailable for DDO
-                if not os.path.exists(
-                    self.gameDir + os.sep + "x64" + os.sep + "dndclient64.exe"
-                ) and self.currentGame.startswith("DDO") and self.client == "WIN64":
+                # Disables 64-bit client if it is unavailable
+                if (self.client == "WIN64" and not self.checkGameClient64()):
                     self.client = "WIN32"
 
                 success = True
@@ -170,6 +162,14 @@ class Settings:
             success = False
 
         return success
+
+    def checkGameClient64(self, path = None):
+        if path == None:
+            path = self.gameDir
+        exe = "lotroclient64.exe" if self.currentGame.startswith("LOTRO") else "dndclient64.exe"
+        return os.path.exists(
+            path + os.sep + "x64" + os.sep + exe
+        )
 
     def setAccountsSettings(self, account_nodes):
         for account_node in account_nodes:
