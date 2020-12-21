@@ -37,7 +37,7 @@ class StartGame:
     def __init__(
         self,
         appName,
-        x64Client,
+        clientType,
         argTemplate,
         account,
         server,
@@ -69,7 +69,7 @@ class StartGame:
     ):
 
         # Fixes binary path for 64-bit client
-        if x64Client:
+        if clientType == "WIN64":
             appName = "x64" + os.sep + appName
 
         self.homeDir = homeDir
