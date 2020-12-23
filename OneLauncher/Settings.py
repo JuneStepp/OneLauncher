@@ -282,9 +282,10 @@ class Settings:
         tempNode.appendChild(doc.createTextNode("%s" % (self.client)))
         gameConfigNode.appendChild(tempNode)
 
-        if self.client == "WIN32":
+        if self.client in ["WIN32", "WIN64"]:
             tempNode = doc.createElementNS(EMPTY_NAMESPACE, "x64Client")
-            tempNode.appendChild(doc.createTextNode("False"))
+            value = "True" if self.client == "WIN64" else "False"
+            tempNode.appendChild(doc.createTextNode(value))
             gameConfigNode.appendChild(tempNode)
 
         tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Game.Directory")
