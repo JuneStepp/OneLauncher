@@ -94,20 +94,13 @@ class Settings:
                             self.winePrefix = winePrefix
                             self.builtInPrefixEnabled = False
                     elif node.nodeName == "HiRes":
-                        self.hiResEnabled = (
-                            True if GetText(node.childNodes) == "True" else False
-                        )
+                        self.hiResEnabled = GetText(node.childNodes) == "True"
                     elif node.nodeName == "Client":
                         self.client = GetText(node.childNodes)
                     elif node.nodeName == "x64Client":
-                        if GetText(node.childNodes) == "True":
-                            self.client = "WIN64"
-                        else:
-                            self.client = "WIN32"
+                        self.client = "WIN64" if GetText(node.childNodes) == "True" else "WIN32"
                     elif node.nodeName == "Save.Password":
-                        self.savePassword = (
-                            True if GetText(node.childNodes) == "True" else False
-                        )
+                        self.savePassword = GetText(node.childNodes) == "True"
                     elif node.nodeName == "Game.Directory":
                         self.gameDir = GetText(node.childNodes)
                     elif node.nodeName == "Language":
@@ -163,7 +156,7 @@ class Settings:
         return success
 
     def checkGameClient64(self, path = None):
-        if path == None:
+        if path is None:
             path = self.gameDir
         exe = "lotroclient64.exe" if self.currentGame.startswith("LOTRO") else "dndclient64.exe"
         return os.path.exists(
@@ -198,22 +191,22 @@ class Settings:
         make_if_not_found=True and it doesn't exist.
         Normal client as in not the test/preview client
         """
-        if game.endswith(".Test"):
-            normalClient = game.split(".")[0]
-            normalClientNode = doc.getElementsByTagName(normalClient)
-            if normalClientNode:
-                normalClientNode = normalClientNode[0]
-                return normalClientNode
-            else:
-                if make_if_not_found:
-                    normalClientNode = doc.createElementNS(
-                        EMPTY_NAMESPACE, normalClient
-                    )
-                    settingsNode = doc.getElementsByTagName("Settings")[0]
-                    settingsNode.appendChild(normalClientNode)
-                    return normalClientNode
-                else:
-                    return None
+        if not game.endswith(".Test"):
+            return
+        normalClient = game.split(".")[0]
+        normalClientNode = doc.getElementsByTagName(normalClient)
+        if normalClientNode:
+            normalClientNode = normalClientNode[0]
+        else:
+            if not make_if_not_found:
+                return None
+
+            normalClientNode = doc.createElementNS(
+                EMPTY_NAMESPACE, normalClient
+            )
+            settingsNode = doc.getElementsByTagName("Settings")[0]
+            settingsNode.appendChild(normalClientNode)
+        return normalClientNode
 
     def SaveSettings(self, saveAccountDetails=None, savePassword=None, game=None):
         doc = None
@@ -233,7 +226,7 @@ class Settings:
             settingsNode = doc.createElementNS(EMPTY_NAMESPACE, "Settings")
             doc.appendChild(settingsNode)
 
-        current_game = game if game else self.currentGame
+        current_game = game or self.currentGame
         # Set default game to current game
         defaultGameNode = doc.getElementsByTagName("Default.Game")
         if len(defaultGameNode) > 0:
