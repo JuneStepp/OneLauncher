@@ -94,7 +94,7 @@ class SettingsWindow:
         else:
             self.winSettings.cboGraphics.setCurrentIndex(1)
 
-        # Only enables 64-bit if client is available
+        # Only adds 64-bit option if 64-bit client is available
         if settings.checkGameClient64():
             self.winSettings.cboClient.addItem("64-bit")
 
