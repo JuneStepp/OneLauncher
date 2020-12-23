@@ -168,7 +168,7 @@ class Settings:
             path = self.gameDir
         exe = "lotroclient64.exe" if self.currentGame.startswith("LOTRO") else "dndclient64.exe"
         return os.path.exists(
-            path + os.sep + "x64" + os.sep + exe
+            os.path.join(path, "x64", exe)
         )
 
     def setAccountsSettings(self, account_nodes):
