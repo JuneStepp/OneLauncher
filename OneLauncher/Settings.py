@@ -60,7 +60,7 @@ class Settings:
         self.winePrefix = self.settingsDir + "wine/prefix"
         self.builtInPrefixEnabled = True
         self.gameDir = ""
-        self.client = ""
+        self.client = "WIN64"
         self.savePassword = False
         self.startupScripts = []
         success = False
@@ -100,8 +100,10 @@ class Settings:
                     elif node.nodeName == "Client":
                         self.client = GetText(node.childNodes)
                     elif node.nodeName == "x64Client":
-                        if (self.client == "" and GetText(node.childNodes) == "True"):
+                        if GetText(node.childNodes) == "True":
                             self.client = "WIN64"
+                        else:
+                            self.client = "WIN32"
                     elif node.nodeName == "Save.Password":
                         self.savePassword = (
                             True if GetText(node.childNodes) == "True" else False
@@ -123,9 +125,6 @@ class Settings:
                     ):
                         startup_script_nodes = node.childNodes
                         self.setStartupScriptSettings(startup_script_nodes)
-
-                if self.client == "":
-                    self.client = "WIN64"
 
                 # Test/preview clients use accounts and startups scripts from normal clients
                 if self.currentGame.endswith(".Test"):
@@ -283,12 +282,10 @@ class Settings:
         tempNode.appendChild(doc.createTextNode("%s" % (self.client)))
         gameConfigNode.appendChild(tempNode)
 
-        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "x64Client")
-        if self.client == "WIN64":
-            tempNode.appendChild(doc.createTextNode("True"))
-        else:
+        if self.client == "WIN32":
+            tempNode = doc.createElementNS(EMPTY_NAMESPACE, "x64Client")
             tempNode.appendChild(doc.createTextNode("False"))
-        gameConfigNode.appendChild(tempNode)
+            gameConfigNode.appendChild(tempNode)
 
         tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Game.Directory")
         tempNode.appendChild(doc.createTextNode("%s" % (self.gameDir)))
