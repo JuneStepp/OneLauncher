@@ -95,11 +95,11 @@ def WebConnection(urlIn):
 
 
 def GetText(nodelist):
-    rc = ""
-    for node in nodelist:
-        if node.nodeType in [node.TEXT_NODE, node.CDATA_SECTION_NODE]:
-            rc += node.data
-    return rc
+    return "".join(
+        node.data
+        for node in nodelist
+        if node.nodeType in [node.TEXT_NODE, node.CDATA_SECTION_NODE]
+    )
 
 
 class BaseConfig:
