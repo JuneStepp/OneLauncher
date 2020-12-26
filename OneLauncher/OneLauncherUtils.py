@@ -95,11 +95,11 @@ def WebConnection(urlIn):
 
 
 def GetText(nodelist):
-    rc = ""
-    for node in nodelist:
-        if node.nodeType in [node.TEXT_NODE, node.CDATA_SECTION_NODE]:
-            rc += node.data
-    return rc
+    return "".join(
+        node.data
+        for node in nodelist
+        if node.nodeType in [node.TEXT_NODE, node.CDATA_SECTION_NODE]
+    )
 
 
 class BaseConfig:
@@ -340,7 +340,7 @@ class World:
 
 
 class WorldQueueConfig:
-    def __init__(self, urlConfigServer, baseDir, osType, gameDir, x64Client):
+    def __init__(self, urlConfigServer, baseDir, osType, gameDir, clientType):
         self.gameClientFilename = ""
         self.gameClientArgTemplate = ""
         self.crashreceiver = ""
@@ -376,16 +376,11 @@ class WorldQueueConfig:
                 doc = defusedxml.minidom.parseString(tempxml)
 
                 nodes = doc.getElementsByTagName("appSettings")[0].childNodes
+                clientFilenameKey = "GameClient." + clientType + ".Filename"
                 for node in nodes:
                     if node.nodeType == node.ELEMENT_NODE:
-                        if (
-                            node.getAttribute("key") == "GameClient.WIN64.Filename"
-                            and x64Client
-                        ):
+                        if node.getAttribute("key") == clientFilenameKey:
                             self.gameClientFilename = node.getAttribute("value")
-                        if node.getAttribute("key") == "GameClient.WIN32.Filename":
-                            if x64Client is False:
-                                self.gameClientFilename = node.getAttribute("value")
                         elif node.getAttribute("key") == "GameClient.WIN32.ArgTemplate":
                             self.gameClientArgTemplate = node.getAttribute("value")
                         elif node.getAttribute("key") == "GameClient.Arg.crashreceiver":

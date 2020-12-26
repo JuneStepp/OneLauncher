@@ -60,7 +60,7 @@ class Settings:
         self.winePrefix = self.settingsDir + "wine/prefix"
         self.builtInPrefixEnabled = True
         self.gameDir = ""
-        self.x64ClientEnabled = True
+        self.client = "WIN64"
         self.savePassword = False
         self.startupScripts = []
         success = False
@@ -94,17 +94,13 @@ class Settings:
                             self.winePrefix = winePrefix
                             self.builtInPrefixEnabled = False
                     elif node.nodeName == "HiRes":
-                        self.hiResEnabled = (
-                            True if GetText(node.childNodes) == "True" else False
-                        )
+                        self.hiResEnabled = GetText(node.childNodes) == "True"
+                    elif node.nodeName == "Client":
+                        self.client = GetText(node.childNodes)
                     elif node.nodeName == "x64Client":
-                        self.x64ClientEnabled = (
-                            True if GetText(node.childNodes) == "True" else False
-                        )
+                        self.client = "WIN64" if GetText(node.childNodes) == "True" else "WIN32"
                     elif node.nodeName == "Save.Password":
-                        self.savePassword = (
-                            True if GetText(node.childNodes) == "True" else False
-                        )
+                        self.savePassword = GetText(node.childNodes) == "True"
                     elif node.nodeName == "Game.Directory":
                         self.gameDir = GetText(node.childNodes)
                     elif node.nodeName == "Language":
@@ -141,17 +137,9 @@ class Settings:
                             startup_script_nodes = startupScriptsNode[0].childNodes
                             self.setStartupScriptSettings(startup_script_nodes)
 
-                # Disables 64-bit client if it is unavailable for LOTRO
-                if not os.path.exists(
-                    self.gameDir + os.sep + "x64" + os.sep + "lotroclient64.exe"
-                ) and self.currentGame.startswith("LOTRO"):
-                    self.x64ClientEnabled = False
-
-                # Disables 64-bit client if it is unavailable for DDO
-                if not os.path.exists(
-                    self.gameDir + os.sep + "x64" + os.sep + "dndclient64.exe"
-                ) and self.currentGame.startswith("DDO"):
-                    self.x64ClientEnabled = False
+                # Disables 64-bit client if it is unavailable
+                if (self.client == "WIN64" and not self.checkGameClient64()):
+                    self.client = "WIN32"
 
                 success = True
 
@@ -166,6 +154,14 @@ class Settings:
             success = False
 
         return success
+
+    def checkGameClient64(self, path = None):
+        if path is None:
+            path = self.gameDir
+        exe = "lotroclient64.exe" if self.currentGame.startswith("LOTRO") else "dndclient64.exe"
+        return os.path.exists(
+            os.path.join(path, "x64", exe)
+        )
 
     def setAccountsSettings(self, account_nodes):
         for account_node in account_nodes:
@@ -195,22 +191,22 @@ class Settings:
         make_if_not_found=True and it doesn't exist.
         Normal client as in not the test/preview client
         """
-        if game.endswith(".Test"):
-            normalClient = game.split(".")[0]
-            normalClientNode = doc.getElementsByTagName(normalClient)
-            if normalClientNode:
-                normalClientNode = normalClientNode[0]
-                return normalClientNode
-            else:
-                if make_if_not_found:
-                    normalClientNode = doc.createElementNS(
-                        EMPTY_NAMESPACE, normalClient
-                    )
-                    settingsNode = doc.getElementsByTagName("Settings")[0]
-                    settingsNode.appendChild(normalClientNode)
-                    return normalClientNode
-                else:
-                    return None
+        if not game.endswith(".Test"):
+            return
+        normalClient = game.split(".")[0]
+        normalClientNode = doc.getElementsByTagName(normalClient)
+        if normalClientNode:
+            normalClientNode = normalClientNode[0]
+        else:
+            if not make_if_not_found:
+                return None
+
+            normalClientNode = doc.createElementNS(
+                EMPTY_NAMESPACE, normalClient
+            )
+            settingsNode = doc.getElementsByTagName("Settings")[0]
+            settingsNode.appendChild(normalClientNode)
+        return normalClientNode
 
     def SaveSettings(self, saveAccountDetails=None, savePassword=None, game=None):
         doc = None
@@ -230,7 +226,7 @@ class Settings:
             settingsNode = doc.createElementNS(EMPTY_NAMESPACE, "Settings")
             doc.appendChild(settingsNode)
 
-        current_game = game if game else self.currentGame
+        current_game = game or self.currentGame
         # Set default game to current game
         defaultGameNode = doc.getElementsByTagName("Default.Game")
         if len(defaultGameNode) > 0:
@@ -275,12 +271,15 @@ class Settings:
             tempNode.appendChild(doc.createTextNode("False"))
         gameConfigNode.appendChild(tempNode)
 
-        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "x64Client")
-        if self.x64ClientEnabled:
-            tempNode.appendChild(doc.createTextNode("True"))
-        else:
-            tempNode.appendChild(doc.createTextNode("False"))
+        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Client")
+        tempNode.appendChild(doc.createTextNode("%s" % (self.client)))
         gameConfigNode.appendChild(tempNode)
+
+        if self.client in ["WIN32", "WIN64"]:
+            tempNode = doc.createElementNS(EMPTY_NAMESPACE, "x64Client")
+            value = "True" if self.client == "WIN64" else "False"
+            tempNode.appendChild(doc.createTextNode(value))
+            gameConfigNode.appendChild(tempNode)
 
         tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Game.Directory")
         tempNode.appendChild(doc.createTextNode("%s" % (self.gameDir)))
