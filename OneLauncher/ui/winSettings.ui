@@ -60,17 +60,14 @@
     <attribute name="title">
      <string>Game</string>
     </attribute>
-    <widget class="QCheckBox" name="chkx64Client">
+    <widget class="QComboBox" name="cboClient">
      <property name="geometry">
       <rect>
-       <x>14</x>
-       <y>79</y>
-       <width>181</width>
-       <height>23</height>
+       <x>151</x>
+       <y>86</y>
+       <width>300</width>
+       <height>33</height>
       </rect>
-     </property>
-     <property name="text">
-      <string>64-bit Client</string>
      </property>
     </widget>
     <widget class="QLabel" name="lblPatchClient">
@@ -100,7 +97,7 @@
      <property name="geometry">
       <rect>
        <x>151</x>
-       <y>42</y>
+       <y>44</y>
        <width>300</width>
        <height>33</height>
       </rect>
@@ -130,6 +127,19 @@
      </property>
      <property name="text">
       <string>Hi-Res Graphics</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblClient">
+     <property name="geometry">
+      <rect>
+       <x>13</x>
+       <y>91</y>
+       <width>131</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Game Client</string>
      </property>
     </widget>
     <widget class="QLabel" name="lblGameDir">
@@ -162,7 +172,7 @@
      <property name="geometry">
       <rect>
        <x>150</x>
-       <y>110</y>
+       <y>150</y>
        <width>301</width>
        <height>25</height>
       </rect>
@@ -288,7 +298,7 @@
      <x>310</x>
      <y>2</y>
      <width>141</width>
-     <height>16</height>
+     <height>17</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout">
