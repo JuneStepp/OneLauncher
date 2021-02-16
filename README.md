@@ -11,7 +11,7 @@ It is actually mainly being developed as a fun learning experience and to show m
 love for these games.
 
 [OneLauncher](https://github.com/JeremyStepp/OneLauncher)
-(c) 2019-2020 Jeremy Stepp
+(c) 2019-2021 Jeremy Stepp
 
 Based on [PyLotRO](https://github.com/nwestfal/pylotro)
 (C) 2009 AJackson
