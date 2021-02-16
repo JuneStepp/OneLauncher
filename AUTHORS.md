@@ -2,7 +2,7 @@ Lord of the Rings Online and Dungeons & Dragons Online
 Launcher for Linux, Mac OS X, and Windows.
 
 [OneLauncher](https://github.com/JuneStepp/OneLauncher)r
-(C) 2019-2020 June Stepp <git@junestepp.me>
+(C) 2019-2021 June Stepp <contact@JuneStepp.me>
     -- Cool people of the Lotro Discord
 
 Based on [PyLotRO](https://github.com/nwestfal/pylotro)O

@@ -15,7 +15,7 @@ LongDescription = (
     "Lord of the Rings Online and Dungeons & Dragons"
     " Online\nLauncher for Linux, Mac, and Windows"
 )
-Copyright = "(C) 2019-2020 June Stepp"
+Copyright = "(C) 2019-2021 June Stepp"
 PyLotROReference = "Based on PyLotRO\n(C) 2009-2010 AJackson"
 CLIReference = "Based on CLI launcher for LOTRO\n(C) 2007-2010 SNy"
 LotROLinuxReference = "Based on LotROLinux\n(C) 2007-2009 AJackson"
