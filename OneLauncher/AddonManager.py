@@ -663,7 +663,7 @@ class AddonManager:
         for entry in files_list:
             try:
                 updated_files_list.append(
-                    os.path.join(folder, entry.split(folder)[1].strip("/"))
+                    os.path.join(folder, entry.split(folder, maxsplit=1)[1].strip("/"))
                 )
             except IndexError:
                 # Anything that was in an invalid folder
@@ -675,6 +675,8 @@ class AddonManager:
         plugins_list = [
             os.path.join(self.data_folder_plugins, entry)
             for entry in updated_files_list
+            # .plugin files should always be in a
+            # folder in the plugins folder and no deeper
             if len(entry.split("/")) == 2 and entry.endswith(".plugin")
         ]
 
