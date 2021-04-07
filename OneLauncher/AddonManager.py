@@ -639,7 +639,7 @@ class AddonManager:
                         self.installMusicZip(
                             addon, interface_id, file, files_list, entry
                         )
-                        == False
+                        is False
                     ):
                         continue
                     else:
@@ -808,7 +808,8 @@ class AddonManager:
 
         return path, folder
 
-    # Scans data folder for invalid folder names like "ui" or "plugins" and moves stuff out of them
+    # Scans data folder for invalid folder names like "ui" or
+    # "plugins" and moves stuff out of them
     def moveAddonsFromInvalidFolder(
         self, data_folder, folder, folders_list=[], folders=""
     ):
