@@ -1308,7 +1308,7 @@ class AddonManager:
                             )[0]
 
                             # Removes plugin and all related files
-                            if os.path.exists(
+                            if plugin_folder and os.path.exists(
                                 self.data_folder_plugins + os.sep + plugin_folder
                             ):
                                 rmtree(
