@@ -30,8 +30,8 @@ import os
 import sys
 import defusedxml.minidom
 import zlib
-from PySide2 import QtCore, QtGui, QtWidgets
-from PySide2.QtUiTools import QUiLoader
+from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6.QtUiTools import QUiLoader
 import qdarkstyle
 from OneLauncher.SettingsWindow import SettingsWindow
 from OneLauncher.AddonManager import AddonManager
@@ -98,6 +98,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.winMain.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.setFixedSize(790, 470)
+
+        # Hack until proper PySide6 support.
+        # See https://github.com/ColinDuquesnoy/QDarkStyleSheet/issues/249
+        import PySide6
+        sys.modules["PySide2"] = PySide6
 
         # Set window style
         self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyside2())
@@ -204,19 +209,19 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def center(self):
         qr = self.frameGeometry()
-        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+        cp = self.app.primaryScreen().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
     # The two functions below handle dragging the window
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
-            self.dragPosition = event.globalPos() - self.frameGeometry().topLeft()
+            self.dragPosition = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
             event.accept()
 
     def mouseMoveEvent(self, event):
         if event.buttons() == QtCore.Qt.LeftButton:
-            self.move(event.globalPos() - self.dragPosition)
+            self.move(event.globalPosition().toPoint() - self.dragPosition)
             event.accept()
 
     def btnAboutSelected(self):
@@ -353,7 +358,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.resetFocus()
 
     def settingsWizardCalled(self):
-        winWizard = SetupWizard(self.valHomeDir, self.osType, self.data_folder)
+        winWizard = SetupWizard(self.valHomeDir, self.osType, self.data_folder, self.app)
         self.hide()
 
         if winWizard.Run() == QtWidgets.QDialog.Accepted:

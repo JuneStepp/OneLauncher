@@ -35,7 +35,7 @@ from shutil import move, rmtree
 
 import os
 import errno
-from PySide2 import QtCore, QtWidgets
+from PySide6 import QtCore, QtWidgets
 import logging
 
 
