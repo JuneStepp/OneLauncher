@@ -55,38 +55,19 @@ A custom WINE prefix can be used by changing the WINE prefix path in the advance
 
 # Development Install
 
-The following items are required to run OneLauncher from source.
-It is recommended to use a virtual environment for development and
-building like venv, conda, or virtualenv.
-
-- Python 3.7+
-- PySide2
-- qdarkstyle
-- keyring
-- defusedxml
-- vkbeautify
-- cryptography
-
-## Building Dependencies
-
-### All Platforms
-- cx-freeze
-- VMWare InstallBuilder (For building installer)
-
-### Windows
-- pywin32
+OneLauncher uses [Poetry](https://python-poetry.org) for dependency management. To get everything setup simply run `poetry install` in the root folder of the OneLauncher source code.
 
 # To run from source
 
-`./RunOneLauncher`
+`poetry run ./RunOneLauncher`
 
 Or.
 
-`python3 RunOneLauncher`
+`poetry run python RunOneLauncher`
 
 # To build
 
-`python3 setup.py build`
+`poetry run python setup.py build`
 
 The project can only be built for the os that the build script is run on,
 so it has to be built on every target os individually. The installers can be
