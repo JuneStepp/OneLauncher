@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "OneLauncher"
+version = "1.2.3"
+description = "The OneLauncher for LOTRO and DDO"
+authors = ["Jeremy Stepp <contact@jeremystepp.me>"]
+license = "GPL-3.0-or-later"
+packages = [{include = "OneLauncher"}]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.10"
+PySide6 = "^6.0.2"
+QDarkStyle = "^3.0.2"
+keyring = "^23.0.1"
+defusedxml = "^0.7.1"
+vkbeautify = "^0.3.0"
+cryptography = "^3.4.7"
+
+[tool.poetry.dev-dependencies]
+cx-Freeze = "^6.5.3"
+black = {version = "^20.8b1", allow-prereleases = true}
+pywin32 = {version = "^300", markers = "os_name == 'nt'"}
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
