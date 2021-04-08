@@ -1,7 +1,7 @@
 from cx_Freeze import setup, Executable
 import OneLauncher.Information as info
 from platform import system
-import PySide2
+import PySide6
 import os.path
 
 
@@ -9,7 +9,7 @@ packages_list = [
     "OneLauncher.Information",
     "keyring.backends",
     "cryptography",
-    "PySide2.QtXml",
+    "PySide6.QtXml",
 ]
 zip_include_packages = []
 
@@ -19,11 +19,13 @@ if platform == "Windows":
     base = "Win32GUI"
     packages_list.append("win32timezone")
 
-    plugins_path = os.path.join(PySide2.__path__[0], "plugins")
+    plugins_path = os.path.join(PySide6.__path__[0], "plugins")
 else:
     base = ""
-    plugins_path = os.path.join(PySide2.__path__[0], "Qt", "plugins")
-    zip_include_packages += ["PySide2", "PySide2.QtXml", "shiboken2", "encodings"]
+    plugins_path = os.path.join(PySide6.__path__[0], "Qt", "plugins")
+    # TODO Can't re-enable until I stop using QDarkSytle PySide6 hack.
+    # See https://github.com/ColinDuquesnoy/QDarkStyleSheet/issues/249
+    # zip_include_packages += ["PySide6", "PySide6.QtXml", "shiboken2", "encodings"]
 
 build_options = {
     "build_exe": "build",

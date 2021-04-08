@@ -26,8 +26,8 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from PySide2 import QtCore, QtWidgets
-from PySide2.QtUiTools import QUiLoader
+from PySide6 import QtCore, QtWidgets
+from PySide6.QtUiTools import QUiLoader
 import os
 import glob
 
@@ -40,7 +40,7 @@ def toString(val):
 
 
 class SetupWizard:
-    def __init__(self, homeDir, osType, data_folder):
+    def __init__(self, homeDir, osType, data_folder, QGuiApplication):
 
         self.homeDir = homeDir
         self.osType = osType
@@ -59,7 +59,7 @@ class SetupWizard:
         self.winSetupWizard.setWindowTitle("Setup Wizard")
 
         qr = self.winSetupWizard.frameGeometry()
-        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+        cp = QGuiApplication.primaryScreen().availableGeometry().center()
         qr.moveCenter(cp)
         self.winSetupWizard.move(qr.topLeft())
 
