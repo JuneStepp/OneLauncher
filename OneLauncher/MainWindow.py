@@ -51,7 +51,6 @@ from OneLauncher.OneLauncherUtils import (
     AuthenticateUser,
     JoinWorldQueue,
     GetText,
-    WebConnection,
 )
 from OneLauncher import Information
 from pkg_resources import parse_version
@@ -99,7 +98,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.setFixedSize(790, 470)
 
-        # Hack until proper PySide6 support.
+        # TODO: Hack until proper PySide6 support.
         # See https://github.com/ColinDuquesnoy/QDarkStyleSheet/issues/249
         import PySide6
         sys.modules["PySide2"] = PySide6
@@ -110,7 +109,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Temporary fix for qdarkstyle dropdown issue.
         # See https://github.com/ColinDuquesnoy/QDarkStyleSheet/issues/200
         self.setStyleSheet(
-            """
+        """
         QComboBox::item:checked {
         height: 12px;
         border: 1px solid #32414B;
@@ -814,13 +813,11 @@ class MainWindow(QtWidgets.QMainWindow):
             messageBox.setStandardButtons(messageBox.Ok)
 
             centered_href = (
-                '<html><head/><body><p align="center"><a href="{url}">'
-                "<span>{name}</span></a></p></body></html>"
-            ).format(url=url, name=name)
+                f'<html><head/><body><p align="center"><a href="{url}">'
+                f'<span>{name}</span></a></p></body></html>'
+            )
             messageBox.setInformativeText(
-                "There is a new version of OneLauncher available: {href}".format(
-                    href=centered_href
-                )
+                f"There is a new version of OneLauncher available! {centered_href}"
             )
             messageBox.setDetailedText(description)
             self.showMessageBoxDetailsAsMarkdown(messageBox)
@@ -831,7 +828,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def showMessageBoxDetailsAsMarkdown(self, messageBox: QtWidgets.QMessageBox):
         """Makes the detailed text of messageBox display in Markdown format"""
         button_box = messageBox.findChild(
-            QtWidgets.QDialogButtonBox, str="qt_msgbox_buttonbox"
+            QtWidgets.QDialogButtonBox, "qt_msgbox_buttonbox"
         )
         for button in button_box.buttons():
             if (
@@ -1209,22 +1206,8 @@ class MainWindowThread(QtCore.QThread):
 
     def GetNews(self):
         try:
-            href = ""
-
-            webservice, post = WebConnection(self.worldQueueConfig.newsStyleSheetURL)
-
-            webservice.putrequest("GET", post)
-            webservice.putheader("Accept-Encoding", "gzip")
-            webservice.endheaders()
-
-            webresp = webservice.getresponse()
-
-            if webresp.getheader("Content-Encoding", "") == "gzip":
-                tempxml = zlib.decompress(webresp.read(), 16 + zlib.MAX_WBITS)
-            else:
-                tempxml = webresp.read()
-
-            doc = defusedxml.minidom.parseString(tempxml, forbid_entities=False)
+            with urllib.request.urlopen(self.worldQueueConfig.newsStyleSheetURL) as xml_feed:
+                doc = defusedxml.minidom.parseString(xml_feed.read(), forbid_entities=False)
 
             nodes = doc.getElementsByTagName("div")
             for node in nodes:
@@ -1265,34 +1248,10 @@ class MainWindowThread(QtCore.QThread):
                     "{lang}", self.settings.language.lower()
                 )
 
-            webservice, post = WebConnection(urlNewsFeed)
-
-            webservice.putrequest("GET", post)
-            webservice.putheader("Accept-Encoding", "gzip")
-            webservice.endheaders()
-
-            webresp = webservice.getresponse()
-
-            if webresp.getheader("Content-Encoding", "") == "gzip":
-                tempxml = zlib.decompress(webresp.read(), 16 + zlib.MAX_WBITS)
-            else:
-                tempxml = webresp.read()
-
-            if len(tempxml) == 0:
-                webservice, post = WebConnection(webresp.getheader("location"))
-                webservice.putrequest("GET", post)
-                webservice.putheader("Accept-Encoding", "gzip")
-                webservice.endheaders()
-                webresp = webservice.getresponse()
-
-                if webresp.getheader("Content-Encoding", "") == "gzip":
-                    tempxml = zlib.decompress(webresp.read(), 16 + zlib.MAX_WBITS)
-                else:
-                    tempxml = webresp.read()
-
             result = HTMLTEMPLATE
 
-            doc = defusedxml.minidom.parseString(tempxml)
+            with urllib.request.urlopen(urlNewsFeed) as xml_feed:
+                doc = defusedxml.minidom.parseString(xml_feed.read())
 
             items = doc.getElementsByTagName("item")
             for item in items:
