@@ -5,6 +5,24 @@ Launcher for Linux, Windows, and Mac OS X
 
 # Changes
 
+1.2.4
+
+    This release has some small improvements and important fixes. Most importantly the certificates needed for logging into LOTRO have been updated and a bug affecting the installation of some plugins has been fixed. Thanks to @mja00 and @gtbX for their code contributions to this update.
+
+        * Support for the Win32 legacy client in the UI
+        * Improved element spacing in the settings window
+        * Updated WINE and DXVK
+        * Added just in case check to stop plugin folder from being accidentally deleted
+        * Minor code style fixes
+        * Fixed installation of plugins with file names that include the plugin's root folder name
+        * Updated to PySide6. This allows OneLauncher to run on LMDE
+        * Setup Poetry for dependency management
+        * Fixed buttons in addon manager that overlapped other elements
+        * Simplified loading of news feeds
+        * Updated the certificates for SSL connections
+
+
+
 1.2.3
 
     This release has some small fixes and improvements. Most notably FSYNC support is added and the first language detected is used by default rather than English. This improves the user experience for those that don't have English installed with their client.
