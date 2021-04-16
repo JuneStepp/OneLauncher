@@ -98,10 +98,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.setFixedSize(790, 470)
 
-        # TODO: Hack until proper PySide6 support.
-        # See https://github.com/ColinDuquesnoy/QDarkStyleSheet/issues/249
-        import PySide6
-        sys.modules["PySide2"] = PySide6
 
         # Set window style
         self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyside2())
