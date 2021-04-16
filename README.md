@@ -67,6 +67,12 @@ Or.
 
 # To build
 
+This command is needed due to a bug when building with cx-freeze and Poetry
+
+`poetry run python -m pip install --force-reinstall pip setuptools wheel importlib-metadata cx-freeze`
+
+This is the actual build command
+
 `poetry run python setup.py build`
 
 The project can only be built for the os that the build script is run on,
