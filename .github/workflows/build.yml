@@ -37,7 +37,7 @@ jobs:
           pip install --upgrade pip
           pip install poetry
       - name: Install dependencies
-        run: poetry install
+        run: poetry install --no-root
       - name: Build
         run: poetry run python setup.py build
       - name: Upload build artifact

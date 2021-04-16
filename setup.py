@@ -23,9 +23,7 @@ if platform == "Windows":
 else:
     base = ""
     plugins_path = os.path.join(PySide6.__path__[0], "Qt", "plugins")
-    # TODO Can't re-enable until I stop using QDarkSytle PySide6 hack.
-    # See https://github.com/ColinDuquesnoy/QDarkStyleSheet/issues/249
-    # zip_include_packages += ["PySide6", "PySide6.QtXml", "shiboken2", "encodings"]
+    zip_include_packages += ["PySide6", "PySide6.QtXml", "shiboken6", "encodings"]
 
 build_options = {
     "build_exe": "build",
@@ -42,7 +40,7 @@ build_options = {
 }
 
 executables = [
-    Executable("RunOneLauncher", base=base, targetName="OneLauncher")
+    Executable("RunOneLauncher", base=base, target_name="OneLauncher")
 ]
 
 setup(

@@ -55,7 +55,7 @@ A custom WINE prefix can be used by changing the WINE prefix path in the advance
 
 # Development Install
 
-OneLauncher uses [Poetry](https://python-poetry.org) for dependency management. To get everything setup simply run `poetry install` in the root folder of the OneLauncher source code.
+OneLauncher uses [Poetry](https://python-poetry.org) for dependency management. To get everything setup simply run `poetry install --no-root` in the root folder of the OneLauncher source code.
 
 # To run from source
 
