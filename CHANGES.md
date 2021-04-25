@@ -5,6 +5,13 @@ Launcher for Linux, Windows, and Mac OS X
 
 # Changes
 
+1.2.5
+
+    This is a quick hotfix for the in-game store with the 64-bit client on Windows. The WINE version is also updated for Mac and Linux users.
+
+        * Fixed in-game store issue on Windows builds with the 64-bit client
+        * Updated WINE
+
 1.2.4
 
     This release has some small improvements and important fixes. Most importantly the certificates needed for logging into LOTRO have been updated and a bug affecting the installation of some plugins has been fixed. Thanks to @mja00 and @gtbX for their code contributions to this update.
