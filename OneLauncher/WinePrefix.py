@@ -42,7 +42,7 @@ import logging
 class BuiltInPrefix:
     # To use Proton, replace link with Proton build and uncomment 
     # `self.documents_symlinker()` in wine_setup
-    WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/6.4/wine-6.4-staging-tkg-amd64.tar.xz"
+    WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/6.7/wine-6.7-staging-tkg-amd64.tar.xz"
     DXVK_URL = (
         "https://github.com/doitsujin/dxvk/releases/download/v1.8.1/dxvk-1.8.1.tar.gz"
     )
