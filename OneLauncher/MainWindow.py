@@ -29,7 +29,6 @@
 import os
 import sys
 import defusedxml.minidom
-import zlib
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 import qdarkstyle
