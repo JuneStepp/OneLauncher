@@ -5,6 +5,15 @@ Launcher for Linux, Windows, and Mac OS X
 
 # Changes
 
+1.2.6
+
+    This release implements some important fixes for the addon manager and adds the --language launch argument.
+
+        * Removed unused import
+        * Re-enabled table headers that got automatically disabled in addon manager
+        * Fixed addon manager UI breaking when OS text size is changed
+        * Added launch argument to set the game client language. This was requested by @wduda for easier plugin testing
+
 1.2.5
 
     This is a quick hotfix for the in-game store with the 64-bit client on Windows. The WINE version is also updated for Mac and Linux users.
