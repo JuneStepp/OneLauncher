@@ -44,6 +44,7 @@ installs are met.
 ## Launch Arguments
 
 - `--game`: Specifies starting game. Accepted values are `LOTRO`, `DDO`, `LOTRO.Test`, and `DDO.Test`
+- `--language`: Specifies game client language. Accepted values are `EN`, `DE`, and `FR`
 
 ## Separate Settings Folders for Default and Preview Game Versions
 
