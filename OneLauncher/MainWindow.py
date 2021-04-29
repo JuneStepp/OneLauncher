@@ -28,6 +28,7 @@
 ###########################################################################
 import os
 import sys
+from typing import List
 import defusedxml.minidom
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
@@ -842,6 +843,21 @@ class MainWindow(QtWidgets.QMainWindow):
                 button.click()
                 return
 
+    def getLaunchArgument(self, key: str, accepted_values: List[str]):
+        launch_arguments = sys.argv
+        try:
+            modifier_index = launch_arguments.index(key)
+        except ValueError:
+            pass
+        else:
+            try:
+                value = launch_arguments[modifier_index + 1]
+            except IndexError:
+                pass
+            else:
+                if value in accepted_values:
+                    return value
+
     def InitialSetup(self, first_setup=False):
         self.gameDirExists = False
         self.winMain.cboAccount.setEnabled(False)
@@ -869,19 +885,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.checkForUpdate()
 
             # Launch into specific game if specified in launch argument
-            launch_arguments = sys.argv
-            try:
-                game_modifier_index = launch_arguments.index("--game")
-            except ValueError:
-                pass
-            else:
-                try:
-                    game = launch_arguments[game_modifier_index + 1]
-                except IndexError:
-                    pass
-                else:
-                    if game in ["LOTRO", "LOTRO.Test", "DDO", "DDO.Test"]:
-                        self.currentGame = game
+            game = self.getLaunchArgument("--game",
+                    ["LOTRO", "LOTRO.Test", "DDO", "DDO.Test"])
+            if game:
+                self.currentGame = game
 
         checkForCertificates(self.logger)
 
@@ -927,6 +934,14 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.winMain.chkSavePassword.setChecked(False)
 
                     self.setCurrentAccountPassword()
+
+        # Set specific client language if specified in launch argument
+        # This is an advanced feature, so there are no checks to make
+        # sure the specified language is installed. The game will
+        # give an error if that is the case anyways.
+        language = self.getLaunchArgument("--language", ["EN", "DE", "FR"])
+        if language:
+            self.settings.language = language
 
         self.gameType.GetSettings(self.settings.currentGame)
 
