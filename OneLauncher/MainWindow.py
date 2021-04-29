@@ -101,6 +101,12 @@ class MainWindow(QtWidgets.QMainWindow):
         # Set window style
         self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyside2())
 
+        # Set font size explicitly to stop OS text size options from
+        # breaking the UI.
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.app.setFont(font)
+
         # Temporary fix for qdarkstyle dropdown issue.
         # See https://github.com/ColinDuquesnoy/QDarkStyleSheet/issues/200
         self.setStyleSheet(
