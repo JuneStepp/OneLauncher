@@ -264,6 +264,10 @@ class GLSDataCenter:
                             urlChatServer = world.firstChild.nodeValue
                         elif world.nodeName == "StatusServerUrl":
                             urlStatusServer = world.firstChild.nodeValue
+
+                            # Fix for legendary servers always returning nothing for status
+                            urlStatusServer = (f"{urlGLSDataCenterService.rsplit('/Service.asmx', maxsplit=1)[0]}/StatusServer.aspx?s="
+                                                f"{urlStatusServer.rsplit('StatusServer.aspx?s=', maxsplit=1)[1]}")
                     self.worldList.append(World(name, urlChatServer, urlStatusServer))
 
                 self.loadSuccess = True
