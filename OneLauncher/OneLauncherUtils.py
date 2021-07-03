@@ -74,10 +74,12 @@ def checkForCertificates(logger):
 
     global onelauncher_ssl_ctx
     onelauncher_ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+    onelauncher_ssl_ctx.set_ciphers('DEFAULT@SECLEVEL=1')
     if certfile:
         onelauncher_ssl_ctx.verify_mode = ssl.CERT_REQUIRED
         onelauncher_ssl_ctx.load_verify_locations(certfile)
         logger.info("SSL certificate verification enabled!")
+    return onelauncher_ssl_ctx
 
 
 def WebConnection(urlIn):
