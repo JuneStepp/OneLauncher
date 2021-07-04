@@ -333,11 +333,10 @@ class MainWindow(QtWidgets.QMainWindow):
             )
             self.resetFocus()
             self.InitialSetup()
+        elif winSettings.getSetupWizardClicked():
+            self.settingsWizardCalled()
         else:
-            if winSettings.getSetupWizardClicked():
-                self.settingsWizardCalled()
-            else:
-                self.resetFocus()
+            self.resetFocus()
 
     def btnAddonManagerSelected(self):
         winAddonManager = AddonManager(
@@ -919,21 +918,20 @@ class MainWindow(QtWidgets.QMainWindow):
                 return False
             else:
                 self.AddLog("[E01] Error loading settings")
+        elif self.settings.focusAccount:
+            self.winMain.cboAccount.setFocus()
+            self.winMain.chkSaveSettings.setChecked(False)
         else:
-            if self.settings.focusAccount:
-                self.winMain.cboAccount.setFocus()
-                self.winMain.chkSaveSettings.setChecked(False)
-            else:
-                self.loadAllSavedAccounts()
-                if self.settings.accountsDictionary:
-                    self.winMain.cboAccount.setCurrentText(
-                        list(self.settings.accountsDictionary.keys())[-1]
-                    )
-                    self.winMain.chkSaveSettings.setChecked(True)
+            self.loadAllSavedAccounts()
+            if self.settings.accountsDictionary:
+                self.winMain.cboAccount.setCurrentText(
+                    list(self.settings.accountsDictionary.keys())[-1]
+                )
+                self.winMain.chkSaveSettings.setChecked(True)
 
-                    self.winMain.chkSavePassword.setChecked(False)
+                self.winMain.chkSavePassword.setChecked(False)
 
-                    self.setCurrentAccountPassword()
+                self.setCurrentAccountPassword()
 
         # Set specific client language if specified in launch argument
         # This is an advanced feature, so there are no checks to make
@@ -1068,14 +1066,13 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.settings.focusAccount:
             self.winMain.cboAccount.setFocus()
             self.winMain.chkSaveSettings.setChecked(False)
-        else:
-            if self.settings.accountsDictionary:
-                self.winMain.cboAccount.setCurrentText(
-                    list(self.settings.accountsDictionary.keys())[-1]
-                )
-                self.winMain.chkSaveSettings.setChecked(True)
-                if not self.winMain.chkSavePassword.isChecked():
-                    self.winMain.txtPassword.setFocus()
+        elif self.settings.accountsDictionary:
+            self.winMain.cboAccount.setCurrentText(
+                list(self.settings.accountsDictionary.keys())[-1]
+            )
+            self.winMain.chkSaveSettings.setChecked(True)
+            if not self.winMain.chkSavePassword.isChecked():
+                self.winMain.txtPassword.setFocus()
 
     def GetNews(self, news):
         self.winMain.txtFeed.setHtml(news)
