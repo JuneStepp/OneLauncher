@@ -196,6 +196,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.configFile = ""
         self.currentGame = None
 
+        self.configureKeyring()
+
         self.InitialSetup(first_setup=True)
 
     def run(self):
@@ -224,6 +226,21 @@ class MainWindow(QtWidgets.QMainWindow):
         if event.buttons() == QtCore.Qt.LeftButton:
             self.move(event.globalPosition().toPoint() - self.dragPosition)
             event.accept()
+
+    def configureKeyring(self):
+        """
+        Sets the propper keyring backend for the used OS. This isn't
+        automatically detected correctly with Nuitka
+        """
+        if self.osType.usingWindows:
+            from keyring.backends import Windows
+            keyring.set_keyring(Windows.WinVaultKeyring())
+        elif self.osType.usingMac:
+            from keyring.backends import OS_X
+            keyring.set_keyring(OS_X.Keyring())
+        else:
+            from keyring.backends import SecretService
+            keyring.set_keyring(SecretService.Keyring())
 
     def btnAboutSelected(self):
         ui_file = QtCore.QFile(os.path.join(self.data_folder, "ui", "winAbout.ui"))
