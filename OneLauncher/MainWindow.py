@@ -907,7 +907,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if game:
                 self.currentGame = game
 
-        checkForCertificates(self.logger)
+        sslContext = checkForCertificates(self.logger)
 
         # Set news feed to say "Loading ..." until it is replaced by the news.
         self.winMain.txtFeed.setHtml(
@@ -1056,6 +1056,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ReturnGLSDataCenter,
             self.ReturnWorldQueueConfig,
             self.ReturnNews,
+            sslContext,
         )
         self.configThread.start()
 
@@ -1149,6 +1150,7 @@ class MainWindowThread(QtCore.QThread):
         ReturnGLSDataCenter,
         ReturnWorldQueueConfig,
         ReturnNews,
+        sslContext,
     ):
 
         self.settings = settings
@@ -1162,6 +1164,7 @@ class MainWindowThread(QtCore.QThread):
         self.ReturnGLSDataCenter = ReturnGLSDataCenter
         self.ReturnWorldQueueConfig = ReturnWorldQueueConfig
         self.ReturnNews = ReturnNews
+        self.sslContext = sslContext
 
         self.logger = logging.getLogger("OneLauncher")
 
@@ -1239,7 +1242,7 @@ class MainWindowThread(QtCore.QThread):
 
     def GetNews(self):
         try:
-            with urllib.request.urlopen(self.worldQueueConfig.newsStyleSheetURL) as xml_feed:
+            with urllib.request.urlopen(self.worldQueueConfig.newsStyleSheetURL, context=self.sslContext) as xml_feed:
                 doc = defusedxml.minidom.parseString(xml_feed.read(), forbid_entities=False)
 
             nodes = doc.getElementsByTagName("div")
@@ -1283,7 +1286,7 @@ class MainWindowThread(QtCore.QThread):
 
             result = HTMLTEMPLATE
 
-            with urllib.request.urlopen(urlNewsFeed) as xml_feed:
+            with urllib.request.urlopen(urlNewsFeed, context=self.sslContext) as xml_feed:
                 doc = defusedxml.minidom.parseString(xml_feed.read())
 
             items = doc.getElementsByTagName("item")
