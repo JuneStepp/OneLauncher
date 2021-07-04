@@ -61,7 +61,7 @@ def QByteArray2str(s):
     return str(s, encoding="utf8", errors="replace")
 
 
-onelauncher_ssl_ctx = None
+sslContext = None
 
 
 def checkForCertificates(logger):
@@ -72,12 +72,14 @@ def checkForCertificates(logger):
         logger.error("certificate file expected at '%s' but not found!" % certfile)
         certfile = None
 
-    global onelauncher_ssl_ctx
-    onelauncher_ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+    global sslContext
+    sslContext = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+    sslContext.set_ciphers('DEFAULT@SECLEVEL=1')
     if certfile:
-        onelauncher_ssl_ctx.verify_mode = ssl.CERT_REQUIRED
-        onelauncher_ssl_ctx.load_verify_locations(certfile)
+        sslContext.verify_mode = ssl.CERT_REQUIRED
+        sslContext.load_verify_locations(certfile)
         logger.info("SSL certificate verification enabled!")
+    return sslContext
 
 
 def WebConnection(urlIn):
@@ -89,7 +91,7 @@ def WebConnection(urlIn):
         url = urlIn[8:].split("/")[0]
         post = urlIn[8:].replace(url, "")
         return (
-            HTTPSConnection(url, context=onelauncher_ssl_ctx),  # nosec
+            HTTPSConnection(url, context=sslContext),  # nosec
             post,
         )
 
