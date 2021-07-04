@@ -126,8 +126,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # center window on screen
         self.center()
 
-        self.dragPos = self.pos()
-
         # Sets some widgets to WA_NoMousePropagation to avoid window dragging issues
         mouse_ignore_list = [
             self.winMain.btnAbout,
@@ -216,15 +214,10 @@ class MainWindow(QtWidgets.QMainWindow):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
-    # The two functions below handle dragging the window
     def mousePressEvent(self, event):
+        """Lets the user drag the window when left-click holding it"""
         if event.button() == QtCore.Qt.LeftButton:
-            self.dragPosition = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
-            event.accept()
-
-    def mouseMoveEvent(self, event):
-        if event.buttons() == QtCore.Qt.LeftButton:
-            self.move(event.globalPosition().toPoint() - self.dragPosition)
+            self.windowHandle().startSystemMove()
             event.accept()
 
     def configureKeyring(self):
