@@ -68,6 +68,7 @@ class MainWindow(QtWidgets.QMainWindow):
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
     app = QtWidgets.QApplication(sys.argv)
 
+    # Make signals for communicating with MainWindowThread
     ReturnLog = QtCore.Signal(str)
     ReturnBaseConfig = QtCore.Signal(BaseConfig)
     ReturnGLSDataCenter = QtCore.Signal(BaseConfig)
@@ -76,14 +77,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self):
         super().__init__()
-        if getattr(sys, "frozen", False):
-            # The application is frozen
-            self.data_folder = os.path.dirname(sys.executable)
-        else:
-            self.data_folder = os.path.dirname(__file__)
 
-        # Set default timeout used by urllib
-        socket.setdefaulttimeout(6)
+        self.data_folder = self.getDataFolder()
 
         ui_file = QtCore.QFile(os.path.join(self.data_folder, "ui", "winMain.ui"))
 
@@ -96,6 +91,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.winMain.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.setFixedSize(790, 470)
+        self.centerWindow()
 
         # Set font size explicitly to stop OS text size options from
         # breaking the UI.
@@ -103,65 +99,34 @@ class MainWindow(QtWidgets.QMainWindow):
         font.setPointSize(10)
         self.app.setFont(font)
 
-        # center window on screen
-        self.center()
-
-        # Sets some widgets to WA_NoMousePropagation to avoid window dragging issues
-        mouse_ignore_list = [
-            self.winMain.btnAbout,
-            self.winMain.btnExit,
-            self.winMain.btnLogin,
-            self.winMain.btnMinimize,
-            self.winMain.btnOptions,
-            self.winMain.btnAddonManager,
-            self.winMain.btnSwitchGame,
-            self.winMain.cboWorld,
-            self.winMain.chkSaveSettings,
-        ]
-        for widget in mouse_ignore_list:
-            widget.setAttribute(QtCore.Qt.WA_NoMousePropagation)
-
-        # Connect signals to functions
-        self.winMain.btnLogin.clicked.connect(self.btnLoginClicked)
-        self.winMain.cboAccount.textActivated.connect(self.cboAccountChanged)
-        self.winMain.txtPassword.returnPressed.connect(self.txtPasswordEnter)
-        self.winMain.btnExit.clicked.connect(self.close)
-        self.winMain.btnMinimize.clicked.connect(self.showMinimized)
-        self.winMain.btnAbout.clicked.connect(self.btnAboutSelected)
-        self.winMain.btnLoginMenu = QtWidgets.QMenu()
-        self.winMain.btnLoginMenu.addAction(self.winMain.actionPatch)
-        self.winMain.actionPatch.triggered.connect(self.actionPatchSelected)
-        self.winMain.btnLogin.setMenu(self.winMain.btnLoginMenu)
+        # Set icons for settings and add-on manager buttons
         self.winMain.btnOptions.setIcon(
             QtGui.QIcon(os.path.join(self.data_folder, "images", "SettingsGear.png"))
         )
-        self.winMain.btnOptions.clicked.connect(self.btnOptionsSelected)
         self.winMain.btnAddonManager.setIcon(
             QtGui.QIcon(os.path.join(self.data_folder, "images", "AddonManager.png"))
         )
-        self.winMain.btnAddonManager.clicked.connect(self.btnAddonManagerSelected)
-        self.winMain.btnSwitchGame.clicked.connect(self.btnSwitchGameClicked)
-        self.winMain.btnSwitchGameMenu = QtWidgets.QMenu()
-        self.winMain.btnSwitchGameMenu.addAction(self.winMain.actionLOTROTest)
-        self.winMain.actionLOTROTest.triggered.connect(self.SwitchToLOTROTest)
-        self.winMain.btnSwitchGameMenu.addAction(self.winMain.actionDDOTest)
-        self.winMain.actionDDOTest.triggered.connect(self.SwitchToDDOTest)
-        self.winMain.btnSwitchGameMenu.addAction(self.winMain.actionLOTRO)
-        self.winMain.actionLOTRO.triggered.connect(self.SwitchToLOTRO)
-        self.winMain.btnSwitchGameMenu.addAction(self.winMain.actionDDO)
-        self.winMain.actionDDO.triggered.connect(self.SwitchToDDO)
-        self.winMain.btnSwitchGame.setMenu(self.winMain.btnSwitchGameMenu)
 
-        self.ReturnLog = self.ReturnLog
-        self.ReturnLog.connect(self.AddLog)
-        self.ReturnBaseConfig = self.ReturnBaseConfig
-        self.ReturnBaseConfig.connect(self.GetBaseConfig)
-        self.ReturnGLSDataCenter = self.ReturnGLSDataCenter
-        self.ReturnGLSDataCenter.connect(self.GetGLSDataCenter)
-        self.ReturnWorldQueueConfig = self.ReturnWorldQueueConfig
-        self.ReturnWorldQueueConfig.connect(self.GetWorldQueueConfig)
-        self.ReturnNews = self.ReturnNews
-        self.ReturnNews.connect(self.GetNews)
+        # Connect button clicked signals to appropriate functions
+        self.winMain.btnOptions.clicked.connect(self.btnOptionsSelected)
+        self.winMain.btnAddonManager.clicked.connect(self.btnAddonManagerSelected)
+        self.winMain.btnExit.clicked.connect(self.close)
+        self.winMain.btnMinimize.clicked.connect(self.showMinimized)
+        self.winMain.btnAbout.clicked.connect(self.btnAboutSelected)
+
+        # Setup signals and context menus for other buttons
+        self.setupBtnLoginMenu()
+        self.initializeBtnSwitchGame()
+
+        # Accounts combo box item selection signal
+        self.winMain.cboAccount.textActivated.connect(self.cboAccountChanged)
+
+        # Pressing enter in password box acts like pressing login button
+        self.winMain.txtPassword.returnPressed.connect(self.btnLoginClicked)
+
+        self.connectMainWindowThreadSignals()
+
+        self.setupMousePropagation()
 
         # Disable login and save settings buttons
         self.winMain.btnLogin.setEnabled(False)
@@ -176,7 +141,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.configureKeyring()
 
+        # Set default timeout used by urllib
+        socket.setdefaulttimeout(6)
+
         self.InitialSetup(first_setup=True)
+
+    def getDataFolder(self):
+        """Returns location equivalent to OneLauncher folder of source code."""
+        if getattr(sys, "frozen", False):
+            # Data location for frozen programs
+            return os.path.dirname(sys.executable)
+        else:
+            return os.path.dirname(__file__)
 
     def run(self):
         self.show()
@@ -188,7 +164,7 @@ class MainWindow(QtWidgets.QMainWindow):
         elif self.winMain.txtPassword.text() == "":
             self.winMain.txtPassword.setFocus()
 
-    def center(self):
+    def centerWindow(self):
         qr = self.frameGeometry()
         cp = self.app.primaryScreen().availableGeometry().center()
         qr.moveCenter(cp)
@@ -199,6 +175,124 @@ class MainWindow(QtWidgets.QMainWindow):
         if event.button() == QtCore.Qt.LeftButton:
             self.windowHandle().startSystemMove()
             event.accept()
+
+    def setupMousePropagation(self):
+        """Sets some widgets to WA_NoMousePropagation to avoid window dragging issues"""
+        mouse_ignore_list = [
+            self.winMain.btnAbout,
+            self.winMain.btnExit,
+            self.winMain.btnLogin,
+            self.winMain.btnMinimize,
+            self.winMain.btnOptions,
+            self.winMain.btnAddonManager,
+            self.winMain.btnSwitchGame,
+            self.winMain.cboWorld,
+            self.winMain.chkSaveSettings,
+        ]
+        for widget in mouse_ignore_list:
+            widget.setAttribute(QtCore.Qt.WA_NoMousePropagation)
+
+    def setupBtnLoginMenu(self):
+        """Sets up signals and context menu for btnLoginMenu"""
+        self.winMain.btnLogin.clicked.connect(self.btnLoginClicked)
+        
+        # Setup context menu
+        self.winMain.btnLoginMenu = QtWidgets.QMenu()
+        self.winMain.btnLoginMenu.addAction(self.winMain.actionPatch)
+        self.winMain.actionPatch.triggered.connect(self.actionPatchSelected)
+        self.winMain.btnLogin.setMenu(self.winMain.btnLoginMenu)
+
+    def initializeBtnSwitchGame(self):
+        """Sets up signals and actions for btnSwitchGame.
+        
+        It needs to later be configured for the current game with
+        `self.configureBtnSwitchGameForGame`.
+        """
+        self.winMain.btnSwitchGame.clicked.connect(self.btnSwitchGameClicked)
+
+        # Initialize context menu
+        self.winMain.btnSwitchGameMenu = QtWidgets.QMenu()
+        self.winMain.btnSwitchGameMenu.addAction(self.winMain.actionLOTROTest)
+        self.winMain.actionLOTROTest.triggered.connect(self.SwitchToLOTROTest)
+        self.winMain.btnSwitchGameMenu.addAction(self.winMain.actionDDOTest)
+        self.winMain.actionDDOTest.triggered.connect(self.SwitchToDDOTest)
+        self.winMain.btnSwitchGameMenu.addAction(self.winMain.actionLOTRO)
+        self.winMain.actionLOTRO.triggered.connect(self.SwitchToLOTRO)
+        self.winMain.btnSwitchGameMenu.addAction(self.winMain.actionDDO)
+        self.winMain.actionDDO.triggered.connect(self.SwitchToDDO)
+        self.winMain.btnSwitchGame.setMenu(self.winMain.btnSwitchGameMenu)
+
+    def configureBtnSwitchGameForGame(self, game):
+        """Set icon and dropdown options of switch game button according to game"""
+        if game == "DDO":
+            self.winMain.btnSwitchGame.setIcon(
+                QtGui.QIcon(
+                    os.path.join(self.data_folder, "images", "LOTROSwitchIcon.png")
+                )
+            )
+            self.winMain.actionLOTROTest.setEnabled(False)
+            self.winMain.actionLOTROTest.setVisible(False)
+            self.winMain.actionDDOTest.setEnabled(True)
+            self.winMain.actionDDOTest.setVisible(True)
+            self.winMain.actionLOTRO.setEnabled(False)
+            self.winMain.actionLOTRO.setVisible(False)
+            self.winMain.actionDDO.setEnabled(False)
+            self.winMain.actionDDO.setVisible(False)
+        elif game == "DDO.Test":
+            self.winMain.btnSwitchGame.setIcon(
+                QtGui.QIcon(
+                    os.path.join(self.data_folder, "images", "LOTROSwitchIcon.png")
+                )
+            )
+            self.winMain.actionLOTROTest.setEnabled(False)
+            self.winMain.actionLOTROTest.setVisible(False)
+            self.winMain.actionDDOTest.setEnabled(False)
+            self.winMain.actionDDOTest.setVisible(False)
+            self.winMain.actionLOTRO.setEnabled(False)
+            self.winMain.actionLOTRO.setVisible(False)
+            self.winMain.actionDDO.setEnabled(True)
+            self.winMain.actionDDO.setVisible(True)
+        elif game == "LOTRO.Test":
+            self.winMain.btnSwitchGame.setIcon(
+                QtGui.QIcon(
+                    os.path.join(self.data_folder, "images", "DDOSwitchIcon.png")
+                )
+            )
+            self.winMain.actionLOTROTest.setEnabled(False)
+            self.winMain.actionLOTROTest.setVisible(False)
+            self.winMain.actionDDOTest.setEnabled(False)
+            self.winMain.actionDDOTest.setVisible(False)
+            self.winMain.actionLOTRO.setEnabled(True)
+            self.winMain.actionLOTRO.setVisible(True)
+            self.winMain.actionDDO.setEnabled(False)
+            self.winMain.actionDDO.setVisible(False)
+        else:
+            self.winMain.btnSwitchGame.setIcon(
+                QtGui.QIcon(
+                    os.path.join(self.data_folder, "images", "DDOSwitchIcon.png")
+                )
+            )
+            self.winMain.actionDDOTest.setEnabled(False)
+            self.winMain.actionDDOTest.setVisible(False)
+            self.winMain.actionLOTROTest.setEnabled(True)
+            self.winMain.actionLOTROTest.setVisible(True)
+            self.winMain.actionLOTRO.setEnabled(False)
+            self.winMain.actionLOTRO.setVisible(False)
+            self.winMain.actionDDO.setEnabled(False)
+            self.winMain.actionDDO.setVisible(False)
+
+    def connectMainWindowThreadSignals(self):
+        """Connects function signals for communicating with MainWindowThread."""
+        self.ReturnLog = self.ReturnLog
+        self.ReturnLog.connect(self.AddLog)
+        self.ReturnBaseConfig = self.ReturnBaseConfig
+        self.ReturnBaseConfig.connect(self.GetBaseConfig)
+        self.ReturnGLSDataCenter = self.ReturnGLSDataCenter
+        self.ReturnGLSDataCenter.connect(self.GetGLSDataCenter)
+        self.ReturnWorldQueueConfig = self.ReturnWorldQueueConfig
+        self.ReturnWorldQueueConfig.connect(self.GetWorldQueueConfig)
+        self.ReturnNews = self.ReturnNews
+        self.ReturnNews.connect(self.GetNews)
 
     def configureKeyring(self):
         """
@@ -408,6 +502,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.AuthAccount()
 
     def cboAccountChanged(self):
+        """Sets saved information for selected account."""
         self.setCurrentAccountWorld()
         self.setCurrentAccountPassword()
         self.winMain.txtPassword.setFocus()
@@ -446,9 +541,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 )
         else:
             self.winMain.txtPassword.setFocus()
-
-    def txtPasswordEnter(self):
-        self.btnLoginClicked()
 
     def AuthAccount(self):
         self.AddLog("Checking account details...")
@@ -946,63 +1038,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle(self.gameType.title)
         self.setWindowIcon(QtGui.QIcon(iconFile))
 
-        # Set icon and dropdown options of switch game button according to game running
-        if self.settings.currentGame == "DDO":
-            self.winMain.btnSwitchGame.setIcon(
-                QtGui.QIcon(
-                    os.path.join(self.data_folder, "images", "LOTROSwitchIcon.png")
-                )
-            )
-            self.winMain.actionLOTROTest.setEnabled(False)
-            self.winMain.actionLOTROTest.setVisible(False)
-            self.winMain.actionDDOTest.setEnabled(True)
-            self.winMain.actionDDOTest.setVisible(True)
-            self.winMain.actionLOTRO.setEnabled(False)
-            self.winMain.actionLOTRO.setVisible(False)
-            self.winMain.actionDDO.setEnabled(False)
-            self.winMain.actionDDO.setVisible(False)
-        elif self.settings.currentGame == "DDO.Test":
-            self.winMain.btnSwitchGame.setIcon(
-                QtGui.QIcon(
-                    os.path.join(self.data_folder, "images", "LOTROSwitchIcon.png")
-                )
-            )
-            self.winMain.actionLOTROTest.setEnabled(False)
-            self.winMain.actionLOTROTest.setVisible(False)
-            self.winMain.actionDDOTest.setEnabled(False)
-            self.winMain.actionDDOTest.setVisible(False)
-            self.winMain.actionLOTRO.setEnabled(False)
-            self.winMain.actionLOTRO.setVisible(False)
-            self.winMain.actionDDO.setEnabled(True)
-            self.winMain.actionDDO.setVisible(True)
-        elif self.settings.currentGame == "LOTRO.Test":
-            self.winMain.btnSwitchGame.setIcon(
-                QtGui.QIcon(
-                    os.path.join(self.data_folder, "images", "DDOSwitchIcon.png")
-                )
-            )
-            self.winMain.actionLOTROTest.setEnabled(False)
-            self.winMain.actionLOTROTest.setVisible(False)
-            self.winMain.actionDDOTest.setEnabled(False)
-            self.winMain.actionDDOTest.setVisible(False)
-            self.winMain.actionLOTRO.setEnabled(True)
-            self.winMain.actionLOTRO.setVisible(True)
-            self.winMain.actionDDO.setEnabled(False)
-            self.winMain.actionDDO.setVisible(False)
-        else:
-            self.winMain.btnSwitchGame.setIcon(
-                QtGui.QIcon(
-                    os.path.join(self.data_folder, "images", "DDOSwitchIcon.png")
-                )
-            )
-            self.winMain.actionDDOTest.setEnabled(False)
-            self.winMain.actionDDOTest.setVisible(False)
-            self.winMain.actionLOTROTest.setEnabled(True)
-            self.winMain.actionLOTROTest.setVisible(True)
-            self.winMain.actionLOTRO.setEnabled(False)
-            self.winMain.actionLOTRO.setVisible(False)
-            self.winMain.actionDDO.setEnabled(False)
-            self.winMain.actionDDO.setVisible(False)
+        # Configure btnSwitchGame for current game
+        self.configureBtnSwitchGameForGame(self.settings.currentGame)
 
         self.configFile = "%s%s" % (
             self.settings.gameDir,
