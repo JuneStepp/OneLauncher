@@ -204,8 +204,11 @@ class SetupWizard:
                                 )
 
     def trawl(self, path, directory):
+        # Needed for directories with glob patterns in their name
+        directory = glob.escape(directory)
+        
         for name in glob.glob(directory + os.sep + "*"):
-            if name.lower().find(self.client) >= 0:
+            if self.client in name.lower():
                 dirName = os.path.dirname(name.replace(path + os.sep, ""))
 
                 if self.client == "dndclient.exe":
