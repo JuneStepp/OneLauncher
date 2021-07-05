@@ -32,7 +32,6 @@ from typing import List
 import defusedxml.minidom
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
-import qdarkstyle
 from OneLauncher.SettingsWindow import SettingsWindow
 from OneLauncher.AddonManager import AddonManager
 from OneLauncher.SetupWizard import SetupWizard
@@ -98,30 +97,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.setFixedSize(790, 470)
 
-
-        # Set window style
-        self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyside2())
-
         # Set font size explicitly to stop OS text size options from
         # breaking the UI.
         font = QtGui.QFont()
         font.setPointSize(10)
         self.app.setFont(font)
-
-        # Temporary fix for qdarkstyle dropdown issue.
-        # See https://github.com/ColinDuquesnoy/QDarkStyleSheet/issues/200
-        self.setStyleSheet(
-        """
-        QComboBox::item:checked {
-        height: 12px;
-        border: 1px solid #32414B;
-        margin-top: 0px;
-        margin-bottom: 0px;
-        padding: 4px;
-        padding-left: 0px;
-        }
-        """
-        )
 
         # center window on screen
         self.center()
