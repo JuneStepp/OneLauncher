@@ -203,7 +203,10 @@ class SetupWizard:
                                     ),
                                 )
 
-    def trawl(self, path, directory):
+    def trawl(self, path, directory, search_depth=5):
+        if search_depth <= 0:
+            return
+        
         # Needed for directories with glob patterns in their name
         directory = glob.escape(directory)
         
@@ -237,7 +240,7 @@ class SetupWizard:
             if os.path.isdir(name) and not name.upper().endswith(
                 os.sep + "BACKUP"
             ):
-                self.trawl(path, name)
+                self.trawl(path, name, search_depth=search_depth-1)
 
     def getGame(self):
         if self.winSetupWizard.lstLOTRO.currentItem():
