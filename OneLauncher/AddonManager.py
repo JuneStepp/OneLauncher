@@ -85,12 +85,14 @@ class AddonManager:
         data_folder,
         gameDocumentsDir,
         startupScripts,
+        icon_font,
     ):
         self.settingsDir = settingsDir
         self.currentGame = currentGame
         self.parent = parent
         self.logger = logging.getLogger("OneLauncher")
         self.startupScripts = startupScripts
+        self.icon_font = icon_font
 
         ui_file = QtCore.QFile(os.path.join(data_folder, "ui", "winAddonManager.ui"))
 
@@ -185,14 +187,16 @@ class AddonManager:
             self.actionDisableStartupScriptSelected
         )
 
-        self.winAddonManager.btnCheckForUpdates.setIcon(
-            QtGui.QIcon(os.path.join(data_folder, "images", "refresh.png"))
-        )
+        self.winAddonManager.btnCheckForUpdates.setFont(self.icon_font)
+        self.winAddonManager.btnCheckForUpdates.setText("\uf2f1")
         self.winAddonManager.btnCheckForUpdates.pressed.connect(self.checkForUpdates)
         self.winAddonManager.btnUpdateAll.pressed.connect(self.updateAll)
 
         self.winAddonManager.btnAddons.setMenu(self.winAddonManager.btnAddonsMenu)
         self.winAddonManager.btnAddons.clicked.connect(self.btnAddonsClicked)
+        self.winAddonManager.btnAddons.setFont(self.icon_font)
+        self.winAddonManager.btnAddons.setText("\uf068")
+        
         self.winAddonManager.tabWidget.currentChanged.connect(
             self.tabWidgetIndexChanged
         )
@@ -1449,13 +1453,13 @@ class AddonManager:
 
     def tabWidgetIndexChanged(self, index):
         if index == 0:
-            self.winAddonManager.btnAddons.setText("-")
+            self.winAddonManager.btnAddons.setText("\uf068")
             self.winAddonManager.btnAddons.setToolTip("Remove addons")
 
             index_installed = self.winAddonManager.tabWidgetInstalled.currentIndex()
             self.updateAddonFolderActions(index_installed)
         elif index == 1:
-            self.winAddonManager.btnAddons.setText("+")
+            self.winAddonManager.btnAddons.setText("\uf067")
             self.winAddonManager.btnAddons.setToolTip("Install addons")
 
             index_remote = self.winAddonManager.tabWidgetRemote.currentIndex()

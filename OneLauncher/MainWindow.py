@@ -99,22 +99,19 @@ class MainWindow(QtWidgets.QMainWindow):
         font.setPointSize(10)
         self.app.setFont(font)
 
-        # Set icons for settings and add-on manager buttons
-        self.winMain.btnOptions.setIcon(
-            QtGui.QIcon(os.path.join(self.data_folder, "images", "SettingsGear.png"))
-        )
-        self.winMain.btnAddonManager.setIcon(
-            QtGui.QIcon(os.path.join(self.data_folder, "images", "AddonManager.png"))
-        )
+        # Setup font for icons
+        font_file = os.path.join(self.data_folder, "images", "Font Awesome 5 Free-Solid-900.otf")
+        font_db = QtGui.QFontDatabase()
+        font_id = font_db.addApplicationFont(font_file)
+        font_family = font_db.applicationFontFamilies(font_id)
+        self.icon_font = QtGui.QFont(font_family)
 
-        # Connect button clicked signals to appropriate functions
-        self.winMain.btnOptions.clicked.connect(self.btnOptionsSelected)
-        self.winMain.btnAddonManager.clicked.connect(self.btnAddonManagerSelected)
-        self.winMain.btnExit.clicked.connect(self.close)
-        self.winMain.btnMinimize.clicked.connect(self.showMinimized)
-        self.winMain.btnAbout.clicked.connect(self.btnAboutSelected)
-
-        # Setup signals and context menus for other buttons
+        # Setup buttons
+        self.setupBtnAbout()
+        self.setupBtnMinimize()
+        self.setupBtnExit()
+        self.setupBtnOptions()
+        self.setupBtnAddonManager()
         self.setupBtnLoginMenu()
         self.initializeBtnSwitchGame()
 
@@ -192,6 +189,38 @@ class MainWindow(QtWidgets.QMainWindow):
         for widget in mouse_ignore_list:
             widget.setAttribute(QtCore.Qt.WA_NoMousePropagation)
 
+
+
+    def setupBtnExit(self):
+        self.winMain.btnExit.clicked.connect(self.close)
+
+        self.winMain.btnExit.setFont(self.icon_font)
+        self.winMain.btnExit.setText("\uf00d")
+
+    def setupBtnMinimize(self):
+        self.winMain.btnMinimize.clicked.connect(self.showMinimized)
+
+        self.winMain.btnMinimize.setFont(self.icon_font)
+        self.winMain.btnMinimize.setText("\uf2d1")
+
+    def setupBtnAbout(self):
+        self.winMain.btnAbout.clicked.connect(self.btnAboutSelected)
+
+        self.winMain.btnAbout.setFont(self.icon_font)
+        self.winMain.btnAbout.setText("\uf05a")
+
+    def setupBtnOptions(self):
+        self.winMain.btnOptions.clicked.connect(self.btnOptionsSelected)
+
+        self.winMain.btnOptions.setFont(self.icon_font)
+        self.winMain.btnOptions.setText("\uf013")
+
+    def setupBtnAddonManager(self):
+        self.winMain.btnAddonManager.clicked.connect(self.btnAddonManagerSelected)
+
+        self.winMain.btnAddonManager.setFont(self.icon_font)
+        self.winMain.btnAddonManager.setText("\uf055")
+    
     def setupBtnLoginMenu(self):
         """Sets up signals and context menu for btnLoginMenu"""
         self.winMain.btnLogin.clicked.connect(self.btnLoginClicked)
@@ -432,6 +461,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.data_folder,
             self.baseConfig.gameDocumentsDir,
             self.settings.startupScripts,
+            self.icon_font
         )
 
         winAddonManager.Run()
