@@ -77,8 +77,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self):
         super().__init__()
-
+        # Initialise variables
         self.data_folder = self.getDataFolder()
+        self.settings = None
+        self.osType = DetermineOS()
+        self.gameType = DetermineGame()
+        self.configFile = ""
+        self.currentGame = None
 
         ui_file = QtCore.QFile(os.path.join(self.data_folder, "ui", "winMain.ui"))
 
@@ -105,6 +110,10 @@ class MainWindow(QtWidgets.QMainWindow):
         font_id = font_db.addApplicationFont(font_file)
         font_family = font_db.applicationFontFamilies(font_id)
         self.icon_font = QtGui.QFont(font_family)
+        self.icon_font.setHintingPreference(QtGui.QFont.PreferNoHinting)
+        self.icon_font.setPixelSize(16)
+
+        self.handleWindowsDarkTheme()
 
         # Setup buttons
         self.setupBtnAbout()
@@ -128,13 +137,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # Disable login and save settings buttons
         self.winMain.btnLogin.setEnabled(False)
         self.winMain.chkSaveSettings.setEnabled(False)
-
-        # Initialise variables
-        self.settings = None
-        self.osType = DetermineOS()
-        self.gameType = DetermineGame()
-        self.configFile = ""
-        self.currentGame = None
 
         self.configureKeyring()
 
@@ -189,7 +191,42 @@ class MainWindow(QtWidgets.QMainWindow):
         for widget in mouse_ignore_list:
             widget.setAttribute(QtCore.Qt.WA_NoMousePropagation)
 
+    def handleWindowsDarkTheme(self):
+        if not self.osType.usingWindows:
+            return
 
+        settings = QtCore.QSettings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+                                    QtCore.QSettings.NativeFormat)
+        # If user has dark theme activated
+        if not settings.value("AppsUseLightTheme"):
+            # Use QPalette to set custom dark theme for Windows.
+            # The builtin Windows dark theme for Windows is not ready
+            # as of 7-5-2021
+            self.app.setStyle(QtWidgets.QStyleFactory.create("Fusion"))
+            dark_palette = QtGui.QPalette()
+            dark_color = QtGui.QColor(45, 45, 45)
+            disabled_color = QtGui.QColor(127, 127, 127)
+
+            dark_palette.setColor(QtGui.QPalette.Window, dark_color)
+            dark_palette.setColor(QtGui.QPalette.WindowText, QtCore.Qt.white)
+            dark_palette.setColor(QtGui.QPalette.Base, QtGui.QColor(18, 18, 18))
+            dark_palette.setColor(QtGui.QPalette.AlternateBase, dark_color)
+            dark_palette.setColor(QtGui.QPalette.ToolTipBase, QtCore.Qt.white)
+            dark_palette.setColor(QtGui.QPalette.ToolTipText, QtCore.Qt.white)
+            dark_palette.setColor(QtGui.QPalette.Text, QtCore.Qt.white)
+            dark_palette.setColor(QtGui.QPalette.Disabled, QtGui.QPalette.Text, disabled_color)
+            dark_palette.setColor(QtGui.QPalette.Button, dark_color)
+            dark_palette.setColor(QtGui.QPalette.ButtonText, QtCore.Qt.white)
+            dark_palette.setColor(QtGui.QPalette.Disabled, QtGui.QPalette.ButtonText, disabled_color)
+            dark_palette.setColor(QtGui.QPalette.BrightText, QtCore.Qt.red)
+            dark_palette.setColor(QtGui.QPalette.Link, QtGui.QColor(42, 130, 218))
+
+            dark_palette.setColor(QtGui.QPalette.Highlight, QtGui.QColor(42, 130, 218))
+            dark_palette.setColor(QtGui.QPalette.HighlightedText, QtCore.Qt.black)
+            dark_palette.setColor(QtGui.QPalette.Disabled, QtGui.QPalette.HighlightedText, disabled_color)
+
+            self.app.setPalette(dark_palette)
+            self.app.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
 
     def setupBtnExit(self):
         self.winMain.btnExit.clicked.connect(self.close)
