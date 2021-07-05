@@ -68,17 +68,12 @@ Or.
 
 # To build
 
-This command is needed due to a bug when building with cx-freeze and Poetry
+`poetry run python -m nuitka --standalone --nofollow-import-to=tkinter,unittest,pydoc,pdb --plugin-enable=pyside6 --include-qt-plugins=wayland-shell-integration,platforms --include-package keyring.backends --include-data-dir OneLauncher/ui=OneLauncher/ui --include-data-dir OneLauncher/certificates=OneLauncher/certificates --include-data-dir OneLauncher/images=OneLauncher/images RunOneLauncher`
 
-`poetry run python -m pip install --force-reinstall pip setuptools wheel importlib-metadata cx-freeze`
+The build ends up in `RunOneLauncher.dist`.
 
-This is the actual build command
-
-`poetry run python setup.py build`
-
-The project can only be built for the os that the build script is run on,
-so it has to be built on every target os individually. The installers can be
-cross compiled with InstallBuilder though.
+Nuitka can't currently cross-compile, but the InstallBuilder installers can be
+cross-compiled.
 
 # Add-on Manager Info For Developers
 

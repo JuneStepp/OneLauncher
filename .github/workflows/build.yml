@@ -17,8 +17,8 @@ jobs:
             artifact_name: OneLauncher-Linux
           - os: windows-latest
             artifact_name: OneLauncher-Windows
-          # - os: macOs-10.15
-          #   artifact_name: OneLauncher-Mac
+          - os: macOs-10.15
+            artifact_name: OneLauncher-Mac
 
     steps:
       - uses: actions/checkout@v1
@@ -38,13 +38,10 @@ jobs:
           pip install poetry
       - name: Install dependencies
         run: poetry install --no-root
-      # Fixes bug in building with cx-freeze and Poetry
-      - name: Fix dependencies
-        run: poetry run python -m pip install --force-reinstall pip setuptools wheel importlib-metadata cx-freeze
       - name: Build
-        run: poetry run python setup.py build
+        run: poetry run python -m nuitka --standalone --nofollow-import-to=tkinter,unittest,pydoc,pdb --plugin-enable=pyside6 --include-qt-plugins=wayland-shell-integration,platforms --include-package keyring.backends --include-data-dir OneLauncher/ui=OneLauncher/ui --include-data-dir OneLauncher/certificates=OneLauncher/certificates --include-data-dir OneLauncher/images=OneLauncher/images RunOneLauncher
       - name: Upload build artifact
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.artifact_name }}
-          path: build
+          path: RunOneLauncher.dist
