@@ -166,10 +166,18 @@ class SetupWizard:
                 self.homeDir + ".*",
                 self.homeDir + self.osType.settingsCXG + "/*",
                 self.homeDir + self.osType.settingsCXO + "/*",
+                self.homeDir + ".steam/steam/steamapps/compatdata/*",
+                self.homeDir + ".steam/steam/SteamApps/compatdata/*",
+                self.homeDir + ".steam/steamapps/compatdata/*",
+                self.homeDir + ".local/share/Steam/steamapps/compatdata/*",
             ]:
                 startDir = dir
 
                 for name in glob.glob(startDir):
+                    # Handle Steam Proton paths
+                    if os.path.isdir(name) and os.path.exists(os.path.join(name, "pfx")):
+                        name = os.path.join(name, "pfx")
+
                     if os.path.isdir(name) and os.path.exists(
                         os.path.join(name, "drive_c")
                     ):
