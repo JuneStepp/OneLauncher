@@ -38,8 +38,15 @@ jobs:
           pip install poetry
       - name: Install dependencies
         run: poetry install --no-root
-      - name: Build
-        run: poetry run python -m nuitka --standalone --nofollow-import-to=tkinter,unittest,pydoc,pdb --plugin-enable=pyside6 --include-qt-plugins=wayland-shell-integration,platforms --include-package keyring.backends --include-data-dir OneLauncher/ui=OneLauncher/ui --include-data-dir OneLauncher/certificates=OneLauncher/certificates --include-data-dir OneLauncher/images=OneLauncher/images RunOneLauncher
+      - name: Build Linux
+        if: runner.os == 'Linux'
+        run: poetry run python -m nuitka --standalone --assume-yes-for-downloads --nofollow-import-to=tkinter,unittest,pydoc,pdb --plugin-enable=pyside6 --include-qt-plugins=wayland-shell-integration,platforms --include-package keyring.backends --include-data-dir OneLauncher/ui=OneLauncher/ui --include-data-dir OneLauncher/certificates=OneLauncher/certificates --include-data-dir OneLauncher/images=OneLauncher/images RunOneLauncher
+      - name: Build Windows
+        if: runner.os == 'Windows'
+        run: poetry run python -m nuitka --standalone --windows-disable-console --assume-yes-for-downloads --nofollow-import-to=tkinter,unittest,pydoc,pdb --plugin-enable=pyside6 --include-package keyring.backends --include-package win32timezone --include-data-dir OneLauncher/ui=OneLauncher/ui --include-data-dir OneLauncher/certificates=OneLauncher/certificates --include-data-dir OneLauncher/images=OneLauncher/images --windows-icon-from-ico=OneLauncher/images/OneLauncherIcon.ico RunOneLauncher
+      - name: Build macOS
+        if: runner.os == 'macOS'
+        run: poetry run python -m nuitka --standalone --assume-yes-for-downloads --nofollow-import-to=tkinter,unittest,pydoc,pdb --plugin-enable=pyside6 --include-package keyring.backends --include-data-dir OneLauncher/ui=OneLauncher/ui --include-data-dir OneLauncher/certificates=OneLauncher/certificates --include-data-dir OneLauncher/images=OneLauncher/images RunOneLauncher
       - name: Upload build artifact
         uses: actions/upload-artifact@v2
         with:

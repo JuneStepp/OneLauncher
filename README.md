@@ -68,12 +68,19 @@ Or.
 
 # To build
 
-`poetry run python -m nuitka --standalone --nofollow-import-to=tkinter,unittest,pydoc,pdb --plugin-enable=pyside6 --include-qt-plugins=wayland-shell-integration,platforms --include-package keyring.backends --include-data-dir OneLauncher/ui=OneLauncher/ui --include-data-dir OneLauncher/certificates=OneLauncher/certificates --include-data-dir OneLauncher/images=OneLauncher/images RunOneLauncher`
-
 The build ends up in `RunOneLauncher.dist`.
 
 Nuitka can't currently cross-compile, but the InstallBuilder installers can be
 cross-compiled.
+
+## Linux
+`poetry run python -m nuitka --standalone --assume-yes-for-downloads --nofollow-import-to=tkinter,unittest,pydoc,pdb --plugin-enable=pyside6 --include-qt-plugins=wayland-shell-integration,platforms --include-package keyring.backends --include-data-dir OneLauncher/ui=OneLauncher/ui --include-data-dir OneLauncher/certificates=OneLauncher/certificates --include-data-dir OneLauncher/images=OneLauncher/images RunOneLauncher`
+
+## Windows
+`poetry run python -m nuitka --standalone --windows-disable-console --assume-yes-for-downloads --nofollow-import-to=tkinter,unittest,pydoc,pdb --plugin-enable=pyside6 --include-package keyring.backends --include-package win32timezone --include-data-dir OneLauncher/ui=OneLauncher/ui --include-data-dir OneLauncher/certificates=OneLauncher/certificates --include-data-dir OneLauncher/images=OneLauncher/images --windows-icon-from-ico=OneLauncher/images/OneLauncherIcon.ico RunOneLauncher`
+
+## Mac
+`poetry run python -m nuitka --standalone --assume-yes-for-downloads --nofollow-import-to=tkinter,unittest,pydoc,pdb --plugin-enable=pyside6 --include-package keyring.backends --include-data-dir OneLauncher/ui=OneLauncher/ui --include-data-dir OneLauncher/certificates=OneLauncher/certificates --include-data-dir OneLauncher/images=OneLauncher/images RunOneLauncher`
 
 # Add-on Manager Info For Developers
 
