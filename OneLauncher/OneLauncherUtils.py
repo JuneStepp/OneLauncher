@@ -31,7 +31,6 @@ import glob
 import defusedxml.minidom
 from xml.sax.saxutils import escape as xml_escape
 import ssl
-import sys
 
 from codecs import open as uopen
 
@@ -41,12 +40,6 @@ from urllib.parse import quote
 if os.name == "nt":
     # Needed for getting Documents folder on Windows
     import ctypes.wintypes
-
-if getattr(sys, 'frozen', False):
-    # The application is frozen
-        data_folder =  os.path.dirname(sys.executable)
-else:
-    data_folder = os.path.dirname(__file__)
 
 
 def string_encode(s):
@@ -64,7 +57,7 @@ def QByteArray2str(s):
 sslContext = None
 
 
-def checkForCertificates(logger):
+def checkForCertificates(logger, data_folder):
     # Try to locate the server certificates for HTTPS connections
     certfile = os.path.join(data_folder, "certificates/ca_certs.pem")
 

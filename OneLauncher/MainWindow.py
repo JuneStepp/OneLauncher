@@ -1039,7 +1039,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if game:
                 self.currentGame = game
 
-        sslContext = checkForCertificates(self.logger)
+        sslContext = checkForCertificates(self.logger, self.data_folder)
 
         # Set news feed to say "Loading ..." until it is replaced by the news.
         self.winMain.txtFeed.setHtml(
