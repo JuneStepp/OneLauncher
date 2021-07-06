@@ -105,7 +105,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.app.setFont(font)
 
         # Setup font for icons
-        font_file = os.path.join(self.data_folder, "images", "Font Awesome 5 Free-Solid-900.otf")
+        font_file = os.path.join(self.data_folder, "fonts", "Font Awesome 5 Free-Solid-900.otf")
         font_db = QtGui.QFontDatabase()
         font_id = font_db.addApplicationFont(font_file)
         font_family = font_db.applicationFontFamilies(font_id)
