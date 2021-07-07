@@ -91,30 +91,10 @@
                     </widget>
                 </item>
                 <item>
-                    <widget class="QLabel" name="lblCLIReference">
+                    <widget class="QLabel" name="lblCopyrightHistory">
                         <property name="acceptDrops">
                             <bool>false</bool>
                         </property>
-                        <property name="text">
-                            <string/>
-                        </property>
-                        <property name="alignment">
-                            <set>Qt::AlignCenter</set>
-                        </property>
-                    </widget>
-                </item>
-                <item>
-                    <widget class="QLabel" name="lblLotROLinuxReference">
-                        <property name="text">
-                            <string/>
-                        </property>
-                        <property name="alignment">
-                            <set>Qt::AlignCenter</set>
-                        </property>
-                    </widget>
-                </item>
-                <item>
-                    <widget class="QLabel" name="lblPyLotROReference">
                         <property name="text">
                             <string/>
                         </property>
