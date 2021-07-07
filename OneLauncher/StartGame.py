@@ -138,8 +138,6 @@ class StartGame:
             self.command = appName
             self.process.setWorkingDirectory(runDir)
 
-            os.chdir(runDir)
-
             for arg in gameParams.split(" "):
                 self.arguments.append(arg)
 
@@ -236,9 +234,6 @@ class StartGame:
             if os.path.exists(file_path):
                 self.winLog.txtLog.append(
                     f"Running '{script}' startup script...")
-
-                # Set the working directory to where the script is. This is inherited by the script.
-                os.chdir(os.path.dirname(file_path))
 
                 code = open(file_path).read()
                 try:
