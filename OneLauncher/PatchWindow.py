@@ -66,7 +66,8 @@ class PatchWindow:
         self.winLog = loader.load(ui_file, parentWidget=parent)
         ui_file.close()
 
-        self.winLog.setWindowFlags(QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint)
+        self.winLog.setWindowFlags(
+            QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint)
 
         if self.osType.usingWindows:
             self.winLog.setWindowTitle("Output")
@@ -89,7 +90,8 @@ class PatchWindow:
         self.arguments = []
 
         self.process_status_timer = QtCore.QTimer()
-        self.process_status_timer.timeout.connect(self.activelyShowProcessStatus)
+        self.process_status_timer.timeout.connect(
+            self.activelyShowProcessStatus)
 
         patchClient = os.path.join(runDir, patchClient)
         # Fix for the at least one person who has a title case patchclient.dll
@@ -101,7 +103,8 @@ class PatchWindow:
         # Make sure patchClient exists
         if not os.path.exists(patchClient):
             self.winLog.txtLog.append(
-                '<font color="Khaki">Patch client %s not found</font>' % (patchClient)
+                '<font color="Khaki">Patch client %s not found</font>' % (
+                    patchClient)
             )
             self.logger.error("Patch client %s not found" % (patchClient))
             return
@@ -133,10 +136,12 @@ class PatchWindow:
             log_folder_name = gameDocumentsDir
 
             game_logs_folder = os.path.join(
-                os.path.split(os.environ.get("APPDATA"))[0], "Local", log_folder_name,
+                os.path.split(os.environ.get("APPDATA"))[
+                    0], "Local", log_folder_name,
             )
 
-            self.patch_log_file = os.path.join(game_logs_folder, "PatchClient.log")
+            self.patch_log_file = os.path.join(
+                game_logs_folder, "PatchClient.log")
             if os.path.exists(self.patch_log_file):
                 os.remove(self.patch_log_file)
                 open(self.patch_log_file, "x")

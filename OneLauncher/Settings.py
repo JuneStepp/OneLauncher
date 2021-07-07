@@ -98,7 +98,8 @@ class Settings:
                     elif node.nodeName == "Client":
                         self.client = GetText(node.childNodes)
                     elif node.nodeName == "x64Client":
-                        self.client = "WIN64" if GetText(node.childNodes) == "True" else "WIN32"
+                        self.client = "WIN64" if GetText(
+                            node.childNodes) == "True" else "WIN32"
                     elif node.nodeName == "Save.Password":
                         self.savePassword = GetText(node.childNodes) == "True"
                     elif node.nodeName == "Game.Directory":
@@ -121,10 +122,12 @@ class Settings:
 
                 # Test/preview clients use accounts and startups scripts from normal clients
                 if self.currentGame.endswith(".Test"):
-                    normalClientNode = self.getNormalClientNode(self.currentGame, doc)
+                    normalClientNode = self.getNormalClientNode(
+                        self.currentGame, doc)
                     if normalClientNode:
                         # Load in accounts and their settings from normal client node
-                        accountsNode = normalClientNode.getElementsByTagName("Accounts")
+                        accountsNode = normalClientNode.getElementsByTagName(
+                            "Accounts")
                         if accountsNode:
                             account_nodes = accountsNode[0].childNodes
                             self.setAccountsSettings(account_nodes)
@@ -155,10 +158,11 @@ class Settings:
 
         return success
 
-    def checkGameClient64(self, path = None):
+    def checkGameClient64(self, path=None):
         if path is None:
             path = self.gameDir
-        exe = "lotroclient64.exe" if self.currentGame.startswith("LOTRO") else "dndclient64.exe"
+        exe = "lotroclient64.exe" if self.currentGame.startswith(
+            "LOTRO") else "dndclient64.exe"
         return os.path.exists(
             os.path.join(path, "x64", exe)
         )
@@ -232,7 +236,8 @@ class Settings:
         if len(defaultGameNode) > 0:
             defaultGameNode[0].firstChild.nodeValue = current_game
         else:
-            defaultGameNode = doc.createElementNS(EMPTY_NAMESPACE, "Default.Game")
+            defaultGameNode = doc.createElementNS(
+                EMPTY_NAMESPACE, "Default.Game")
             defaultGameNode.appendChild(doc.createTextNode(current_game))
             settingsNode.appendChild(defaultGameNode)
 
@@ -248,7 +253,8 @@ class Settings:
 
         # Some settings for test/preview clients are saved in normal client settings
         if current_game.endswith(".Test"):
-            normalClientNode = self.getNormalClientNode(current_game, doc, make_if_not_found=True)
+            normalClientNode = self.getNormalClientNode(
+                current_game, doc, make_if_not_found=True)
 
         if not self.osType.usingWindows:
             tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Program")
@@ -261,7 +267,8 @@ class Settings:
 
             if self.winePrefix != "":
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Prefix")
-                tempNode.appendChild(doc.createTextNode("%s" % (self.winePrefix)))
+                tempNode.appendChild(
+                    doc.createTextNode("%s" % (self.winePrefix)))
                 gameConfigNode.appendChild(tempNode)
 
         tempNode = doc.createElementNS(EMPTY_NAMESPACE, "HiRes")
@@ -303,7 +310,8 @@ class Settings:
 
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "World")
                 tempNode.appendChild(
-                    doc.createTextNode("%s" % (self.accountsDictionary[account][0]))
+                    doc.createTextNode(
+                        "%s" % (self.accountsDictionary[account][0]))
                 )
                 accountNode.appendChild(tempNode)
 
@@ -314,7 +322,8 @@ class Settings:
             if current_game.endswith(".Test"):
                 # Delete current accounts node if present. All accounts that were originally
                 # there were loaded as if they were the test client's, so they are not lost.
-                originalAccountsNode = normalClientNode.getElementsByTagName("Accounts")
+                originalAccountsNode = normalClientNode.getElementsByTagName(
+                    "Accounts")
                 if originalAccountsNode:
                     normalClientNode.removeChild(originalAccountsNode[0])
 
@@ -323,11 +332,13 @@ class Settings:
                 gameConfigNode.appendChild(accountsNode)
 
             if savePassword:
-                tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Save.Password")
+                tempNode = doc.createElementNS(
+                    EMPTY_NAMESPACE, "Save.Password")
                 tempNode.appendChild(doc.createTextNode("True"))
                 gameConfigNode.appendChild(tempNode)
 
-        startupScriptsNode = doc.createElementNS(EMPTY_NAMESPACE, "StartupScripts")
+        startupScriptsNode = doc.createElementNS(
+            EMPTY_NAMESPACE, "StartupScripts")
         for script in self.startupScripts:
             scriptNode = doc.createElementNS(EMPTY_NAMESPACE, "script")
             scriptNode.appendChild(doc.createTextNode("%s" % (script)))

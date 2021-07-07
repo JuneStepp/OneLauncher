@@ -94,7 +94,8 @@ class AddonManager:
         self.startupScripts = startupScripts
         self.icon_font = icon_font
 
-        ui_file = QtCore.QFile(os.path.join(data_folder, "ui", "winAddonManager.ui"))
+        ui_file = QtCore.QFile(os.path.join(
+            data_folder, "ui", "winAddonManager.ui"))
 
         ui_file.open(QtCore.QFile.ReadOnly)
         loader = QUiLoader()
@@ -189,14 +190,16 @@ class AddonManager:
 
         self.winAddonManager.btnCheckForUpdates.setFont(self.icon_font)
         self.winAddonManager.btnCheckForUpdates.setText("\uf2f1")
-        self.winAddonManager.btnCheckForUpdates.pressed.connect(self.checkForUpdates)
+        self.winAddonManager.btnCheckForUpdates.pressed.connect(
+            self.checkForUpdates)
         self.winAddonManager.btnUpdateAll.pressed.connect(self.updateAll)
 
-        self.winAddonManager.btnAddons.setMenu(self.winAddonManager.btnAddonsMenu)
+        self.winAddonManager.btnAddons.setMenu(
+            self.winAddonManager.btnAddonsMenu)
         self.winAddonManager.btnAddons.clicked.connect(self.btnAddonsClicked)
         self.winAddonManager.btnAddons.setFont(self.icon_font)
         self.winAddonManager.btnAddons.setText("\uf068")
-        
+
         self.winAddonManager.tabWidget.currentChanged.connect(
             self.tabWidgetIndexChanged
         )
@@ -229,7 +232,8 @@ class AddonManager:
 
         self.data_folder = os.path.join(osType.documentsDir, gameDocumentsDir)
         if currentGame.startswith("DDO"):
-            self.data_folder_skins = os.path.join(self.data_folder, "ui", "skins")
+            self.data_folder_skins = os.path.join(
+                self.data_folder, "ui", "skins")
 
             self.winAddonManager.tableSkinsInstalled.setObjectName(
                 "tableSkinsDDOInstalled"
@@ -237,8 +241,10 @@ class AddonManager:
             self.winAddonManager.tableSkins.setObjectName("tableSkinsDDO")
             self.getInstalledSkins()
         else:
-            self.data_folder_plugins = os.path.join(self.data_folder, "Plugins")
-            self.data_folder_skins = os.path.join(self.data_folder, "ui", "skins")
+            self.data_folder_plugins = os.path.join(
+                self.data_folder, "Plugins")
+            self.data_folder_skins = os.path.join(
+                self.data_folder, "ui", "skins")
             self.data_folder_music = os.path.join(self.data_folder, "Music")
 
             # Loads in installed plugins
@@ -376,7 +382,8 @@ class AddonManager:
         os.makedirs(self.data_folder_plugins, exist_ok=True)
 
         if not folders_list:
-            folders_list = glob(os.path.join(self.data_folder_plugins, "*", ""))
+            folders_list = glob(os.path.join(
+                self.data_folder_plugins, "*", ""))
         else:
             folders_list = [
                 os.path.join(self.data_folder_plugins, folder)
@@ -416,7 +423,8 @@ class AddonManager:
                         plugins_list.remove(descriptor_path)
                     except ValueError:
                         if not os.path.exists(descriptor_path):
-                            self.addLog(plugin + " has misconfigured descriptors")
+                            self.addLog(
+                                plugin + " has misconfigured descriptors")
 
         return plugins_list, plugins_list_compendium
 
@@ -493,7 +501,8 @@ class AddonManager:
         Opens addons_cache database and creates new database if 
         one doesn't exist or the current one has an outdated structure
         """
-        addons_cache_db_path = os.path.join(self.settingsDir, "addons_cache.sqlite")
+        addons_cache_db_path = os.path.join(
+            self.settingsDir, "addons_cache.sqlite")
         if os.path.exists(addons_cache_db_path):
             # Connects to addons_cache database
             self.conn = sqlite3.connect(addons_cache_db_path)
@@ -620,7 +629,7 @@ class AddonManager:
 
         copy(addon, self.data_folder_music)
         self.logger.info(addon + " installed")
-        
+
         # Plain .abc files are installed to base music directory,
         # so what is scanned can't be controlled
         self.winAddonManager.tableMusicInstalled.clearContents()
@@ -636,7 +645,8 @@ class AddonManager:
 
             for entry in files_list:
                 if entry.endswith(".plugin"):
-                    self.installPluginZip(addon, interface_id, file, files_list, entry)
+                    self.installPluginZip(
+                        addon, interface_id, file, files_list, entry)
                     return
                 elif entry.endswith(".abc"):
                     if (
@@ -667,7 +677,8 @@ class AddonManager:
         for entry in files_list:
             try:
                 updated_files_list.append(
-                    os.path.join(folder, entry.split(folder, maxsplit=1)[1].strip("/"))
+                    os.path.join(folder, entry.split(
+                        folder, maxsplit=1)[1].strip("/"))
                 )
             except IndexError:
                 # Anything that was in an invalid folder
@@ -729,7 +740,8 @@ class AddonManager:
         file.extractall(path=path)
         self.logger.info(addon + " music installed")
 
-        folder = self.moveAddonsFromInvalidFolder(self.data_folder_music, folder)
+        folder = self.moveAddonsFromInvalidFolder(
+            self.data_folder_music, folder)
 
         if interface_id:
             compendium_file = self.generateCompendiumFile(
@@ -749,7 +761,8 @@ class AddonManager:
         file.extractall(path=path)
         self.logger.info(addon + " skin installed")
 
-        folder = self.moveAddonsFromInvalidFolder(self.data_folder_skins, folder)
+        folder = self.moveAddonsFromInvalidFolder(
+            self.data_folder_skins, folder)
 
         if interface_id:
             compendium_file = self.generateCompendiumFile(
@@ -787,7 +800,8 @@ class AddonManager:
                 for item in self.c.execute(  # nosec
                     "SELECT File, Name FROM {table} WHERE InterfaceID = ? AND InterfaceID NOT IN "
                     "(SELECT InterfaceID FROM {table_installed})".format(
-                        table=table.split("Installed")[0], table_installed=table,
+                        table=table.split("Installed")[
+                            0], table_installed=table,
                     ),
                     (dependency,),
                 ):
@@ -839,7 +853,8 @@ class AddonManager:
             folder = os.path.split(folder)[1]
             if folder in invalid_folder_names:
                 folders = os.path.join(folders, folder)
-                folders_list = glob(os.path.join(data_folder, folders, "*", ""))
+                folders_list = glob(os.path.join(
+                    data_folder, folders, "*", ""))
                 return self.moveAddonsFromInvalidFolder(
                     data_folder, "", folders_list=folders_list, folders=folders
                 )
@@ -885,12 +900,14 @@ class AddonManager:
                     os.remove(compendium_file_path)
 
         for row in self.c.execute(
-            "SELECT * FROM {table} WHERE InterfaceID = ?".format(table=table),  # nosec
+            # nosec
+            "SELECT * FROM {table} WHERE InterfaceID = ?".format(table=table),
             (interface_id,),
         ):
             if row[0]:
                 doc = Document()
-                mainNode = doc.createElementNS(EMPTY_NAMESPACE, addon_type + "Config")
+                mainNode = doc.createElementNS(
+                    EMPTY_NAMESPACE, addon_type + "Config")
                 doc.appendChild(mainNode)
 
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Id")
@@ -911,7 +928,8 @@ class AddonManager:
 
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "InfoUrl")
                 tempNode.appendChild(
-                    doc.createTextNode("%s" % (self.getInterfaceInfoUrl(row[5])))
+                    doc.createTextNode(
+                        "%s" % (self.getInterfaceInfoUrl(row[5])))
                 )
                 mainNode.appendChild(tempNode)
 
@@ -931,19 +949,23 @@ class AddonManager:
                                 EMPTY_NAMESPACE, "descriptor"
                             )
                             tempNode.appendChild(
-                                doc.createTextNode("%s" % (file.replace("/", "\\")))
+                                doc.createTextNode(
+                                    "%s" % (file.replace("/", "\\")))
                             )
                             descriptorsNode.appendChild(tempNode)
 
                 # Can't add dependencies, because they are defined in compendium files
-                dependenciesNode = doc.createElementNS(EMPTY_NAMESPACE, "Dependencies")
+                dependenciesNode = doc.createElementNS(
+                    EMPTY_NAMESPACE, "Dependencies")
                 mainNode.appendChild(dependenciesNode)
 
                 # If compendium file from add-on already existed with dependencies
                 if dependencies:
                     for dependency in dependencies.split(","):
-                        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "dependency")
-                        tempNode.appendChild(doc.createTextNode("%s" % (dependency)))
+                        tempNode = doc.createElementNS(
+                            EMPTY_NAMESPACE, "dependency")
+                        tempNode.appendChild(
+                            doc.createTextNode("%s" % (dependency)))
                         dependenciesNode.appendChild(tempNode)
 
                 # Can't add startup script, because it is defined in compendium files
@@ -964,7 +986,8 @@ class AddonManager:
                     folder = ""
 
                 compendium_file = os.path.join(
-                    path, folder, row[0] + "." + addon_type.lower() + "compendium",
+                    path, folder, row[0] + "." +
+                    addon_type.lower() + "compendium",
                 )
                 with open(compendium_file, "w+") as file:
                     pretty_xml = prettify_xml(doc.toxml())
@@ -987,13 +1010,16 @@ class AddonManager:
 
                 # If in PluginsInstalled tab
                 if index_installed == 0:
-                    self.searchDB(self.winAddonManager.tablePluginsInstalled, text)
+                    self.searchDB(
+                        self.winAddonManager.tablePluginsInstalled, text)
                 # If in SkinsInstalled tab
                 elif index_installed == 1:
-                    self.searchDB(self.winAddonManager.tableSkinsInstalled, text)
+                    self.searchDB(
+                        self.winAddonManager.tableSkinsInstalled, text)
                 # If in MusicInstalled tab
                 elif index_installed == 2:
-                    self.searchDB(self.winAddonManager.tableMusicInstalled, text)
+                    self.searchDB(
+                        self.winAddonManager.tableMusicInstalled, text)
             # If in Find More tab
             elif self.winAddonManager.tabWidget.currentIndex() == 1:
                 index_remote = self.winAddonManager.tabWidgetRemote.currentIndex()
@@ -1023,7 +1049,8 @@ class AddonManager:
                 search_word = "%" + word + "%"
 
                 for row in self.c.execute(
-                    "SELECT rowid, * FROM {table} WHERE Author LIKE ? OR Category"  # nosec
+                    # nosec
+                    "SELECT rowid, * FROM {table} WHERE Author LIKE ? OR Category"
                     " LIKE ? OR Name LIKE ?".format(table=table.objectName()),
                     (search_word, search_word, search_word),
                 ):
@@ -1038,7 +1065,8 @@ class AddonManager:
         else:
             # Shows all plugins if the search bar is empty
             for row in self.c.execute(
-                "SELECT rowid, * FROM {table}".format(table=table.objectName())  # nosec
+                # nosec
+                "SELECT rowid, * FROM {table}".format(table=table.objectName())
             ):
                 self.addRowToTable(table, row)
 
@@ -1070,8 +1098,10 @@ class AddonManager:
         # This is important, because addons are uninstalled and then reinstalled
         # during the update process.
         self.c.execute(
-            "UPDATE {table} SET Version = REPLACE(Version,'(Updated) ', '') WHERE "  # nosec
-            "Version LIKE '(Updated) %'".format(table=remote_table.objectName())
+            # nosec
+            "UPDATE {table} SET Version = REPLACE(Version,'(Updated) ', '') WHERE "
+            "Version LIKE '(Updated) %'".format(
+                table=remote_table.objectName())
         )
 
     def setRemoteAddonToInstalled(self, addon, remote_table):
@@ -1146,7 +1176,8 @@ class AddonManager:
 
     def addLog(self, message):
         self.winAddonManager.lblErrors.setText(
-            "Errors: " + str(int(self.winAddonManager.lblErrors.text()[-1]) + 1)
+            "Errors: " +
+            str(int(self.winAddonManager.lblErrors.text()[-1]) + 1)
         )
         self.logger.warning(message)
         self.winAddonManager.txtLog.append(message + "\n")
@@ -1244,7 +1275,8 @@ class AddonManager:
             else:
                 plural, plural1 = "these ", " addons?"
             text = (
-                "Are you sure you want to remove " + plural + str(len(addons)) + plural1
+                "Are you sure you want to remove " +
+                plural + str(len(addons)) + plural1
             )
             if self.confirmationPrompt(text, details):
                 return True, addons
@@ -1259,7 +1291,7 @@ class AddonManager:
         selected_addons = []
         details = ""
         # Column count is minus one because of hidden ID column
-        for item in table.selectedItems()[0 :: (table.columnCount() - 1)]:
+        for item in table.selectedItems()[0:: (table.columnCount() - 1)]:
             # Gets db row id for selected row
             selected_row = int((table.item(item.row(), 0)).text())
 
@@ -1284,7 +1316,8 @@ class AddonManager:
                 plugin_files = []
                 if self.checkAddonForDependencies(plugin, table):
                     doc = defusedxml.minidom.parse(plugin[1])
-                    nodes = doc.getElementsByTagName("Descriptors")[0].childNodes
+                    nodes = doc.getElementsByTagName(
+                        "Descriptors")[0].childNodes
                     for node in nodes:
                         if node.nodeName == "descriptor":
                             plugin_files.append(
@@ -1294,7 +1327,8 @@ class AddonManager:
                                 )
                             )
                     # Check for startup scripts to remove them
-                    nodes = doc.getElementsByTagName("PluginConfig")[0].childNodes
+                    nodes = doc.getElementsByTagName(
+                        "PluginConfig")[0].childNodes
                     for node in nodes:
                         if node.nodeName == "StartupScript":
                             script = GetText(node.childNodes)
@@ -1328,7 +1362,8 @@ class AddonManager:
 
             self.logger.info(str(plugin) + " plugin uninstalled")
 
-            self.setRemoteAddonToUninstalled(plugin, self.winAddonManager.tablePlugins)
+            self.setRemoteAddonToUninstalled(
+                plugin, self.winAddonManager.tablePlugins)
 
         # Reloads plugins
         table.clearContents()
@@ -1348,7 +1383,8 @@ class AddonManager:
 
             self.logger.info(str(skin) + " skin uninstalled")
 
-            self.setRemoteAddonToUninstalled(skin, self.winAddonManager.tableSkins)
+            self.setRemoteAddonToUninstalled(
+                skin, self.winAddonManager.tableSkins)
 
         # Reloads skins
         table.clearContents()
@@ -1372,7 +1408,8 @@ class AddonManager:
 
             self.logger.info(str(music) + " music uninstalled")
 
-            self.setRemoteAddonToUninstalled(music, self.winAddonManager.tableMusic)
+            self.setRemoteAddonToUninstalled(
+                music, self.winAddonManager.tableMusic)
 
         # Reloads music
         table.clearContents()
@@ -1478,8 +1515,10 @@ class AddonManager:
             if self.getRemoteAddons(
                 self.PLUGINS_URL, self.winAddonManager.tablePlugins
             ):
-                self.getRemoteAddons(self.SKINS_URL, self.winAddonManager.tableSkins)
-                self.getRemoteAddons(self.MUSIC_URL, self.winAddonManager.tableMusic)
+                self.getRemoteAddons(
+                    self.SKINS_URL, self.winAddonManager.tableSkins)
+                self.getRemoteAddons(
+                    self.MUSIC_URL, self.winAddonManager.tableMusic)
                 return True
         else:
             if self.getRemoteAddons(
@@ -1489,7 +1528,8 @@ class AddonManager:
 
     def getRemoteAddons(self, favorites_url, table):
         # Clears rows from db table
-        self.c.execute("DELETE FROM {table}".format(table=table.objectName()))  # nosec
+        self.c.execute("DELETE FROM {table}".format(
+            table=table.objectName()))  # nosec
 
         # Gets list of Interface IDs for installed addons
         installed_IDs = []
@@ -1502,7 +1542,8 @@ class AddonManager:
                 installed_IDs.append(ID[0])
 
         try:
-            addons_file = urllib.request.urlopen(favorites_url).read().decode()  # nosec
+            addons_file = urllib.request.urlopen(
+                favorites_url).read().decode()  # nosec
         except (urllib.error.URLError, urllib.error.HTTPError) as error:
             self.logger.error(error.reason, exc_info=True)
             self.addLog(
@@ -1574,10 +1615,12 @@ class AddonManager:
         self.closeDB()
 
     def contextMenuRequested(self, cursor_position):
-        global_cursor_position = self.winAddonManager.mapToGlobal(cursor_position)
+        global_cursor_position = self.winAddonManager.mapToGlobal(
+            cursor_position)
 
         # It is not a local variable, because of garbage collection
-        self.winAddonManager.contextMenu = self.getContextMenu(global_cursor_position)
+        self.winAddonManager.contextMenu = self.getContextMenu(
+            global_cursor_position)
         if self.winAddonManager.contextMenu:
             self.winAddonManager.contextMenu.popup(global_cursor_position)
 
@@ -1602,19 +1645,22 @@ class AddonManager:
                     self.context_menu_selected_table, self.context_menu_selected_row
                 )
                 if self.context_menu_selected_interface_ID:
-                    menu.addAction(self.winAddonManager.actionShowOnLotrointerface)
+                    menu.addAction(
+                        self.winAddonManager.actionShowOnLotrointerface)
 
                 # If addon is installed
                 if self.context_menu_selected_table.objectName().endswith("Installed"):
                     menu.addAction(self.winAddonManager.actionUninstallAddon)
-                    menu.addAction(self.winAddonManager.actionShowAddonInFileManager)
+                    menu.addAction(
+                        self.winAddonManager.actionShowAddonInFileManager)
                 else:
                     # If addon in remote table is installed
                     if (
                         selected_item.background().color()
                         == self.installed_addons_color
                     ):
-                        menu.addAction(self.winAddonManager.actionUninstallAddon)
+                        menu.addAction(
+                            self.winAddonManager.actionUninstallAddon)
                         menu.addAction(
                             self.winAddonManager.actionShowAddonInFileManager
                         )
@@ -1637,9 +1683,11 @@ class AddonManager:
                 if relative_script_path:
                     # If startup script is enabled
                     if relative_script_path in self.startupScripts:
-                        menu.addAction(self.winAddonManager.actionDisableStartupScript)
+                        menu.addAction(
+                            self.winAddonManager.actionDisableStartupScript)
                     else:
-                        menu.addAction(self.winAddonManager.actionEnableStartupScript)
+                        menu.addAction(
+                            self.winAddonManager.actionEnableStartupScript)
 
         # Only return menu if something has been added to it
         if not menu.isEmpty():
@@ -1743,7 +1791,8 @@ class AddonManager:
         ):
             uninstall_function = self.getUninstallFunctionFromTable(table)
 
-            table_installed = self.getRemoteOrLocalTableFromOne(table, remote=False)
+            table_installed = self.getRemoteOrLocalTableFromOne(
+                table, remote=False)
             uninstall_function([addon], table_installed)
 
             self.resetRemoteAddonsTables()
@@ -1759,12 +1808,14 @@ class AddonManager:
         interface_ID = self.getTableRowInterfaceID(table, row)
 
         if remote:
-            table_remote = self.getRemoteOrLocalTableFromOne(table, remote=True)
+            table_remote = self.getRemoteOrLocalTableFromOne(
+                table, remote=True)
             file = self.getAddonUrlFromInterfaceID(
                 interface_ID, table_remote, download_url=True
             )
         else:
-            table_installed = self.getRemoteOrLocalTableFromOne(table, remote=False)
+            table_installed = self.getRemoteOrLocalTableFromOne(
+                table, remote=False)
 
             if table.objectName().endswith("Installed"):
                 self.reloadSearch(table_installed)
@@ -1777,7 +1828,8 @@ class AddonManager:
                 ):
                     file = item[0]
             else:
-                file = self.getAddonFileFromInterfaceID(interface_ID, table_installed)
+                file = self.getAddonFileFromInterfaceID(
+                    interface_ID, table_installed)
 
         return [interface_ID, file, table.item(row, 1).text()]
 
@@ -1790,7 +1842,8 @@ class AddonManager:
         table_name = table_name.replace("DDO", "")
 
         if remote:
-            table = getattr(self.winAddonManager, table_name.split("Installed")[0])
+            table = getattr(self.winAddonManager,
+                            table_name.split("Installed")[0])
         else:
             if table_name.endswith("Installed"):
                 table = input_table
@@ -1825,17 +1878,26 @@ class AddonManager:
         current tab the only addon folder opening action visible.
         """
         if self.currentGame.startswith("DDO") or index == 1:
-            self.winAddonManager.actionShowPluginsFolderInFileManager.setVisible(False)
-            self.winAddonManager.actionShowSkinsFolderInFileManager.setVisible(True)
-            self.winAddonManager.actionShowMusicFolderInFileManager.setVisible(False)
+            self.winAddonManager.actionShowPluginsFolderInFileManager.setVisible(
+                False)
+            self.winAddonManager.actionShowSkinsFolderInFileManager.setVisible(
+                True)
+            self.winAddonManager.actionShowMusicFolderInFileManager.setVisible(
+                False)
         elif not self.currentGame.startswith("DDO") and index == 0:
-            self.winAddonManager.actionShowPluginsFolderInFileManager.setVisible(True)
-            self.winAddonManager.actionShowSkinsFolderInFileManager.setVisible(False)
-            self.winAddonManager.actionShowMusicFolderInFileManager.setVisible(False)
+            self.winAddonManager.actionShowPluginsFolderInFileManager.setVisible(
+                True)
+            self.winAddonManager.actionShowSkinsFolderInFileManager.setVisible(
+                False)
+            self.winAddonManager.actionShowMusicFolderInFileManager.setVisible(
+                False)
         elif not self.currentGame.startswith("DDO") and index == 2:
-            self.winAddonManager.actionShowPluginsFolderInFileManager.setVisible(False)
-            self.winAddonManager.actionShowSkinsFolderInFileManager.setVisible(False)
-            self.winAddonManager.actionShowMusicFolderInFileManager.setVisible(True)
+            self.winAddonManager.actionShowPluginsFolderInFileManager.setVisible(
+                False)
+            self.winAddonManager.actionShowSkinsFolderInFileManager.setVisible(
+                False)
+            self.winAddonManager.actionShowMusicFolderInFileManager.setVisible(
+                True)
 
     def checkForUpdates(self):
         if self.loadRemoteAddons():
@@ -1868,7 +1930,8 @@ class AddonManager:
 
             addons_info_remote = {}
             for addon in self.c.execute(
-                "SELECT Version, InterfaceID, rowid FROM {table_remote} WHERE"  # nosec
+                # nosec
+                "SELECT Version, InterfaceID, rowid FROM {table_remote} WHERE"
                 " Name LIKE '(Installed) %'".format(
                     table_remote=table_remote.objectName()
                 )
@@ -1877,7 +1940,8 @@ class AddonManager:
 
             out_of_date_addons = []
             for addon in self.c.execute(
-                "SELECT Version, InterfaceID, rowid FROM {table_installed} WHERE"  # nosec
+                # nosec
+                "SELECT Version, InterfaceID, rowid FROM {table_installed} WHERE"
                 " InterfaceID != ''".format(
                     table_installed=table_installed.objectName()
                 )
@@ -1891,7 +1955,8 @@ class AddonManager:
                 latest_version = remote_addon_info[0]
                 if addon[0] != latest_version:
                     rowid_remote = remote_addon_info[1]
-                    out_of_date_addons.append((addon[2], rowid_remote, table_installed))
+                    out_of_date_addons.append(
+                        (addon[2], rowid_remote, table_installed))
 
             for addon in out_of_date_addons:
                 self.markAddonForUpdating(addon[0], addon[1], addon[2])
@@ -1901,7 +1966,8 @@ class AddonManager:
         Marks addon as having having updates
         available in installed and remote tables
         """
-        table_remote = self.getRemoteOrLocalTableFromOne(table_installed, remote=True)
+        table_remote = self.getRemoteOrLocalTableFromOne(
+            table_installed, remote=True)
 
         self.c.execute(
             (
@@ -1942,7 +2008,8 @@ class AddonManager:
 
     def updateAddon(self, addon, table):
         uninstall_function = self.getUninstallFunctionFromTable(table)
-        table_installed = self.getRemoteOrLocalTableFromOne(table, remote=False)
+        table_installed = self.getRemoteOrLocalTableFromOne(
+            table, remote=False)
         table_remote = self.getRemoteOrLocalTableFromOne(table, remote=True)
 
         uninstall_function([addon], table_installed)
@@ -1993,7 +2060,8 @@ class AddonManager:
         ):
             version = entry[0]
             return bool(
-                version.startswith("(Outdated) ") or version.startswith("(Updated) ")
+                version.startswith(
+                    "(Outdated) ") or version.startswith("(Updated) ")
             )
 
     def loadRemoteDataIfNotDone(self):
@@ -2057,9 +2125,11 @@ class AddonManager:
         self, table: QtWidgets.QTableWidget, interface_ID: str
     ):
         """Asks user if they want to enable an add-on's startup script if present"""
-        script = self.getRelativeStartupScriptFromInterfaceID(table, interface_ID)
+        script = self.getRelativeStartupScriptFromInterfaceID(
+            table, interface_ID)
         if script:
-            script_contents = open(os.path.join(self.data_folder, script)).read()
+            script_contents = open(os.path.join(
+                self.data_folder, script)).read()
             for name in self.c.execute(
                 f"SELECT Name from {table.objectName()} WHERE InterfaceID = ?",
                 (interface_ID,),
@@ -2085,8 +2155,8 @@ class AddonManager:
                 self.data_folder, ""
             ).strip(os.sep)
             if relative_to_game_documents_dir_script in self.startupScripts:
-                self.startupScripts.remove(relative_to_game_documents_dir_script)
+                self.startupScripts.remove(
+                    relative_to_game_documents_dir_script)
 
             if os.path.exists(script_path):
                 os.remove(script_path)
-

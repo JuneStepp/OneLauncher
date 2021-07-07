@@ -79,7 +79,8 @@ class StartGame:
         self.parent = parent
         self.logger = logging.getLogger("OneLauncher")
         self.startupScripts = startupScripts
-        self.gameConfigDirPath = os.path.join(osType.documentsDir, gameConfigDir)
+        self.gameConfigDirPath = os.path.join(
+            osType.documentsDir, gameConfigDir)
 
         ui_file = QtCore.QFile(os.path.join(data_folder, "ui", "winLog.ui"))
         ui_file.open(QtCore.QFile.ReadOnly)
@@ -87,7 +88,8 @@ class StartGame:
         self.winLog = loader.load(ui_file, parentWidget=parent)
         ui_file.close()
 
-        self.winLog.setWindowFlags(QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint)
+        self.winLog.setWindowFlags(
+            QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint)
 
         if self.osType.usingWindows:
             self.winLog.setWindowTitle("Output")
@@ -166,13 +168,14 @@ class StartGame:
                         file_data = file.read()
                         if int(file_data) >= 524288:
                             processEnvironment.insert("WINEESYNC", "1")
-                
-                # Enables FSYNC. It overides ESYNC and will only be used if 
+
+                # Enables FSYNC. It overides ESYNC and will only be used if
                 # the required kernel patches are installed.
                 processEnvironment.insert("WINEFSYNC", "1")
 
                 # Adds dll overrides for directx, so dxvk is used instead of wine3d
-                processEnvironment.insert("WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10=n")
+                processEnvironment.insert(
+                    "WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10=n")
 
             self.process.setProcessEnvironment(processEnvironment)
 
@@ -225,13 +228,14 @@ class StartGame:
         if filename != "":
             with open(filename, "w") as outfile:
                 outfile.write(self.winLog.txtLog.toPlainText())
-    
+
     def runStatupScripts(self):
         """Runs Python scripts from add-ons with one that is approved by user"""
         for script in self.startupScripts:
             file_path = os.path.join(self.gameConfigDirPath, script)
             if os.path.exists(file_path):
-                self.winLog.txtLog.append(f"Running '{script}' startup script...")
+                self.winLog.txtLog.append(
+                    f"Running '{script}' startup script...")
 
                 # Set the working directory to where the script is. This is inherited by the script.
                 os.chdir(os.path.dirname(file_path))
@@ -240,16 +244,18 @@ class StartGame:
                 try:
                     exec(code, {"__file__": file_path})
                 except SyntaxError as e:
-                    self.winLog.txtLog.append(f"'{script}' ran into syntax error: {e}")
+                    self.winLog.txtLog.append(
+                        f"'{script}' ran into syntax error: {e}")
             else:
-                self.winLog.txtLog.append(f"'{script}' startup script does not exist")
-
+                self.winLog.txtLog.append(
+                    f"'{script}' startup script does not exist")
 
     def Run(self):
         self.finished = False
 
         self.winLog.btnStop.setText("Abort")
         self.process.start(self.command, self.arguments)
-        self.logger.info("Game started with: " + str([self.command, self.arguments]))
+        self.logger.info("Game started with: " +
+                         str([self.command, self.arguments]))
 
         return self.winLog.exec_()

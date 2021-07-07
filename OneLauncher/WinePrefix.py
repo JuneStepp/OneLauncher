@@ -40,7 +40,7 @@ import logging
 
 
 class BuiltInPrefix:
-    # To use Proton, replace link with Proton build and uncomment 
+    # To use Proton, replace link with Proton build and uncomment
     # `self.documents_symlinker()` in wine_setup
     WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/6.7/wine-6.7-staging-tkg-amd64.tar.xz"
     DXVK_URL = (
@@ -71,7 +71,8 @@ class BuiltInPrefix:
         # Uncomment line below when using Proton
         # self.proton_documents_symlinker()
 
-        self.latest_wine_version = self.WINE_URL.split("/download/")[1].split("/")[0]
+        self.latest_wine_version = self.WINE_URL.split(
+            "/download/")[1].split("/")[0]
         latest_wine_path = self.settingsDir + "wine/wine-" + self.latest_wine_version
 
         if os.path.exists(latest_wine_path):
@@ -95,7 +96,8 @@ class BuiltInPrefix:
                 return False
 
     def dxvk_setup(self):
-        self.latest_dxvk_version = self.DXVK_URL.split("download/v")[1].split("/")[0]
+        self.latest_dxvk_version = self.DXVK_URL.split(
+            "download/v")[1].split("/")[0]
         self.latest_dxvk_path = (
             self.settingsDir + "wine/dxvk-" + self.latest_dxvk_version
         )
@@ -144,7 +146,8 @@ class BuiltInPrefix:
         source_dir = (os.listdir(split_path))[0]
         move(os.path.join(split_path, source_dir), self.settingsDir + "wine")
         os.rmdir(split_path)
-        os.rename(os.path.join(self.settingsDir + "wine", source_dir), split_path)
+        os.rename(os.path.join(self.settingsDir +
+                  "wine", source_dir), split_path)
 
         # Removes downloaded tar.xz
         os.remove(path)
@@ -164,7 +167,8 @@ class BuiltInPrefix:
         # Moves files from nested directory to main one
         source_dir = (os.listdir(split_path + "_TEMP"))[0]
         move(
-            os.path.join(split_path + "_TEMP", source_dir), self.settingsDir + "wine",
+            os.path.join(split_path + "_TEMP",
+                         source_dir), self.settingsDir + "wine",
         )
         os.rmdir(split_path + "_TEMP")
 
@@ -179,8 +183,10 @@ class BuiltInPrefix:
     def dxvk_injector(self):
         """Adds dxvk to the wine prefix"""
         # Makes directories for dxvk dlls in case wine prefix hasn't been run yet
-        os.makedirs(self.winePrefix + "/drive_c/windows/system32", exist_ok=True)
-        os.makedirs(self.winePrefix + "/drive_c/windows/syswow64", exist_ok=True)
+        os.makedirs(self.winePrefix +
+                    "/drive_c/windows/system32", exist_ok=True)
+        os.makedirs(self.winePrefix +
+                    "/drive_c/windows/syswow64", exist_ok=True)
 
         dll_list = ["dxgi.dll", "d3d10core.dll", "d3d11.dll", "d3d9.dll"]
 
@@ -220,7 +226,8 @@ class BuiltInPrefix:
         ):
             # Make sure system documents folder  and prefix documents root folder exists
             os.makedirs(self.documentsDir, exist_ok=True)
-            os.makedirs(os.path.split(prefix_documents_folder)[0], exist_ok=True)
+            os.makedirs(os.path.split(prefix_documents_folder)
+                        [0], exist_ok=True)
 
             # Make symlink to system documents folder
             os.symlink(

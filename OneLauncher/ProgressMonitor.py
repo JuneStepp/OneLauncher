@@ -70,7 +70,7 @@ class ProgressMonitor:
 
             # if nothing is returned, assume the whole line has been parsed or discarded
             linePos = newPos if newPos else len(line)
-                # print(line, linePos)
+            # print(line, linePos)
 
         # copy current line to buffer unless input ends with newline char
         if text[-1] == "\n":

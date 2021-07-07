@@ -105,7 +105,6 @@ class SettingsWindow:
         elif settings.client == "WIN64":
             self.winSettings.cboClient.setCurrentIndex(2)
 
-
         self.winSettings.btnEN.setIcon(
             QtGui.QIcon(os.path.join(data_folder, "images", "EN-US.png"))
         )
@@ -120,15 +119,18 @@ class SettingsWindow:
 
         self.setLanguageButtons()
 
-        self.winSettings.btnSetupWizard.clicked.connect(self.btnSetupWizardClicked)
+        self.winSettings.btnSetupWizard.clicked.connect(
+            self.btnSetupWizardClicked)
         self.start_setup_wizard = False
         self.winSettings.btnGameDir.clicked.connect(self.btnGameDirClicked)
         self.winSettings.txtGameDir.textChanged.connect(self.txtGameDirChanged)
         self.winSettings.chkAdvanced.clicked.connect(self.chkAdvancedClicked)
 
         if not self.osType.usingWindows:
-            self.winSettings.btnPrefixDir.clicked.connect(self.btnPrefixDirClicked)
-            self.winSettings.txtPrefix.textChanged.connect(self.txtPrefixChanged)
+            self.winSettings.btnPrefixDir.clicked.connect(
+                self.btnPrefixDirClicked)
+            self.winSettings.txtPrefix.textChanged.connect(
+                self.txtPrefixChanged)
 
     def chkAdvancedClicked(self):
         if self.osType.usingWindows:

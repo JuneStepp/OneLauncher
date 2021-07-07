@@ -214,10 +214,10 @@ class SetupWizard:
     def trawl(self, path, directory, search_depth=5):
         if search_depth <= 0:
             return
-        
+
         # Needed for directories with glob patterns in their name
         directory = glob.escape(directory)
-        
+
         for name in glob.glob(directory + os.sep + "*"):
             if self.client in name.lower():
                 dirName = os.path.dirname(name.replace(path + os.sep, ""))
@@ -312,7 +312,8 @@ class SetupWizard:
                     output_list.addItem(folder)
 
                     # Select the added item
-                    item = output_list.findItems(folder, QtCore.Qt.MatchExactly)[0]
+                    item = output_list.findItems(
+                        folder, QtCore.Qt.MatchExactly)[0]
                     output_list.setCurrentItem(item)
                 else:
                     self.raiseWarningMessage(

@@ -62,7 +62,8 @@ def checkForCertificates(logger, data_folder):
     certfile = os.path.join(data_folder, "certificates/ca_certs.pem")
 
     if certfile and not os.access(certfile, os.R_OK):
-        logger.error("certificate file expected at '%s' but not found!" % certfile)
+        logger.error(
+            "certificate file expected at '%s' but not found!" % certfile)
         certfile = None
 
     global sslContext
@@ -170,8 +171,9 @@ class DetermineOS:
             CSIDL_PERSONAL = 5       # Value for My Documents
             SHGFP_TYPE_CURRENT = 0   # Get current, not default value
 
-            buffer= ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
-            ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buffer)
+            buffer = ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
+            ctypes.windll.shell32.SHGetFolderPathW(
+                None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buffer)
 
             win_documents_folder = buffer.value
 
@@ -242,7 +244,8 @@ class GLSDataCenter:
                     doc.getElementsByTagName("PatchServer")[0].childNodes
                 )
                 self.launchConfigServer = GetText(
-                    doc.getElementsByTagName("LauncherConfigurationServer")[0].childNodes
+                    doc.getElementsByTagName("LauncherConfigurationServer")[
+                        0].childNodes
                 )
 
                 self.worldList = []
@@ -262,8 +265,9 @@ class GLSDataCenter:
 
                             # Fix for legendary servers always returning nothing for status
                             urlStatusServer = (f"{urlGLSDataCenterService.rsplit('/Service.asmx', maxsplit=1)[0]}/StatusServer.aspx?s="
-                                                f"{urlStatusServer.rsplit('StatusServer.aspx?s=', maxsplit=1)[1]}")
-                    self.worldList.append(World(name, urlChatServer, urlStatusServer))
+                                               f"{urlStatusServer.rsplit('StatusServer.aspx?s=', maxsplit=1)[1]}")
+                    self.worldList.append(
+                        World(name, urlChatServer, urlStatusServer))
 
                 self.loadSuccess = True
         except:
@@ -275,7 +279,8 @@ class LanguageConfig:
         self.langFound = False
         self.langList = []
 
-        language_data_files = glob.glob(os.path.join(runDir, "client_local_*.dat"))
+        language_data_files = glob.glob(
+            os.path.join(runDir, "client_local_*.dat"))
         if language_data_files:
             self.langFound = True
             for name in language_data_files:
@@ -284,6 +289,7 @@ class LanguageConfig:
                 if temp == "English":
                     temp = "EN"
                 self.langList.append(temp)
+
 
 class World:
     def __init__(self, name, urlChatServer, urlServerStatus):
@@ -317,7 +323,8 @@ class World:
 
                 try:
                     self.nowServing = GetText(
-                        doc.getElementsByTagName("nowservingqueuenumber")[0].childNodes
+                        doc.getElementsByTagName("nowservingqueuenumber")[
+                            0].childNodes
                     )
                 except:
                     self.nowServing = ""
@@ -379,16 +386,19 @@ class WorldQueueConfig:
                 for node in nodes:
                     if node.nodeType == node.ELEMENT_NODE:
                         if node.getAttribute("key") == clientFilenameKey:
-                            self.gameClientFilename = node.getAttribute("value")
+                            self.gameClientFilename = node.getAttribute(
+                                "value")
                         elif node.getAttribute("key") == "GameClient.WIN32.ArgTemplate":
-                            self.gameClientArgTemplate = node.getAttribute("value")
+                            self.gameClientArgTemplate = node.getAttribute(
+                                "value")
                         elif node.getAttribute("key") == "GameClient.Arg.crashreceiver":
                             self.crashreceiver = node.getAttribute("value")
                         elif (
                             node.getAttribute("key")
                             == "GameClient.Arg.DefaultUploadThrottleMbps"
                         ):
-                            self.DefaultUploadThrottleMbps = node.getAttribute("value")
+                            self.DefaultUploadThrottleMbps = node.getAttribute(
+                                "value")
                         elif node.getAttribute("key") == "GameClient.Arg.bugurl":
                             self.bugurl = node.getAttribute("value")
                         elif node.getAttribute("key") == "GameClient.Arg.authserverurl":
@@ -396,11 +406,13 @@ class WorldQueueConfig:
                         elif node.getAttribute("key") == "GameClient.Arg.supporturl":
                             self.supporturl = node.getAttribute("value")
                         elif (
-                            node.getAttribute("key") == "GameClient.Arg.supportserviceurl"
+                            node.getAttribute(
+                                "key") == "GameClient.Arg.supportserviceurl"
                         ):
                             self.supportserviceurl = node.getAttribute("value")
                         elif (
-                            node.getAttribute("key") == "GameClient.Arg.glsticketlifetime"
+                            node.getAttribute(
+                                "key") == "GameClient.Arg.glsticketlifetime"
                         ):
                             self.glsticketlifetime = node.getAttribute("value")
                         elif node.getAttribute("key") == "Launcher.NewsFeedCSSUrl":
@@ -434,13 +446,15 @@ class WorldQueueConfig:
                     with uopen(filepath, "r", "utf-8") as infile:
                         tempxml = infile.read()
                     doc = defusedxml.minidom.parseString(tempxml)
-                    nodes = doc.getElementsByTagName("appSettings")[0].childNodes
+                    nodes = doc.getElementsByTagName(
+                        "appSettings")[0].childNodes
 
                     self.message = ""
                     for node in nodes:
                         if node.nodeType == node.ELEMENT_NODE:
                             if node.getAttribute("key") == "GameClient.WIN32.Filename":
-                                self.gameClientFilename = node.getAttribute("value")
+                                self.gameClientFilename = node.getAttribute(
+                                    "value")
                                 self.message = (
                                     '<font color="Khaki">'
                                     + filename
@@ -449,7 +463,8 @@ class WorldQueueConfig:
                                 )
 
                             if node.getAttribute("key") == "GameClient.WIN64.Filename":
-                                self.gameClientFilename = node.getAttribute("value")
+                                self.gameClientFilename = node.getAttribute(
+                                    "value")
                                 self.message = (
                                     '<font color="Khaki">' + filename + " 64-bit client"
                                     " override activated</font>"
@@ -512,7 +527,8 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
             else:
                 doc = defusedxml.minidom.parseString(tempxml)
 
-                self.ticket = GetText(doc.getElementsByTagName("Ticket")[0].childNodes)
+                self.ticket = GetText(
+                    doc.getElementsByTagName("Ticket")[0].childNodes)
 
                 for nodes in doc.getElementsByTagName("GameSubscription"):
                     game2 = ""
@@ -567,7 +583,8 @@ class JoinWorldQueue:
 
             msg = string_encode(argComplete)
             webservice.putrequest("POST", post)
-            webservice.putheader("Content-type", "application/x-www-form-urlencoded")
+            webservice.putheader(
+                "Content-type", "application/x-www-form-urlencoded")
             webservice.putheader("Content-length", "%d" % len(msg))
             webservice.putheader(
                 "SOAPAction", "http://www.turbine.com/SE/GLS/LoginAccount"
@@ -596,7 +613,8 @@ class JoinWorldQueue:
                         doc.getElementsByTagName("QueueNumber")[0].childNodes
                     )
                     self.serving = GetText(
-                        doc.getElementsByTagName("NowServingNumber")[0].childNodes
+                        doc.getElementsByTagName("NowServingNumber")[
+                            0].childNodes
                     )
 
                     self.joinSuccess = True

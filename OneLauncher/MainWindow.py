@@ -85,7 +85,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.configFile = ""
         self.currentGame = None
 
-        ui_file = QtCore.QFile(os.path.join(self.data_folder, "ui", "winMain.ui"))
+        ui_file = QtCore.QFile(os.path.join(
+            self.data_folder, "ui", "winMain.ui"))
 
         # Create the main window and set all text so that translations are handled via gettext
         ui_file.open(QtCore.QFile.ReadOnly)
@@ -105,7 +106,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.app.setFont(font)
 
         # Setup font for icons
-        font_file = os.path.join(self.data_folder, "fonts", "Font Awesome 5 Free-Solid-900.otf")
+        font_file = os.path.join(
+            self.data_folder, "fonts", "Font Awesome 5 Free-Solid-900.otf")
         font_db = QtGui.QFontDatabase()
         font_id = font_db.addApplicationFont(font_file)
         font_family = font_db.applicationFontFamilies(font_id)
@@ -209,24 +211,32 @@ class MainWindow(QtWidgets.QMainWindow):
 
             dark_palette.setColor(QtGui.QPalette.Window, dark_color)
             dark_palette.setColor(QtGui.QPalette.WindowText, QtCore.Qt.white)
-            dark_palette.setColor(QtGui.QPalette.Base, QtGui.QColor(18, 18, 18))
+            dark_palette.setColor(QtGui.QPalette.Base,
+                                  QtGui.QColor(18, 18, 18))
             dark_palette.setColor(QtGui.QPalette.AlternateBase, dark_color)
             dark_palette.setColor(QtGui.QPalette.ToolTipBase, QtCore.Qt.white)
             dark_palette.setColor(QtGui.QPalette.ToolTipText, QtCore.Qt.white)
             dark_palette.setColor(QtGui.QPalette.Text, QtCore.Qt.white)
-            dark_palette.setColor(QtGui.QPalette.Disabled, QtGui.QPalette.Text, disabled_color)
+            dark_palette.setColor(QtGui.QPalette.Disabled,
+                                  QtGui.QPalette.Text, disabled_color)
             dark_palette.setColor(QtGui.QPalette.Button, dark_color)
             dark_palette.setColor(QtGui.QPalette.ButtonText, QtCore.Qt.white)
-            dark_palette.setColor(QtGui.QPalette.Disabled, QtGui.QPalette.ButtonText, disabled_color)
+            dark_palette.setColor(QtGui.QPalette.Disabled,
+                                  QtGui.QPalette.ButtonText, disabled_color)
             dark_palette.setColor(QtGui.QPalette.BrightText, QtCore.Qt.red)
-            dark_palette.setColor(QtGui.QPalette.Link, QtGui.QColor(42, 130, 218))
+            dark_palette.setColor(QtGui.QPalette.Link,
+                                  QtGui.QColor(42, 130, 218))
 
-            dark_palette.setColor(QtGui.QPalette.Highlight, QtGui.QColor(42, 130, 218))
-            dark_palette.setColor(QtGui.QPalette.HighlightedText, QtCore.Qt.black)
-            dark_palette.setColor(QtGui.QPalette.Disabled, QtGui.QPalette.HighlightedText, disabled_color)
+            dark_palette.setColor(QtGui.QPalette.Highlight,
+                                  QtGui.QColor(42, 130, 218))
+            dark_palette.setColor(
+                QtGui.QPalette.HighlightedText, QtCore.Qt.black)
+            dark_palette.setColor(QtGui.QPalette.Disabled,
+                                  QtGui.QPalette.HighlightedText, disabled_color)
 
             self.app.setPalette(dark_palette)
-            self.app.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
+            self.app.setStyleSheet(
+                "QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
 
     def setupBtnExit(self):
         self.winMain.btnExit.clicked.connect(self.close)
@@ -253,15 +263,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.winMain.btnOptions.setText("\uf013")
 
     def setupBtnAddonManager(self):
-        self.winMain.btnAddonManager.clicked.connect(self.btnAddonManagerSelected)
+        self.winMain.btnAddonManager.clicked.connect(
+            self.btnAddonManagerSelected)
 
         self.winMain.btnAddonManager.setFont(self.icon_font)
         self.winMain.btnAddonManager.setText("\uf055")
-    
+
     def setupBtnLoginMenu(self):
         """Sets up signals and context menu for btnLoginMenu"""
         self.winMain.btnLogin.clicked.connect(self.btnLoginClicked)
-        
+
         # Setup context menu
         self.winMain.btnLoginMenu = QtWidgets.QMenu()
         self.winMain.btnLoginMenu.addAction(self.winMain.actionPatch)
@@ -270,7 +281,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def initializeBtnSwitchGame(self):
         """Sets up signals and actions for btnSwitchGame.
-        
+
         It needs to later be configured for the current game with
         `self.configureBtnSwitchGameForGame`.
         """
@@ -293,7 +304,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if game == "DDO":
             self.winMain.btnSwitchGame.setIcon(
                 QtGui.QIcon(
-                    os.path.join(self.data_folder, "images", "LOTROSwitchIcon.png")
+                    os.path.join(self.data_folder, "images",
+                                 "LOTROSwitchIcon.png")
                 )
             )
             self.winMain.actionLOTROTest.setEnabled(False)
@@ -307,7 +319,8 @@ class MainWindow(QtWidgets.QMainWindow):
         elif game == "DDO.Test":
             self.winMain.btnSwitchGame.setIcon(
                 QtGui.QIcon(
-                    os.path.join(self.data_folder, "images", "LOTROSwitchIcon.png")
+                    os.path.join(self.data_folder, "images",
+                                 "LOTROSwitchIcon.png")
                 )
             )
             self.winMain.actionLOTROTest.setEnabled(False)
@@ -321,7 +334,8 @@ class MainWindow(QtWidgets.QMainWindow):
         elif game == "LOTRO.Test":
             self.winMain.btnSwitchGame.setIcon(
                 QtGui.QIcon(
-                    os.path.join(self.data_folder, "images", "DDOSwitchIcon.png")
+                    os.path.join(self.data_folder, "images",
+                                 "DDOSwitchIcon.png")
                 )
             )
             self.winMain.actionLOTROTest.setEnabled(False)
@@ -335,7 +349,8 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.winMain.btnSwitchGame.setIcon(
                 QtGui.QIcon(
-                    os.path.join(self.data_folder, "images", "DDOSwitchIcon.png")
+                    os.path.join(self.data_folder, "images",
+                                 "DDOSwitchIcon.png")
                 )
             )
             self.winMain.actionDDOTest.setEnabled(False)
@@ -376,7 +391,8 @@ class MainWindow(QtWidgets.QMainWindow):
             keyring.set_keyring(SecretService.Keyring())
 
     def btnAboutSelected(self):
-        ui_file = QtCore.QFile(os.path.join(self.data_folder, "ui", "winAbout.ui"))
+        ui_file = QtCore.QFile(os.path.join(
+            self.data_folder, "ui", "winAbout.ui"))
 
         ui_file.open(QtCore.QFile.ReadOnly)
         loader = QUiLoader()
@@ -510,7 +526,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.resetFocus()
 
     def settingsWizardCalled(self):
-        winWizard = SetupWizard(self.valHomeDir, self.osType, self.data_folder, self.app)
+        winWizard = SetupWizard(
+            self.valHomeDir, self.osType, self.data_folder, self.app)
         self.hide()
 
         if winWizard.Run() == QtWidgets.QDialog.Accepted:
@@ -717,7 +734,8 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 self.accNumber = self.account.gameList[0].name
 
-            tempWorld = self.dataCenter.worldList[self.winMain.cboWorld.currentIndex()]
+            tempWorld = self.dataCenter.worldList[self.winMain.cboWorld.currentIndex(
+            )]
             tempWorld.CheckWorld(self.valHomeDir, self.osType)
 
             if tempWorld.worldAvailable:
@@ -940,7 +958,8 @@ class MainWindow(QtWidgets.QMainWindow):
             "https://api.github.com/repos/{user_and_repo}/releases/latest"
         )
         latest_release_url = latest_release_template.format(
-            user_and_repo=repository_url.lower().split("github.com")[1].strip("/")
+            user_and_repo=repository_url.lower().split("github.com")[
+                1].strip("/")
         )
 
         try:
@@ -983,11 +1002,13 @@ class MainWindow(QtWidgets.QMainWindow):
         )
         for button in button_box.buttons():
             if (
-                messageBox.buttonRole(button) == QtWidgets.QMessageBox.ActionRole
+                messageBox.buttonRole(
+                    button) == QtWidgets.QMessageBox.ActionRole
                 and button.text() == "Show Details..."
             ):
                 button.click()
-                detailed_text_widget = messageBox.findChild(QtWidgets.QTextEdit)
+                detailed_text_widget = messageBox.findChild(
+                    QtWidgets.QTextEdit)
                 detailed_text_widget.setMarkdown(messageBox.detailedText())
                 button.click()
                 return
@@ -1035,7 +1056,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             # Launch into specific game if specified in launch argument
             game = self.getLaunchArgument("--game",
-                    ["LOTRO", "LOTRO.Test", "DDO", "DDO.Test"])
+                                          ["LOTRO", "LOTRO.Test", "DDO", "DDO.Test"])
             if game:
                 self.currentGame = game
 
@@ -1283,10 +1304,12 @@ class MainWindowThread(QtCore.QThread):
                     self.baseConfig.gameName,
                 )
             else:
-                self.ReturnLog.emit("[E03] Error reading launcher configuration file.")
+                self.ReturnLog.emit(
+                    "[E03] Error reading launcher configuration file.")
 
     def AccessGLSDataCenter(self, urlGLS, gameName):
-        self.dataCenter = GLSDataCenter(urlGLS, gameName, self.baseDir, self.osType)
+        self.dataCenter = GLSDataCenter(
+            urlGLS, gameName, self.baseDir, self.osType)
 
         if self.dataCenter.loadSuccess:
             self.ReturnLog.emit("Fetched details from GLS data center.")
@@ -1315,12 +1338,14 @@ class MainWindowThread(QtCore.QThread):
 
             self.GetNews()
         else:
-            self.ReturnLog.emit("[E05] Error getting world queue configuration.")
+            self.ReturnLog.emit(
+                "[E05] Error getting world queue configuration.")
 
     def GetNews(self):
         try:
             with urllib.request.urlopen(self.worldQueueConfig.newsStyleSheetURL, context=self.sslContext) as xml_feed:
-                doc = defusedxml.minidom.parseString(xml_feed.read(), forbid_entities=False)
+                doc = defusedxml.minidom.parseString(
+                    xml_feed.read(), forbid_entities=False)
 
             nodes = doc.getElementsByTagName("div")
             for node in nodes:
@@ -1330,7 +1355,8 @@ class MainWindowThread(QtCore.QThread):
                 ):
                     timeCode = GetText(node.childNodes).strip()
                     timeCode = (
-                        timeCode.replace("\t", "").replace(",", "").replace("-", "")
+                        timeCode.replace("\t", "").replace(
+                            ",", "").replace("-", "")
                     )
                     if len(timeCode) > 0:
                         timeCode = " %s" % (timeCode)
