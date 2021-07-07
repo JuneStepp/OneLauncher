@@ -43,7 +43,7 @@ class Settings:
         self.settingsDir = "%s%s" % (baseDir, osType.appDir)
         self.settingsFile = "%sOneLauncher.config" % (self.settingsDir)
         self.osType = osType
-        self.logger = logging.getLogger("OneLauncher")
+        self.logger = logging.getLogger("main")
 
     def LoadSettings(self, useGame=None):
         self.hiResEnabled = True

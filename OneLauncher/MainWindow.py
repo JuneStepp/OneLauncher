@@ -27,8 +27,11 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import os
+from pathlib import Path
 import sys
 import OneLauncher
+from OneLauncher.logs import Logger
+import logging
 from typing import List
 import defusedxml.minidom
 from PySide6 import QtCore, QtGui, QtWidgets
@@ -54,8 +57,6 @@ from OneLauncher.OneLauncherUtils import (
 )
 from pkg_resources import parse_version
 import keyring
-import logging
-from logging.handlers import RotatingFileHandler
 from platform import platform
 import urllib
 
@@ -831,117 +832,6 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.AddLog("[E11] Error joining world queue.")
 
-    def setupLogging(self):
-        if not os.path.exists(self.settings.settingsDir):
-            os.mkdir(self.settings.settingsDir)
-        # Create or get custom logger
-        self.logger = logging.getLogger("OneLauncher")
-
-        # If logger has not already been setup
-        if not self.logger.hasHandlers():
-            # This is for the logger globally. Different handlers
-            # attached to it have their own levels.
-            self.logger.setLevel(logging.DEBUG)
-
-            # Create handlers
-            stream_handler = logging.StreamHandler()
-            stream_handler.setLevel(logging.WARNING)
-
-            log_file = os.path.join(self.settings.settingsDir, "OneLauncher.log")
-            file_handler = RotatingFileHandler(
-                log_file,
-                mode="a",
-                maxBytes=10 * 1024 * 1024,
-                backupCount=2,
-                encoding=None,
-                delay=0,
-            )
-            # Only log all information on dev builds
-            if Information.Version.endswith("Dev"):
-                file_handler.setLevel(logging.DEBUG)
-            else:
-                file_handler.setLevel(logging.ERROR)
-
-            # Create formatters and add it to handlers
-            stream_format = logging.Formatter(
-                "%(module)s - %(levelname)s - %(message)s"
-            )
-            stream_handler.setFormatter(stream_format)
-            file_format = logging.Formatter(
-                "%(asctime)s - %(module)s - %(levelname)s - %(lineno)d - %(message)s"
-            )
-            file_handler.setFormatter(file_format)
-
-            # Add handlers to the logger
-            self.logger.addHandler(stream_handler)
-            self.logger.addHandler(file_handler)
-
-            self.logger.info("Logging started")
-            self.logger.info("OneLauncher: " + Information.Version)
-            self.logger.info(platform())
-
-            # Setup handling of uncaught exceptions
-            sys.excepthook = self.handleUncaughtExceptions
-
-            # Setup Qt event logging
-            self.ignored_qt_events = [
-                QtCore.QEvent.HoverMove,
-                QtCore.QEvent.MouseMove,
-                QtCore.QEvent.Paint,
-                QtCore.QEvent.UpdateRequest,
-                QtCore.QEvent.UpdateLater,
-                QtCore.QEvent.ChildAdded,
-                QtCore.QEvent.ChildRemoved,
-                QtCore.QEvent.ParentChange,
-                QtCore.QEvent.PaletteChange,
-                QtCore.QEvent.DynamicPropertyChange,
-                QtCore.QEvent.FocusIn,
-                QtCore.QEvent.FocusOut,
-                QtCore.QEvent.FocusAboutToChange,
-                QtCore.QEvent.Move,
-                QtCore.QEvent.Resize,
-                QtCore.QEvent.Polish,
-                QtCore.QEvent.PolishRequest,
-                QtCore.QEvent.ChildPolished,
-                QtCore.QEvent.ShowToParent,
-                QtCore.QEvent.Timer,
-                QtCore.QEvent.ActivationChange,
-                QtCore.QEvent.WindowDeactivate,
-                QtCore.QEvent.WindowActivate,
-                QtCore.QEvent.ApplicationStateChange,
-                QtCore.QEvent.CursorChange,
-                QtCore.QEvent.MetaCall,
-                QtCore.QEvent.LayoutRequest,
-                QtCore.QEvent.Enter,
-                QtCore.QEvent.HoverEnter,
-                QtCore.QEvent.Leave,
-                QtCore.QEvent.HoverLeave,
-                QtCore.QEvent.StyleChange,
-                QtCore.QEvent.FontChange,
-                QtCore.QEvent.ContentsRectChange,
-                QtCore.QEvent.Create,
-                QtCore.QEvent.Wheel,
-            ]
-            self.app.installEventFilter(self)
-
-    def handleUncaughtExceptions(self, exc_type, exc_value, exc_traceback):
-        """Handler for uncaught exceptions that will write to the logs"""
-        if issubclass(exc_type, KeyboardInterrupt):
-            # call the default excepthook saved at __excepthook__
-            sys.__excepthook__(exc_type, exc_value, exc_traceback)
-            return
-        self.logger.critical(
-            "Uncaught exception:", exc_info=(exc_type, exc_value, exc_traceback)
-        )
-
-    def eventFilter(self, q_object, event):
-        """Logs Qt events not in self.ignored_qt_events"""
-        if event.type() not in self.ignored_qt_events:
-            self.logger.debug(str(event.type()) + " : " + q_object.objectName())
-
-        # standard event processing
-        return QtCore.QObject.eventFilter(self, q_object, event)
-
     def checkForUpdate(self):
         """Notifies user if their copy of OneLauncher is out of date"""
         current_version = parse_version(OneLauncher.__version__)
@@ -1049,7 +939,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ClearLog()
         self.ClearNews()
 
-        self.setupLogging()
+        self.logger = Logger(Path(self.settings.settingsDir), "main").logger
 
         if first_setup:
             self.checkForUpdate()
@@ -1264,7 +1154,7 @@ class MainWindowThread(QtCore.QThread):
         self.ReturnNews = ReturnNews
         self.sslContext = sslContext
 
-        self.logger = logging.getLogger("OneLauncher")
+        self.logger = logging.getLogger("main")
 
     def run(self):
         self.LoadLanguageList()

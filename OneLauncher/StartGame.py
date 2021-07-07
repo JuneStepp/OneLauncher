@@ -77,7 +77,7 @@ class StartGame:
         self.worldName = worldName
         self.accountText = accountText
         self.parent = parent
-        self.logger = logging.getLogger("OneLauncher")
+        self.logger = logging.getLogger("main")
         self.startupScripts = startupScripts
         self.gameConfigDirPath = os.path.join(
             osType.documentsDir, gameConfigDir)

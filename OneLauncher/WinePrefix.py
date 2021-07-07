@@ -51,7 +51,7 @@ class BuiltInPrefix:
         self.settingsDir = settingsDir
         self.winePrefix = winePrefix
         self.documentsDir = documentsDir
-        self.logger = logging.getLogger("OneLauncher")
+        self.logger = logging.getLogger("main")
 
         self.dlgDownloader = QtWidgets.QProgressDialog(
             "Checking for updates...",

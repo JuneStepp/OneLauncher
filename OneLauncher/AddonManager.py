@@ -90,7 +90,7 @@ class AddonManager:
         self.settingsDir = settingsDir
         self.currentGame = currentGame
         self.parent = parent
-        self.logger = logging.getLogger("OneLauncher")
+        self.logger = logging.getLogger("main")
         self.startupScripts = startupScripts
         self.icon_font = icon_font
 

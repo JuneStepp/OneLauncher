@@ -58,7 +58,7 @@ class PatchWindow:
 
         self.homeDir = homeDir
         self.osType = osType
-        self.logger = logging.getLogger("OneLauncher")
+        self.logger = logging.getLogger("main")
 
         ui_file = QtCore.QFile(os.path.join(data_folder, "ui", "winPatch.ui"))
         ui_file.open(QtCore.QFile.ReadOnly)
