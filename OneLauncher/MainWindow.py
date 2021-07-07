@@ -28,6 +28,7 @@
 ###########################################################################
 import os
 import sys
+import OneLauncher
 from typing import List
 import defusedxml.minidom
 from PySide6 import QtCore, QtGui, QtWidgets
@@ -51,7 +52,6 @@ from OneLauncher.OneLauncherUtils import (
     JoinWorldQueue,
     GetText,
 )
-from OneLauncher import Information
 from pkg_resources import parse_version
 import keyring
 import logging
@@ -385,13 +385,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
         dlgAbout.setWindowFlags(QtCore.Qt.Popup)
 
-        dlgAbout.lblDescription.setText(Information.LongDescription)
-        dlgAbout.lblRepoWebsite.setText(Information.RepoWebsite)
-        dlgAbout.lblCopyright.setText(Information.Copyright)
-        dlgAbout.lblVersion.setText("<b>Version:</b> " + Information.Version)
-        dlgAbout.lblPyLotROReference.setText(Information.PyLotROReference)
-        dlgAbout.lblCLIReference.setText(Information.CLIReference)
-        dlgAbout.lblLotROLinuxReference.setText(Information.LotROLinuxReference)
+        dlgAbout.lblDescription.setText(OneLauncher.__description__)
+        dlgAbout.lblRepoWebsite.setText(f"<a href='{OneLauncher.__project_url__}'>"
+                                        f"{OneLauncher.__project_url__}</a>")
+        dlgAbout.lblCopyright.setText(OneLauncher.__copyright__)
+        dlgAbout.lblVersion.setText(
+            "<b>Version:</b> " + OneLauncher.__version__)
+        dlgAbout.lblCopyrightHistory.setText(OneLauncher.__copyright_history__)
 
         dlgAbout.exec_()
         self.resetFocus()
@@ -926,8 +926,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def checkForUpdate(self):
         """Notifies user if their copy of OneLauncher is out of date"""
-        current_version = parse_version(Information.Version)
-        repository_url = Information.repoUrl
+        current_version = parse_version(OneLauncher.__version__)
+        repository_url = OneLauncher.__project_url__
         if "github.com" not in repository_url.lower():
             self.logger.warning(
                 "Repository URL set in Information.py is not "
