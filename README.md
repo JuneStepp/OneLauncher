@@ -173,7 +173,7 @@ Collections of add-ons can be made by listing the add-ons you would like in the 
 
 ## Dependencies
 
-Dependencies will be installed automatically after your add-on. See the [Compendium Files](#Compendium-Files) section for how to add dependencies to your add-on.
+Dependencies will be installed automatically after your add-on. See the [Compendium Files](#Compendium-Files) section for how to add dependencies to your add-on. Turbine Utilities uses to ID `0`.
 
 ## Startup Scripts
 
