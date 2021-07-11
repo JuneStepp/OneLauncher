@@ -27,8 +27,9 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-import os
+from pathlib import Path
 from OneLauncher.OneLauncherUtils import GetText
+from OneLauncher import __title__
 from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minidom import Document  # nosec
 import defusedxml.minidom
@@ -38,10 +39,10 @@ import logging
 
 
 class Settings:
-    def __init__(self, baseDir, osType):
+    def __init__(self, baseDir: Path, osType):
         self.currentGame = "LOTRO"
-        self.settingsDir = "%s%s" % (baseDir, osType.appDir)
-        self.settingsFile = "%sOneLauncher.config" % (self.settingsDir)
+        self.settingsDir = Path(baseDir)/osType.appDir
+        self.settingsFile = self.settingsDir/f"{__title__}.config"
         self.osType = osType
         self.logger = logging.getLogger("main")
 
@@ -53,13 +54,13 @@ class Settings:
         # Key is account name and content is list of details
         # relating to account.
         self.accountsDictionary = OrderedDict()
-        self.wineProg = "wine"
+        self.wineProg = Path("wine")
         self.wineDebug = "fixme-all"
-        self.patchClient = "patchclient.dll"
+        self.patchClient = Path("patchclient.dll")
         self.focusAccount = True
-        self.winePrefix = self.settingsDir + "wine/prefix"
+        self.winePrefix = self.settingsDir/"wine/prefix"
         self.builtInPrefixEnabled = True
-        self.gameDir = ""
+        self.gameDir = Path()
         self.client = "WIN64"
         self.savePassword = False
         self.startupScripts = []
@@ -69,8 +70,8 @@ class Settings:
             self.winePrefix = ""
 
         try:
-            if os.path.exists(self.settingsFile):
-                doc = defusedxml.minidom.parse(self.settingsFile)
+            if self.settingsFile.exists():
+                doc = defusedxml.minidom.parse(str(self.settingsFile))
 
                 if useGame is None:
                     defaultGame = GetText(
@@ -84,11 +85,11 @@ class Settings:
                 nodes = doc.getElementsByTagName(defaultGame)[0].childNodes
                 for node in nodes:
                     if node.nodeName == "Wine.Program":
-                        self.wineProg = GetText(node.childNodes)
+                        self.wineProg = Path(GetText(node.childNodes))
                     elif node.nodeName == "Wine.Debug":
                         self.wineDebug = GetText(node.childNodes)
                     elif node.nodeName == "Wine.Prefix":
-                        winePrefix = GetText(node.childNodes)
+                        winePrefix = Path(GetText(node.childNodes))
                         # Checks if prefix is set to built in wine prefix
                         if winePrefix != self.winePrefix:
                             self.winePrefix = winePrefix
@@ -103,11 +104,11 @@ class Settings:
                     elif node.nodeName == "Save.Password":
                         self.savePassword = GetText(node.childNodes) == "True"
                     elif node.nodeName == "Game.Directory":
-                        self.gameDir = GetText(node.childNodes)
+                        self.gameDir = Path(GetText(node.childNodes))
                     elif node.nodeName == "Language":
                         self.language = GetText(node.childNodes)
                     elif node.nodeName == "PatchClient":
-                        self.patchClient = GetText(node.childNodes)
+                        self.patchClient = Path(GetText(node.childNodes))
                     elif node.nodeName == "Accounts" and not self.currentGame.endswith(
                         ".Test"
                     ):
@@ -147,8 +148,8 @@ class Settings:
                 success = True
 
                 if (
-                    not os.path.exists(self.wineProg)
-                    and self.wineProg != "wine"
+                    not self.wineProg.exists()
+                    and self.wineProg != Path("wine")
                     and not self.builtInPrefixEnabled
                 ):
                     success = "[E16] Wine executable set does not exist"
@@ -161,11 +162,11 @@ class Settings:
     def checkGameClient64(self, path=None):
         if path is None:
             path = self.gameDir
+
         exe = "lotroclient64.exe" if self.currentGame.startswith(
             "LOTRO") else "dndclient64.exe"
-        return os.path.exists(
-            os.path.join(path, "x64", exe)
-        )
+
+        return (path/"x64"/exe).exists()
 
     def setAccountsSettings(self, account_nodes):
         for account_node in account_nodes:
@@ -215,15 +216,15 @@ class Settings:
     def SaveSettings(self, saveAccountDetails=None, savePassword=None, game=None):
         doc = None
 
-        # Check if settings directory exists if not create
-        if not os.path.exists(self.settingsDir):
-            os.mkdir(self.settingsDir)
+        # Make settings dir if it doesn't exist
+        self.settingsDir.mkdir(exist_ok=True)
+
         if not self.osType.usingWindows:
-            os.makedirs(self.settingsDir + "wine/prefix", exist_ok=True)
+            (self.settingsDir/"wine/prefix").mkdir(exist_ok=True, parents=True)
 
         # Check if settings file exists if not create new settings XML
-        if os.path.exists(self.settingsFile):
-            doc = defusedxml.minidom.parse(self.settingsFile)
+        if self.settingsFile.exists():
+            doc = defusedxml.minidom.parse(str(self.settingsFile))
             settingsNode = doc.getElementsByTagName("Settings")
         else:
             doc = Document()
@@ -258,7 +259,8 @@ class Settings:
 
         if not self.osType.usingWindows:
             tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Program")
-            tempNode.appendChild(doc.createTextNode("%s" % (self.wineProg)))
+            tempNode.appendChild(doc.createTextNode("%s" %
+                                 (str(self.wineProg))))
             gameConfigNode.appendChild(tempNode)
 
             tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Debug")
@@ -268,7 +270,7 @@ class Settings:
             if self.winePrefix != "":
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Prefix")
                 tempNode.appendChild(
-                    doc.createTextNode("%s" % (self.winePrefix)))
+                    doc.createTextNode("%s" % (str(self.winePrefix))))
                 gameConfigNode.appendChild(tempNode)
 
         tempNode = doc.createElementNS(EMPTY_NAMESPACE, "HiRes")
@@ -289,11 +291,12 @@ class Settings:
             gameConfigNode.appendChild(tempNode)
 
         tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Game.Directory")
-        tempNode.appendChild(doc.createTextNode("%s" % (self.gameDir)))
+        tempNode.appendChild(doc.createTextNode("%s" % (str(self.gameDir))))
         gameConfigNode.appendChild(tempNode)
 
         tempNode = doc.createElementNS(EMPTY_NAMESPACE, "PatchClient")
-        tempNode.appendChild(doc.createTextNode("%s" % (self.patchClient)))
+        tempNode.appendChild(doc.createTextNode("%s" %
+                             (str(self.patchClient))))
         gameConfigNode.appendChild(tempNode)
 
         if self.language:
@@ -360,6 +363,6 @@ class Settings:
             gameConfigNode.appendChild(startupScriptsNode)
 
         # write new settings file
-        with open(self.settingsFile, "w") as file:
+        with self.settingsFile.open(mode="w") as file:
             pretty_xml = prettify_xml(doc.toxml())
             file.write(pretty_xml)

@@ -26,18 +26,19 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
+from typing import List, Tuple
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
-import os
-from glob import glob
+from pathlib import Path
 from xml.dom import EMPTY_NAMESPACE
-from xml.dom.minidom import Document  # nosec
+from xml.dom.minidom import Document, Element  # nosec
 import defusedxml.minidom
 from vkbeautify import xml as prettify_xml
 from OneLauncher.OneLauncherUtils import GetText
 import sqlite3
-from shutil import rmtree, copy, move
-from zipfile import ZipFile
+from shutil import rmtree, copy, move, copytree
+import zipfile
+from tempfile import TemporaryDirectory
 import urllib
 from time import strftime, localtime
 import logging
@@ -80,12 +81,12 @@ class AddonManager:
         self,
         currentGame,
         osType,
-        settingsDir,
+        settingsDir: Path,
         parent,
-        data_folder,
-        gameDocumentsDir,
+        data_folder: Path,
+        gameDocumentsDir: Path,
         startupScripts,
-        icon_font,
+        icon_font: QtGui.QFont,
     ):
         self.settingsDir = settingsDir
         self.currentGame = currentGame
@@ -94,14 +95,8 @@ class AddonManager:
         self.startupScripts = startupScripts
         self.icon_font = icon_font
 
-        ui_file = QtCore.QFile(os.path.join(
-            data_folder, "ui", "winAddonManager.ui"))
-
-        ui_file.open(QtCore.QFile.ReadOnly)
-        loader = QUiLoader()
-        self.winAddonManager = loader.load(ui_file, parentWidget=parent)
-        ui_file.close()
-
+        self.winAddonManager = QUiLoader().load(
+            str(data_folder/"ui/winAddonManager.ui"), parentWidget=parent)
         self.winAddonManager.setWindowFlags(
             QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint
         )
@@ -230,10 +225,9 @@ class AddonManager:
 
         self.openDB()
 
-        self.data_folder = os.path.join(osType.documentsDir, gameDocumentsDir)
+        self.data_folder = osType.documentsDir/gameDocumentsDir
         if currentGame.startswith("DDO"):
-            self.data_folder_skins = os.path.join(
-                self.data_folder, "ui", "skins")
+            self.data_folder_skins = self.data_folder/"ui/skins"
 
             self.winAddonManager.tableSkinsInstalled.setObjectName(
                 "tableSkinsDDOInstalled"
@@ -241,42 +235,36 @@ class AddonManager:
             self.winAddonManager.tableSkins.setObjectName("tableSkinsDDO")
             self.getInstalledSkins()
         else:
-            self.data_folder_plugins = os.path.join(
-                self.data_folder, "Plugins")
-            self.data_folder_skins = os.path.join(
-                self.data_folder, "ui", "skins")
-            self.data_folder_music = os.path.join(self.data_folder, "Music")
+            self.data_folder_plugins = self.data_folder/"Plugins"
+            self.data_folder_skins = self.data_folder/"ui/skins"
+            self.data_folder_music = self.data_folder/"Music"
 
             # Loads in installed plugins
             self.getInstalledPlugins()
 
-    def getInstalledSkins(self, folders_list=None):
+    def getInstalledSkins(self, folders_list: List[Path] = None):
         if self.isTableEmpty(self.winAddonManager.tableSkinsInstalled):
             folders_list = None
 
-        os.makedirs(self.data_folder_skins, exist_ok=True)
+        self.data_folder_skins.mkdir(parents=True, exist_ok=True)
 
         if not folders_list:
-            folders_list = glob(os.path.join(self.data_folder_skins, "*", ""))
-        else:
             folders_list = [
-                os.path.join(self.data_folder_skins, folder) for folder in folders_list
-            ]
+                path for path in self.data_folder_skins.glob("*") if path.is_dir()]
 
         skins_list = []
         skins_list_compendium = []
         for folder in folders_list:
-            folder = folder[:-1] + folder[-1].replace(os.sep, "")
             skins_list.append(folder)
-            for file in os.listdir(folder):
-                if file.endswith(".skincompendium"):
-                    skins_list_compendium.append(os.path.join(folder, file))
+            for file in folder.iterdir():
+                if file.suffix == ".skincompendium":
+                    skins_list_compendium.append(file)
                     skins_list.remove(folder)
                     break
 
         self.addInstalledSkinsToDB(skins_list, skins_list_compendium)
 
-    def addInstalledSkinsToDB(self, skins_list, skins_list_compendium):
+    def addInstalledSkinsToDB(self, skins_list: List[Path], skins_list_compendium: List[Path]):
         table = self.winAddonManager.tableSkinsInstalled
 
         # Clears rows from db table if needed (This function is called to add
@@ -296,8 +284,8 @@ class AddonManager:
         for skin in skins_list:
             items_row = [""] * (len(self.COLUMN_LIST) - 1)
 
-            items_row[0] = os.path.split(skin)[1]
-            items_row[5] = skin
+            items_row[0] = skin.name
+            items_row[5] = str(skin)
             items_row[1] = "Unmanaged"
 
             self.addRowToDB(table, items_row)
@@ -305,39 +293,52 @@ class AddonManager:
         # Populate user visible table
         self.reloadSearch(self.winAddonManager.tableSkinsInstalled)
 
-    def getInstalledMusic(self, folders_list=None):
+    def getInstalledMusic(self, folders_list: List[Path] = None):
         if self.isTableEmpty(self.winAddonManager.tableMusicInstalled):
             folders_list = None
 
-        os.makedirs(self.data_folder_music, exist_ok=True)
+        self.data_folder_music.mkdir(parents=True, exist_ok=True)
 
         if not folders_list:
-            folders_list = glob(os.path.join(self.data_folder_music, "*", ""))
-        else:
             folders_list = [
-                os.path.join(self.data_folder_music, folder) for folder in folders_list
-            ]
+                path for path in self.data_folder_music.glob("*") if path.is_dir()]
 
         music_list = []
         music_list_compendium = []
         for folder in folders_list:
-            folder = folder[:-1] + folder[-1].replace(os.sep, "")
             music_list.append(folder)
-            for file in os.listdir(folder):
-                if file.endswith(".musiccompendium"):
+            for file in folder.iterdir():
+                if file.suffix == ".musiccompendium":
                     music_list_compendium.append(
-                        os.path.join(self.data_folder_music, folder, file)
+                        folder/file
                     )
                     music_list.remove(folder)
                     break
 
-        for file in os.listdir(self.data_folder_music):
-            if file.endswith(".abc"):
-                music_list.append(os.path.join(self.data_folder_music, file))
+        for file in self.data_folder_music.iterdir():
+            if file.suffix == ".abc":
+                music_list.append(file)
 
         self.addInstalledMusicToDB(music_list, music_list_compendium)
 
-    def addInstalledMusicToDB(self, music_list, music_list_compendium):
+    def parse_abc_file(self, file: Path) -> Tuple[str, str]:
+        with file.open() as file:
+            song_name = ""
+            author = ""
+            for _ in range(3):
+                line = file.readline().strip()
+                if line.startswith("T: "):
+                    song_name = line[3:]
+                if line.startswith("Z: "):
+                    author = (
+                        line[18:]
+                        if line.startswith("Z: Transcribed by ")
+                        else line[3:]
+                    )
+
+            return song_name, author
+
+    def addInstalledMusicToDB(self, music_list: List[Path], music_list_compendium: List[Path]):
         table = self.winAddonManager.tableMusicInstalled
 
         # Clears rows from db table if needed (This function is called
@@ -353,21 +354,12 @@ class AddonManager:
         for music in music_list:
             items_row = [""] * (len(self.COLUMN_LIST) - 1)
 
-            items_row[0] = os.path.split(music)[1]
-            if music.endswith(".abc"):
-                items_row[0] = os.path.splitext(items_row[0])[0]
+            items_row[0] = music.stem
+            if music.suffix == ".abc":
+                song_name, items_row[3] = self.parse_abc_file(music)
+                if song_name:
+                    items_row[0] = song_name
 
-                with open(music, "r") as file:
-                    for _ in range(3):
-                        line = file.readline().strip()
-                        if line.startswith("T: "):
-                            items_row[0] = line[3:]
-                        if line.startswith("Z: "):
-                            items_row[3] = (
-                                line[18:]
-                                if line.startswith("Z: Transcribed by ")
-                                else line[3:]
-                            )
             items_row[5] = music
             items_row[1] = "Unmanaged"
 
@@ -376,59 +368,57 @@ class AddonManager:
         # Populate user visible table
         self.reloadSearch(table)
 
-    def getInstalledPlugins(self, folders_list=None):
+    def getInstalledPlugins(self, folders_list: List[Path] = None):
         if self.isTableEmpty(self.winAddonManager.tablePluginsInstalled):
             folders_list = None
-        os.makedirs(self.data_folder_plugins, exist_ok=True)
+
+        self.data_folder_plugins.mkdir(parents=True, exist_ok=True)
 
         if not folders_list:
-            folders_list = glob(os.path.join(
-                self.data_folder_plugins, "*", ""))
-        else:
             folders_list = [
-                os.path.join(self.data_folder_plugins, folder)
-                for folder in folders_list
-            ]
+                path for path in self.data_folder_plugins.glob("*") if path.is_dir()]
 
         # Finds all plugins and adds their .plugincompendium files to a list
         plugins_list_compendium = []
         plugins_list = []
         for folder in folders_list:
-            for file in glob(folder + "/**/*.plugin*", recursive=True):
-                if file.endswith(".plugincompendium"):
+            for file in folder.glob("**/*.plugin*"):
+                if file.suffix == ".plugincompendium":
                     # .plugincompenmdium file should be in author folder of plugin
-                    if os.path.split(file)[0].strip("/\\") == folder.strip("/\\"):
+                    if file.parent == folder:
                         plugins_list_compendium.append(file)
-                elif file.endswith(".plugin"):
+                elif file.suffix == ".plugin":
                     plugins_list.append(file)
 
-        (plugins_list, plugins_list_compendium,) = self.removeManagedPluginsFromList(
+        self.removeManagedPluginsFromList(
             plugins_list, plugins_list_compendium
         )
 
         self.addInstalledPluginsToDB(plugins_list, plugins_list_compendium)
 
-    def removeManagedPluginsFromList(self, plugins_list, plugins_list_compendium):
-        for plugin in plugins_list_compendium:
-            doc = defusedxml.minidom.parse(plugin)
+    def removeManagedPluginsFromList(self, plugin_files: List[Path],
+                                     compendium_files: List[Path]) -> None:
+        """Removes plugin files from plugin_files that aren't managed by a compendium file"""
+        for compendium_file in compendium_files:
+            doc = defusedxml.minidom.parse(str(compendium_file))
             nodes = doc.getElementsByTagName("Descriptors")[0].childNodes
 
             for node in nodes:
                 if node.nodeName == "descriptor":
-                    descriptor_path = os.path.join(
-                        self.data_folder_plugins,
-                        (GetText(node.childNodes).replace("\\", os.sep)),
-                    )
-                    try:
-                        plugins_list.remove(descriptor_path)
-                    except ValueError:
-                        if not os.path.exists(descriptor_path):
-                            self.addLog(
-                                plugin + " has misconfigured descriptors")
+                    descriptor_path = self.data_folder_plugins / \
+                        (GetText(node.childNodes).replace("\\", "/"))
 
-        return plugins_list, plugins_list_compendium
+                    # Remove descriptor plugin file from plugin_files
+                    descriptor_plugin_files = [
+                        file for file in plugin_files if file == descriptor_path]
+                    for file in descriptor_plugin_files:
+                        plugin_files.remove(file)
 
-    def addInstalledPluginsToDB(self, plugins_list, plugins_list_compendium):
+                    if not descriptor_path.exists():
+                        self.addLog(
+                            f"{compendium_file} has misconfigured descriptors")
+
+    def addInstalledPluginsToDB(self, plugin_files: List[Path], compendium_files: List[Path]):
         table = self.winAddonManager.tablePluginsInstalled
 
         # Clears rows from db table if needed (This function is called to
@@ -436,13 +426,13 @@ class AddonManager:
         if self.isTableEmpty(table):
             self.c.execute("DELETE FROM tablePluginsInstalled")
 
-        for plugin in plugins_list_compendium + plugins_list:
+        for file in compendium_files + plugin_files:
             # Sets tag for plugin file xml search and category for unmanaged plugins
-            if plugin.endswith(".plugincompendium"):
-                items_row = self.parseCompendiumFile(plugin, "PluginConfig")
+            if file.suffix == ".plugincompendium":
+                items_row = self.parseCompendiumFile(file, "PluginConfig")
                 items_row = self.getOnlineAddonInfo(items_row, "tablePlugins")
             else:
-                items_row = self.parseCompendiumFile(plugin, "Information")
+                items_row = self.parseCompendiumFile(file, "Information")
                 items_row[1] = "Unmanaged"
 
             self.addRowToDB(table, items_row)
@@ -450,18 +440,18 @@ class AddonManager:
         # Populate user visible table
         self.reloadSearch(self.winAddonManager.tablePluginsInstalled)
 
-    def getAddonDependencies(self, dependencies_node):
+    def getAddonDependencies(self, dependencies_node: Element):
         dependencies = ""
         for node in dependencies_node.childNodes:
             if node.nodeName == "dependency":
                 dependencies = dependencies + "," + (GetText(node.childNodes))
         return dependencies[1:]
 
-    # Returns list of common values for compendium or .plugin files
-    def parseCompendiumFile(self, file, tag):
+    def parseCompendiumFile(self, file: Path, tag: str) -> List[str]:
+        """Returns list of common values for compendium or .plugin files"""
         items_row = [""] * (len(self.COLUMN_LIST) - 1)
 
-        doc = defusedxml.minidom.parse(file)
+        doc = defusedxml.minidom.parse(str(file))
         nodes = doc.getElementsByTagName(tag)[0].childNodes
         for node in nodes:
             if node.nodeName == "Name":
@@ -476,11 +466,11 @@ class AddonManager:
                 items_row[7] = self.getAddonDependencies(node)
             elif node.nodeName == "StartupScript":
                 items_row[8] = GetText(node.childNodes)
-        items_row[5] = file
+        items_row[5] = str(file)
 
         return items_row
 
-    def getOnlineAddonInfo(self, items_row, remote_addons_table):
+    def getOnlineAddonInfo(self, items_row: List[str], remote_addons_table: str) -> List[str]:
         for info in self.c.execute(
             "SELECT Category, LatestRelease FROM {table} WHERE InterfaceID == ?".format(  # nosec
                 table=remote_addons_table
@@ -501,17 +491,16 @@ class AddonManager:
         Opens addons_cache database and creates new database if 
         one doesn't exist or the current one has an outdated structure
         """
-        addons_cache_db_path = os.path.join(
-            self.settingsDir, "addons_cache.sqlite")
-        if os.path.exists(addons_cache_db_path):
+        addons_cache_db_path = self.settingsDir/"addons_cache.sqlite"
+        if addons_cache_db_path.exists():
             # Connects to addons_cache database
-            self.conn = sqlite3.connect(addons_cache_db_path)
+            self.conn = sqlite3.connect(str(addons_cache_db_path))
             self.c = self.conn.cursor()
 
             # Replace old database if its structure is out of date
             if self.isCurrentDBOutdated():
                 self.closeDB()
-                os.remove(addons_cache_db_path)
+                addons_cache_db_path.unlink()
                 self.createDB()
         else:
             self.createDB()
@@ -564,7 +553,7 @@ class AddonManager:
     def createDB(self):
         """Creates ans sets up addons_cache database"""
         self.conn = sqlite3.connect(
-            os.path.join(self.settingsDir, "addons_cache.sqlite")
+            str(self.settingsDir/"addons_cache.sqlite")
         )
         self.c = self.conn.cursor()
 
@@ -596,189 +585,237 @@ class AddonManager:
         else:
             addon_formats = "*.zip *.rar *.abc"
 
-        filenames = QtWidgets.QFileDialog.getOpenFileNames(
+        file_names = QtWidgets.QFileDialog.getOpenFileNames(
             self.winAddonManager,
             "Addon Files/Archives",
-            os.path.expanduser("~"),
+            str(Path("~").expanduser()),
             addon_formats,
         )
 
-        if filenames[0]:
-            for file in filenames[0]:
-                self.installAddon(file)
+        if file_names[0]:
+            for file in file_names[0]:
+                self.installAddon(Path(file))
 
-    def installAddon(self, addon, interface_id=""):
+    def installAddon(self, addon_path: Path, interface_id: str = ""):
         # Install .abc files
-        if addon.endswith(".abc"):
-            self.installAbcFile(addon)
+        if addon_path.suffix == ".abc":
+            self.installAbcFile(addon_path)
             return
-        elif addon.endswith(".rar"):
+        elif addon_path.suffix == ".rar":
             self.addLog(
                 "OneLauncher does not support .rar archives, because it"
                 " is a proprietary format that would require and external "
                 "program to extract"
             )
             return
-        elif addon.endswith(".zip"):
-            self.installZipAddon(addon, interface_id)
+        elif addon_path.suffix == ".zip":
+            self.installZipAddon(addon_path, interface_id)
 
-    def installAbcFile(self, addon):
+    def installAbcFile(self, addon_path: Path):
         if self.currentGame.startswith("DDO"):
             self.addLog("DDO does not support .abc/music files")
             return
 
-        copy(addon, self.data_folder_music)
-        self.logger.info(addon + " installed")
+        copy(str(addon_path), self.data_folder_music)
+        self.logger.info(f"{addon_path} installed")
 
         # Plain .abc files are installed to base music directory,
         # so what is scanned can't be controlled
         self.winAddonManager.tableMusicInstalled.clearContents()
         self.getInstalledMusic()
 
-    def installZipAddon(self, addon, interface_id):
-        addon_type = ""
-        with ZipFile(addon, "r") as file:
-            files_list = file.namelist()
-            if not files_list:
-                self.addLog("Add-on Zip is empty. Aborting")
-                return
+    def installZipAddon(self, addon_path: Path, interface_id: str):
+        with TemporaryDirectory() as tmp_dir_name:
+            tmp_dir = Path(tmp_dir_name)
 
-            for entry in files_list:
-                if entry.endswith(".plugin"):
-                    self.installPluginZip(
-                        addon, interface_id, file, files_list, entry)
+            # Extract addon to temporary directory.
+            with zipfile.ZipFile(addon_path, "r") as archive:
+                # Addons without any files aren't valid
+                zip_files_list = [
+                    path for path in archive.infolist() if not path.is_dir()]
+                if not zip_files_list:
+                    self.addLog("Add-on Zip is empty. Aborting")
                     return
-                elif entry.endswith(".abc"):
+
+                archive.extractall(tmp_dir)
+
+            self.clean_temp_addon_folder(tmp_dir)
+
+            for path in tmp_dir.glob("**/*.*"):
+                if path.suffix == ".plugin":
+                    self.install_plugin(
+                        tmp_dir, interface_id)
+                    return
+                elif path.suffix == ".abc":
                     if (
-                        self.installMusicZip(
-                            addon, interface_id, file, files_list, entry
+                        self.install_music(
+                            tmp_dir, interface_id, addon_path.stem
                         )
-                        is False
+                        == False
                     ):
                         continue
                     else:
                         return
-            self.installSkinZip(addon, interface_id, file, files_list, entry)
+            self.install_skin(tmp_dir, interface_id, addon_path.stem)
 
-    def installPluginZip(self, addon, interface_id, file, files_list, entry):
+    def install_plugin(self, tmp_dir, interface_id: str) -> None:
+        """Install plugin from temporary directory"""
         if self.currentGame.startswith("DDO"):
             self.addLog("DDO does not support plugins")
             return
 
         table = self.winAddonManager.tablePlugins
-        folder_original = entry.split("/")[0]
-        path = self.data_folder_plugins
-        file.extractall(path=path)
 
-        folder = self.moveAddonsFromInvalidFolder(
-            self.data_folder_plugins, folder_original
-        )
-        updated_files_list = []
-        for entry in files_list:
-            try:
-                updated_files_list.append(
-                    os.path.join(folder, entry.split(
-                        folder, maxsplit=1)[1].strip("/"))
-                )
-            except IndexError:
-                # Anything that was in an invalid folder
-                # should be ignored. This also fixes issues
-                # with entries for the invalid folders such
-                # as 'Plugins/'
-                continue
+        author_folders = [path for path in tmp_dir.glob("*") if path.is_dir()]
+        # If there are multiple author folders the one with a compendium file
+        # is more likely to be the actual plugin downloaded rather than an
+        # included dependency. This is important, because OneLauncher should
+        # only generate a compendium file for the actual plugin that can be updated.
+        if len(author_folders) > 1:
+            author_folders_compendium = [
+                dir for dir in author_folders if list(dir.glob("*.plugincompendium"))]
+            if author_folders_compendium:
+                author_folder = author_folders_compendium[0]
+            else:
+                # If no author folders have a compendium file just
+                # pick the first folder. This isn't ideal.
+                author_folder = author_folders[0]
+        else:
+            author_folder = author_folders[0]
 
-        plugins_list = [
-            os.path.join(self.data_folder_plugins, entry)
-            for entry in updated_files_list
-            # .plugin files should always be in a
-            # folder in the plugins folder and no deeper
-            if len(entry.split("/")) == 2 and entry.endswith(".plugin")
-        ]
+        # .plugin files should always be in the author folder. All others
+        # will be ignored by both me and the game.
+        plugin_files = list(author_folder.glob("*.plugin"))
 
-        plugins_list_compendium = []
+        existing_compendium_file = self.get_existing_compendium_file(
+            author_folder)
+        if existing_compendium_file == False:
+            return
+
+        compendium_files = []
+        # Only make compendium file for addons installed from online
         if interface_id:
             compendium_file = self.generateCompendiumFile(
-                updated_files_list,
-                folder,
+                author_folder,
                 interface_id,
                 "Plugin",
-                path,
                 table.objectName(),
+                existing_compendium_file,
             )
-            plugins_list_compendium = [compendium_file]
+            compendium_files.append(compendium_file)
+        # Remove compendium files from manually installed addons.
+        # This is to limit confusion since there is no way to verify
+        # that compendium files from manually installed addons have
+        # correct information. ex. They could have some random interface_id
+        # suggesting they're the wrong addon and end up getting replaced
+        # by the addon for that ID during the updating process.
+        elif existing_compendium_file:
+            existing_compendium_file.unlink()
 
-        (plugins_list, plugins_list_compendium,) = self.removeManagedPluginsFromList(
-            plugins_list, plugins_list_compendium
-        )
+        # Move plugin from temp directory to actual plugins directory
+        for path in tmp_dir.glob("*"):
+            copytree(path, self.data_folder_plugins /
+                     path.name, dirs_exist_ok=True)
 
-        self.addInstalledPluginsToDB(plugins_list, plugins_list_compendium)
+        # Make plugin and compendium file paths point to their new location
+        plugin_files = [self.data_folder_plugins /
+                        str(file).replace(str(tmp_dir), "").strip("/") for file in plugin_files]
+        compendium_files = [self.data_folder_plugins /
+                            str(file).replace(str(tmp_dir), "").strip("/") for file in compendium_files]
+
+        self.removeManagedPluginsFromList(plugin_files, compendium_files)
+
+        self.addInstalledPluginsToDB(plugin_files, compendium_files)
 
         self.handleStartupScriptActivationPrompt(table, interface_id)
         self.logger.info(
             "Installed addon corresponding to "
-            + str(plugins_list)
-            + str(plugins_list_compendium)
-        )
+            f"{plugin_files} )"
+            f"{compendium_files}")
 
-        self.installAddonRemoteDependencies(table.objectName() + "Installed")
+        self.installAddonRemoteDependencies(
+            table.objectName() + "Installed")
 
-    def installMusicZip(self, addon, interface_id, file, files_list, entry):
+    def get_existing_compendium_file(self, tmp_search_dir: Path):
+        """Return existing compendium file, None, or False
+           if there are multiple.
+
+        Args:
+            tmp_search_dir (Path): Directory to check for compendium files in.
+                                   It has to be a temporary folder the addon
+                                   has been extracted to or compendium files
+                                   from other addons will be detected.
+        """
+        existing_compendium_files = list(
+            tmp_search_dir.glob("*.*compendium"))
+        if len(existing_compendium_files) > 1:
+            self.addLog(
+                f"Addon has multiple compendium files.")
+            return False
+        elif len(existing_compendium_files) == 1:
+            return existing_compendium_files[0]
+
+    def install_music(self, tmp_dir: Path, interface_id: str, addon_name: str):
         if self.currentGame.startswith("DDO"):
             self.addLog("DDO does not support .abc/music files")
             return
 
         # Some plugins have .abc files, but music collections
         # shouldn't have .plugin files.
-        if self.checkForPluginFile(files_list):
+        if list(tmp_dir.glob("**/*.plugin")):
             return False
 
         table = self.winAddonManager.tableMusic
 
-        path, folder = self.getAddonInstallationFolder(
-            entry, addon, files_list, self.data_folder_music
-        )
-        file.extractall(path=path)
-        self.logger.info(addon + " music installed")
+        root_dir = self.fix_improper_root_dir_addon(tmp_dir, addon_name)
 
-        folder = self.moveAddonsFromInvalidFolder(
-            self.data_folder_music, folder)
+        existing_compendium_file = self.get_existing_compendium_file(root_dir)
+        if existing_compendium_file == False:
+            return
 
         if interface_id:
             compendium_file = self.generateCompendiumFile(
-                files_list, folder, interface_id, "Music", path, table.objectName(),
-            )
-        self.getInstalledMusic(folders_list=[folder])
+                root_dir, interface_id, "Music", table.objectName(),
+                existing_compendium_file)
+
+        # Move the addon into the real data folder
+        copytree(root_dir, self.data_folder_music /
+                 root_dir.name, dirs_exist_ok=True)
+        root_dir = self.data_folder_music/root_dir.name
+
+        self.getInstalledMusic(folders_list=[root_dir])
 
         self.handleStartupScriptActivationPrompt(table, interface_id)
 
+        self.logger.info(f"{root_dir} music installed")
+
         self.installAddonRemoteDependencies(table.objectName() + "Installed")
 
-    def installSkinZip(self, addon, interface_id, file, files_list, entry):
+    def install_skin(self, tmp_dir: Path, interface_id, addon_name: str):
         table = self.winAddonManager.tableSkins
-        path, folder = self.getAddonInstallationFolder(
-            entry, addon, files_list, self.data_folder_skins
-        )
-        file.extractall(path=path)
-        self.logger.info(addon + " skin installed")
 
-        folder = self.moveAddonsFromInvalidFolder(
-            self.data_folder_skins, folder)
+        root_dir = self.fix_improper_root_dir_addon(tmp_dir, addon_name)
+
+        existing_compendium_file = self.get_existing_compendium_file(root_dir)
+        if existing_compendium_file == False:
+            return
 
         if interface_id:
             compendium_file = self.generateCompendiumFile(
-                files_list, folder, interface_id, "Skin", path, table.objectName(),
-            )
-        self.getInstalledSkins(folders_list=[folder])
+                root_dir, interface_id, "Skin", table.objectName(), existing_compendium_file)
+
+        # Move the addon into the real data folder
+        copytree(root_dir, self.data_folder_skins /
+                 root_dir.name, dirs_exist_ok=True)
+        root_dir = self.data_folder_skins/root_dir.name
+
+        self.getInstalledSkins(folders_list=[root_dir])
 
         self.handleStartupScriptActivationPrompt(table, interface_id)
 
-        self.installAddonRemoteDependencies(table.objectName() + "Installed")
+        self.logger.info(f"{root_dir} skin installed")
 
-    def checkForPluginFile(self, files_list):
-        """Returns True if list of files contains a .plugin file"""
-        for entry in files_list:
-            if entry.endswith(".plugin"):
-                return True
+        self.installAddonRemoteDependencies(table.objectName() + "Installed")
 
     def installAddonRemoteDependencies(self, table):
         """Installs the dependencies for the last installed addon"""
@@ -807,32 +844,54 @@ class AddonManager:
                 ):
                     self.installRemoteAddon(item[0], item[1], dependency)
 
-    # Gets folder and makes one if there is no root folder
-    def getAddonInstallationFolder(self, entry, addon, files_list, data_folder):
-        # Gets list of base folders in archive
-        folders_list = []
-        for file in files_list:
-            folder = file.split(os.path.sep)[0]
-            if folder not in folders_list:
-                folders_list.append(folder)
+    def fix_improper_root_dir_addon(self, addon_tmp_dir: Path, addon_name: str) -> Path:
+        """Moves addon to new folder if the top of the directory tree
+           is anything but one folder and no files. This should only be
+           used for skins and music.
 
-        # If no root folder or multiple root folders
-        if len(entry.split(os.path.sep)) == 1 or len(folders_list) > 1:
-            name = os.path.split(os.path.splitext(addon)[0])[1]
-            path = os.path.join(data_folder, name)
-            os.makedirs(os.path.split(path)[0], exist_ok=True)
-            folder = name
-        else:
-            path = data_folder
-            folder = entry.split("/")[0]
+        Args:
+            addon_tmp_dir (Path): Temporary directory where the addon has been extracted.
+            addon_name (str): Name to give the new folder if it is made.
 
-        return path, folder
+        Returns:
+            (Path): Root dir of the addon. Where the compendium file should go.
+        """
+        temp_dir_contents = list(addon_tmp_dir.glob("*"))
 
-    # Scans data folder for invalid folder names like "ui" or
-    # "plugins" and moves stuff out of them
-    def moveAddonsFromInvalidFolder(
-        self, data_folder, folder, folders_list=[], folders=""
-    ):
+        # If there is already a root dir and nothing else
+        if len(temp_dir_contents) == 1 and temp_dir_contents[0].is_dir():
+            return temp_dir_contents[0]
+
+        with TemporaryDirectory() as tmp_dir_name:
+            tmp_dir = Path(tmp_dir_name)
+
+            # Move addon_tmp_dir contents to new temporary folder.
+            # This is to prevent issues with addon_name being the
+            # same as one of the existing folders in addon_tmp_dir.
+            for path in temp_dir_contents:
+                move(path, tmp_dir)
+
+            # Make new folder to be the addon root dir
+            new_addon_root_dir = addon_tmp_dir/addon_name
+            new_addon_root_dir.mkdir()
+
+            # Move all of the original contents of addon_tmp_dir
+            # into the new root dir.
+            for path in tmp_dir.glob("*"):
+                move(path, new_addon_root_dir)
+
+        return new_addon_root_dir
+
+    def clean_temp_addon_folder(self, addon_dir: Path) -> None:
+        """Scans temp folder for invalid folder names like "ui" or
+           "plugins" and moves stuff out of them. Addon authors put
+           files in invalid folders when they want the user to extract
+           the file somewere higher up the folder tree than where their
+           work ends up. This is usually done for user convenience.
+
+        Args:
+            addon_dir (Path): Temporary folder where addon has been extracted.
+        """
         invalid_folder_names = [
             "ui",
             "skins",
@@ -844,70 +903,70 @@ class AddonManager:
             "Dungeons and Dragons Online",
             "Dungeons & Dragons Online",
         ]
+        with TemporaryDirectory() as tmp_dir_name:
+            tmp_dir = Path(tmp_dir_name)
 
-        if not folders_list:
-            folders_list = [folder]
+            while True:
+                invalid_dir = None
+                for potential_invalid_path in addon_dir.glob("*"):
+                    if (potential_invalid_path.is_dir() and
+                            potential_invalid_path.name in invalid_folder_names):
+                        invalid_dir = potential_invalid_path
+                        # Move everything from the invalid directory to a temporary one.
+                        # This is done to prevent issues when a folder in the invalid folder
+                        # has the same name as the invalid folder.
+                        for path in invalid_dir.glob("*"):
+                            move(str(path), str(tmp_dir))
 
-        for folder in folders_list:
-            folder = folder.strip(os.path.sep)
-            folder = os.path.split(folder)[1]
-            if folder in invalid_folder_names:
-                folders = os.path.join(folders, folder)
-                folders_list = glob(os.path.join(
-                    data_folder, folders, "*", ""))
-                return self.moveAddonsFromInvalidFolder(
-                    data_folder, "", folders_list=folders_list, folders=folders
-                )
+                        invalid_dir.rmdir()
 
-        if folders:
-            # List of the folders that will be moved to the data folder
-            addon_folders_list = []
+                        # Move files that were originally in the invalid folder
+                        # to the root addon_dir
+                        for path in tmp_dir.glob("*"):
+                            move(str(path), str(addon_dir))
 
-            for file in os.listdir(os.path.join(data_folder, folders)):
-                if os.path.isdir(os.path.join(data_folder, folders, file)):
-                    addon_folders_list.append(file)
-                move(os.path.join(data_folder, folders, file), data_folder)
+                # Stop loop if there were no more invalid folders discovered.
+                if invalid_dir is None:
+                    break
 
-            rmtree(os.path.join(data_folder, folders.split(os.path.sep)[0]))
+    def generateCompendiumFile(self, tmp_addon_root_dir: Path, interface_id: str,
+                               addon_type: str, table: str,
+                               existing_compendium_file: Path = None):
+        """Generate compendium file for addon. If there is an existing one
+           data that can only be gotten from it will be gathered and put
+           in the new file. The old one will be removed.
 
-            return addon_folders_list[0]
-        else:
-            return folder
-
-    # Generates a compendium file for remote addon
-    def generateCompendiumFile(
-        self, files_list, folder, interface_id, addon_type, path, table
-    ):
+        Args:
+            tmp_addon_root_dir (Path): Where the compendium file goes. In the
+                                       case of plugins it should be the author's
+                                       name. This has to be the addon root dir
+                                       while it is still in a temporary directory
+                                       for propper .plugin file detection.
+            interface_id (str): [description]
+            addon_type (str): The type of the addon. ("Plugin", "Music", "Skin")
+            table (str): The database table name for the addon type. Used to get remote
+                         addon information.
+            existing_compendium_file (Path, optional): An existing compendium file to 
+                                                       extract data from. Defaults to None.
+        """
         dependencies = []
         startup_python_script = ""
-        # Return if a compendium file already exists
-        for file in files_list:
-            if file.endswith(addon_type.lower() + "compendium"):
-                # Path includes folder when one has to be generated
-                tmp_folder = folder
-                if path.endswith(tmp_folder):
-                    tmp_folder = ""
-
-                compendium_file_path = os.path.join(
-                    path, tmp_folder, os.path.split(file)[1]
-                )
-                if os.path.exists(compendium_file_path):
-                    existing_compendium_values = self.parseCompendiumFile(
-                        compendium_file_path, addon_type + "Config"
-                    )
-                    dependencies = existing_compendium_values[7]
-                    startup_python_script = existing_compendium_values[8]
-                    os.remove(compendium_file_path)
+        # Get dependencies and startup_python_script from existing compendium
+        # file if present.
+        if existing_compendium_file:
+            existing_compendium_values = self.parseCompendiumFile(
+                existing_compendium_file, f"{addon_type.title()}Config"
+            )
+            dependencies = existing_compendium_values[7]
+            startup_python_script = existing_compendium_values[8]
+            existing_compendium_file.unlink()
 
         for row in self.c.execute(
-            # nosec
-            "SELECT * FROM {table} WHERE InterfaceID = ?".format(table=table),
-            (interface_id,),
-        ):
+                f"SELECT * FROM {table} WHERE InterfaceID = ?",  (interface_id,)):  # nosec
             if row[0]:
                 doc = Document()
                 mainNode = doc.createElementNS(
-                    EMPTY_NAMESPACE, addon_type + "Config")
+                    EMPTY_NAMESPACE, addon_type.title() + "Config")
                 doc.appendChild(mainNode)
 
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Id")
@@ -937,22 +996,21 @@ class AddonManager:
                 tempNode.appendChild(doc.createTextNode("%s" % (row[5])))
                 mainNode.appendChild(tempNode)
 
-                if addon_type == "Plugin":
-                    # Add addon's .plugin files
+                if addon_type.title() == "Plugin":
+                    # Add plugin's .plugin file descriptors
                     descriptorsNode = doc.createElementNS(
                         EMPTY_NAMESPACE, "Descriptors"
                     )
                     mainNode.appendChild(descriptorsNode)
-                    for file in files_list:
-                        if file.endswith(".plugin"):
-                            tempNode = doc.createElementNS(
-                                EMPTY_NAMESPACE, "descriptor"
-                            )
-                            tempNode.appendChild(
-                                doc.createTextNode(
-                                    "%s" % (file.replace("/", "\\")))
-                            )
-                            descriptorsNode.appendChild(tempNode)
+                    for plugin_file in tmp_addon_root_dir.glob("*.plugin"):
+                        tempNode = doc.createElementNS(
+                            EMPTY_NAMESPACE, "descriptor"
+                        )
+                        tempNode.appendChild(
+                            doc.createTextNode(
+                                "%s" % (f"{tmp_addon_root_dir.name}\\{plugin_file.name}"))
+                        )
+                        descriptorsNode.appendChild(tempNode)
 
                 # Can't add dependencies, because they are defined in compendium files
                 dependenciesNode = doc.createElementNS(
@@ -980,27 +1038,21 @@ class AddonManager:
                 mainNode.appendChild(startupScriptNode)
 
                 # Write compendium file
-
-                # Path includes folder when one has to be generated
-                if path.endswith(folder):
-                    folder = ""
-
-                compendium_file = os.path.join(
-                    path, folder, row[0] + "." +
-                    addon_type.lower() + "compendium",
-                )
-                with open(compendium_file, "w+") as file:
+                compendium_file = tmp_addon_root_dir / \
+                    f"{row[0]}.{addon_type.lower()}compendium"
+                with compendium_file.open("w+") as file:
                     pretty_xml = prettify_xml(doc.toxml())
                     file.write(pretty_xml)
 
                 return compendium_file
 
-    # Replaces "download" with "info" in download url to make info url
-    def getInterfaceInfoUrl(self, download_url):
-        download_url_tail = os.path.split(download_url)[1]
-        return download_url.replace(
-            download_url_tail, download_url_tail.replace("download", "info")
-        )
+    def getInterfaceInfoUrl(self, download_url: str):
+        """Replaces "download" with "info" in download url to make info url
+
+        An example is: https://www.lotrointerface.com/downloads/download1078-VitalTarget
+                   to: https://www.lotrointerface.com/downloads/info1078-VitalTarget
+        """
+        return download_url.replace("/downloads/download", "/downloads/info")
 
     def txtSearchBarTextChanged(self, text):
         if self.currentGame.startswith("LOTRO"):
@@ -1259,12 +1311,14 @@ class AddonManager:
         return table
 
     def installRemoteAddon(self, url, name, interface_id):
-        path = os.path.join(self.data_folder, "Downloads", name + ".zip")
-        os.makedirs(os.path.split(path)[0], exist_ok=True)
+        downloads_dir = self.data_folder/"Downloads"
+        downloads_dir.mkdir(parents=True, exist_ok=True)
+
+        path = downloads_dir/f"{name}.zip"
         status = self.downloader(url, path)
         if status:
             self.installAddon(path, interface_id=interface_id)
-            os.remove(path)
+            path.unlink()
 
     def getUninstallConfirm(self, table):
         addons, details = self.getSelectedAddons(table)
@@ -1308,10 +1362,10 @@ class AddonManager:
 
         return selected_addons, details
 
-    def uninstallPlugins(self, plugins, table):
+    def uninstallPlugins(self, plugins, table: str):
         for plugin in plugins:
             if plugin[1].endswith(".plugin"):
-                plugin_files = [plugin[1]]
+                plugin_files = [Path(plugin[1])]
             else:
                 plugin_files = []
                 if self.checkAddonForDependencies(plugin, table):
@@ -1321,11 +1375,9 @@ class AddonManager:
                     for node in nodes:
                         if node.nodeName == "descriptor":
                             plugin_files.append(
-                                os.path.join(
-                                    self.data_folder_plugins,
-                                    (GetText(node.childNodes).replace("\\", os.sep)),
-                                )
-                            )
+                                self.data_folder_plugins /
+                                (GetText(node.childNodes).replace("\\", "/")))
+
                     # Check for startup scripts to remove them
                     nodes = doc.getElementsByTagName(
                         "PluginConfig")[0].childNodes
@@ -1339,28 +1391,27 @@ class AddonManager:
                     continue
 
             for plugin_file in plugin_files:
-                if os.path.exists(plugin_file):
-                    doc = defusedxml.minidom.parse(plugin_file)
+                if plugin_file.exists():
+                    doc = defusedxml.minidom.parse(str(plugin_file))
                     nodes = doc.getElementsByTagName("Plugin")[0].childNodes
                     for node in nodes:
                         if node.nodeName == "Package":
-                            plugin_folder = os.path.split(
-                                GetText(node.childNodes).replace(".", os.sep)
-                            )[0]
+                            plugin_folder = (self.data_folder_plugins/(
+                                "/".join(GetText(node.childNodes).split(".")[0:2])))
 
                             # Removes plugin and all related files
-                            if plugin_folder and os.path.exists(
-                                self.data_folder_plugins + os.sep + plugin_folder
-                            ):
-                                rmtree(
-                                    self.data_folder_plugins + os.sep + plugin_folder
-                                )
-                    if os.path.exists(plugin_file):
-                        os.remove(plugin_file)
-            if os.path.exists(plugin[1]):
-                os.remove(plugin[1])
+                            if plugin_folder.exists():
+                                rmtree(plugin_folder)
 
-            self.logger.info(str(plugin) + " plugin uninstalled")
+                    plugin_file.unlink(missing_ok=True)
+            Path(plugin[1]).unlink(missing_ok=True)
+
+            # Remove author folder if there are no other plugins in it
+            author_dir = plugin_folder.parent
+            if not list(author_dir.glob("*")):
+                author_dir.rmdir()
+
+            self.logger.info(f"{plugin} plugin uninstalled")
 
             self.setRemoteAddonToUninstalled(
                 plugin, self.winAddonManager.tablePlugins)
@@ -1372,16 +1423,17 @@ class AddonManager:
     def uninstallSkins(self, skins, table):
         for skin in skins:
             if skin[1].endswith(".skincompendium"):
-                skin_path = os.path.split(skin[1])[0]
+                skin_path = Path(skin[1]).parent
 
-                items_row = self.parseCompendiumFile(skin[1], "SkinConfig")
+                items_row = self.parseCompendiumFile(
+                    Path(skin[1]), "SkinConfig")
                 script = items_row[8]
                 self.uninstallStartupScript(script, self.data_folder_skins)
             else:
-                skin_path = skin[1]
+                skin_path = Path(skin[1])
             rmtree(skin_path)
 
-            self.logger.info(str(skin) + " skin uninstalled")
+            self.logger.info(f"{skin} skin uninstalled")
 
             self.setRemoteAddonToUninstalled(
                 skin, self.winAddonManager.tableSkins)
@@ -1393,20 +1445,21 @@ class AddonManager:
     def uninstallMusic(self, music_list, table):
         for music in music_list:
             if music[1].endswith(".musiccompendium"):
-                music_path = os.path.split(music[1])[0]
+                music_path = Path(music[1]).parent
 
-                items_row = self.parseCompendiumFile(music[1], "MusicConfig")
+                items_row = self.parseCompendiumFile(
+                    Path(music[1]), "MusicConfig")
                 script = items_row[8]
                 self.uninstallStartupScript(script, self.data_folder_music)
             else:
-                music_path = music[1]
+                music_path = Path(music[1])
 
-            if music_path.endswith(".abc"):
-                os.remove(music_path)
+            if music_path.suffix == ".abc":
+                music_path.unlink()
             else:
                 rmtree(music_path)
 
-            self.logger.info(str(music) + " music uninstalled")
+            self.logger.info(f"{music} music uninstalled")
 
             self.setRemoteAddonToUninstalled(
                 music, self.winAddonManager.tableMusic)
@@ -1503,9 +1556,11 @@ class AddonManager:
             self.updateAddonFolderActions(index_remote)
 
             # Populates remote addons tables if not done already
-            if self.isTableEmpty(self.winAddonManager.tableSkins):
-                if self.loadRemoteAddons():
-                    self.getOutOfDateAddons()
+            if (
+                self.isTableEmpty(self.winAddonManager.tableSkins)
+                and self.loadRemoteAddons()
+            ):
+                self.getOutOfDateAddons()
 
         self.searchSearchBarContents()
 
@@ -1528,8 +1583,7 @@ class AddonManager:
 
     def getRemoteAddons(self, favorites_url, table):
         # Clears rows from db table
-        self.c.execute("DELETE FROM {table}".format(
-            table=table.objectName()))  # nosec
+        self.c.execute(f"DELETE FROM {table.objectName()}")  # nosec
 
         # Gets list of Interface IDs for installed addons
         installed_IDs = []
@@ -1542,8 +1596,8 @@ class AddonManager:
                 installed_IDs.append(ID[0])
 
         try:
-            addons_file = urllib.request.urlopen(
-                favorites_url).read().decode()  # nosec
+            addons_file = urllib.request.urlopen(  # nosec
+                favorites_url).read().decode()
         except (urllib.error.URLError, urllib.error.HTTPError) as error:
             self.logger.error(error.reason, exc_info=True)
             self.addLog(
@@ -1699,9 +1753,8 @@ class AddonManager:
         addon_db_id = table.item(row, 0).text()
 
         for interface_ID in self.c.execute(
-            "SELECT InterfaceID FROM {table} WHERE rowid = ?".format(  # nosec
-                table=table.objectName()
-            ),
+            # nosec
+            f"SELECT InterfaceID FROM {table.objectName()} WHERE rowid = ?",
             (addon_db_id,),
         ):
             if interface_ID[0]:
@@ -1720,7 +1773,7 @@ class AddonManager:
             QtGui.QDesktopServices.openUrl(url)
 
     def getAddonUrlFromInterfaceID(
-        self, interface_ID, table: QtWidgets.QTableWidget, download_url: bool = False
+        self, interface_ID: str, table: QtWidgets.QTableWidget, download_url: bool = False
     ):
         """Returns info URL for addon or download URL if download_url=True"""
         # URL is only in remote version of table
@@ -1857,20 +1910,24 @@ class AddonManager:
         row = self.context_menu_selected_row
         addon = self.getAddonListObjectFromRow(table, row, remote=False)
 
-        addon_folder = os.path.dirname(addon[1])
-        QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(addon_folder))
+        if Path(addon[1]).is_file():
+            addon_folder = Path(addon[1]).parent
+        else:
+            addon_folder = Path(addon[1])
+        QtGui.QDesktopServices.openUrl(
+            QtCore.QUrl.fromLocalFile(str(addon_folder)))
 
     def actionShowPluginsFolderSelected(self):
         folder = self.data_folder_plugins
-        QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(folder))
+        QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(str(folder)))
 
     def actionShowSkinsFolderSelected(self):
         folder = self.data_folder_skins
-        QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(folder))
+        QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(str(folder)))
 
     def actionShowMusicFolderSelected(self):
         folder = self.data_folder_music
-        QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(folder))
+        QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(str(folder)))
 
     def updateAddonFolderActions(self, index):
         """
@@ -2069,9 +2126,11 @@ class AddonManager:
         Loads remote addons and checks if addons have updates if not done yet
         """
         # If remote addons haven't been loaded then out of date addons haven't been found.
-        if self.isTableEmpty(self.winAddonManager.tableSkins):
-            if self.loadRemoteAddons():
-                self.getOutOfDateAddons()
+        if (
+            self.isTableEmpty(self.winAddonManager.tableSkins)
+            and self.loadRemoteAddons()
+        ):
+            self.getOutOfDateAddons()
 
         return True
 
@@ -2079,8 +2138,8 @@ class AddonManager:
         script = self.getRelativeStartupScriptFromInterfaceID(
             self.context_menu_selected_table, self.context_menu_selected_interface_ID
         )
-        full_script_path = os.path.join(self.data_folder, script)
-        if os.path.exists(full_script_path):
+        full_script_path = self.data_folder/script
+        if full_script_path.exists():
             self.startupScripts.append(script)
         else:
             self.addLog(
@@ -2094,21 +2153,22 @@ class AddonManager:
         self.startupScripts.remove(script)
 
     def getRelativeStartupScriptFromInterfaceID(
-        self, table: QtWidgets.QTableWidget, interface_ID
-    ):
-        """Returns path of startup script relative to game documents settings directory"""
+        self, table: QtWidgets.QTableWidget, interface_ID: str
+    ) -> str:
+        """Returns string path of startup script relative to game documents settings directory"""
         table_local = self.getRemoteOrLocalTableFromOne(table, remote=False)
         for entry in self.c.execute(
+            # nosec
             f"SELECT StartupScript FROM {table_local.objectName()} WHERE InterfaceID = ?",
             (interface_ID,),
         ):
             if entry[0]:
-                script = os.path.normpath(entry[0].replace("\\", "/"))
-                addon_data_folder_relative = self.getAddonTypeDataFolderFromTable(
+                script = entry[0].replace("\\", "/")
+                addon_data_folder_relative = Path(str(self.getAddonTypeDataFolderFromTable(
                     table_local
-                ).split(self.data_folder)[1]
+                )).split(str(self.data_folder))[1])
 
-                return os.path.join(addon_data_folder_relative, script).strip(os.sep)
+                return str(addon_data_folder_relative/script)
 
     def getAddonTypeDataFolderFromTable(self, table: QtWidgets.QTableWidget):
         table_name = table.objectName()
@@ -2128,9 +2188,9 @@ class AddonManager:
         script = self.getRelativeStartupScriptFromInterfaceID(
             table, interface_ID)
         if script:
-            script_contents = open(os.path.join(
-                self.data_folder, script)).read()
+            script_contents = (self.data_folder/script).open().read()
             for name in self.c.execute(
+                # nosec
                 f"SELECT Name from {table.objectName()} WHERE InterfaceID = ?",
                 (interface_ID,),
             ):
@@ -2145,18 +2205,15 @@ class AddonManager:
             if activate_script:
                 self.startupScripts.append(script)
 
-    def uninstallStartupScript(self, script: str, addon_data_folder: str):
+    def uninstallStartupScript(self, script: str, addon_data_folder: Path):
         if script:
-            script_path = os.path.join(
-                addon_data_folder, (script.replace("\\", os.sep)),
-            )
+            script_path = addon_data_folder/(script.replace("\\", "/")),
 
-            relative_to_game_documents_dir_script = script_path.replace(
-                self.data_folder, ""
-            ).strip(os.sep)
+            relative_to_game_documents_dir_script = str(script_path).replace(
+                str(self.data_folder), "")
+
             if relative_to_game_documents_dir_script in self.startupScripts:
                 self.startupScripts.remove(
                     relative_to_game_documents_dir_script)
 
-            if os.path.exists(script_path):
-                os.remove(script_path)
+            script_path.unlink(missing_ok=True)

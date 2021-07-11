@@ -27,7 +27,7 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import os
-import glob
+from pathlib import Path
 import defusedxml.minidom
 from xml.sax.saxutils import escape as xml_escape
 import ssl
@@ -57,9 +57,9 @@ def QByteArray2str(s):
 sslContext = None
 
 
-def checkForCertificates(logger, data_folder):
+def checkForCertificates(logger, data_folder: Path):
     # Try to locate the server certificates for HTTPS connections
-    certfile = os.path.join(data_folder, "certificates/ca_certs.pem")
+    certfile = data_folder/"certificates/ca_certs.pem"
 
     if certfile and not os.access(certfile, os.R_OK):
         logger.error(
@@ -99,13 +99,13 @@ def GetText(nodelist):
 
 
 class BaseConfig:
-    def __init__(self, configFile):
+    def __init__(self, configFile: Path):
         self.GLSDataCenterService = ""
         self.gameName = ""
         self.gameDocumentsDir = ""
 
         try:
-            doc = defusedxml.minidom.parse(configFile)
+            doc = defusedxml.minidom.parse(str(configFile))
 
             nodes = doc.getElementsByTagName("appSettings")[0].childNodes
             for node in nodes:
@@ -115,7 +115,8 @@ class BaseConfig:
                     elif node.getAttribute("key") == "DataCenter.GameName":
                         self.gameName = node.getAttribute("value")
                     elif node.getAttribute("key") == "Product.DocumentFolder":
-                        self.gameDocumentsDir = node.getAttribute("value")
+                        self.gameDocumentsDir = Path(
+                            node.getAttribute("value"))
 
             self.isConfigOK = True
         except:
@@ -131,18 +132,18 @@ class DetermineGame:
         self.title = ""
 
     def GetSettings(self, currentGame):
-        self.configFileAlt = os.sep + "TurbineLauncher.exe.config"
+        self.configFileAlt = Path("TurbineLauncher.exe.config")
 
         self.__test = " (Preview)" if currentGame.endswith(".Test") else ""
-        self.iconFile = os.path.join("images", "OneLauncherIcon.png")
+        self.iconFile = Path("images/OneLauncherIcon.png")
         if currentGame.startswith("DDO"):
-            self.configFile = os.sep + "ddo.launcherconfig"
-            self.pngFile = os.path.join("images", "DDO.png")
+            self.configFile = Path("ddo.launcherconfig")
+            self.pngFile = Path("images")/"DDO.png"
 
             self.title = "OneLauncher - DDO" + self.__test
         else:
-            self.configFile = os.sep + "lotro.launcherconfig"
-            self.pngFile = os.path.join("images", "LOTRO.png")
+            self.configFile = Path("lotro.launcherconfig")
+            self.pngFile = Path("images/LOTRO.png")
 
             self.title = "OneLauncher - LOTRO" + self.__test
 
@@ -152,20 +153,16 @@ class DetermineOS:
         if os.name == "mac":
             self.usingMac = True
             self.usingWindows = False
-            self.appDir = "Library/Application Support/OneLauncher/"
-            self.documentsDir = os.path.join(
-                os.path.expanduser("~"), "Documents",
+            self.appDir = Path("Library/Application Support/OneLauncher/")
+            self.documentsDir = Path("~").expanduser()/"Documents"
+            self.globalDir = Path("Application")
+            self.settingsCXG = Path("Library/Application Support/CrossOver Games/Bottles")
+            self.settingsCXO = Path("Library/Application Support/CrossOver/Bottles")
+            self.directoryCXG = Path(
+                "CrossOver Games.app/Contents/SharedSupport/CrossOverGames/bin/"
             )
-            self.globalDir = "/Application"
-            self.settingsCXG = "Library/Application Support/CrossOver Games/Bottles"
-            self.settingsCXO = "Library/Application Support/CrossOver/Bottles"
-            self.directoryCXG = (
-                "/CrossOver Games.app/Contents/SharedSupport/CrossOverGames/bin/"
-            )
-            self.directoryCXO = "/CrossOver.app/Contents/SharedSupport/CrossOver/bin/"
-            self.macPathCX = os.environ.get("CX_ROOT")
-            if self.macPathCX is None:
-                self.macPathCX = ""
+            self.directoryCXO = Path("CrossOver.app/Contents/SharedSupport/CrossOver/bin/")
+            self.macPathCX = "" if os.environ.get("CX_ROOT") is None else Path(os.environ.get("CX_ROOT"))
         elif os.name == "nt":
             # Get documents folder dynamically since it can be changed on Windows
             CSIDL_PERSONAL = 5       # Value for My Documents
@@ -175,12 +172,11 @@ class DetermineOS:
             ctypes.windll.shell32.SHGetFolderPathW(
                 None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buffer)
 
-            win_documents_folder = buffer.value
+            self.documentsDir = Path(buffer.value)
 
             self.usingMac = False
             self.usingWindows = True
-            self.appDir = "OneLauncher" + os.sep
-            self.documentsDir = win_documents_folder
+            self.appDir = Path("OneLauncher")
             self.globalDir = ""
             self.settingsCXG = ""
             self.settingsCXO = ""
@@ -190,20 +186,18 @@ class DetermineOS:
         else:
             self.usingMac = False
             self.usingWindows = False
-            self.appDir = ".OneLauncher" + os.sep
-            self.documentsDir = os.path.join(
-                os.path.expanduser("~"), "Documents",
-            )
-            self.globalDir = "/opt"
-            self.settingsCXG = ".cxgames"
-            self.settingsCXO = ".cxoffice"
-            self.directoryCXG = "/cxgames/bin/"
-            self.directoryCXO = "/cxoffice/bin/"
+            self.appDir = Path(".OneLauncher")
+            self.documentsDir = Path("~").expanduser()/"Documents"
+            self.globalDir = Path("opt")
+            self.settingsCXG = Path(".cxgames")
+            self.settingsCXO = Path(".cxoffice")
+            self.directoryCXG = Path("cxgames/bin/")
+            self.directoryCXO = Path("cxoffice/bin/")
             self.macPathCX = ""
 
 
 class GLSDataCenter:
-    def __init__(self, urlGLSDataCenterService, gameName, baseDir, osType):
+    def __init__(self, urlGLSDataCenterService, gameName, baseDir: Path, osType):
         SM_TEMPLATE = '<?xml version="1.0" encoding="utf-8"?>\
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
 <soap:Body><GetDatacenters xmlns="http://www.turbine.com/SE/GLS"><game>%s</game>\
@@ -228,8 +222,8 @@ class GLSDataCenter:
 
             tempxml = string_decode(webresp.read())
 
-            filename = "%s%sGLSDataCenter.config" % (baseDir, osType.appDir)
-            with uopen(filename, "w", "utf-8") as outfile:
+            file_path = baseDir/osType.appDir/"GLSDataCenter.config"
+            with uopen(file_path, "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 
             if tempxml == "":
@@ -275,17 +269,16 @@ class GLSDataCenter:
 
 
 class LanguageConfig:
-    def __init__(self, runDir):
+    def __init__(self, runDir: Path):
         self.langFound = False
         self.langList = []
 
-        language_data_files = glob.glob(
-            os.path.join(runDir, "client_local_*.dat"))
+        language_data_files = runDir.glob("client_local_*.dat")
         if language_data_files:
             self.langFound = True
-            for name in language_data_files:
+            for file in language_data_files:
                 # remove "client_local_" (13 chars) and ".dat" (4 chars) from filename
-                temp = os.path.basename(name)[13:-4]
+                temp = str(file.name)[13:-4]
                 if temp == "English":
                     temp = "EN"
                 self.langList.append(temp)
@@ -312,8 +305,8 @@ class World:
 
             tempxml = string_decode(webresp.read())
 
-            filename = "%s%sserver.config" % (baseDir, osType.appDir)
-            with uopen(filename, "w", "utf-8") as outfile:
+            file_path = baseDir/osType.appDir/"server.config"
+            with uopen(file_path, "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 
             if tempxml == "":
@@ -346,7 +339,7 @@ class World:
 
 
 class WorldQueueConfig:
-    def __init__(self, urlConfigServer, baseDir, osType, gameDir, clientType):
+    def __init__(self, urlConfigServer, baseDir: Path, osType, gameDir: Path, clientType):
         self.gameClientFilename = ""
         self.gameClientArgTemplate = ""
         self.crashreceiver = ""
@@ -372,8 +365,8 @@ class WorldQueueConfig:
 
             tempxml = string_decode(webresp.read())
 
-            filename = "%s%slauncher.config" % (baseDir, osType.appDir)
-            with uopen(filename, "w", "utf-8") as outfile:
+            file_path = baseDir/osType.appDir/"launcher.config"
+            with uopen(file_path, "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 
             if tempxml == "":
@@ -386,8 +379,8 @@ class WorldQueueConfig:
                 for node in nodes:
                     if node.nodeType == node.ELEMENT_NODE:
                         if node.getAttribute("key") == clientFilenameKey:
-                            self.gameClientFilename = node.getAttribute(
-                                "value")
+                            self.gameClientFilename = Path(node.getAttribute(
+                                "value"))
                         elif node.getAttribute("key") == "GameClient.WIN32.ArgTemplate":
                             self.gameClientArgTemplate = node.getAttribute(
                                 "value")
@@ -441,8 +434,8 @@ class WorldQueueConfig:
                 "lotro.launcherconfig",
             ]
             for filename in filenames:
-                filepath = gameDir + os.sep + filename
-                if os.path.exists(filepath):
+                filepath = gameDir/filename
+                if filepath.exists():
                     with uopen(filepath, "r", "utf-8") as infile:
                         tempxml = infile.read()
                     doc = defusedxml.minidom.parseString(tempxml)
@@ -453,8 +446,8 @@ class WorldQueueConfig:
                     for node in nodes:
                         if node.nodeType == node.ELEMENT_NODE:
                             if node.getAttribute("key") == "GameClient.WIN32.Filename":
-                                self.gameClientFilename = node.getAttribute(
-                                    "value")
+                                self.gameClientFilename = Path(node.getAttribute(
+                                    "value"))
                                 self.message = (
                                     '<font color="Khaki">'
                                     + filename
@@ -463,8 +456,8 @@ class WorldQueueConfig:
                                 )
 
                             if node.getAttribute("key") == "GameClient.WIN64.Filename":
-                                self.gameClientFilename = node.getAttribute(
-                                    "value")
+                                self.gameClientFilename = Path(node.getAttribute(
+                                    "value"))
                                 self.message = (
                                     '<font color="Khaki">' + filename + " 64-bit client"
                                     " override activated</font>"
@@ -482,7 +475,7 @@ class Game:
 
 
 class AuthenticateUser:
-    def __init__(self, urlLoginServer, name, password, game, baseDir, osType):
+    def __init__(self, urlLoginServer, name, password, game, baseDir: Path, osType):
         self.authSuccess = False
 
         SM_TEMPLATE = '<?xml version="1.0" encoding="utf-8"?>\
@@ -518,8 +511,8 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
 
             tempxml = string_decode(webresp.read())
 
-            filename = "%s%sGLSAuthServer.config" % (baseDir, osType.appDir)
-            with uopen(filename, "w", "utf-8") as outfile:
+            file_path = baseDir/osType.appDir/"GLSAuthServer.config"
+            with uopen(file_path, "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 
             if tempxml == "":
@@ -571,7 +564,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
 
 
 class JoinWorldQueue:
-    def __init__(self, argTemplate, account, ticket, queue, urlIn, baseDir, osType):
+    def __init__(self, argTemplate, account, ticket, queue, urlIn, baseDir: Path, osType):
         try:
             webservice, post = WebConnection(urlIn)
 
@@ -596,8 +589,8 @@ class JoinWorldQueue:
 
             tempxml = string_decode(webresp.read())
 
-            filename = "%s%sWorldQueue.config" % (baseDir, osType.appDir)
-            with uopen(filename, "w", "utf-8") as outfile:
+            file_path = baseDir/osType.appDir/"WorldQueue.config"
+            with uopen(file_path, "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 
             if tempxml == "":

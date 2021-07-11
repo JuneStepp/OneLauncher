@@ -31,6 +31,7 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 from OneLauncher.OneLauncherUtils import QByteArray2str
 from OneLauncher.ProgressMonitor import ProgressMonitor
+from pathlib import Path
 import os
 import logging
 
@@ -41,30 +42,25 @@ class PatchWindow:
         urlPatchServer,
         prodCode,
         language,
-        runDir,
-        patchClient,
-        wineProgram,
+        runDir: Path,
+        patchClient: Path,
+        wineProgram: Path,
         hiResEnabled,
-        iconFileIn,
-        homeDir,
-        winePrefix,
+        homeDir: Path,
+        winePrefix: Path,
         wineDebug,
         osType,
         parent,
-        data_folder,
+        data_folder: Path,
         current_game,
-        gameDocumentsDir,
+        gameDocumentsDir: Path,
     ):
 
         self.homeDir = homeDir
         self.osType = osType
         self.logger = logging.getLogger("main")
 
-        ui_file = QtCore.QFile(os.path.join(data_folder, "ui", "winPatch.ui"))
-        ui_file.open(QtCore.QFile.ReadOnly)
-        loader = QUiLoader()
-        self.winLog = loader.load(ui_file, parentWidget=parent)
-        ui_file.close()
+        self.winLog = QUiLoader().load(str(data_folder/"ui/winPatch.ui"), parentWidget=parent)
 
         self.winLog.setWindowFlags(
             QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint)
@@ -93,15 +89,13 @@ class PatchWindow:
         self.process_status_timer.timeout.connect(
             self.activelyShowProcessStatus)
 
-        patchClient = os.path.join(runDir, patchClient)
+        patchClient = runDir/patchClient
         # Fix for the at least one person who has a title case patchclient.dll
-        if os.path.split(patchClient)[1] == "patchclient.dll" and not os.path.exists(
-            patchClient
-        ):
-            patchClient = os.path.join(runDir, "PatchClient.dll")
+        if patchClient.name == "patchclient.dll" and not patchClient.exists():
+            patchClient = runDir/"PatchClient.dll"
 
         # Make sure patchClient exists
-        if not os.path.exists(patchClient):
+        if not patchClient.exists():
             self.winLog.txtLog.append(
                 '<font color="Khaki">Patch client %s not found</font>' % (
                     patchClient)
@@ -135,27 +129,23 @@ class PatchWindow:
             # rundll32 doesn't provide output on Windows
             log_folder_name = gameDocumentsDir
 
-            game_logs_folder = os.path.join(
-                os.path.split(os.environ.get("APPDATA"))[
-                    0], "Local", log_folder_name,
-            )
+            game_logs_folder = Path(os.environ.get(
+                "APPDATA")).parent/"Local"/log_folder_name
 
-            self.patch_log_file = os.path.join(
-                game_logs_folder, "PatchClient.log")
-            if os.path.exists(self.patch_log_file):
-                os.remove(self.patch_log_file)
-                open(self.patch_log_file, "x")
-            self.patch_log_file = open(self.patch_log_file, "r")
+            self.patch_log_file = game_logs_folder/"PatchClient.log"
+            self.patch_log_file.unlink(missing_ok=True)
+            self.patch_log_file.touch()
+            self.patch_log_file = self.patch_log_file.open(mode="r")
         else:
             if winePrefix != "":
-                processEnvironment.insert("WINEPREFIX", winePrefix)
+                processEnvironment.insert("WINEPREFIX", str(winePrefix))
 
             if wineDebug != "":
                 processEnvironment.insert("WINEDEBUG", wineDebug)
 
             self.arguments = [
                 "rundll32.exe",
-                patchClient,
+                str(patchClient),
                 "Patch",
                 urlPatchServer,
                 "--language",
@@ -164,10 +154,10 @@ class PatchWindow:
                 prodCode,
             ]
 
-            self.command = wineProgram
+            self.command = str(wineProgram)
 
         self.process.setProcessEnvironment(processEnvironment)
-        self.process.setWorkingDirectory(runDir)
+        self.process.setWorkingDirectory(str(runDir))
 
         if hiResEnabled:
             self.arguments.append("--highres")
@@ -207,7 +197,7 @@ class PatchWindow:
 
     def btnSaveClicked(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(
-            self.winLog, "Save log file", self.homeDir
+            self.winLog, "Save log file", str(self.homeDir)
         )[0]
 
         if filename != "":

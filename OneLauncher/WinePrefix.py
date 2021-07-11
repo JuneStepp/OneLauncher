@@ -33,9 +33,9 @@ import lzma
 import tarfile
 from shutil import move, rmtree
 
-import os
 import errno
 from PySide6 import QtCore, QtWidgets
+from pathlib import Path
 import logging
 
 
@@ -47,7 +47,7 @@ class BuiltInPrefix:
         "https://github.com/doitsujin/dxvk/releases/download/v1.8.1/dxvk-1.8.1.tar.gz"
     )
 
-    def __init__(self, settingsDir, winePrefix, documentsDir, parent):
+    def __init__(self, settingsDir: Path, winePrefix: Path, documentsDir: Path, parent):
         self.settingsDir = settingsDir
         self.winePrefix = winePrefix
         self.documentsDir = documentsDir
@@ -73,56 +73,57 @@ class BuiltInPrefix:
 
         self.latest_wine_version = self.WINE_URL.split(
             "/download/")[1].split("/")[0]
-        latest_wine_path = self.settingsDir + "wine/wine-" + self.latest_wine_version
+        latest_wine_path = self.settingsDir / \
+            ("wine/wine-"+self.latest_wine_version)
 
-        if os.path.exists(latest_wine_path):
-            return latest_wine_path + "/bin/wine"
+        if latest_wine_path.exists():
+            return latest_wine_path/"bin/wine"
+
+        self.dlgDownloader.setLabelText("Downloading Wine...")
+        latest_wine_path_tar = latest_wine_path.parent / \
+            (latest_wine_path.name+".tar.xz")
+        if self.downloader(self.WINE_URL, latest_wine_path_tar):
+            self.dlgDownloader.reset()
+            self.dlgDownloader.setLabelText("Extracting Wine...")
+            self.dlgDownloader.setValue(99)
+            self.wine_extractor(latest_wine_path_tar)
+            self.dlgDownloader.setValue(100)
+
+            return (
+                self.settingsDir /
+                ("wine/wine-"+self.latest_wine_version)/"bin/wine"
+            )
         else:
-            self.dlgDownloader.setLabelText("Downloading Wine...")
-            if self.downloader(self.WINE_URL, latest_wine_path + ".tar.xz"):
-                self.dlgDownloader.reset()
-                self.dlgDownloader.setLabelText("Extracting Wine...")
-                self.dlgDownloader.setValue(99)
-                self.wine_extractor(latest_wine_path + ".tar.xz")
-                self.dlgDownloader.setValue(100)
-
-                return (
-                    self.settingsDir
-                    + "wine/wine-"
-                    + self.latest_wine_version
-                    + "/bin/wine"
-                )
-            else:
-                return False
+            return False
 
     def dxvk_setup(self):
         self.latest_dxvk_version = self.DXVK_URL.split(
             "download/v")[1].split("/")[0]
         self.latest_dxvk_path = (
-            self.settingsDir + "wine/dxvk-" + self.latest_dxvk_version
+            self.settingsDir/("wine/dxvk-"+self.latest_dxvk_version)
         )
 
-        if not os.path.exists(self.latest_dxvk_path):
+        if not self.latest_dxvk_path.exists():
             self.dlgDownloader.setLabelText("Downloading DXVK...")
-            if self.downloader(self.DXVK_URL, self.latest_dxvk_path + ".tar.gz"):
+            latest_dxvk_path_tar = (self.latest_dxvk_path.parent /
+                                    (self.latest_dxvk_path.name+".tar.gz"))
+            if self.downloader(self.DXVK_URL, latest_dxvk_path_tar):
                 self.dlgDownloader.reset()
                 self.dlgDownloader.setLabelText("Extracting DXVK...")
                 self.dlgDownloader.setValue(99)
-                self.dxvk_extracor(self.latest_dxvk_path + ".tar.gz")
+                self.dxvk_extracor(latest_dxvk_path_tar)
                 self.dlgDownloader.setValue(100)
 
                 self.dxvk_injector()
 
-        elif not os.path.islink(
-            self.winePrefix + "/drive_c/windows/system32/d3d11.dll"
-        ):
+        elif not (self.winePrefix/"drive_c/windows/system32/d3d11.dll").is_symlink():
             self.dxvk_injector()
 
-    def downloader(self, url, path):
+    def downloader(self, url, path: Path) -> bool:
         """Downloads file from url to path and shows progress with self.handle_download_progress"""
         try:
             urllib.request.urlretrieve(
-                url, path, self.handle_download_progress
+                url, str(path), self.handle_download_progress
             )  # nosec
             return True
         except (urllib.error.URLError, urllib.error.HTTPError) as error:
@@ -134,107 +135,105 @@ class BuiltInPrefix:
         percent = 100 * index * frame // size
         self.dlgDownloader.setValue(percent)
 
-    def wine_extractor(self, path):
-        split_path = os.path.splitext(os.path.splitext(path)[0])[0]
+    def wine_extractor(self, path: Path):
+        path_no_suffix = path.parent / \
+            (path.with_suffix("").with_suffix(""))
 
         # Extracts tar.xz file
         with lzma.open(path) as file:
             with tarfile.open(fileobj=file) as tar:
-                tar.extractall(split_path)
+                tar.extractall(path_no_suffix)
 
         # Moves files from nested directory to main one
-        source_dir = (os.listdir(split_path))[0]
-        move(os.path.join(split_path, source_dir), self.settingsDir + "wine")
-        os.rmdir(split_path)
-        os.rename(os.path.join(self.settingsDir +
-                  "wine", source_dir), split_path)
+        source_dir = [path for path in path_no_suffix.glob("*")
+                      if path.is_dir()][0]
+        move(source_dir, self.settingsDir/"wine")
+        source_dir = self.settingsDir/"wine"/source_dir.name
+        path_no_suffix.rmdir()
+        source_dir.rename(source_dir.parent/path_no_suffix.name)
 
         # Removes downloaded tar.xz
-        os.remove(path)
+        path.unlink()
 
         # Removes old wine versions
-        for dir in os.listdir(self.settingsDir + "wine"):
-            if dir.startswith("wine") and not dir.endswith(self.latest_wine_version):
-                rmtree(os.path.join(self.settingsDir + "wine", dir))
+        for dir in (self.settingsDir/"wine").glob("*"):
+            if not dir.is_dir():
+                continue
 
-    def dxvk_extracor(self, path):
-        split_path = os.path.splitext(os.path.splitext(path)[0])[0]
+            if dir.name.startswith("wine") and not dir.name.endswith(self.latest_wine_version):
+                rmtree(dir)
+
+    def dxvk_extracor(self, path: Path):
+        path_no_suffix = path.parent / \
+            (path.with_suffix("").with_suffix(""))
 
         # Extracts tar.gz file
         with tarfile.open(path, "r:gz") as file:
-            file.extractall(split_path + "_TEMP")
+            file.extractall(path_no_suffix.with_name(
+                path_no_suffix.name+"_TEMP"))
 
         # Moves files from nested directory to main one
-        source_dir = (os.listdir(split_path + "_TEMP"))[0]
+        source_dir = [dir for dir in path_no_suffix.with_name(
+            path_no_suffix.name+"_TEMP").glob("*") if dir.is_dir()][0]
         move(
-            os.path.join(split_path + "_TEMP",
-                         source_dir), self.settingsDir + "wine",
+            path_no_suffix.with_name(
+                path_no_suffix.name + "_TEMP")/source_dir, self.settingsDir/"wine",
         )
-        os.rmdir(split_path + "_TEMP")
+        path_no_suffix.with_name(path_no_suffix.name+"_TEMP").rmdir()
 
         # Removes downloaded tar.gz
-        os.remove(path)
+        path.unlink()
 
         # Removes old dxvk versions
-        for dir in os.listdir(self.settingsDir + "wine"):
-            if dir.startswith("dxvk") and not dir.endswith(self.latest_dxvk_version):
-                rmtree(os.path.join(self.settingsDir + "wine", dir))
+        for dir in (self.settingsDir/"wine").glob("*"):
+            if not dir.is_dir():
+                continue
+
+            if str(dir.name).startswith("dxvk") and not str(dir.name).endswith(self.latest_dxvk_version):
+                rmtree(dir)
 
     def dxvk_injector(self):
         """Adds dxvk to the wine prefix"""
         # Makes directories for dxvk dlls in case wine prefix hasn't been run yet
-        os.makedirs(self.winePrefix +
-                    "/drive_c/windows/system32", exist_ok=True)
-        os.makedirs(self.winePrefix +
-                    "/drive_c/windows/syswow64", exist_ok=True)
+        (self.winePrefix/"drive_c/windows/system32").mkdir(parents=True, exist_ok=True)
+        (self.winePrefix/"drive_c/windows/syswow64").mkdir(parents=True, exist_ok=True)
 
         dll_list = ["dxgi.dll", "d3d10core.dll", "d3d11.dll", "d3d9.dll"]
 
-        # Removes current dlls
+        
         for dll in dll_list:
-            try:
-                os.remove(self.winePrefix + "/drive_c/windows/system32/" + dll)
-                os.remove(self.winePrefix + "/drive_c/windows/syswow64/" + dll)
-            except OSError as error:
-                # errno.ENOENT = no such file or directory
-                if error.errno != errno.ENOENT:
-                    raise
+            system32_dll = self.winePrefix/"drive_c/windows/system32"/dll
+            syswow64_dll = self.winePrefix/"drive_c/windows/syswow64"/dll
+            
+            # Removes current dlls
+            (system32_dll).unlink(missing_ok=True)
+            (syswow64_dll).unlink(missing_ok=True)
 
-        # Symlinks dxvk dlls in to wine prefix
-        for dll in dll_list:
-            os.symlink(
-                self.latest_dxvk_path + "/x64/" + dll,
-                self.winePrefix + "/drive_c/windows/system32/" + dll,
-            )
-            os.symlink(
-                self.latest_dxvk_path + "/x32/" + dll,
-                self.winePrefix + "/drive_c/windows/syswow64/" + dll,
-            )
+            # Symlinks dxvk dlls in to wine prefix
+            system32_dll.symlink_to(self.latest_dxvk_path/"x64"/dll)
+            syswow64_dll.symlink_to(self.latest_dxvk_path/"x32"/dll)
 
     def proton_documents_symlinker(self):
         """
         Symlinks prefix documents folder to system documents folder.path
         This is needed for Proton.
         """
-        prefix_documents_folder = os.path.join(
-            self.winePrefix, "drive_c/users/steamuser/My Documents"
-        )
+        prefix_documents_folder = self.winePrefix / \
+            "drive_c/users/steamuser/My Documents"
 
         # Will assume that the user has set something else up for now if the folder already exists
-        if not os.path.exists(prefix_documents_folder) or not os.path.islink(
-            prefix_documents_folder
-        ):
-            # Make sure system documents folder  and prefix documents root folder exists
-            os.makedirs(self.documentsDir, exist_ok=True)
-            os.makedirs(os.path.split(prefix_documents_folder)
-                        [0], exist_ok=True)
+        if prefix_documents_folder.exists():
+            return
 
-            # Make symlink to system documents folder
-            os.symlink(
-                self.documentsDir, prefix_documents_folder,
-            )
+        # Make sure system documents folder and prefix documents root folder exists
+        self.documentsDir.mkdir(exist_ok=True)
+        prefix_documents_folder.parent.mkdir(exist_ok=True)
 
-    def Run(self):
+        # Make symlink to system documents folder
+        self.documentsDir.symlink_to(
+            prefix_documents_folder, target_is_directory=True)
+
+    def Run(self) -> Path:
         wineProg = self.wine_setup()
         self.dlgDownloader.reset()
         self.dxvk_setup()

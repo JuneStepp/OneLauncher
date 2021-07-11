@@ -28,24 +28,25 @@
 ###########################################################################
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
-import os.path
+from pathlib import Path
+import os
 
 
 class SettingsWindow:
     def __init__(
         self,
         hiRes,
-        wineProg,
+        wineProg: Path,
         wineDebug,
-        patchClient,
+        patchClient: Path,
         winePrefix,
-        gameDir,
-        homeDir,
+        gameDir: Path,
+        homeDir: Path,
         osType,
         settings,
         LanguageConfig,
         parent,
-        data_folder,
+        data_folder: Path,
     ):
 
         self.homeDir = homeDir
@@ -54,23 +55,17 @@ class SettingsWindow:
         self.settings = settings
         self.LanguageConfig = LanguageConfig
 
-        ui_file = QtCore.QFile(
-            os.path.join(data_folder, "ui", "winSettings.ui")
-        )
-
-        ui_file.open(QtCore.QFile.ReadOnly)
-        loader = QUiLoader()
-        self.winSettings = loader.load(ui_file, parentWidget=parent)
-        ui_file.close()
+        self.winSettings = QUiLoader().load(
+            str(data_folder/"ui/winSettings.ui"), parentWidget=parent)
 
         self.winSettings.setWindowFlags(
             QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint
         )
 
         if not self.osType.usingWindows:
-            self.winSettings.txtPrefix.setText(winePrefix)
+            self.winSettings.txtPrefix.setText(str(winePrefix))
             self.winSettings.txtDebug.setText(wineDebug)
-            self.winSettings.txtProgram.setText(wineProg)
+            self.winSettings.txtProgram.setText(str(wineProg))
             self.winSettings.txtProgram.setVisible(False)
             self.winSettings.lblProgram.setVisible(False)
             self.winSettings.txtPrefix.setVisible(False)
@@ -79,13 +74,13 @@ class SettingsWindow:
         else:
             self.winSettings.tabWidget.removeTab(1)
 
-        self.winSettings.txtGameDir.setText(gameDir)
+        self.winSettings.txtGameDir.setText(str(gameDir))
         self.winSettings.cboGraphics.addItem("Enabled")
         self.winSettings.cboGraphics.addItem("Disabled")
         self.winSettings.cboClient.addItem("32-bit")
         self.winSettings.cboClient.addItem("32-bit Legacy")
         self.winSettings.chkAdvanced.setChecked(False)
-        self.winSettings.txtPatchClient.setText(patchClient)
+        self.winSettings.txtPatchClient.setText(str(patchClient))
         self.winSettings.txtPatchClient.setVisible(False)
         self.winSettings.lblPatchClient.setVisible(False)
 
@@ -106,15 +101,13 @@ class SettingsWindow:
             self.winSettings.cboClient.setCurrentIndex(2)
 
         self.winSettings.btnEN.setIcon(
-            QtGui.QIcon(os.path.join(data_folder, "images", "EN-US.png"))
+            QtGui.QIcon(str(data_folder/"images/EN-US.png"))
         )
-
         self.winSettings.btnDE.setIcon(
-            QtGui.QIcon(os.path.join(data_folder, "images", "DE.png"))
+            QtGui.QIcon(str(data_folder/"images/DE.png"))
         )
-
         self.winSettings.btnFR.setIcon(
-            QtGui.QIcon(os.path.join(data_folder, "images", "FR.png"))
+            QtGui.QIcon(str(data_folder/"images/FR.png"))
         )
 
         self.setLanguageButtons()
@@ -159,18 +152,20 @@ class SettingsWindow:
                 self.winSettings.btnPrefixDir.setVisible(False)
 
     def btnGameDirClicked(self):
-        starting_dir = self.winSettings.txtGameDir.text()
+        txtGameDir = self.winSettings.txtGameDir.text()
 
-        if starting_dir == "":
+        if txtGameDir == "":
             if self.osType.usingWindows:
-                starting_dir = os.environ.get("ProgramFiles")
+                starting_dir = Path(os.environ.get("ProgramFiles"))
             else:
                 starting_dir = self.homeDir
+        else:
+            starting_dir = Path(txtGameDir)
 
         filename = QtWidgets.QFileDialog.getExistingDirectory(
             self.winSettings,
             "Game Directory",
-            starting_dir,
+            str(starting_dir),
             options=QtWidgets.QFileDialog.ShowDirsOnly,
         )
 
@@ -179,7 +174,7 @@ class SettingsWindow:
 
     def txtGameDirChanged(self, text):
         if text != "":
-            if self.settings.checkGameClient64(text):
+            if self.settings.checkGameClient64(Path(text)):
                 if self.winSettings.cboClient.count() < 3:
                     self.winSettings.cboClient.addItem("64-bit")
             else:
@@ -190,15 +185,14 @@ class SettingsWindow:
             self.setLanguageButtons()
 
     def btnPrefixDirClicked(self):
-        starting_dir = self.winSettings.txtPrefix.text()
+        txtPrefix = self.winSettings.txtPrefix.text()
 
-        if starting_dir == "":
-            starting_dir = self.homeDir
+        starting_dir = self.homeDir if txtPrefix == "" else Path(txtPrefix)
 
         filename = QtWidgets.QFileDialog.getExistingDirectory(
             self.winSettings,
             "Prefix Directory",
-            starting_dir,
+            str(starting_dir),
             options=QtWidgets.QFileDialog.ShowDirsOnly,
         )
 
@@ -217,8 +211,10 @@ class SettingsWindow:
 
     def setLanguageButtons(self):
         # Sets up language buttons. Only buttons for available languages are enabled.
-        if os.path.exists(self.winSettings.txtGameDir.text()):
-            gameDir = self.winSettings.txtGameDir.text()
+        txtGameDir = self.winSettings.txtGameDir.text()
+
+        if Path(txtGameDir).exists():
+            gameDir = Path(txtGameDir)
         else:
             gameDir = self.settings.gameDir
 
@@ -250,19 +246,19 @@ class SettingsWindow:
             return "FR"
 
     def getPrefix(self):
-        return self.winSettings.txtPrefix.text()
+        return Path(self.winSettings.txtPrefix.text())
 
     def getProg(self):
-        return self.winSettings.txtProgram.text()
+        return Path(self.winSettings.txtProgram.text())
 
     def getDebug(self):
         return self.winSettings.txtDebug.text()
 
     def getPatchClient(self):
-        return self.winSettings.txtPatchClient.text()
+        return Path(self.winSettings.txtPatchClient.text())
 
     def getGameDir(self):
-        return self.winSettings.txtGameDir.text()
+        return Path(self.winSettings.txtGameDir.text())
 
     def getHiRes(self):
         return self.winSettings.cboGraphics.currentIndex() == 0

@@ -26,17 +26,18 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
+from sys import path
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 from OneLauncher.OneLauncherUtils import QByteArray2str
-import os.path
+from pathlib import Path
 import logging
 
 
 class StartGame:
     def __init__(
         self,
-        appName,
+        appName: Path,
         clientType,
         argTemplate,
         account,
@@ -44,15 +45,14 @@ class StartGame:
         ticket,
         chatServer,
         language,
-        runDir,
-        wineProgram,
+        runDir: Path,
+        wineProgram: Path,
         wineDebug,
-        winePrefix,
-        hiResEnabled,
-        builtInPrefixEnabled,
+        winePrefix: Path,
+        hiResEnabled: bool,
+        builtInPrefixEnabled: bool,
         osType,
-        homeDir,
-        iconFileIn,
+        homeDir: Path,
         crashreceiver,
         DefaultUploadThrottleMbps,
         bugurl,
@@ -63,14 +63,14 @@ class StartGame:
         worldName,
         accountText,
         parent,
-        data_folder,
+        data_folder: Path,
         startupScripts,
-        gameConfigDir,
+        gameConfigDir: Path,
     ):
 
         # Fixes binary path for 64-bit client
         if clientType == "WIN64":
-            appName = "x64" + os.sep + appName
+            appName = "x64"/appName
 
         self.homeDir = homeDir
         self.osType = osType
@@ -79,15 +79,9 @@ class StartGame:
         self.parent = parent
         self.logger = logging.getLogger("main")
         self.startupScripts = startupScripts
-        self.gameConfigDirPath = os.path.join(
-            osType.documentsDir, gameConfigDir)
+        self.gameConfigDirPath = osType.documentsDir/gameConfigDir
 
-        ui_file = QtCore.QFile(os.path.join(data_folder, "ui", "winLog.ui"))
-        ui_file.open(QtCore.QFile.ReadOnly)
-        loader = QUiLoader()
-        self.winLog = loader.load(ui_file, parentWidget=parent)
-        ui_file.close()
-
+        self.winLog = QUiLoader().load(str(data_folder/"ui/winLog.ui"), parentWidget=parent)
         self.winLog.setWindowFlags(
             QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint)
 
@@ -127,7 +121,7 @@ class StartGame:
         )
 
         if not hiResEnabled:
-            gameParams = gameParams + " --HighResOutOfDate"
+            gameParams += " --HighResOutOfDate"
 
         self.process = QtCore.QProcess()
         self.process.readyReadStandardOutput.connect(self.readOutput)
@@ -135,8 +129,8 @@ class StartGame:
         self.process.finished.connect(self.resetButtons)
 
         if self.osType.usingWindows:
-            self.command = appName
-            self.process.setWorkingDirectory(runDir)
+            self.command = str(appName)
+            self.process.setWorkingDirectory(str(runDir))
 
             for arg in gameParams.split(" "):
                 self.arguments.append(arg)
@@ -148,12 +142,12 @@ class StartGame:
                 processEnvironment.insert("WINEDEBUG", wineDebug)
 
             if winePrefix != "":
-                processEnvironment.insert("WINEPREFIX", winePrefix)
+                processEnvironment.insert("WINEPREFIX", str(winePrefix))
 
-            self.command = wineProgram
-            self.process.setWorkingDirectory(runDir)
+            self.command = str(wineProgram)
+            self.process.setWorkingDirectory(str(runDir))
 
-            self.arguments.append(appName)
+            self.arguments.append(str(appName))
 
             for arg in gameParams.split(" "):
                 self.arguments.append(arg)
@@ -161,8 +155,9 @@ class StartGame:
             # Applies needed settings for the builtin wine prefix
             if builtInPrefixEnabled:
                 # Enables ESYNC if open file limit is high enough
-                if os.path.exists("/proc/sys/fs/file-max"):
-                    with open("/proc/sys/fs/file-max") as file:
+                path = Path("/proc/sys/fs/file-max")
+                if path.exists():
+                    with path.open() as file:
                         file_data = file.read()
                         if int(file_data) >= 524288:
                             processEnvironment.insert("WINEESYNC", "1")
@@ -171,7 +166,7 @@ class StartGame:
                 # the required kernel patches are installed.
                 processEnvironment.insert("WINEFSYNC", "1")
 
-                # Adds dll overrides for directx, so dxvk is used instead of wine3d
+                # Adds dll overrides for DirectX, so DXVK is used instead of wine3d
                 processEnvironment.insert(
                     "WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10=n")
 
@@ -179,8 +174,8 @@ class StartGame:
 
         self.winLog.txtLog.append("Connecting to server: " + worldName)
         self.winLog.txtLog.append("Account: " + accountText)
-        self.winLog.txtLog.append("Game Directory: " + runDir)
-        self.winLog.txtLog.append("Game Client: " + appName)
+        self.winLog.txtLog.append("Game Directory: " + str(runDir))
+        self.winLog.txtLog.append("Game Client: " + str(appName))
 
         self.winLog.show()
 
@@ -220,7 +215,7 @@ class StartGame:
     # Saves a file with the debug log generated by running the game
     def btnSaveClicked(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(
-            self.winLog, "Save log file", self.homeDir
+            self.winLog, "Save log file", str(self.homeDir)
         )[0]
 
         if filename != "":
@@ -230,14 +225,16 @@ class StartGame:
     def runStatupScripts(self):
         """Runs Python scripts from add-ons with one that is approved by user"""
         for script in self.startupScripts:
-            file_path = os.path.join(self.gameConfigDirPath, script)
-            if os.path.exists(file_path):
+            file_path = self.gameConfigDirPath/script
+            if file_path.exists():
                 self.winLog.txtLog.append(
                     f"Running '{script}' startup script...")
 
-                code = open(file_path).read()
+                with file_path.open() as file:
+                    code = file.read()
+
                 try:
-                    exec(code, {"__file__": file_path})
+                    exec(code, {"__file__": str(file_path)})
                 except SyntaxError as e:
                     self.winLog.txtLog.append(
                         f"'{script}' ran into syntax error: {e}")

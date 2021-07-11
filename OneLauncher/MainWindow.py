@@ -86,14 +86,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.configFile = ""
         self.currentGame = None
 
-        ui_file = QtCore.QFile(os.path.join(
-            self.data_folder, "ui", "winMain.ui"))
-
         # Create the main window and set all text so that translations are handled via gettext
-        ui_file.open(QtCore.QFile.ReadOnly)
-        loader = QUiLoader()
-        self.winMain = loader.load(ui_file, parentWidget=self)
-        ui_file.close()
+        self.winMain = QUiLoader().load(
+            str(self.data_folder/"ui"/"winMain.ui"), parentWidget=self)
         self.winMain.setWindowFlags(QtCore.Qt.Dialog)
         self.winMain.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
@@ -107,10 +102,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.app.setFont(font)
 
         # Setup font for icons
-        font_file = os.path.join(
-            self.data_folder, "fonts", "Font Awesome 5 Free-Solid-900.otf")
+        font_file = self.data_folder/"fonts/Font Awesome 5 Free-Solid-900.otf"
         font_db = QtGui.QFontDatabase()
-        font_id = font_db.addApplicationFont(font_file)
+        font_id = font_db.addApplicationFont(str(font_file))
         font_family = font_db.applicationFontFamilies(font_id)
         self.icon_font = QtGui.QFont(font_family)
         self.icon_font.setHintingPreference(QtGui.QFont.PreferNoHinting)
@@ -152,9 +146,9 @@ class MainWindow(QtWidgets.QMainWindow):
         """Returns location equivalent to OneLauncher folder of source code."""
         if getattr(sys, "frozen", False):
             # Data location for frozen programs
-            return os.path.dirname(sys.executable)
+            return Path(sys.executable.parent)
         else:
-            return os.path.dirname(__file__)
+            return Path(__file__).parent
 
     def run(self):
         self.show()
@@ -305,8 +299,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if game == "DDO":
             self.winMain.btnSwitchGame.setIcon(
                 QtGui.QIcon(
-                    os.path.join(self.data_folder, "images",
-                                 "LOTROSwitchIcon.png")
+                    str(self.data_folder/"images"/"LOTROSwitchIcon.png")
                 )
             )
             self.winMain.actionLOTROTest.setEnabled(False)
@@ -320,8 +313,7 @@ class MainWindow(QtWidgets.QMainWindow):
         elif game == "DDO.Test":
             self.winMain.btnSwitchGame.setIcon(
                 QtGui.QIcon(
-                    os.path.join(self.data_folder, "images",
-                                 "LOTROSwitchIcon.png")
+                    str(self.data_folder/"images"/"LOTROSwitchIcon.png")
                 )
             )
             self.winMain.actionLOTROTest.setEnabled(False)
@@ -335,8 +327,7 @@ class MainWindow(QtWidgets.QMainWindow):
         elif game == "LOTRO.Test":
             self.winMain.btnSwitchGame.setIcon(
                 QtGui.QIcon(
-                    os.path.join(self.data_folder, "images",
-                                 "DDOSwitchIcon.png")
+                    str(self.data_folder/"images"/"DDOSwitchIcon.png")
                 )
             )
             self.winMain.actionLOTROTest.setEnabled(False)
@@ -350,8 +341,7 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.winMain.btnSwitchGame.setIcon(
                 QtGui.QIcon(
-                    os.path.join(self.data_folder, "images",
-                                 "DDOSwitchIcon.png")
+                    str(self.data_folder/"images"/"DDOSwitchIcon.png")
                 )
             )
             self.winMain.actionDDOTest.setEnabled(False)
@@ -392,13 +382,7 @@ class MainWindow(QtWidgets.QMainWindow):
             keyring.set_keyring(SecretService.Keyring())
 
     def btnAboutSelected(self):
-        ui_file = QtCore.QFile(os.path.join(
-            self.data_folder, "ui", "winAbout.ui"))
-
-        ui_file.open(QtCore.QFile.ReadOnly)
-        loader = QUiLoader()
-        dlgAbout = loader.load(ui_file, parentWidget=self)
-        ui_file.close()
+        dlgAbout = QUiLoader().load(str(self.data_folder/"ui/winAbout.ui"), parentWidget=self)
 
         dlgAbout.setWindowFlags(QtCore.Qt.Popup)
 
@@ -451,7 +435,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.settings.patchClient,
                 self.settings.wineProg,
                 self.settings.hiResEnabled,
-                self.gameType.iconFile,
                 self.valHomeDir,
                 self.settings.winePrefix,
                 self.settings.wineDebug,
@@ -705,14 +688,8 @@ class MainWindow(QtWidgets.QMainWindow):
             tempWorld = ""
 
             if len(self.account.gameList) > 1:
-                ui_file = QtCore.QFile(
-                    os.path.join(self.data_folder, "ui", "winSelectAccount.ui")
-                )
-
-                ui_file.open(QtCore.QFile.ReadOnly)
-                loader = QUiLoader()
-                dlgChooseAccount = loader.load(ui_file, parentWidget=self)
-                ui_file.close()
+                dlgChooseAccount = QUiLoader().load(
+                    str(self.data_folder/"ui/winSelectAccount.ui"), parentWidget=self)
 
                 dlgChooseAccount.setWindowFlags(QtCore.Qt.Popup)
 
@@ -773,7 +750,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.settings.builtInPrefixEnabled,
             self.osType,
             self.valHomeDir,
-            self.gameType.iconFile,
             self.worldQueueConfig.crashreceiver,
             self.worldQueueConfig.DefaultUploadThrottleMbps,
             self.worldQueueConfig.bugurl,
@@ -919,7 +895,6 @@ class MainWindow(QtWidgets.QMainWindow):
                     return value
 
     def InitialSetup(self, first_setup=False):
-        self.gameDirExists = False
         self.winMain.cboAccount.setEnabled(False)
         self.winMain.txtPassword.setEnabled(False)
         self.winMain.btnLogin.setEnabled(False)
@@ -966,11 +941,11 @@ class MainWindow(QtWidgets.QMainWindow):
         elif not settings_load_success:
             # Checks if the user is running OneLauncher for the first time
             #  and calls the setup Wizard
-            if not os.path.exists(self.settings.settingsFile):
+            if not self.settings.settingsFile.exists():
                 self.logger.debug("First run/no settings file found")
                 self.settingsWizardCalled()
 
-                if not os.path.exists(self.settings.settingsFile):
+                if not self.settings.settingsFile.exists():
                     self.AddLog(
                         "[E17] Settings file does not exist. Please "
                         "restart the program to access setup wizard."
@@ -1005,31 +980,20 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.gameType.GetSettings(self.settings.currentGame)
 
-        pngFile = os.path.join(
-            self.data_folder, self.gameType.pngFile.replace("\\", "/")
-        )
-        iconFile = os.path.join(
-            self.data_folder, self.gameType.iconFile.replace("\\", "/")
-        )
+        pngFile = self.data_folder/self.gameType.pngFile
+        iconFile = self.data_folder/self.gameType.iconFile
 
-        self.winMain.imgMain.setPixmap(QtGui.QPixmap(pngFile))
+        self.winMain.imgMain.setPixmap(QtGui.QPixmap(str(pngFile)))
         self.setWindowTitle(self.gameType.title)
-        self.setWindowIcon(QtGui.QIcon(iconFile))
+        self.setWindowIcon(QtGui.QIcon(str(iconFile)))
 
         # Configure btnSwitchGame for current game
         self.configureBtnSwitchGameForGame(self.settings.currentGame)
 
-        self.configFile = "%s%s" % (
-            self.settings.gameDir,
-            self.gameType.configFile,
-        )
-        self.configFileAlt = "%s%s" % (
-            self.settings.gameDir,
-            self.gameType.configFileAlt,
-        )
-        self.gameDirExists = os.path.exists(self.settings.gameDir)
+        self.configFile = self.settings.gameDir/self.gameType.configFile
+        self.configFileAlt = self.settings.gameDir/self.gameType.configFileAlt
 
-        if not self.gameDirExists:
+        if not self.settings.gameDir.exists():
             self.AddLog("[E13] Game Directory not found")
 
         self.configThread = MainWindowThread()
@@ -1087,16 +1051,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.configThreadFinished()
 
-    def GetConfigDir(self):
+    def GetConfigDir(self) -> Path:
         if self.osType.usingWindows:
-            config_dir = os.environ.get("APPDATA")
+            return Path(os.environ.get("APPDATA"))
         else:
-            config_dir = os.environ.get("HOME")
-
-        if not config_dir.endswith(os.sep):
-            config_dir += os.sep
-
-        return config_dir
+            return Path(os.environ.get("HOME"))
 
     def ClearLog(self):
         self.winMain.txtStatus.setText("")
@@ -1129,9 +1088,9 @@ class MainWindowThread(QtCore.QThread):
     def SetUp(
         self,
         settings,
-        configFile,
+        configFile: Path,
         configFileAlt,
-        baseDir,
+        baseDir: Path,
         osType,
         ReturnLog,
         ReturnBaseConfig,
@@ -1160,7 +1119,7 @@ class MainWindowThread(QtCore.QThread):
         self.LoadLanguageList()
 
     def LoadLanguageList(self):
-        if os.path.exists(self.settings.gameDir):
+        if self.settings.gameDir.exists():
             langConfig = LanguageConfig(self.settings.gameDir)
 
             if langConfig.langFound:

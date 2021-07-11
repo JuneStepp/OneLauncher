@@ -29,6 +29,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 import os
+from pathlib import Path
 import glob
 
 
@@ -40,20 +41,12 @@ def toString(val):
 
 
 class SetupWizard:
-    def __init__(self, homeDir, osType, data_folder, QGuiApplication):
+    def __init__(self, homeDir: Path, osType, data_folder: Path, QGuiApplication):
 
         self.homeDir = homeDir
         self.osType = osType
 
-        ui_file = QtCore.QFile(
-            os.path.join(data_folder, "ui", "winSetupWizard.ui")
-        )
-
-        ui_file.open(QtCore.QFile.ReadOnly)
-        loader = QUiLoader()
-        self.winSetupWizard = loader.load(ui_file)
-        ui_file.close()
-
+        self.winSetupWizard = QUiLoader().load(str(data_folder/"ui/winSetupWizard.ui"))
         self.winSetupWizard.setWindowFlags(QtCore.Qt.Dialog)
         self.winSetupWizard.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.winSetupWizard.setWindowTitle("Setup Wizard")
@@ -146,109 +139,69 @@ class SetupWizard:
         self.winSetupWizard.lstDDOTest.clear()
 
         if self.osType.usingWindows:
-            startDir = "C:\\"
+            startDir = Path("C:/")
             for client in ["lotroclient.exe", "dndclient.exe"]:
                 self.client = client
 
-                self.trawl(
-                    os.path.join(startDir, "Program Files"),
-                    os.path.join(startDir, "Program Files"),
-                )
-                if os.path.exists(
-                    os.path.join(startDir, "Program Files (x86)")
-                ):
-                    self.trawl(
-                        os.path.join(startDir, "Program Files (x86)"),
-                        os.path.join(startDir, "Program Files (x86)"),
-                    )
+                self.find_game_dirs(startDir/"Program Files")
+                if (startDir/"Program Files (x86)").exists():
+                    self.find_game_dirs(startDir/"Program Files (x86)")
         else:
-            for dir in [
-                self.homeDir + ".*",
-                self.homeDir + self.osType.settingsCXG + "/*",
-                self.homeDir + self.osType.settingsCXO + "/*",
-                self.homeDir + ".steam/steam/steamapps/compatdata/*",
-                self.homeDir + ".steam/steam/SteamApps/compatdata/*",
-                self.homeDir + ".steam/steamapps/compatdata/*",
-                self.homeDir + ".local/share/Steam/steamapps/compatdata/*",
+            for dir, pattern in [
+                (self.homeDir, "*wine*"),
+                (self.homeDir/self.osType.settingsCXG, "*"),
+                (self.homeDir/self.osType.settingsCXO, "*"),
+                (self.homeDir/".steam/steam/steamapps/compatdata", "*"),
+                (self.homeDir/".steam/steam/SteamApps/compatdata", "*"),
+                (self.homeDir/".steam/steamapps/compatdata", "*"),
+                (self.homeDir/".local/share/Steam/steamapps/compatdata", "*"),
             ]:
-                startDir = dir
-
-                for name in glob.glob(startDir):
+                for path in dir.glob(pattern):
                     # Handle Steam Proton paths
-                    if os.path.isdir(name) and os.path.exists(os.path.join(name, "pfx")):
-                        name = os.path.join(name, "pfx")
+                    if path.is_dir() and (path/"pfx").exists():
+                        path = path/"pfx"
 
-                    if os.path.isdir(name) and os.path.exists(
-                        os.path.join(name, "drive_c")
-                    ):
+                    if path.is_dir() and (path/"drive_c").exists():
                         for client in ["lotroclient.exe", "dndclient.exe"]:
                             self.client = client
 
-                            self.trawl(
-                                os.path.join(
-                                    name, "drive_c", "Program Files"
-                                ),
-                                os.path.join(
-                                    name, "drive_c", "Program Files"
-                                ),
-                            )
+                            self.find_game_dirs(path/"drive_c/Program Files")
+                            self.find_game_dirs(
+                                path/"drive_c/Program Files (x86)")
 
-                            if os.path.exists(
-                                os.path.join(
-                                    name, "drive_c", "Program Files (x86)"
-                                )
-                            ):
-                                self.trawl(
-                                    os.path.join(
-                                        name,
-                                        "drive_c",
-                                        "Program Files (x86)",
-                                    ),
-                                    os.path.join(
-                                        name,
-                                        "drive_c",
-                                        "Program Files (x86)",
-                                    ),
-                                )
-
-    def trawl(self, path, directory, search_depth=5):
+    def find_game_dirs(self, search_dir: Path, search_depth=5):
         if search_depth <= 0:
             return
 
-        # Needed for directories with glob patterns in their name
-        directory = glob.escape(directory)
-
-        for name in glob.glob(directory + os.sep + "*"):
-            if self.client in name.lower():
-                dirName = os.path.dirname(name.replace(path + os.sep, ""))
+        for path in search_dir.glob("*"):
+            if self.client == path.name:
+                client_dir = path.parent
 
                 if self.client == "dndclient.exe":
-                    if "(Preview)" in dirName:
+                    if "(Preview)" in client_dir.name:
                         self.winSetupWizard.lstDDOTest.addItem(
-                            path + os.sep + dirName
+                            str(client_dir)
                         )
                         self.winSetupWizard.lstDDOTest.setCurrentRow(0)
                     else:
                         self.winSetupWizard.lstDDO.addItem(
-                            path + os.sep + dirName
+                            str(client_dir)
                         )
                         self.winSetupWizard.lstDDO.setCurrentRow(0)
 
                 elif self.client == "lotroclient.exe":
-                    if "Bullroarer" in dirName:
+                    if "Bullroarer" in client_dir.name:
                         self.winSetupWizard.lstLOTROTest.addItem(
-                            path + os.sep + dirName
+                            str(client_dir)
                         )
                         self.winSetupWizard.lstLOTROTest.setCurrentRow(0)
                     else:
                         self.winSetupWizard.lstLOTRO.addItem(
-                            path + os.sep + dirName
+                            str(client_dir)
                         )
                         self.winSetupWizard.lstLOTRO.setCurrentRow(0)
-            if os.path.isdir(name) and not name.upper().endswith(
-                os.sep + "BACKUP"
-            ):
-                self.trawl(path, name, search_depth=search_depth-1)
+            elif path.is_dir() and path.name.upper() != "BACKUP":
+                self.find_game_dirs(path, search_depth=search_depth-1)
 
     def getGame(self):
         if self.winSetupWizard.lstLOTRO.currentItem():
@@ -264,18 +217,18 @@ class SetupWizard:
 
     def getGameDir(self, game):
         if game == "LOTRO" and self.winSetupWizard.lstLOTRO.currentItem():
-            return self.winSetupWizard.lstLOTRO.currentItem().text()
+            return Path(self.winSetupWizard.lstLOTRO.currentItem().text())
         elif game == "DDO" and self.winSetupWizard.lstDDO.currentItem():
-            return self.winSetupWizard.lstDDO.currentItem().text()
+            return Path(self.winSetupWizard.lstDDO.currentItem().text())
         elif (
             game == "LOTRO.Test"
             and self.winSetupWizard.lstLOTROTest.currentItem()
         ):
-            return self.winSetupWizard.lstLOTROTest.currentItem().text()
+            return Path(self.winSetupWizard.lstLOTROTest.currentItem().text())
         elif (
             game == "DDO.Test" and self.winSetupWizard.lstDDOTest.currentItem()
         ):
-            return self.winSetupWizard.lstDDOTest.currentItem().text()
+            return Path(self.winSetupWizard.lstDDOTest.currentItem().text())
         else:
             return None
 
@@ -293,27 +246,27 @@ class SetupWizard:
 
     def browseForGameDir(self, output_list):
         if self.osType.usingWindows:
-            starting_dir = os.environ.get("ProgramFiles")
+            starting_dir = Path(os.environ.get("ProgramFiles"))
         else:
             starting_dir = self.homeDir
 
-        folder = QtWidgets.QFileDialog.getExistingDirectory(
+        folder_str = QtWidgets.QFileDialog.getExistingDirectory(
             self.winSetupWizard,
             "Game Directory",
-            starting_dir,
+            str(starting_dir),
             options=QtWidgets.QFileDialog.ShowDirsOnly,
         )
 
-        if folder != "":
+        if folder_str != "":
             # Detect if folder is already in list
-            if not output_list.findItems(folder, QtCore.Qt.MatchExactly):
+            if not output_list.findItems(folder_str, QtCore.Qt.MatchExactly):
 
-                if self.checkGameDirForClientExecutable(folder):
-                    output_list.addItem(folder)
+                if self.checkGameDirForClientExecutable(Path(folder_str)):
+                    output_list.addItem(folder_str)
 
                     # Select the added item
                     item = output_list.findItems(
-                        folder, QtCore.Qt.MatchExactly)[0]
+                        folder_str, QtCore.Qt.MatchExactly)[0]
                     output_list.setCurrentItem(item)
                 else:
                     self.raiseWarningMessage(
@@ -321,12 +274,12 @@ class SetupWizard:
                         "executable. Please chose a valid game folder"
                     )
 
-    def checkGameDirForClientExecutable(self, folder):
+    def checkGameDirForClientExecutable(self, folder: Path):
         """
         Checks for the game's client .exe to validate that the
         folder is a valid game folder.
         """
-        folder_contents = os.listdir(folder)
+        folder_contents = [path.name for path in folder.iterdir()]
         return (
             "dndclient.exe" in folder_contents
             or "lotroclient.exe" in folder_contents
@@ -356,7 +309,7 @@ class SetupWizard:
         messageBox.exec()
 
     def getHiRes(self, gameDir):
-        return bool(os.path.exists(gameDir + os.sep + "client_highres.dat"))
+        return bool((gameDir/"client_highres.dat").exists())
 
     def Run(self):
         return self.winSetupWizard.exec_()
