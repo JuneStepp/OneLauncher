@@ -47,15 +47,13 @@ def get_resource(relative_path: Path, locale: Locale) -> Path:
     Returns:
         Path: Full path to resource, localized if a generic version isn't available.
     """
-    path = data_dir/relative_path
-
-    # Return original path if it exists in non-localized form
-    if path.exists():
-        return path
+    generic_path = data_dir/relative_path
 
     localized_path = locale.data_dir/relative_path
     if localized_path.exists():
         return localized_path
+    elif generic_path.exists():
+        return generic_path
     else:
         raise FileNotFoundError(
             f"There is no generic or localized version of {relative_path} for the language {locale}")
