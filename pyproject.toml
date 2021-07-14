@@ -8,7 +8,7 @@ packages = [{include = "OneLauncher"}]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.10"
-PySide6 = "^6.0.2"
+PySide6 = "6.0.4"
 keyring = "^23.0.1"
 defusedxml = "^0.7.1"
 vkbeautify = "^0.3.0"
