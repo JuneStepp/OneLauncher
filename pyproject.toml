@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "OneLauncher"
-version = "1.2.6"
+version = "1.2.7"
 description = "The OneLauncher for LOTRO and DDO"
 authors = ["June Stepp <contact@JuneStepp.me>"]
 license = "GPL-3.0-or-later"

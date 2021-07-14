@@ -5,6 +5,15 @@ Launcher for Linux, Windows, and Mac OS X
 
 # Changes
 
+1.2.7
+
+    This release has a couple important fixes. Currently, major refactoring is under way for OneLauncher 2.0. If you would be interested in helping translate OneLauncher to French, German, or Russian then please contact me at `contact@JuneStepp.me` or anywhere else such as the OneLauncher GitHub page.
+
+       - Fixed getting legendary servers status
+       - Downgraded SSL cipher level for game servers. Fixes connection for some Linux distros. Fix by @gtbX
+       - Fixed no Keyring backend being chosen when program is compiled with Nuitka
+       - Fixed window dragging on Wayland
+
 1.2.6
 
     This release implements some important fixes for the addon manager and adds the --language launch argument.
