@@ -70,7 +70,7 @@ Or.
 
 This command is needed due to a bug when building with cx-freeze and Poetry
 
-`poetry run python -m pip install --force-reinstall pip setuptools wheel importlib-metadata cx-freeze`
+`poetry run python -m pip install --force-reinstall pip setuptools wheel importlib-metadata cx-freeze==6.53`
 
 This is the actual build command
 
