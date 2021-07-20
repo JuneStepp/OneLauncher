@@ -31,6 +31,7 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 from OneLauncher.OneLauncherUtils import QByteArray2str
 from OneLauncher.ProgressMonitor import ProgressMonitor
+from OneLauncher import Settings
 from pathlib import Path
 import os
 import logging
@@ -46,18 +47,14 @@ class PatchWindow:
         patchClient: Path,
         wineProgram: Path,
         hiResEnabled,
-        homeDir: Path,
         winePrefix: Path,
         wineDebug,
-        osType,
         parent,
         data_folder: Path,
         current_game,
         gameDocumentsDir: Path,
     ):
 
-        self.homeDir = homeDir
-        self.osType = osType
         self.logger = logging.getLogger("main")
 
         self.winLog = QUiLoader().load(str(data_folder/"ui/winPatch.ui"), parentWidget=parent)
@@ -65,7 +62,7 @@ class PatchWindow:
         self.winLog.setWindowFlags(
             QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint)
 
-        if self.osType.usingWindows:
+        if Settings.usingWindows:
             self.winLog.setWindowTitle("Output")
         else:
             self.winLog.setWindowTitle("Patch - Wine output")
@@ -112,7 +109,7 @@ class PatchWindow:
 
         processEnvironment = QtCore.QProcessEnvironment.systemEnvironment()
 
-        if self.osType.usingWindows:
+        if Settings.usingWindows:
             self.arguments = [
                 patchClient,
                 "Patch",
@@ -197,7 +194,7 @@ class PatchWindow:
 
     def btnSaveClicked(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(
-            self.winLog, "Save log file", str(self.homeDir)
+            self.winLog, "Save log file", str(Settings.config_dir)
         )[0]
 
         if filename != "":
@@ -221,7 +218,7 @@ class PatchWindow:
             # finished
             self.lastRun = True
             self.resetButtons()
-            if self.osType.usingWindows:
+            if Settings.usingWindows:
                 self.patch_log_file.close()
         self.phase += 1
 
@@ -237,7 +234,7 @@ class PatchWindow:
         self.process.start(self.command, self.file_arguments)
         self.winLog.txtLog.append("<b>***  Started  ***</b>")
 
-        if self.osType.usingWindows:
+        if Settings.usingWindows:
             self.process_status_timer.start(100)
 
     def activelyShowProcessStatus(self):

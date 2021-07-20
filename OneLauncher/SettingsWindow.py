@@ -26,6 +26,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
+from OneLauncher import Settings
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 from pathlib import Path
@@ -41,16 +42,12 @@ class SettingsWindow:
         patchClient: Path,
         winePrefix,
         gameDir: Path,
-        homeDir: Path,
-        osType,
         settings,
         LanguageConfig,
         parent,
         data_folder: Path,
     ):
 
-        self.homeDir = homeDir
-        self.osType = osType
         self.winePrefix = winePrefix
         self.settings = settings
         self.LanguageConfig = LanguageConfig
@@ -62,7 +59,7 @@ class SettingsWindow:
             QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint
         )
 
-        if not self.osType.usingWindows:
+        if not Settings.usingWindows:
             self.winSettings.txtPrefix.setText(str(winePrefix))
             self.winSettings.txtDebug.setText(wineDebug)
             self.winSettings.txtProgram.setText(str(wineProg))
@@ -119,14 +116,14 @@ class SettingsWindow:
         self.winSettings.txtGameDir.textChanged.connect(self.txtGameDirChanged)
         self.winSettings.chkAdvanced.clicked.connect(self.chkAdvancedClicked)
 
-        if not self.osType.usingWindows:
+        if not Settings.usingWindows:
             self.winSettings.btnPrefixDir.clicked.connect(
                 self.btnPrefixDirClicked)
             self.winSettings.txtPrefix.textChanged.connect(
                 self.txtPrefixChanged)
 
     def chkAdvancedClicked(self):
-        if self.osType.usingWindows:
+        if Settings.usingWindows:
             if self.winSettings.chkAdvanced.isChecked():
                 self.winSettings.txtPatchClient.setVisible(True)
                 self.winSettings.lblPatchClient.setVisible(True)
@@ -155,10 +152,10 @@ class SettingsWindow:
         txtGameDir = self.winSettings.txtGameDir.text()
 
         if txtGameDir == "":
-            if self.osType.usingWindows:
+            if Settings.usingWindows:
                 starting_dir = Path(os.environ.get("ProgramFiles"))
             else:
-                starting_dir = self.homeDir
+                starting_dir = Path("~").expanduser()
         else:
             starting_dir = Path(txtGameDir)
 
@@ -187,7 +184,7 @@ class SettingsWindow:
     def btnPrefixDirClicked(self):
         txtPrefix = self.winSettings.txtPrefix.text()
 
-        starting_dir = self.homeDir if txtPrefix == "" else Path(txtPrefix)
+        starting_dir = Path("~").expanduser() if txtPrefix == "" else Path(txtPrefix)
 
         filename = QtWidgets.QFileDialog.getExistingDirectory(
             self.winSettings,

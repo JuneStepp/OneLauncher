@@ -41,11 +41,10 @@ from OneLauncher.AddonManager import AddonManager
 from OneLauncher.SetupWizard import SetupWizard
 from OneLauncher.PatchWindow import PatchWindow
 from OneLauncher.StartGame import StartGame
-from OneLauncher.Settings import Settings
+from OneLauncher import Settings
 from OneLauncher.WinePrefix import BuiltInPrefix
 from OneLauncher.OneLauncherUtils import (
     checkForCertificates,
-    DetermineOS,
     DetermineGame,
     LanguageConfig,
     BaseConfig,
@@ -81,7 +80,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # Initialise variables
         self.data_folder = self.getDataFolder()
         self.settings = None
-        self.osType = DetermineOS()
         self.gameType = DetermineGame()
         self.configFile = ""
         self.currentGame = None
@@ -189,7 +187,7 @@ class MainWindow(QtWidgets.QMainWindow):
             widget.setAttribute(QtCore.Qt.WA_NoMousePropagation)
 
     def handleWindowsDarkTheme(self):
-        if not self.osType.usingWindows:
+        if not Settings.usingWindows:
             return
 
         settings = QtCore.QSettings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
@@ -371,10 +369,10 @@ class MainWindow(QtWidgets.QMainWindow):
         Sets the propper keyring backend for the used OS. This isn't
         automatically detected correctly with Nuitka
         """
-        if self.osType.usingWindows:
+        if Settings.usingWindows:
             from keyring.backends import Windows
             keyring.set_keyring(Windows.WinVaultKeyring())
-        elif self.osType.usingMac:
+        elif Settings.usingMac:
             from keyring.backends import OS_X
             keyring.set_keyring(OS_X.Keyring())
         else:
@@ -399,20 +397,19 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def manageBuiltInPrefix(self):
         # Only manage prefix if prefix management is enabled and the program is on Linux or Mac
-        if not self.settings.builtInPrefixEnabled or self.osType.usingWindows:
+        if not self.settings.builtInPrefixEnabled or Settings.usingWindows:
             return True
 
         winBuiltInPrefix = BuiltInPrefix(
-            self.settings.settingsDir,
             self.settings.winePrefix,
-            self.osType.documentsDir,
+            Settings.documentsDir,
             self,
         )
 
         wineProg = winBuiltInPrefix.Run()
         if wineProg:
             self.settings.wineProg = wineProg
-            self.settings.SaveSettings(
+            self.settings.save_game_settings(
                 saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
                 savePassword=self.winMain.chkSavePassword.isChecked(),
             )
@@ -435,10 +432,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.settings.patchClient,
                 self.settings.wineProg,
                 self.settings.hiResEnabled,
-                self.valHomeDir,
                 self.settings.winePrefix,
                 self.settings.wineDebug,
-                self.osType,
                 self,
                 self.data_folder,
                 self.settings.currentGame,
@@ -456,8 +451,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.settings.patchClient,
             self.settings.winePrefix,
             self.settings.gameDir,
-            self.valHomeDir,
-            self.osType,
             self.settings,
             LanguageConfig,
             self,
@@ -472,12 +465,12 @@ class MainWindow(QtWidgets.QMainWindow):
             if winSettings.getLanguage():
                 self.settings.language = winSettings.getLanguage()
 
-            if not self.osType.usingWindows:
+            if not Settings.usingWindows:
                 self.settings.wineProg = winSettings.getProg()
                 self.settings.wineDebug = winSettings.getDebug()
                 self.settings.winePrefix = winSettings.getPrefix()
 
-            self.settings.SaveSettings(
+            self.settings.save_game_settings(
                 saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
                 savePassword=self.winMain.chkSavePassword.isChecked(),
             )
@@ -492,8 +485,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def btnAddonManagerSelected(self):
         winAddonManager = AddonManager(
             self.settings.currentGame,
-            self.osType,
-            self.settings.settingsDir,
             self,
             self.data_folder,
             self.baseConfig.gameDocumentsDir,
@@ -502,7 +493,7 @@ class MainWindow(QtWidgets.QMainWindow):
         )
 
         winAddonManager.Run()
-        self.settings.SaveSettings(
+        self.settings.save_game_settings(
             saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
             savePassword=self.winMain.chkSavePassword.isChecked(),
         )
@@ -511,7 +502,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def settingsWizardCalled(self):
         winWizard = SetupWizard(
-            self.valHomeDir, self.osType, self.data_folder, self.app)
+            self.data_folder, self.app)
         self.hide()
 
         if winWizard.Run() == QtWidgets.QDialog.Accepted:
@@ -527,7 +518,7 @@ class MainWindow(QtWidgets.QMainWindow):
                             self.settings.gameDir
                         )
                         self.settings.winePrefix = ""
-                        self.settings.SaveSettings(game=game)
+                        self.settings.save_game_settings(game=game)
 
                 self.InitialSetup()
 
@@ -623,8 +614,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.winMain.cboAccount.currentText(),
             self.winMain.txtPassword.text(),
             self.baseConfig.gameName,
-            self.valHomeDir,
-            self.osType,
         )
 
         # don't keep password longer in memory than required
@@ -652,7 +641,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     pass
                 self.settings.accountsDictionary[current_account] = [world]
 
-                self.settings.SaveSettings(
+                self.settings.save_game_settings(
                     saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
                     savePassword=self.winMain.chkSavePassword.isChecked(),
                 )
@@ -714,7 +703,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             tempWorld = self.dataCenter.worldList[self.winMain.cboWorld.currentIndex(
             )]
-            tempWorld.CheckWorld(self.valHomeDir, self.osType)
+            tempWorld.CheckWorld()
 
             if tempWorld.worldAvailable:
                 self.urlChatServer = tempWorld.urlChatServer
@@ -748,8 +737,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.settings.winePrefix,
             self.settings.hiResEnabled,
             self.settings.builtInPrefixEnabled,
-            self.osType,
-            self.valHomeDir,
             self.worldQueueConfig.crashreceiver,
             self.worldQueueConfig.DefaultUploadThrottleMbps,
             self.worldQueueConfig.bugurl,
@@ -773,8 +760,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.account.ticket,
             queueURL,
             self.worldQueueConfig.worldQueueURL,
-            self.valHomeDir,
-            self.osType,
         )
 
         if self.worldQueue.joinSuccess:
@@ -796,8 +781,6 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.account.ticket,
                     queueURL,
                     self.worldQueueConfig.worldQueueURL,
-                    self.valHomeDir,
-                    self.osType,
                 )
 
                 if not self.worldQueue.joinSuccess:
@@ -902,10 +885,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.winMain.chkSavePassword.setEnabled(False)
         self.winMain.btnOptions.setEnabled(False)
         self.winMain.btnSwitchGame.setEnabled(False)
-        self.valHomeDir = self.GetConfigDir()
 
         if self.settings is None:
-            self.settings = Settings(self.valHomeDir, self.osType)
+            self.settings = Settings.Settings()
 
         self.winMain.cboAccount.clear()
         self.winMain.cboAccount.setCurrentText("")
@@ -914,7 +896,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ClearLog()
         self.ClearNews()
 
-        self.logger = Logger(Path(self.settings.settingsDir), "main").logger
+        self.logger = Logger(Path(Settings.config_dir), "main").logger
 
         if first_setup:
             self.checkForUpdate()
@@ -934,7 +916,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.AddLog("Initializing, please wait...")
 
-        settings_load_success = self.settings.LoadSettings(self.currentGame)
+        settings_load_success = self.settings.load_game_settings(
+            self.currentGame)
         # Prints error message from settings if present.
         if settings_load_success and settings_load_success is not True:
             self.AddLog(settings_load_success)
@@ -1001,8 +984,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.settings,
             self.configFile,
             self.configFileAlt,
-            self.valHomeDir,
-            self.osType,
             self.ReturnLog,
             self.ReturnBaseConfig,
             self.ReturnGLSDataCenter,
@@ -1051,12 +1032,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.configThreadFinished()
 
-    def GetConfigDir(self) -> Path:
-        if self.osType.usingWindows:
-            return Path(os.environ.get("APPDATA"))
-        else:
-            return Path(os.environ.get("HOME"))
-
     def ClearLog(self):
         self.winMain.txtStatus.setText("")
 
@@ -1090,8 +1065,6 @@ class MainWindowThread(QtCore.QThread):
         settings,
         configFile: Path,
         configFileAlt,
-        baseDir: Path,
-        osType,
         ReturnLog,
         ReturnBaseConfig,
         ReturnGLSDataCenter,
@@ -1103,8 +1076,6 @@ class MainWindowThread(QtCore.QThread):
         self.settings = settings
         self.configFile = configFile
         self.configFileAlt = configFileAlt
-        self.osType = osType
-        self.baseDir = baseDir
 
         self.ReturnLog = ReturnLog
         self.ReturnBaseConfig = ReturnBaseConfig
@@ -1158,7 +1129,7 @@ class MainWindowThread(QtCore.QThread):
 
     def AccessGLSDataCenter(self, urlGLS, gameName):
         self.dataCenter = GLSDataCenter(
-            urlGLS, gameName, self.baseDir, self.osType)
+            urlGLS, gameName)
 
         if self.dataCenter.loadSuccess:
             self.ReturnLog.emit("Fetched details from GLS data center.")
@@ -1172,8 +1143,6 @@ class MainWindowThread(QtCore.QThread):
     def GetWorldQueueConfig(self, urlWorldQueueServer):
         self.worldQueueConfig = WorldQueueConfig(
             urlWorldQueueServer,
-            self.baseDir,
-            self.osType,
             self.settings.gameDir,
             self.settings.client,
         )

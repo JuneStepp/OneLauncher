@@ -26,6 +26,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
+from OneLauncher import Settings
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 import os
@@ -41,11 +42,7 @@ def toString(val):
 
 
 class SetupWizard:
-    def __init__(self, homeDir: Path, osType, data_folder: Path, QGuiApplication):
-
-        self.homeDir = homeDir
-        self.osType = osType
-
+    def __init__(self, data_folder: Path, QGuiApplication):
         self.winSetupWizard = QUiLoader().load(str(data_folder/"ui/winSetupWizard.ui"))
         self.winSetupWizard.setWindowFlags(QtCore.Qt.Dialog)
         self.winSetupWizard.setWindowFlags(QtCore.Qt.FramelessWindowHint)
@@ -138,7 +135,7 @@ class SetupWizard:
         self.winSetupWizard.lstLOTROTest.clear()
         self.winSetupWizard.lstDDOTest.clear()
 
-        if self.osType.usingWindows:
+        if Settings.usingWindows:
             startDir = Path("C:/")
             for client in ["lotroclient.exe", "dndclient.exe"]:
                 self.client = client
@@ -148,13 +145,13 @@ class SetupWizard:
                     self.find_game_dirs(startDir/"Program Files (x86)")
         else:
             for dir, pattern in [
-                (self.homeDir, "*wine*"),
-                (self.homeDir/self.osType.settingsCXG, "*"),
-                (self.homeDir/self.osType.settingsCXO, "*"),
-                (self.homeDir/".steam/steam/steamapps/compatdata", "*"),
-                (self.homeDir/".steam/steam/SteamApps/compatdata", "*"),
-                (self.homeDir/".steam/steamapps/compatdata", "*"),
-                (self.homeDir/".local/share/Steam/steamapps/compatdata", "*"),
+                (Path("~").expanduser(), "*wine*"),
+                (Path("~").expanduser()/Settings.settingsCXG, "*"),
+                (Path("~").expanduser()/Settings.settingsCXO, "*"),
+                (Path("~").expanduser()/".steam/steam/steamapps/compatdata", "*"),
+                (Path("~").expanduser()/".steam/steam/SteamApps/compatdata", "*"),
+                (Path("~").expanduser()/".steam/steamapps/compatdata", "*"),
+                (Path("~").expanduser()/".local/share/Steam/steamapps/compatdata", "*"),
             ]:
                 for path in dir.glob(pattern):
                     # Handle Steam Proton paths
@@ -245,10 +242,10 @@ class SetupWizard:
         self.browseForGameDir(self.winSetupWizard.lstDDOTest)
 
     def browseForGameDir(self, output_list):
-        if self.osType.usingWindows:
+        if Settings.usingWindows:
             starting_dir = Path(os.environ.get("ProgramFiles"))
         else:
-            starting_dir = self.homeDir
+            starting_dir = Path("~").expanduser()
 
         folder_str = QtWidgets.QFileDialog.getExistingDirectory(
             self.winSetupWizard,

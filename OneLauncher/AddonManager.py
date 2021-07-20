@@ -26,6 +26,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
+from OneLauncher import Settings
 from typing import List, Tuple
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
@@ -80,15 +81,12 @@ class AddonManager:
     def __init__(
         self,
         currentGame,
-        osType,
-        settingsDir: Path,
         parent,
         data_folder: Path,
         gameDocumentsDir: Path,
         startupScripts,
         icon_font: QtGui.QFont,
     ):
-        self.settingsDir = settingsDir
         self.currentGame = currentGame
         self.parent = parent
         self.logger = logging.getLogger("main")
@@ -225,7 +223,7 @@ class AddonManager:
 
         self.openDB()
 
-        self.data_folder = osType.documentsDir/gameDocumentsDir
+        self.data_folder = Settings.documentsDir/gameDocumentsDir
         if currentGame.startswith("DDO"):
             self.data_folder_skins = self.data_folder/"ui/skins"
 
@@ -491,7 +489,7 @@ class AddonManager:
         Opens addons_cache database and creates new database if 
         one doesn't exist or the current one has an outdated structure
         """
-        addons_cache_db_path = self.settingsDir/"addons_cache.sqlite"
+        addons_cache_db_path = Settings.config_dir/"addons_cache.sqlite"
         if addons_cache_db_path.exists():
             # Connects to addons_cache database
             self.conn = sqlite3.connect(str(addons_cache_db_path))
@@ -553,7 +551,7 @@ class AddonManager:
     def createDB(self):
         """Creates ans sets up addons_cache database"""
         self.conn = sqlite3.connect(
-            str(self.settingsDir/"addons_cache.sqlite")
+            str(Settings.config_dir/"addons_cache.sqlite")
         )
         self.c = self.conn.cursor()
 

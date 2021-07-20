@@ -28,6 +28,7 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 from pathlib import Path
+import os
 from OneLauncher.OneLauncherUtils import GetText
 from OneLauncher import __title__
 from xml.dom import EMPTY_NAMESPACE
@@ -37,16 +38,77 @@ from vkbeautify import xml as prettify_xml
 from collections import OrderedDict
 import logging
 
+def set_os_specific_variables():
+    global usingMac
+    global usingWindows
+    global config_dir
+    global documentsDir
+    global globalDir
+    global settingsCXG
+    global settingsCXO
+    global directoryCXG
+    global directoryCXO
+    global macPathCX
+    
+    if os.name == "mac":
+        usingMac = True
+        usingWindows = False
+        config_dir = Path("~/Library/Application Support").expanduser()/__title__
+        documentsDir = Path("~").expanduser()/"Documents"
+        globalDir = Path("Application")
+        settingsCXG = Path("Library/Application Support/CrossOver Games/Bottles")
+        settingsCXO = Path("Library/Application Support/CrossOver/Bottles")
+        directoryCXG = Path(
+            "CrossOver Games.app/Contents/SharedSupport/CrossOverGames/bin/"
+        )
+        directoryCXO = Path("CrossOver.app/Contents/SharedSupport/CrossOver/bin/")
+        macPathCX = "" if os.environ.get("CX_ROOT") is None else Path(os.environ.get("CX_ROOT"))
+    elif os.name == "nt":
+        # Get documents folder dynamically since it can be changed on Windows
+        CSIDL_PERSONAL = 5       # Value for My Documents
+        SHGFP_TYPE_CURRENT = 0   # Get current, not default value
+
+        buffer = ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
+        ctypes.windll.shell32.SHGetFolderPathW(
+            None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buffer)
+
+        documentsDir = Path(buffer.value)
+
+        usingMac = False
+        usingWindows = True
+        config_dir = Path(os.environ.get("APPDATA"))/__title__
+        globalDir = ""
+        settingsCXG = ""
+        settingsCXO = ""
+        directoryCXG = ""
+        directoryCXO = ""
+        macPathCX = ""
+    else:
+        usingMac = False
+        usingWindows = False
+        documentsDir = Path("~").expanduser()/"Documents"
+        config_dir = Path("~").expanduser()/f".{__title__}"
+        globalDir = Path("opt")
+        settingsCXG = Path(".cxgames")
+        settingsCXO = Path(".cxoffice")
+        directoryCXG = Path("cxgames/bin/")
+        directoryCXO = Path("cxoffice/bin/")
+        macPathCX = ""
+
+    config_dir.mkdir(exist_ok=True)
+
+class ProgramSettings():
+    def __init__(self, config_file: Path=None) -> None:
+        if not config_file:
+            config_file = config_dir/f"{__title__}.config"
 
 class Settings:
-    def __init__(self, baseDir: Path, osType):
+    def __init__(self):
         self.currentGame = "LOTRO"
-        self.settingsDir = Path(baseDir)/osType.appDir
-        self.settingsFile = self.settingsDir/f"{__title__}.config"
-        self.osType = osType
+        self.settingsFile = config_dir/f"{__title__}.config"
         self.logger = logging.getLogger("main")
 
-    def LoadSettings(self, useGame=None):
+    def load_game_settings(self, useGame=None):
         self.hiResEnabled = True
         # If None isn't overwritten than it will automatically
         # get set to the first installed language detected.
@@ -58,7 +120,7 @@ class Settings:
         self.wineDebug = "fixme-all"
         self.patchClient = Path("patchclient.dll")
         self.focusAccount = True
-        self.winePrefix = self.settingsDir/"wine/prefix"
+        self.winePrefix = config_dir/"wine/prefix"
         self.builtInPrefixEnabled = True
         self.gameDir = Path()
         self.client = "WIN64"
@@ -213,14 +275,11 @@ class Settings:
             settingsNode.appendChild(normalClientNode)
         return normalClientNode
 
-    def SaveSettings(self, saveAccountDetails=None, savePassword=None, game=None):
+    def save_game_settings(self, saveAccountDetails=None, savePassword=None, game=None):
         doc = None
 
-        # Make settings dir if it doesn't exist
-        self.settingsDir.mkdir(exist_ok=True)
-
-        if not self.osType.usingWindows:
-            (self.settingsDir/"wine/prefix").mkdir(exist_ok=True, parents=True)
+        if not usingWindows:
+            (config_dir/"wine/prefix").mkdir(exist_ok=True, parents=True)
 
         # Check if settings file exists if not create new settings XML
         if self.settingsFile.exists():
@@ -257,7 +316,7 @@ class Settings:
             normalClientNode = self.getNormalClientNode(
                 current_game, doc, make_if_not_found=True)
 
-        if not self.osType.usingWindows:
+        if not usingWindows:
             tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Program")
             tempNode.appendChild(doc.createTextNode("%s" %
                                  (str(self.wineProg))))
@@ -366,3 +425,6 @@ class Settings:
         with self.settingsFile.open(mode="w") as file:
             pretty_xml = prettify_xml(doc.toxml())
             file.write(pretty_xml)
+
+
+set_os_specific_variables()

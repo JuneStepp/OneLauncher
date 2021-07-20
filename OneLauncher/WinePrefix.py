@@ -26,6 +26,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
+from OneLauncher import Settings
 import urllib
 
 # Imports for extracting function
@@ -47,8 +48,7 @@ class BuiltInPrefix:
         "https://github.com/doitsujin/dxvk/releases/download/v1.8.1/dxvk-1.8.1.tar.gz"
     )
 
-    def __init__(self, settingsDir: Path, winePrefix: Path, documentsDir: Path, parent):
-        self.settingsDir = settingsDir
+    def __init__(self, winePrefix: Path, documentsDir: Path, parent):
         self.winePrefix = winePrefix
         self.documentsDir = documentsDir
         self.logger = logging.getLogger("main")
@@ -73,7 +73,7 @@ class BuiltInPrefix:
 
         self.latest_wine_version = self.WINE_URL.split(
             "/download/")[1].split("/")[0]
-        latest_wine_path = self.settingsDir / \
+        latest_wine_path = Settings.config_dir / \
             ("wine/wine-"+self.latest_wine_version)
 
         if latest_wine_path.exists():
@@ -90,7 +90,7 @@ class BuiltInPrefix:
             self.dlgDownloader.setValue(100)
 
             return (
-                self.settingsDir /
+                Settings.config_dir /
                 ("wine/wine-"+self.latest_wine_version)/"bin/wine"
             )
         else:
@@ -100,7 +100,7 @@ class BuiltInPrefix:
         self.latest_dxvk_version = self.DXVK_URL.split(
             "download/v")[1].split("/")[0]
         self.latest_dxvk_path = (
-            self.settingsDir/("wine/dxvk-"+self.latest_dxvk_version)
+            Settings.config_dir/("wine/dxvk-"+self.latest_dxvk_version)
         )
 
         if not self.latest_dxvk_path.exists():
@@ -147,8 +147,8 @@ class BuiltInPrefix:
         # Moves files from nested directory to main one
         source_dir = [path for path in path_no_suffix.glob("*")
                       if path.is_dir()][0]
-        move(source_dir, self.settingsDir/"wine")
-        source_dir = self.settingsDir/"wine"/source_dir.name
+        move(source_dir, Settings.config_dir/"wine")
+        source_dir = Settings.config_dir/"wine"/source_dir.name
         path_no_suffix.rmdir()
         source_dir.rename(source_dir.parent/path_no_suffix.name)
 
@@ -156,7 +156,7 @@ class BuiltInPrefix:
         path.unlink()
 
         # Removes old wine versions
-        for dir in (self.settingsDir/"wine").glob("*"):
+        for dir in (Settings.config_dir/"wine").glob("*"):
             if not dir.is_dir():
                 continue
 
@@ -177,7 +177,7 @@ class BuiltInPrefix:
             path_no_suffix.name+"_TEMP").glob("*") if dir.is_dir()][0]
         move(
             path_no_suffix.with_name(
-                path_no_suffix.name + "_TEMP")/source_dir, self.settingsDir/"wine",
+                path_no_suffix.name + "_TEMP")/source_dir, Settings.config_dir/"wine",
         )
         path_no_suffix.with_name(path_no_suffix.name+"_TEMP").rmdir()
 
@@ -185,7 +185,7 @@ class BuiltInPrefix:
         path.unlink()
 
         # Removes old dxvk versions
-        for dir in (self.settingsDir/"wine").glob("*"):
+        for dir in (Settings.config_dir/"wine").glob("*"):
             if not dir.is_dir():
                 continue
 

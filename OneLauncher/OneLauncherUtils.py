@@ -26,6 +26,8 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
+from OneLauncher import Settings
+
 import os
 from pathlib import Path
 import defusedxml.minidom
@@ -147,57 +149,8 @@ class DetermineGame:
 
             self.title = "OneLauncher - LOTRO" + self.__test
 
-
-class DetermineOS:
-    def __init__(self):
-        if os.name == "mac":
-            self.usingMac = True
-            self.usingWindows = False
-            self.appDir = Path("Library/Application Support/OneLauncher/")
-            self.documentsDir = Path("~").expanduser()/"Documents"
-            self.globalDir = Path("Application")
-            self.settingsCXG = Path("Library/Application Support/CrossOver Games/Bottles")
-            self.settingsCXO = Path("Library/Application Support/CrossOver/Bottles")
-            self.directoryCXG = Path(
-                "CrossOver Games.app/Contents/SharedSupport/CrossOverGames/bin/"
-            )
-            self.directoryCXO = Path("CrossOver.app/Contents/SharedSupport/CrossOver/bin/")
-            self.macPathCX = "" if os.environ.get("CX_ROOT") is None else Path(os.environ.get("CX_ROOT"))
-        elif os.name == "nt":
-            # Get documents folder dynamically since it can be changed on Windows
-            CSIDL_PERSONAL = 5       # Value for My Documents
-            SHGFP_TYPE_CURRENT = 0   # Get current, not default value
-
-            buffer = ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
-            ctypes.windll.shell32.SHGetFolderPathW(
-                None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buffer)
-
-            self.documentsDir = Path(buffer.value)
-
-            self.usingMac = False
-            self.usingWindows = True
-            self.appDir = Path("OneLauncher")
-            self.globalDir = ""
-            self.settingsCXG = ""
-            self.settingsCXO = ""
-            self.directoryCXG = ""
-            self.directoryCXO = ""
-            self.macPathCX = ""
-        else:
-            self.usingMac = False
-            self.usingWindows = False
-            self.appDir = Path(".OneLauncher")
-            self.documentsDir = Path("~").expanduser()/"Documents"
-            self.globalDir = Path("opt")
-            self.settingsCXG = Path(".cxgames")
-            self.settingsCXO = Path(".cxoffice")
-            self.directoryCXG = Path("cxgames/bin/")
-            self.directoryCXO = Path("cxoffice/bin/")
-            self.macPathCX = ""
-
-
 class GLSDataCenter:
-    def __init__(self, urlGLSDataCenterService, gameName, baseDir: Path, osType):
+    def __init__(self, urlGLSDataCenterService, gameName):
         SM_TEMPLATE = '<?xml version="1.0" encoding="utf-8"?>\
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
 <soap:Body><GetDatacenters xmlns="http://www.turbine.com/SE/GLS"><game>%s</game>\
@@ -222,7 +175,7 @@ class GLSDataCenter:
 
             tempxml = string_decode(webresp.read())
 
-            file_path = baseDir/osType.appDir/"GLSDataCenter.config"
+            file_path = Settings.config_dir/"GLSDataCenter.config"
             with uopen(file_path, "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 
@@ -294,7 +247,7 @@ class World:
         self.loginServer = ""
         self.queueURL = ""
 
-    def CheckWorld(self, baseDir, osType):
+    def CheckWorld(self):
         try:
             webservice, post = WebConnection(self.urlServerStatus)
 
@@ -305,7 +258,7 @@ class World:
 
             tempxml = string_decode(webresp.read())
 
-            file_path = baseDir/osType.appDir/"server.config"
+            file_path = Settings.config_dir/"server.config"
             with uopen(file_path, "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 
@@ -339,7 +292,7 @@ class World:
 
 
 class WorldQueueConfig:
-    def __init__(self, urlConfigServer, baseDir: Path, osType, gameDir: Path, clientType):
+    def __init__(self, urlConfigServer, gameDir: Path, clientType):
         self.gameClientFilename = ""
         self.gameClientArgTemplate = ""
         self.crashreceiver = ""
@@ -365,7 +318,7 @@ class WorldQueueConfig:
 
             tempxml = string_decode(webresp.read())
 
-            file_path = baseDir/osType.appDir/"launcher.config"
+            file_path = Settings.config_dir/"launcher.config"
             with uopen(file_path, "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 
@@ -475,7 +428,7 @@ class Game:
 
 
 class AuthenticateUser:
-    def __init__(self, urlLoginServer, name, password, game, baseDir: Path, osType):
+    def __init__(self, urlLoginServer, name, password, game):
         self.authSuccess = False
 
         SM_TEMPLATE = '<?xml version="1.0" encoding="utf-8"?>\
@@ -511,7 +464,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
 
             tempxml = string_decode(webresp.read())
 
-            file_path = baseDir/osType.appDir/"GLSAuthServer.config"
+            file_path = Settings.config_dir/"GLSAuthServer.config"
             with uopen(file_path, "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 
@@ -564,7 +517,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
 
 
 class JoinWorldQueue:
-    def __init__(self, argTemplate, account, ticket, queue, urlIn, baseDir: Path, osType):
+    def __init__(self, argTemplate, account, ticket, queue, urlIn):
         try:
             webservice, post = WebConnection(urlIn)
 
@@ -589,7 +542,7 @@ class JoinWorldQueue:
 
             tempxml = string_decode(webresp.read())
 
-            file_path = baseDir/osType.appDir/"WorldQueue.config"
+            file_path = Settings.config_dir/"WorldQueue.config"
             with uopen(file_path, "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 
