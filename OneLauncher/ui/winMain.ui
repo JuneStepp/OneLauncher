@@ -47,6 +47,7 @@
     <property name="font">
      <font>
       <family>Verdana</family>
+      <pointsize>12</pointsize>
      </font>
     </property>
     <property name="toolTip">
@@ -68,6 +69,7 @@
     <property name="font">
      <font>
       <family>Verdana</family>
+      <pointsize>12</pointsize>
      </font>
     </property>
     <property name="text">
@@ -86,6 +88,7 @@
     <property name="font">
      <font>
       <family>Verdana</family>
+      <pointsize>12</pointsize>
      </font>
     </property>
     <property name="text">
@@ -104,6 +107,7 @@
     <property name="font">
      <font>
       <family>Verdana</family>
+      <pointsize>12</pointsize>
      </font>
     </property>
     <property name="toolTip">
@@ -122,6 +126,7 @@
     <property name="font">
      <font>
       <family>Verdana</family>
+      <pointsize>12</pointsize>
      </font>
     </property>
     <property name="echoMode">
@@ -134,10 +139,10 @@
    <widget class="QLabel" name="imgMain">
     <property name="geometry">
      <rect>
-      <x>3</x>
-      <y>55</y>
-      <width>401</width>
-      <height>120</height>
+      <x>50</x>
+      <y>40</y>
+      <width>300</width>
+      <height>136</height>
      </rect>
     </property>
     <property name="text">
@@ -156,6 +161,7 @@
     <property name="font">
      <font>
       <family>Verdana</family>
+      <pointsize>12</pointsize>
      </font>
     </property>
     <property name="toolTip">
@@ -180,6 +186,7 @@
     <property name="font">
      <font>
       <family>Verdana</family>
+      <pointsize>12</pointsize>
      </font>
     </property>
     <property name="toolTip">
@@ -201,6 +208,7 @@
     <property name="font">
      <font>
       <family>Verdana</family>
+      <pointsize>12</pointsize>
      </font>
     </property>
     <property name="textInteractionFlags">
@@ -348,6 +356,7 @@
     <property name="font">
      <font>
       <family>Verdana</family>
+      <pointsize>12</pointsize>
      </font>
     </property>
     <property name="toolTip">
