@@ -5,6 +5,10 @@ Launcher for Linux, Windows, and Mac OS X
 
 # Changes
 
+1.2.8
+
+    Just a quick fix for the in-game store with the 64-bit client on Windows.
+
 1.2.7
 
     This release has a couple important fixes. Currently, major refactoring is under way for OneLauncher 2.0. If you would be interested in helping translate OneLauncher to French, German, or Russian then please contact me at `contact@JeremyStepp.me` or anywhere else such as the OneLauncher GitHub page.
