@@ -186,94 +186,147 @@
     <attribute name="title">
      <string>Wine</string>
     </attribute>
-    <widget class="QLabel" name="lblPrefix">
+    <widget class="QGroupBox" name="wineFormGroupBox">
      <property name="geometry">
       <rect>
-       <x>41</x>
-       <y>224</y>
-       <width>101</width>
-       <height>23</height>
+       <x>10</x>
+       <y>18</y>
+       <width>451</width>
+       <height>151</height>
       </rect>
      </property>
-     <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Where the drive_c folder is located&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <property name="title">
+      <string>Manually Configure</string>
      </property>
-     <property name="text">
-      <string>WINEPREFIX</string>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
      </property>
-    </widget>
-    <widget class="QLabel" name="lblProgram">
-     <property name="geometry">
-      <rect>
-       <x>28</x>
-       <y>262</y>
-       <width>121</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Wine Program</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txtDebug">
-     <property name="geometry">
-      <rect>
-       <x>150</x>
-       <y>5</y>
-       <width>300</width>
-       <height>31</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QLabel" name="lblDebug">
-     <property name="geometry">
-      <rect>
-       <x>39</x>
-       <y>12</y>
-       <width>101</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>WINEDEBUG</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txtPrefix">
-     <property name="enabled">
+     <property name="flat">
       <bool>true</bool>
      </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+     <layout class="QFormLayout" name="wineGroupBox">
+      <property name="formAlignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      </property>
+      <property name="leftMargin">
+       <number>15</number>
+      </property>
+      <property name="topMargin">
+       <number>15</number>
+      </property>
+      <property name="rightMargin">
+       <number>15</number>
+      </property>
+      <property name="bottomMargin">
+       <number>15</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="prefixLabel">
+        <property name="toolTip">
+         <string>Path to WINE prefix</string>
+        </property>
+        <property name="text">
+         <string>Prefix</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="prefixLineEdit">
+        <property name="toolTip">
+         <string>Path to WINE prefix</string>
+        </property>
+        <property name="dragEnabled">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="wineExecutableLabel">
+        <property name="toolTip">
+         <string>Path to WINE executable</string>
+        </property>
+        <property name="text">
+         <string>Executable</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="wineExecutableLineEdit">
+        <property name="toolTip">
+         <string>Path to WINE executable</string>
+        </property>
+        <property name="dragEnabled">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QFrame" name="wineAdvancedFrame">
      <property name="geometry">
       <rect>
-       <x>150</x>
-       <y>220</y>
-       <width>261</width>
-       <height>31</height>
+       <x>-1</x>
+       <y>159</y>
+       <width>461</width>
+       <height>141</height>
       </rect>
      </property>
-    </widget>
-    <widget class="QLineEdit" name="txtProgram">
-     <property name="geometry">
-      <rect>
-       <x>150</x>
-       <y>258</y>
-       <width>300</width>
-       <height>31</height>
-      </rect>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
      </property>
-    </widget>
-    <widget class="QToolButton" name="btnPrefixDir">
-     <property name="geometry">
-      <rect>
-       <x>414</x>
-       <y>221</y>
-       <width>36</width>
-       <height>30</height>
-      </rect>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
      </property>
-     <property name="text">
-      <string>...</string>
-     </property>
+     <widget class="QWidget" name="formLayoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>10</y>
+        <width>461</width>
+        <height>131</height>
+       </rect>
+      </property>
+      <layout class="QFormLayout" name="wineAdvancedForm">
+       <property name="leftMargin">
+        <number>15</number>
+       </property>
+       <property name="topMargin">
+        <number>15</number>
+       </property>
+       <property name="rightMargin">
+        <number>15</number>
+       </property>
+       <property name="bottomMargin">
+        <number>15</number>
+       </property>
+       <item row="0" column="0">
+        <widget class="QLabel" name="wineDebugLabel">
+         <property name="toolTip">
+          <string>Value for WINEDEBUG environment variable</string>
+         </property>
+         <property name="text">
+          <string>WINEDEBUG</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="wineDebugLineEdit">
+         <property name="toolTip">
+          <string>Value for WINEDEBUG environment variable</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
+    <zorder>wineAdvancedFrame</zorder>
+    <zorder>wineFormGroupBox</zorder>
    </widget>
   </widget>
   <widget class="QDialogButtonBox" name="btnBoxOptions">
@@ -298,7 +351,7 @@
      <x>310</x>
      <y>2</y>
      <width>141</width>
-     <height>17</height>
+     <height>22</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout">

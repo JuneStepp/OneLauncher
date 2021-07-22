@@ -50,10 +50,6 @@ installs are met.
 
 OneLauncher supports custom game settings folders through the `ddo.launcherconfig` and `lotro.launcherconfig` files located in their respective game install folders. Changing the value for `Product.DocumentFolder` will register the new folder with both OneLauncher and the game. Setting different directory names for the normal and preview versions of games allows for completely separate in-game settings and add-ons between them. The only exception is that add-on startup scripts installed on both versions of the game will run on both versions if enabled for one. 
 
-## Custom WINE Prefix
-
-A custom WINE prefix can be used by changing the WINE prefix path in the advanced section of the WINE settings tab. ESYNC, FSYNC and DXVK will not be automatically enabled on the custom prefix and the shipped version of WINE will not be kept up to date. A different WINE executable can be specified in the settings if that is an issue. The easiest way to enable the built-in prefix again is by re-running the setup wizard. Please don't complain about the games not working if there are only issues with your custom config.
-
 # Development Install
 
 OneLauncher uses [Poetry](https://python-poetry.org) for dependency management. To get everything setup simply run `poetry install --no-root` in the root folder of the OneLauncher source code.

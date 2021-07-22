@@ -103,6 +103,7 @@ def set_os_specific_variables():
         macPathCX = ""
         builtin_prefix_dir = platform_dirs.user_cache_dir/"wine/prefix"
 
+
 def make_settings_dirs():
     platform_dirs.user_config_dir.mkdir(exist_ok=True, parents=True)
     builtin_prefix_dir.mkdir(exist_ok=True, parents=True)
@@ -134,7 +135,7 @@ class Settings:
         self.wineDebug = "fixme-all"
         self.patchClient = Path("patchclient.dll")
         self.focusAccount = True
-        self.builtInPrefixEnabled = True
+        self.builtinPrefixEnabled = True
         self.gameDir = None
         self.client = "WIN64"
         self.winePrefix = None
@@ -162,11 +163,10 @@ class Settings:
                     elif node.nodeName == "Wine.Debug":
                         self.wineDebug = GetText(node.childNodes)
                     elif node.nodeName == "Wine.Prefix":
-                        winePrefix = Path(GetText(node.childNodes))
-                        # Checks if prefix is set to built in wine prefix
-                        if winePrefix != self.winePrefix:
-                            self.winePrefix = winePrefix
-                            self.builtInPrefixEnabled = False
+                        self.winePrefix = Path(GetText(node.childNodes))
+                    elif node.nodeName == "Wine.BuiltinPrefix":
+                        self.builtinPrefixEnabled = GetText(
+                            node.childNodes) == "True"
                     elif node.nodeName == "HiRes":
                         self.hiResEnabled = GetText(node.childNodes) == "True"
                     elif node.nodeName == "Client":
@@ -220,18 +220,23 @@ class Settings:
                             "Save.Password"
                         )
                         if savePasswordNode:
-                            self.savePassword = GetText(savePasswordNode[0].childNodes)
+                            self.savePassword = GetText(
+                                savePasswordNode[0].childNodes)
 
                 # Disable 64-bit client if it is unavailable
                 if (self.client == "WIN64" and not self.checkGameClient64()):
                     self.client = "WIN32"
+
+                # Set wine prefix to built in one if it is enabled
+                if self.builtinPrefixEnabled:
+                    self.winePrefix = builtin_prefix_dir
 
                 success = True
 
                 if (
                     not self.wineProg.exists()
                     and self.wineProg != Path("wine")
-                    and not self.builtInPrefixEnabled
+                    and not self.builtinPrefixEnabled
                 ):
                     success = "[E16] Wine executable set does not exist"
         except Exception as error:
@@ -342,6 +347,12 @@ class Settings:
             tempNode.appendChild(doc.createTextNode("%s" % (self.wineDebug)))
             gameConfigNode.appendChild(tempNode)
 
+            tempNode = doc.createElementNS(
+                EMPTY_NAMESPACE, "Wine.BuiltinPrefix")
+            tempNode.appendChild(doc.createTextNode(
+                "%s" % (self.builtinPrefixEnabled)))
+            gameConfigNode.appendChild(tempNode)
+
             if self.winePrefix != "":
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Prefix")
                 tempNode.appendChild(
@@ -409,7 +420,6 @@ class Settings:
             else:
                 gameConfigNode.appendChild(accountsNode)
 
-
             if savePassword:
                 savePasswordNode = doc.createElementNS(
                     EMPTY_NAMESPACE, "Save.Password")
@@ -428,7 +438,6 @@ class Settings:
                 normalClientNode.appendChild(savePasswordNode)
             else:
                 gameConfigNode.appendChild(savePasswordNode)
-
 
         startupScriptsNode = doc.createElementNS(
             EMPTY_NAMESPACE, "StartupScripts")

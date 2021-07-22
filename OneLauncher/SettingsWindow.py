@@ -48,7 +48,6 @@ class SettingsWindow:
         data_folder: Path,
     ):
 
-        self.winePrefix = winePrefix
         self.settings = settings
         self.LanguageConfig = LanguageConfig
 
@@ -60,14 +59,9 @@ class SettingsWindow:
         )
 
         if not Settings.usingWindows:
-            self.winSettings.txtPrefix.setText(str(winePrefix))
-            self.winSettings.txtDebug.setText(wineDebug)
-            self.winSettings.txtProgram.setText(str(wineProg))
-            self.winSettings.txtProgram.setVisible(False)
-            self.winSettings.lblProgram.setVisible(False)
-            self.winSettings.txtPrefix.setVisible(False)
-            self.winSettings.lblPrefix.setVisible(False)
-            self.winSettings.btnPrefixDir.setVisible(False)
+            self.winSettings.prefixLineEdit.setText(str(winePrefix))
+            self.winSettings.wineDebugLineEdit.setText(wineDebug)
+            self.winSettings.wineExecutableLineEdit.setText(str(wineProg))
         else:
             self.winSettings.tabWidget.removeTab(1)
 
@@ -76,10 +70,11 @@ class SettingsWindow:
         self.winSettings.cboGraphics.addItem("Disabled")
         self.winSettings.cboClient.addItem("32-bit")
         self.winSettings.cboClient.addItem("32-bit Legacy")
-        self.winSettings.chkAdvanced.setChecked(False)
         self.winSettings.txtPatchClient.setText(str(patchClient))
-        self.winSettings.txtPatchClient.setVisible(False)
-        self.winSettings.lblPatchClient.setVisible(False)
+
+        self.chkAdvancedClicked()
+        self.winSettings.wineFormGroupBox.setChecked(
+            not self.settings.builtinPrefixEnabled)
 
         if hiRes:
             self.winSettings.cboGraphics.setCurrentIndex(0)
@@ -116,12 +111,6 @@ class SettingsWindow:
         self.winSettings.txtGameDir.textChanged.connect(self.txtGameDirChanged)
         self.winSettings.chkAdvanced.clicked.connect(self.chkAdvancedClicked)
 
-        if not Settings.usingWindows:
-            self.winSettings.btnPrefixDir.clicked.connect(
-                self.btnPrefixDirClicked)
-            self.winSettings.txtPrefix.textChanged.connect(
-                self.txtPrefixChanged)
-
     def chkAdvancedClicked(self):
         if Settings.usingWindows:
             if self.winSettings.chkAdvanced.isChecked():
@@ -130,23 +119,14 @@ class SettingsWindow:
             else:
                 self.winSettings.txtPatchClient.setVisible(False)
                 self.winSettings.lblPatchClient.setVisible(False)
+        elif self.winSettings.chkAdvanced.isChecked():
+            self.winSettings.txtPatchClient.setVisible(True)
+            self.winSettings.lblPatchClient.setVisible(True)
+            self.winSettings.wineAdvancedFrame.show()
         else:
-            if self.winSettings.chkAdvanced.isChecked():
-                self.winSettings.txtProgram.setVisible(True)
-                self.winSettings.txtPatchClient.setVisible(True)
-                self.winSettings.lblProgram.setVisible(True)
-                self.winSettings.lblPatchClient.setVisible(True)
-                self.winSettings.txtPrefix.setVisible(True)
-                self.winSettings.lblPrefix.setVisible(True)
-                self.winSettings.btnPrefixDir.setVisible(True)
-            else:
-                self.winSettings.txtProgram.setVisible(False)
-                self.winSettings.txtPatchClient.setVisible(False)
-                self.winSettings.lblProgram.setVisible(False)
-                self.winSettings.lblPatchClient.setVisible(False)
-                self.winSettings.txtPrefix.setVisible(False)
-                self.winSettings.lblPrefix.setVisible(False)
-                self.winSettings.btnPrefixDir.setVisible(False)
+            self.winSettings.txtPatchClient.setVisible(False)
+            self.winSettings.lblPatchClient.setVisible(False)
+            self.winSettings.wineAdvancedFrame.hide()
 
     def btnGameDirClicked(self):
         txtGameDir = self.winSettings.txtGameDir.text()
@@ -181,30 +161,12 @@ class SettingsWindow:
 
             self.setLanguageButtons()
 
-    def btnPrefixDirClicked(self):
-        txtPrefix = self.winSettings.txtPrefix.text()
-
-        starting_dir = Path("~").expanduser() if txtPrefix == "" else Path(txtPrefix)
-
-        filename = QtWidgets.QFileDialog.getExistingDirectory(
-            self.winSettings,
-            "Prefix Directory",
-            str(starting_dir),
-            options=QtWidgets.QFileDialog.ShowDirsOnly,
-        )
-
-        if filename != "":
-            self.winSettings.txtPrefix.setText(filename)
-
     def btnSetupWizardClicked(self):
         self.start_setup_wizard = True
         self.winSettings.reject()
 
     def getSetupWizardClicked(self):
         return bool(self.start_setup_wizard)
-
-    def txtPrefixChanged(self, text):
-        self.winePrefix = text
 
     def setLanguageButtons(self):
         # Sets up language buttons. Only buttons for available languages are enabled.
@@ -243,13 +205,13 @@ class SettingsWindow:
             return "FR"
 
     def getPrefix(self):
-        return Path(self.winSettings.txtPrefix.text())
+        return Path(self.winSettings.prefixLineEdit.text())
 
     def getProg(self):
-        return Path(self.winSettings.txtProgram.text())
+        return Path(self.winSettings.wineExecutableLineEdit.text())
 
     def getDebug(self):
-        return self.winSettings.txtDebug.text()
+        return self.winSettings.wineDebugLineEdit.text()
 
     def getPatchClient(self):
         return Path(self.winSettings.txtPatchClient.text())
@@ -267,6 +229,9 @@ class SettingsWindow:
             return "WIN32Legacy"
         elif self.winSettings.cboClient.currentIndex() == 2:
             return "WIN64"
+
+    def getBuiltinPrefixEnabled(self):
+        return not self.winSettings.wineFormGroupBox.isChecked()
 
     def Run(self):
         return self.winSettings.exec_()

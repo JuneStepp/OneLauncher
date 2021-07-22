@@ -397,11 +397,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def manageBuiltInPrefix(self):
         # Only manage prefix if prefix management is enabled and the program is on Linux or Mac
-        if not self.settings.builtInPrefixEnabled or Settings.usingWindows:
+        if not self.settings.builtinPrefixEnabled or Settings.usingWindows:
             return True
 
         winBuiltInPrefix = BuiltInPrefix(
-            self.settings.winePrefix,
+            Settings.builtin_prefix_dir,
             Settings.documentsDir,
             self,
         )
@@ -466,9 +466,11 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.settings.language = winSettings.getLanguage()
 
             if not Settings.usingWindows:
-                self.settings.wineProg = winSettings.getProg()
                 self.settings.wineDebug = winSettings.getDebug()
-                self.settings.winePrefix = winSettings.getPrefix()
+                self.settings.builtinPrefixEnabled = winSettings.getBuiltinPrefixEnabled()
+                if not self.settings.builtinPrefixEnabled:
+                    self.settings.wineProg = winSettings.getProg()
+                    self.settings.winePrefix = winSettings.getPrefix()
 
             self.settings.save_game_settings(
                 saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
@@ -736,7 +738,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.settings.wineDebug,
             self.settings.winePrefix,
             self.settings.hiResEnabled,
-            self.settings.builtInPrefixEnabled,
+            self.settings.builtinPrefixEnabled,
             self.worldQueueConfig.crashreceiver,
             self.worldQueueConfig.DefaultUploadThrottleMbps,
             self.worldQueueConfig.bugurl,
@@ -896,7 +898,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ClearLog()
         self.ClearNews()
 
-        self.logger = Logger(Path(Settings.platform_dirs.user_log_dir), "main").logger
+        self.logger = Logger(
+            Path(Settings.platform_dirs.user_log_dir), "main").logger
 
         if first_setup:
             self.checkForUpdate()
