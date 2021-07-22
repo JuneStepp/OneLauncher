@@ -194,7 +194,8 @@ class Settings:
                         startup_script_nodes = node.childNodes
                         self.setStartupScriptSettings(startup_script_nodes)
 
-                # Test/preview clients use accounts and startups scripts from normal clients
+                # Test/preview clients use accounts, save password settings,
+                # and startups scripts from normal clients
                 if self.currentGame.endswith(".Test"):
                     normalClientNode = self.getNormalClientNode(
                         self.currentGame, doc)
@@ -214,7 +215,14 @@ class Settings:
                             startup_script_nodes = startupScriptsNode[0].childNodes
                             self.setStartupScriptSettings(startup_script_nodes)
 
-                # Disables 64-bit client if it is unavailable
+                        # Load in save password setting from normal client node
+                        savePasswordNode = normalClientNode.getElementsByTagName(
+                            "Save.Password"
+                        )
+                        if savePasswordNode:
+                            self.savePassword = GetText(savePasswordNode[0].childNodes)
+
+                # Disable 64-bit client if it is unavailable
                 if (self.client == "WIN64" and not self.checkGameClient64()):
                     self.client = "WIN32"
 
@@ -401,11 +409,26 @@ class Settings:
             else:
                 gameConfigNode.appendChild(accountsNode)
 
+
             if savePassword:
-                tempNode = doc.createElementNS(
+                savePasswordNode = doc.createElementNS(
                     EMPTY_NAMESPACE, "Save.Password")
-                tempNode.appendChild(doc.createTextNode("True"))
-                gameConfigNode.appendChild(tempNode)
+                savePasswordNode.appendChild(doc.createTextNode("True"))
+
+            # Test/Preview clients store if password is enabled in normal client settings,
+            # because the accounts are shared.
+            if current_game.endswith(".Test"):
+                # Delete current password enabled node if present.
+                originalSavePasswordNode = normalClientNode.getElementsByTagName(
+                    "Save.Password"
+                )
+                if originalSavePasswordNode:
+                    normalClientNode.removeChild(originalSavePasswordNode[0])
+
+                normalClientNode.appendChild(savePasswordNode)
+            else:
+                gameConfigNode.appendChild(savePasswordNode)
+
 
         startupScriptsNode = doc.createElementNS(
             EMPTY_NAMESPACE, "StartupScripts")
