@@ -896,7 +896,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ClearLog()
         self.ClearNews()
 
-        self.logger = Logger(Path(Settings.config_dir), "main").logger
+        self.logger = Logger(Path(Settings.platform_dirs.user_log_dir), "main").logger
 
         if first_setup:
             self.checkForUpdate()

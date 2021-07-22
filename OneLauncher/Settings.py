@@ -37,8 +37,11 @@ import defusedxml.minidom
 from vkbeautify import xml as prettify_xml
 from collections import OrderedDict
 import logging
+from platformdirs import PlatformDirsPathlib, user_cache_dir
+
 
 def set_os_specific_variables():
+    global platform_dirs
     global usingMac
     global usingWindows
     global config_dir
@@ -49,21 +52,27 @@ def set_os_specific_variables():
     global directoryCXG
     global directoryCXO
     global macPathCX
-    
+    global builtin_prefix_dir
+
+    platform_dirs = PlatformDirsPathlib(__title__, False)
     if os.name == "mac":
         usingMac = True
         usingWindows = False
-        config_dir = Path("~/Library/Application Support").expanduser()/__title__
         documentsDir = Path("~").expanduser()/"Documents"
         globalDir = Path("Application")
-        settingsCXG = Path("Library/Application Support/CrossOver Games/Bottles")
+        settingsCXG = Path(
+            "Library/Application Support/CrossOver Games/Bottles")
         settingsCXO = Path("Library/Application Support/CrossOver/Bottles")
         directoryCXG = Path(
             "CrossOver Games.app/Contents/SharedSupport/CrossOverGames/bin/"
         )
-        directoryCXO = Path("CrossOver.app/Contents/SharedSupport/CrossOver/bin/")
-        macPathCX = "" if os.environ.get("CX_ROOT") is None else Path(os.environ.get("CX_ROOT"))
+        directoryCXO = Path(
+            "CrossOver.app/Contents/SharedSupport/CrossOver/bin/")
+        macPathCX = "" if os.environ.get(
+            "CX_ROOT") is None else Path(os.environ.get("CX_ROOT"))
+        builtin_prefix_dir = platform_dirs.user_cache_dir/"wine/prefix"
     elif os.name == "nt":
+        import ctypes.wintypes
         # Get documents folder dynamically since it can be changed on Windows
         CSIDL_PERSONAL = 5       # Value for My Documents
         SHGFP_TYPE_CURRENT = 0   # Get current, not default value
@@ -76,7 +85,6 @@ def set_os_specific_variables():
 
         usingMac = False
         usingWindows = True
-        config_dir = Path(os.environ.get("APPDATA"))/__title__
         globalDir = ""
         settingsCXG = ""
         settingsCXO = ""
@@ -87,25 +95,31 @@ def set_os_specific_variables():
         usingMac = False
         usingWindows = False
         documentsDir = Path("~").expanduser()/"Documents"
-        config_dir = Path("~").expanduser()/f".{__title__}"
         globalDir = Path("opt")
         settingsCXG = Path(".cxgames")
         settingsCXO = Path(".cxoffice")
         directoryCXG = Path("cxgames/bin/")
         directoryCXO = Path("cxoffice/bin/")
         macPathCX = ""
+        builtin_prefix_dir = platform_dirs.user_cache_dir/"wine/prefix"
 
-    config_dir.mkdir(exist_ok=True)
+def make_settings_dirs():
+    platform_dirs.user_config_dir.mkdir(exist_ok=True, parents=True)
+    builtin_prefix_dir.mkdir(exist_ok=True, parents=True)
+    (platform_dirs.user_cache_dir/"game").mkdir(exist_ok=True, parents=True)
+    (platform_dirs.user_data_dir/"wine").mkdir(exist_ok=True, parents=True)
+
 
 class ProgramSettings():
-    def __init__(self, config_file: Path=None) -> None:
+    def __init__(self, config_file: Path = None) -> None:
         if not config_file:
-            config_file = config_dir/f"{__title__}.config"
+            config_file = platform_dirs.user_config_dir/f"{__title__}.config"
+
 
 class Settings:
     def __init__(self):
         self.currentGame = "LOTRO"
-        self.settingsFile = config_dir/f"{__title__}.config"
+        self.settingsFile = platform_dirs.user_config_dir/f"{__title__}.config"
         self.logger = logging.getLogger("main")
 
     def load_game_settings(self, useGame=None):
@@ -120,16 +134,13 @@ class Settings:
         self.wineDebug = "fixme-all"
         self.patchClient = Path("patchclient.dll")
         self.focusAccount = True
-        self.winePrefix = config_dir/"wine/prefix"
         self.builtInPrefixEnabled = True
-        self.gameDir = Path()
+        self.gameDir = None
         self.client = "WIN64"
+        self.winePrefix = None
         self.savePassword = False
         self.startupScripts = []
         success = False
-
-        if self.winePrefix is None:
-            self.winePrefix = ""
 
         try:
             if self.settingsFile.exists():
@@ -278,9 +289,6 @@ class Settings:
     def save_game_settings(self, saveAccountDetails=None, savePassword=None, game=None):
         doc = None
 
-        if not usingWindows:
-            (config_dir/"wine/prefix").mkdir(exist_ok=True, parents=True)
-
         # Check if settings file exists if not create new settings XML
         if self.settingsFile.exists():
             doc = defusedxml.minidom.parse(str(self.settingsFile))
@@ -428,3 +436,4 @@ class Settings:
 
 
 set_os_specific_variables()
+make_settings_dirs()

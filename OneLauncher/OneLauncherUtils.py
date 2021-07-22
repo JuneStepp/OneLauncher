@@ -39,10 +39,6 @@ from codecs import open as uopen
 from http.client import HTTPConnection, HTTPSConnection
 from urllib.parse import quote
 
-if os.name == "nt":
-    # Needed for getting Documents folder on Windows
-    import ctypes.wintypes
-
 
 def string_encode(s):
     return s.encode()
@@ -149,6 +145,7 @@ class DetermineGame:
 
             self.title = "OneLauncher - LOTRO" + self.__test
 
+
 class GLSDataCenter:
     def __init__(self, urlGLSDataCenterService, gameName):
         SM_TEMPLATE = '<?xml version="1.0" encoding="utf-8"?>\
@@ -175,7 +172,7 @@ class GLSDataCenter:
 
             tempxml = string_decode(webresp.read())
 
-            file_path = Settings.config_dir/"GLSDataCenter.config"
+            file_path = Settings.platform_dirs.user_cache_dir/"game/GLSDataCenter.config"
             with uopen(file_path, "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 
@@ -258,7 +255,7 @@ class World:
 
             tempxml = string_decode(webresp.read())
 
-            file_path = Settings.config_dir/"server.config"
+            file_path = Settings.platform_dirs.user_cache_dir/"game/server.config"
             with uopen(file_path, "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 
@@ -318,7 +315,7 @@ class WorldQueueConfig:
 
             tempxml = string_decode(webresp.read())
 
-            file_path = Settings.config_dir/"launcher.config"
+            file_path = Settings.platform_dirs.user_cache_dir/"game/launcher.config"
             with uopen(file_path, "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 
@@ -464,7 +461,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
 
             tempxml = string_decode(webresp.read())
 
-            file_path = Settings.config_dir/"GLSAuthServer.config"
+            file_path = Settings.platform_dirs.user_cache_dir/"game/GLSAuthServer.config"
             with uopen(file_path, "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 
@@ -542,7 +539,7 @@ class JoinWorldQueue:
 
             tempxml = string_decode(webresp.read())
 
-            file_path = Settings.config_dir/"WorldQueue.config"
+            file_path = Settings.platform_dirs.user_cache_dir/"game/WorldQueue.config"
             with uopen(file_path, "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 

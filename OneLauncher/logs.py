@@ -35,7 +35,7 @@ class Logger():
             log_name (str): Name of log. Should not include file extension.
         """
         # Make sure logs dir exists
-        logs_dir.mkdir(exist_ok=True)
+        logs_dir.mkdir(exist_ok=True, parents=True)
 
         # Create or get custom logger
         logger = logging.getLogger(log_name)

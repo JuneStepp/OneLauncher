@@ -194,7 +194,7 @@ class PatchWindow:
 
     def btnSaveClicked(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(
-            self.winLog, "Save log file", str(Settings.config_dir)
+            self.winLog, "Save log file", str(Settings.platform_dirs.user_log_dir)
         )[0]
 
         if filename != "":
