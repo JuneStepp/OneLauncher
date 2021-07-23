@@ -36,7 +36,7 @@ import os
 class SettingsWindow:
     def __init__(
         self,
-        hiRes,
+        highRes,
         wineProg: Path,
         wineDebug,
         patchClient: Path,
@@ -66,8 +66,6 @@ class SettingsWindow:
             self.winSettings.tabWidget.removeTab(1)
 
         self.winSettings.txtGameDir.setText(str(gameDir))
-        self.winSettings.cboGraphics.addItem("Enabled")
-        self.winSettings.cboGraphics.addItem("Disabled")
         self.winSettings.cboClient.addItem("32-bit")
         self.winSettings.cboClient.addItem("32-bit Legacy")
         self.winSettings.txtPatchClient.setText(str(patchClient))
@@ -76,10 +74,7 @@ class SettingsWindow:
         self.winSettings.wineFormGroupBox.setChecked(
             not self.settings.builtinPrefixEnabled)
 
-        if hiRes:
-            self.winSettings.cboGraphics.setCurrentIndex(0)
-        else:
-            self.winSettings.cboGraphics.setCurrentIndex(1)
+        self.winSettings.highResCheckBox.setChecked(highRes)
 
         # Only adds 64-bit option if 64-bit client is available
         if settings.checkGameClient64():
@@ -219,8 +214,8 @@ class SettingsWindow:
     def getGameDir(self):
         return Path(self.winSettings.txtGameDir.text())
 
-    def getHiRes(self):
-        return self.winSettings.cboGraphics.currentIndex() == 0
+    def getHighRes(self):
+        return self.winSettings.highResCheckBox.isChecked()
 
     def getClient(self):
         if self.winSettings.cboClient.currentIndex() == 0:

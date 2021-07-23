@@ -431,7 +431,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.settings.gameDir,
                 self.settings.patchClient,
                 self.settings.wineProg,
-                self.settings.hiResEnabled,
+                self.settings.highResEnabled,
                 self.settings.winePrefix,
                 self.settings.wineDebug,
                 self,
@@ -445,7 +445,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def btnOptionsSelected(self):
         winSettings = SettingsWindow(
-            self.settings.hiResEnabled,
+            self.settings.highResEnabled,
             self.settings.wineProg,
             self.settings.wineDebug,
             self.settings.patchClient,
@@ -458,7 +458,7 @@ class MainWindow(QtWidgets.QMainWindow):
         )
 
         if winSettings.Run() == QtWidgets.QDialog.Accepted:
-            self.settings.hiResEnabled = winSettings.getHiRes()
+            self.settings.highResEnabled = winSettings.getHighRes()
             self.settings.client = winSettings.getClient()
             self.settings.patchClient = winSettings.getPatchClient()
             self.settings.gameDir = winSettings.getGameDir()
@@ -516,7 +516,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     dir = winWizard.getGameDir(game)
                     if dir:
                         self.settings.gameDir = dir
-                        self.settings.hiResEnabled = winWizard.getHiRes(
+                        self.settings.highResEnabled = winWizard.getHiRes(
                             self.settings.gameDir
                         )
                         self.settings.winePrefix = ""
@@ -737,7 +737,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.settings.wineProg,
             self.settings.wineDebug,
             self.settings.winePrefix,
-            self.settings.hiResEnabled,
+            self.settings.highResEnabled,
             self.settings.builtinPrefixEnabled,
             self.worldQueueConfig.crashreceiver,
             self.worldQueueConfig.DefaultUploadThrottleMbps,

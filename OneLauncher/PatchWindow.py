@@ -46,7 +46,7 @@ class PatchWindow:
         runDir: Path,
         patchClient: Path,
         wineProgram: Path,
-        hiResEnabled,
+        highResEnabled,
         winePrefix: Path,
         wineDebug,
         parent,
@@ -156,7 +156,7 @@ class PatchWindow:
         self.process.setProcessEnvironment(processEnvironment)
         self.process.setWorkingDirectory(str(runDir))
 
-        if hiResEnabled:
+        if highResEnabled:
             self.arguments.append("--highres")
 
         self.file_arguments = self.arguments.copy()
@@ -194,7 +194,8 @@ class PatchWindow:
 
     def btnSaveClicked(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(
-            self.winLog, "Save log file", str(Settings.platform_dirs.user_log_dir)
+            self.winLog, "Save log file", str(
+                Settings.platform_dirs.user_log_dir)
         )[0]
 
         if filename != "":

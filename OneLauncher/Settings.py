@@ -124,7 +124,7 @@ class Settings:
         self.logger = logging.getLogger("main")
 
     def load_game_settings(self, useGame=None):
-        self.hiResEnabled = True
+        self.highResEnabled = True
         # If None isn't overwritten than it will automatically
         # get set to the first installed language detected.
         self.language = None
@@ -168,7 +168,8 @@ class Settings:
                         self.builtinPrefixEnabled = GetText(
                             node.childNodes) == "True"
                     elif node.nodeName == "HiRes":
-                        self.hiResEnabled = GetText(node.childNodes) == "True"
+                        self.highResEnabled = GetText(
+                            node.childNodes) == "True"
                     elif node.nodeName == "Client":
                         self.client = GetText(node.childNodes)
                     elif node.nodeName == "x64Client":
@@ -360,7 +361,7 @@ class Settings:
                 gameConfigNode.appendChild(tempNode)
 
         tempNode = doc.createElementNS(EMPTY_NAMESPACE, "HiRes")
-        if self.hiResEnabled:
+        if self.highResEnabled:
             tempNode.appendChild(doc.createTextNode("True"))
         else:
             tempNode.appendChild(doc.createTextNode("False"))

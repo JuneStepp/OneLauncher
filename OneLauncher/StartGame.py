@@ -50,7 +50,7 @@ class StartGame:
         wineProgram: Path,
         wineDebug,
         winePrefix: Path,
-        hiResEnabled: bool,
+        highResEnabled: bool,
         builtinPrefixEnabled: bool,
         crashreceiver,
         DefaultUploadThrottleMbps,
@@ -117,7 +117,7 @@ class StartGame:
             .replace("{SUPPORTSERVICEURL}", supportserviceurl)
         )
 
-        if not hiResEnabled:
+        if not highResEnabled:
             gameParams += " --HighResOutOfDate"
 
         self.process = QtCore.QProcess()

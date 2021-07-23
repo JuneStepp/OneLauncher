@@ -69,37 +69,33 @@
        <height>33</height>
       </rect>
      </property>
+     <property name="toolTip">
+      <string>Game client version to use. 64-bit is the most modern. It does work with WINE</string>
+     </property>
     </widget>
     <widget class="QLabel" name="lblPatchClient">
      <property name="geometry">
       <rect>
-       <x>7</x>
+       <x>12</x>
        <y>264</y>
-       <width>141</width>
+       <width>131</width>
        <height>23</height>
       </rect>
      </property>
      <property name="text">
       <string>Patch Client DLL</string>
      </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
     </widget>
     <widget class="QLineEdit" name="txtPatchClient">
      <property name="geometry">
       <rect>
-       <x>151</x>
+       <x>150</x>
        <y>260</y>
        <width>300</width>
        <height>31</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="cboGraphics">
-     <property name="geometry">
-      <rect>
-       <x>151</x>
-       <y>44</y>
-       <width>300</width>
-       <height>33</height>
       </rect>
      </property>
     </widget>
@@ -111,6 +107,9 @@
        <width>36</width>
        <height>30</height>
       </rect>
+     </property>
+     <property name="toolTip">
+      <string>Select game directory from file system</string>
      </property>
      <property name="text">
       <string>...</string>
@@ -125,8 +124,14 @@
        <height>23</height>
       </rect>
      </property>
+     <property name="toolTip">
+      <string>Enable high resolution game files. You may need to patch the game after enabling this</string>
+     </property>
      <property name="text">
       <string>Hi-Res Graphics</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
     <widget class="QLabel" name="lblClient">
@@ -138,8 +143,14 @@
        <height>23</height>
       </rect>
      </property>
+     <property name="toolTip">
+      <string>Game client version to use. 64-bit is the most modern. It does work with WINE</string>
+     </property>
      <property name="text">
       <string>Game Client</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
     <widget class="QLabel" name="lblGameDir">
@@ -152,10 +163,13 @@
       </rect>
      </property>
      <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Where lotrolauncher is&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>Game install directory. There should be a file called patchclient.dll here</string>
      </property>
      <property name="text">
       <string>Game Directory</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
     <widget class="QLineEdit" name="txtGameDir">
@@ -166,6 +180,9 @@
        <width>260</width>
        <height>31</height>
       </rect>
+     </property>
+     <property name="toolTip">
+      <string>Game install directory. There should be a file called patchclient.dll here</string>
      </property>
     </widget>
     <widget class="QPushButton" name="btnSetupWizard">
@@ -181,6 +198,22 @@
       <string>Run Setup Wizard</string>
      </property>
     </widget>
+    <widget class="QCheckBox" name="highResCheckBox">
+     <property name="geometry">
+      <rect>
+       <x>155</x>
+       <y>45</y>
+       <width>21</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Enable high resolution game files. You may need to patch the game after enabling this</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
    </widget>
    <widget class="QWidget" name="tabWine">
     <attribute name="title">
@@ -194,6 +227,9 @@
        <width>451</width>
        <height>151</height>
       </rect>
+     </property>
+     <property name="toolTip">
+      <string>Enable manual WINE configuration. Otherwise, WINE and DXVK all get downloaded and managed automatically</string>
      </property>
      <property name="title">
       <string>Manually Configure</string>
