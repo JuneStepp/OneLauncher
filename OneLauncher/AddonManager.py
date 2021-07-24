@@ -35,6 +35,7 @@ from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minidom import Document, Element  # nosec
 import defusedxml.minidom
 from vkbeautify import xml as prettify_xml
+import OneLauncher
 from OneLauncher.OneLauncherUtils import GetText
 import sqlite3
 from shutil import rmtree, copy, move, copytree
@@ -601,7 +602,7 @@ class AddonManager:
             return
         elif addon_path.suffix == ".rar":
             self.addLog(
-                "OneLauncher does not support .rar archives, because it"
+                f"{OneLauncher.__title__} does not support .rar archives, because it"
                 " is a proprietary format that would require and external "
                 "program to extract"
             )

@@ -589,14 +589,14 @@ class MainWindow(QtWidgets.QMainWindow):
             if self.settings.currentGame.startswith("DDO"):
                 self.winMain.txtPassword.setText(
                     keyring.get_password(
-                        "OneLauncherDDO",
+                        f"{OneLauncher.__title__}DDO",
                         self.winMain.cboAccount.currentText(),
                     )
                 )
             else:
                 self.winMain.txtPassword.setText(
                     keyring.get_password(
-                        "OneLauncherLOTRO",
+                        f"{OneLauncher.__title__}LOTRO",
                         self.winMain.cboAccount.currentText(),
                     )
                 )
@@ -651,13 +651,13 @@ class MainWindow(QtWidgets.QMainWindow):
                 if self.winMain.chkSavePassword.isChecked():
                     if self.settings.currentGame.startswith("DDO"):
                         keyring.set_password(
-                            "OneLauncherDDO",
+                            f"{OneLauncher.__title__}DDO",
                             self.winMain.cboAccount.currentText(),
                             self.winMain.txtPassword.text(),
                         )
                     else:
                         keyring.set_password(
-                            "OneLauncherLOTRO",
+                            f"{OneLauncher.__title__}LOTRO",
                             self.winMain.cboAccount.currentText(),
                             self.winMain.txtPassword.text(),
                         )
@@ -665,12 +665,12 @@ class MainWindow(QtWidgets.QMainWindow):
                     try:
                         if self.settings.currentGame.startswith("DDO"):
                             keyring.delete_password(
-                                "OneLauncherDDO",
+                                f"{OneLauncher.__title__}DDO",
                                 self.winMain.cboAccount.currentText(),
                             )
                         else:
                             keyring.delete_password(
-                                "OneLauncherLOTRO",
+                                f"{OneLauncher.__title__}LOTRO",
                                 self.winMain.cboAccount.currentText(),
                             )
                     except keyring.errors.PasswordDeleteError:
@@ -817,7 +817,7 @@ class MainWindow(QtWidgets.QMainWindow):
             with urllib.request.urlopen(latest_release_url, timeout=2) as response:
                 release_dictionary = jsonLoads(response.read())
         except (urllib.error.URLError, urllib.error.HTTPError) as error:
-            self.AddLog("[E18] Error checking for OneLauncher updates.")
+            self.AddLog(f"[E18] Error checking for {OneLauncher.__title__} updates.")
             self.logger.error(error.reason, exc_info=True)
             return
 
@@ -838,13 +838,13 @@ class MainWindow(QtWidgets.QMainWindow):
                 f'<span>{name}</span></a></p></body></html>'
             )
             messageBox.setInformativeText(
-                f"There is a new version of OneLauncher available! {centered_href}"
+                f"There is a new version of {OneLauncher.__title__} available! {centered_href}"
             )
             messageBox.setDetailedText(description)
             self.showMessageBoxDetailsAsMarkdown(messageBox)
             messageBox.show()
         else:
-            self.AddLog("OneLauncher is up to date.")
+            self.AddLog(f"{OneLauncher.__title__} is up to date.")
 
     def showMessageBoxDetailsAsMarkdown(self, messageBox: QtWidgets.QMessageBox):
         """Makes the detailed text of messageBox display in Markdown format"""

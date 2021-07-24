@@ -39,6 +39,8 @@ from codecs import open as uopen
 from http.client import HTTPConnection, HTTPSConnection
 from urllib.parse import quote
 
+import OneLauncher
+
 
 def string_encode(s):
     return s.encode()
@@ -132,18 +134,18 @@ class DetermineGame:
     def GetSettings(self, currentGame):
         self.configFileAlt = Path("TurbineLauncher.exe.config")
 
-        self.__test = " (Preview)" if currentGame.endswith(".Test") else ""
+        self.__test = "(Preview)" if currentGame.endswith(".Test") else ""
         self.iconFile = Path("images/OneLauncherIcon.png")
         if currentGame.startswith("DDO"):
             self.configFile = Path("ddo.launcherconfig")
             self.pngFile = Path("images")/"DDO.png"
 
-            self.title = "OneLauncher - DDO" + self.__test
+            self.title = f"{OneLauncher.__title__} - DDO {self.__test}"
         else:
             self.configFile = Path("lotro.launcherconfig")
             self.pngFile = Path("images/LOTRO.png")
 
-            self.title = "OneLauncher - LOTRO" + self.__test
+            self.title = f"{OneLauncher.__title__} - LOTRO {self.__test}"
 
 
 class GLSDataCenter:
