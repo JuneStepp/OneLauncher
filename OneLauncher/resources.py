@@ -1,5 +1,6 @@
 from pathlib import Path
 import sys
+from PySide6 import QtGui
 
 
 class Locale():
@@ -58,5 +59,17 @@ def get_resource(relative_path: Path, locale: Locale) -> Path:
         raise FileNotFoundError(
             f"There is no generic or localized version of {relative_path} for the language {locale}")
 
+def get_icon_font() -> QtGui.QFont:
+    # Setup font for icons
+    font_file = data_dir/"fonts/Font Awesome 5 Free-Solid-900.otf"
+    font_db = QtGui.QFontDatabase()
+    font_id = font_db.addApplicationFont(str(font_file))
+    font_family = font_db.applicationFontFamilies(font_id)
+    icon_font = QtGui.QFont(font_family)
+    icon_font.setHintingPreference(QtGui.QFont.PreferNoHinting)
+    icon_font.setPixelSize(16)
+
+    return icon_font
 
 data_dir = get_data_dir()
+icon_font = get_icon_font()

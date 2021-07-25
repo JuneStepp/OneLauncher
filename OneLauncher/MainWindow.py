@@ -41,7 +41,7 @@ from OneLauncher.AddonManager import AddonManager
 from OneLauncher.SetupWizard import SetupWizard
 from OneLauncher.PatchWindow import PatchWindow
 from OneLauncher.StartGame import StartGame
-from OneLauncher import Settings
+from OneLauncher import Settings, resources
 from OneLauncher.WinePrefix import BuiltInPrefix
 from OneLauncher.OneLauncherUtils import (
     checkForCertificates,
@@ -98,15 +98,6 @@ class MainWindow(QtWidgets.QMainWindow):
         font = QtGui.QFont()
         font.setPointSize(10)
         self.app.setFont(font)
-
-        # Setup font for icons
-        font_file = self.data_folder/"fonts/Font Awesome 5 Free-Solid-900.otf"
-        font_db = QtGui.QFontDatabase()
-        font_id = font_db.addApplicationFont(str(font_file))
-        font_family = font_db.applicationFontFamilies(font_id)
-        self.icon_font = QtGui.QFont(font_family)
-        self.icon_font.setHintingPreference(QtGui.QFont.PreferNoHinting)
-        self.icon_font.setPixelSize(16)
 
         self.handleWindowsDarkTheme()
 
@@ -234,32 +225,32 @@ class MainWindow(QtWidgets.QMainWindow):
     def setupBtnExit(self):
         self.winMain.btnExit.clicked.connect(self.close)
 
-        self.winMain.btnExit.setFont(self.icon_font)
+        self.winMain.btnExit.setFont(resources.icon_font)
         self.winMain.btnExit.setText("\uf00d")
 
     def setupBtnMinimize(self):
         self.winMain.btnMinimize.clicked.connect(self.showMinimized)
 
-        self.winMain.btnMinimize.setFont(self.icon_font)
+        self.winMain.btnMinimize.setFont(resources.icon_font)
         self.winMain.btnMinimize.setText("\uf2d1")
 
     def setupBtnAbout(self):
         self.winMain.btnAbout.clicked.connect(self.btnAboutSelected)
 
-        self.winMain.btnAbout.setFont(self.icon_font)
+        self.winMain.btnAbout.setFont(resources.icon_font)
         self.winMain.btnAbout.setText("\uf05a")
 
     def setupBtnOptions(self):
         self.winMain.btnOptions.clicked.connect(self.btnOptionsSelected)
 
-        self.winMain.btnOptions.setFont(self.icon_font)
+        self.winMain.btnOptions.setFont(resources.icon_font)
         self.winMain.btnOptions.setText("\uf013")
 
     def setupBtnAddonManager(self):
         self.winMain.btnAddonManager.clicked.connect(
             self.btnAddonManagerSelected)
 
-        self.winMain.btnAddonManager.setFont(self.icon_font)
+        self.winMain.btnAddonManager.setFont(resources.icon_font)
         self.winMain.btnAddonManager.setText("\uf055")
 
     def setupBtnLoginMenu(self):
@@ -491,7 +482,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.data_folder,
             self.baseConfig.gameDocumentsDir,
             self.settings.startupScripts,
-            self.icon_font
         )
 
         winAddonManager.Run()

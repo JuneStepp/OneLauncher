@@ -26,7 +26,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from OneLauncher import Settings
+from OneLauncher import Settings, resources
 from typing import List, Tuple
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
@@ -86,13 +86,11 @@ class AddonManager:
         data_folder: Path,
         gameDocumentsDir: Path,
         startupScripts,
-        icon_font: QtGui.QFont,
     ):
         self.currentGame = currentGame
         self.parent = parent
         self.logger = logging.getLogger("main")
         self.startupScripts = startupScripts
-        self.icon_font = icon_font
 
         self.winAddonManager = QUiLoader().load(
             str(data_folder/"ui/winAddonManager.ui"), parentWidget=parent)
@@ -182,7 +180,7 @@ class AddonManager:
             self.actionDisableStartupScriptSelected
         )
 
-        self.winAddonManager.btnCheckForUpdates.setFont(self.icon_font)
+        self.winAddonManager.btnCheckForUpdates.setFont(resources.icon_font)
         self.winAddonManager.btnCheckForUpdates.setText("\uf2f1")
         self.winAddonManager.btnCheckForUpdates.pressed.connect(
             self.checkForUpdates)
@@ -191,7 +189,7 @@ class AddonManager:
         self.winAddonManager.btnAddons.setMenu(
             self.winAddonManager.btnAddonsMenu)
         self.winAddonManager.btnAddons.clicked.connect(self.btnAddonsClicked)
-        self.winAddonManager.btnAddons.setFont(self.icon_font)
+        self.winAddonManager.btnAddons.setFont(resources.icon_font)
         self.winAddonManager.btnAddons.setText("\uf068")
 
         self.winAddonManager.tabWidget.currentChanged.connect(
