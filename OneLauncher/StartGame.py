@@ -213,7 +213,7 @@ class StartGame:
     def btnSaveClicked(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(
             self.winLog, "Save log file", str(
-                Settings.platform_dirs.user_log_dir)
+                Settings.platform_dirs.user_log_path)
         )[0]
 
         if filename != "":

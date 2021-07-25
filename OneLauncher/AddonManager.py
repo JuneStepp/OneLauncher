@@ -488,7 +488,7 @@ class AddonManager:
         Opens addons_cache database and creates new database if 
         one doesn't exist or the current one has an outdated structure
         """
-        addons_cache_db_path = Settings.platform_dirs.user_cache_dir/"addons_cache.sqlite"
+        addons_cache_db_path = Settings.platform_dirs.user_cache_path/"addons_cache.sqlite"
         if addons_cache_db_path.exists():
             # Connects to addons_cache database
             self.conn = sqlite3.connect(str(addons_cache_db_path))
@@ -550,7 +550,7 @@ class AddonManager:
     def createDB(self):
         """Creates ans sets up addons_cache database"""
         self.conn = sqlite3.connect(
-            str(Settings.platform_dirs.user_cache_dir/"addons_cache.sqlite")
+            str(Settings.platform_dirs.user_cache_path/"addons_cache.sqlite")
         )
         self.c = self.conn.cursor()
 

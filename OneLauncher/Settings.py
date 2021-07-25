@@ -37,7 +37,7 @@ import defusedxml.minidom
 from vkbeautify import xml as prettify_xml
 from collections import OrderedDict
 import logging
-from platformdirs import PlatformDirsPathlib, user_cache_dir
+from platformdirs import PlatformDirs
 
 
 def set_os_specific_variables():
@@ -54,7 +54,7 @@ def set_os_specific_variables():
     global macPathCX
     global builtin_prefix_dir
 
-    platform_dirs = PlatformDirsPathlib(__title__, False)
+    platform_dirs = PlatformDirs(__title__, False)
     if os.name == "mac":
         usingMac = True
         usingWindows = False
@@ -70,7 +70,7 @@ def set_os_specific_variables():
             "CrossOver.app/Contents/SharedSupport/CrossOver/bin/")
         macPathCX = "" if os.environ.get(
             "CX_ROOT") is None else Path(os.environ.get("CX_ROOT"))
-        builtin_prefix_dir = platform_dirs.user_cache_dir/"wine/prefix"
+        builtin_prefix_dir = platform_dirs.user_cache_path/"wine/prefix"
     elif os.name == "nt":
         import ctypes.wintypes
         # Get documents folder dynamically since it can be changed on Windows
@@ -101,26 +101,26 @@ def set_os_specific_variables():
         directoryCXG = Path("cxgames/bin/")
         directoryCXO = Path("cxoffice/bin/")
         macPathCX = ""
-        builtin_prefix_dir = platform_dirs.user_cache_dir/"wine/prefix"
+        builtin_prefix_dir = platform_dirs.user_cache_path/"wine/prefix"
 
 
 def make_settings_dirs():
-    platform_dirs.user_config_dir.mkdir(exist_ok=True, parents=True)
+    platform_dirs.user_config_path.mkdir(exist_ok=True, parents=True)
     builtin_prefix_dir.mkdir(exist_ok=True, parents=True)
-    (platform_dirs.user_cache_dir/"game").mkdir(exist_ok=True, parents=True)
-    (platform_dirs.user_data_dir/"wine").mkdir(exist_ok=True, parents=True)
+    (platform_dirs.user_cache_path/"game").mkdir(exist_ok=True, parents=True)
+    (platform_dirs.user_data_path/"wine").mkdir(exist_ok=True, parents=True)
 
 
 class ProgramSettings():
     def __init__(self, config_file: Path = None) -> None:
         if not config_file:
-            config_file = platform_dirs.user_config_dir/f"{__title__}.config"
+            config_file = platform_dirs.user_config_path/f"{__title__}.config"
 
 
 class Settings:
     def __init__(self):
         self.currentGame = "LOTRO"
-        self.settingsFile = platform_dirs.user_config_dir/f"{__title__}.config"
+        self.settingsFile = platform_dirs.user_config_path/f"{__title__}.config"
         self.logger = logging.getLogger("main")
 
     def load_game_settings(self, useGame=None):
