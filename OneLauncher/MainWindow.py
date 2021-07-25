@@ -91,7 +91,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.winMain.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.setFixedSize(790, 470)
-        self.centerWindow()
 
         # Set font size explicitly to stop OS text size options from
         # breaking the UI.
@@ -148,12 +147,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.winMain.cboAccount.setFocus()
         elif self.winMain.txtPassword.text() == "":
             self.winMain.txtPassword.setFocus()
-
-    def centerWindow(self):
-        qr = self.frameGeometry()
-        cp = self.app.primaryScreen().availableGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
 
     def mousePressEvent(self, event):
         """Lets the user drag the window when left-click holding it"""
@@ -832,7 +825,7 @@ class MainWindow(QtWidgets.QMainWindow):
             )
             messageBox.setDetailedText(description)
             self.showMessageBoxDetailsAsMarkdown(messageBox)
-            messageBox.show()
+            messageBox.exec()
         else:
             self.AddLog(f"{OneLauncher.__title__} is up to date.")
 
