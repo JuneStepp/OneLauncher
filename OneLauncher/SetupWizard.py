@@ -33,6 +33,8 @@ import os
 from pathlib import Path
 import glob
 
+import OneLauncher
+
 
 def toString(val):
     if isinstance(val, str):
@@ -45,9 +47,7 @@ class SetupWizard:
     def __init__(self, data_folder: Path, QGuiApplication):
         self.winSetupWizard = QUiLoader().load(str(data_folder/"ui/winSetupWizard.ui"))
         self.winSetupWizard.setWindowFlags(QtCore.Qt.Dialog)
-        self.winSetupWizard.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-        self.winSetupWizard.setWindowTitle("Setup Wizard")
-
+        self.winSetupWizard.setWindowTitle(f"{OneLauncher.__title__} Setup Wizard")
         qr = self.winSetupWizard.frameGeometry()
         cp = QGuiApplication.primaryScreen().availableGeometry().center()
         qr.moveCenter(cp)
