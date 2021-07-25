@@ -35,14 +35,6 @@ import glob
 
 import OneLauncher
 
-
-def toString(val):
-    if isinstance(val, str):
-        return val
-    else:
-        return val.toString()
-
-
 class SetupWizard:
     def __init__(self, data_folder: Path):
         self.winSetupWizard = QUiLoader().load(str(data_folder/"ui/winSetupWizard.ui"))
