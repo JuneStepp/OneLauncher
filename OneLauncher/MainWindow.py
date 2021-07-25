@@ -41,7 +41,7 @@ from OneLauncher.AddonManager import AddonManager
 from OneLauncher.SetupWizard import SetupWizard
 from OneLauncher.PatchWindow import PatchWindow
 from OneLauncher.StartGame import StartGame
-from OneLauncher import Settings, resources
+from OneLauncher import Settings, Runner, resources
 from OneLauncher.WinePrefix import BuiltInPrefix
 from OneLauncher.OneLauncherUtils import (
     checkForCertificates,
@@ -65,9 +65,6 @@ from json import loads as jsonLoads
 
 
 class MainWindow(QtWidgets.QMainWindow):
-    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
-    app = QtWidgets.QApplication(sys.argv)
-
     # Make signals for communicating with MainWindowThread
     ReturnLog = QtCore.Signal(str)
     ReturnBaseConfig = QtCore.Signal(BaseConfig)
@@ -92,13 +89,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.setFixedSize(790, 470)
 
-        # Set font size explicitly to stop OS text size options from
-        # breaking the UI.
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        self.app.setFont(font)
-
-        self.handleWindowsDarkTheme()
 
         # Setup buttons
         self.setupBtnAbout()
@@ -140,7 +130,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def run(self):
         self.show()
-        sys.exit(self.app.exec_())
 
     def resetFocus(self):
         if self.winMain.cboAccount.currentText() == "":
@@ -169,51 +158,6 @@ class MainWindow(QtWidgets.QMainWindow):
         ]
         for widget in mouse_ignore_list:
             widget.setAttribute(QtCore.Qt.WA_NoMousePropagation)
-
-    def handleWindowsDarkTheme(self):
-        if not Settings.usingWindows:
-            return
-
-        settings = QtCore.QSettings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
-                                    QtCore.QSettings.NativeFormat)
-        # If user has dark theme activated
-        if not settings.value("AppsUseLightTheme"):
-            # Use QPalette to set custom dark theme for Windows.
-            # The builtin Windows dark theme for Windows is not ready
-            # as of 7-5-2021
-            self.app.setStyle(QtWidgets.QStyleFactory.create("Fusion"))
-            dark_palette = QtGui.QPalette()
-            dark_color = QtGui.QColor(45, 45, 45)
-            disabled_color = QtGui.QColor(127, 127, 127)
-
-            dark_palette.setColor(QtGui.QPalette.Window, dark_color)
-            dark_palette.setColor(QtGui.QPalette.WindowText, QtCore.Qt.white)
-            dark_palette.setColor(QtGui.QPalette.Base,
-                                  QtGui.QColor(18, 18, 18))
-            dark_palette.setColor(QtGui.QPalette.AlternateBase, dark_color)
-            dark_palette.setColor(QtGui.QPalette.ToolTipBase, QtCore.Qt.white)
-            dark_palette.setColor(QtGui.QPalette.ToolTipText, QtCore.Qt.white)
-            dark_palette.setColor(QtGui.QPalette.Text, QtCore.Qt.white)
-            dark_palette.setColor(QtGui.QPalette.Disabled,
-                                  QtGui.QPalette.Text, disabled_color)
-            dark_palette.setColor(QtGui.QPalette.Button, dark_color)
-            dark_palette.setColor(QtGui.QPalette.ButtonText, QtCore.Qt.white)
-            dark_palette.setColor(QtGui.QPalette.Disabled,
-                                  QtGui.QPalette.ButtonText, disabled_color)
-            dark_palette.setColor(QtGui.QPalette.BrightText, QtCore.Qt.red)
-            dark_palette.setColor(QtGui.QPalette.Link,
-                                  QtGui.QColor(42, 130, 218))
-
-            dark_palette.setColor(QtGui.QPalette.Highlight,
-                                  QtGui.QColor(42, 130, 218))
-            dark_palette.setColor(
-                QtGui.QPalette.HighlightedText, QtCore.Qt.black)
-            dark_palette.setColor(QtGui.QPalette.Disabled,
-                                  QtGui.QPalette.HighlightedText, disabled_color)
-
-            self.app.setPalette(dark_palette)
-            self.app.setStyleSheet(
-                "QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
 
     def setupBtnExit(self):
         self.winMain.btnExit.clicked.connect(self.close)
@@ -424,7 +368,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.baseConfig.gameDocumentsDir,
             )
 
-            winPatch.Run(self.app)
+            winPatch.Run(Runner.app)
             self.resetFocus()
 
     def btnOptionsSelected(self):
@@ -487,7 +431,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def settingsWizardCalled(self):
         winWizard = SetupWizard(
-            self.data_folder, self.app)
+            self.data_folder)
         self.hide()
 
         if winWizard.Run() == QtWidgets.QDialog.Accepted:
@@ -592,7 +536,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Force a small display to ensure message above is displayed
         # as program can look like it is not responding while validating
         for _ in range(4):
-            self.app.processEvents()
+            Runner.app.processEvents()
 
         self.account = AuthenticateUser(
             self.dataCenter.authServer,
@@ -800,7 +744,8 @@ class MainWindow(QtWidgets.QMainWindow):
             with urllib.request.urlopen(latest_release_url, timeout=2) as response:
                 release_dictionary = jsonLoads(response.read())
         except (urllib.error.URLError, urllib.error.HTTPError) as error:
-            self.AddLog(f"[E18] Error checking for {OneLauncher.__title__} updates.")
+            self.AddLog(
+                f"[E18] Error checking for {OneLauncher.__title__} updates.")
             self.logger.error(error.reason, exc_info=True)
             return
 
