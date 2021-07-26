@@ -4,7 +4,7 @@
     <version>1.2.6</version>
     <readmeFile>${build_project_directory}/README.md</readmeFile>
     <licenseFile>${build_project_directory}/COPYING</licenseFile>
-    <leftImage>${build_project_directory}/OneLauncherInstallerSideImage.png</leftImage>
+    <leftImage>${build_project_directory}/OneLauncher/images/installer_lotro-ddo_collage.png</leftImage>
     <logoImage>${build_project_directory}/RunOneLauncher.dist/OneLauncher/images/OneLauncherIcon.png</logoImage>
     <componentList>
         <component>
