@@ -33,7 +33,7 @@ from sys import path
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 
-from OneLauncher import Settings
+from OneLauncher import Settings, logger
 from OneLauncher.OneLauncherUtils import QByteArray2str
 
 
@@ -76,7 +76,6 @@ class StartGame:
         self.worldName = worldName
         self.accountText = accountText
         self.parent = parent
-        self.logger = logging.getLogger("main")
         self.startupScripts = startupScripts
         self.gameConfigDirPath = Settings.documentsDir/gameConfigDir
 
@@ -183,12 +182,12 @@ class StartGame:
     def readOutput(self):
         text = QByteArray2str(self.process.readAllStandardOutput())
         self.winLog.txtLog.append(text)
-        self.logger.debug("Game: " + text)
+        logger.debug("Game: " + text)
 
     def readErrors(self):
         text = QByteArray2str(self.process.readAllStandardError())
         self.winLog.txtLog.append(text)
-        self.logger.debug("Game: " + text)
+        logger.debug("Game: " + text)
 
     def resetButtons(self, exitCode, exitStatus):
         self.finished = True
@@ -247,7 +246,7 @@ class StartGame:
 
         self.winLog.btnStop.setText("Abort")
         self.process.start(self.command, self.arguments)
-        self.logger.info("Game started with: " +
+        logger.info("Game started with: " +
                          str([self.command, self.arguments]))
 
         return self.winLog.exec_()

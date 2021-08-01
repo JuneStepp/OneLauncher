@@ -44,9 +44,8 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 
 import OneLauncher
-from OneLauncher import Runner, Settings, resources
+from OneLauncher import Runner, Settings, resources, logger
 from OneLauncher.AddonManager import AddonManager
-from OneLauncher.logs import Logger
 from OneLauncher.OneLauncherUtils import (AuthenticateUser, BaseConfig,
                                           DetermineGame, GetText,
                                           GLSDataCenter, JoinWorldQueue,
@@ -720,7 +719,7 @@ class MainWindow(QtWidgets.QMainWindow):
         current_version = parse_version(OneLauncher.__version__)
         repository_url = OneLauncher.__project_url__
         if "github.com" not in repository_url.lower():
-            self.logger.warning(
+            logger.warning(
                 "Repository URL set in Information.py is not "
                 "at github.com. The system for update notifications"
                 " only supports this site."
@@ -741,7 +740,7 @@ class MainWindow(QtWidgets.QMainWindow):
         except (urllib.error.URLError, urllib.error.HTTPError) as error:
             self.AddLog(
                 f"[E18] Error checking for {OneLauncher.__title__} updates.")
-            self.logger.error(error.reason, exc_info=True)
+            logger.error(error.reason, exc_info=True)
             return
 
         release_version = parse_version(release_dictionary["tag_name"])
@@ -821,9 +820,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ClearLog()
         self.ClearNews()
 
-        self.logger = Logger(
-            Settings.platform_dirs.user_log_path, "main").logger
-
         if first_setup:
             self.checkForUpdate()
 
@@ -833,7 +829,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if game:
                 self.currentGame = game
 
-        sslContext = checkForCertificates(self.logger, self.data_folder)
+        sslContext = checkForCertificates(self.data_folder)
 
         # Set news feed to say "Loading ..." until it is replaced by the news.
         self.winMain.txtFeed.setHtml(
@@ -851,7 +847,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # Checks if the user is running OneLauncher for the first time
             #  and calls the setup Wizard
             if not self.settings.settingsFile.exists():
-                self.logger.debug("First run/no settings file found")
+                logger.debug("First run/no settings file found")
                 self.settingsWizardCalled()
 
                 if not self.settings.settingsFile.exists():
@@ -968,7 +964,7 @@ class MainWindow(QtWidgets.QMainWindow):
         for line in message.splitlines():
             # Make line red if it is an error
             if line.startswith("[E"):
-                self.logger.error(line)
+                logger.error(line)
 
                 line = '<font color="red">' + message + "</font>"
 
@@ -976,7 +972,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.winMain.btnOptions.setEnabled(True)
                 self.winMain.btnSwitchGame.setEnabled(True)
             else:
-                self.logger.info(line)
+                logger.info(line)
 
             self.winMain.txtStatus.append(line)
 
@@ -1009,8 +1005,6 @@ class MainWindowThread(QtCore.QThread):
         self.ReturnWorldQueueConfig = ReturnWorldQueueConfig
         self.ReturnNews = ReturnNews
         self.sslContext = sslContext
-
-        self.logger = logging.getLogger("main")
 
     def run(self):
         self.LoadLanguageList()
@@ -1180,4 +1174,4 @@ class MainWindowThread(QtCore.QThread):
             self.ReturnNews.emit(result)
         except Exception as error:
             self.ReturnLog.emit("[E12] Error getting news")
-            self.logger.warning(error)
+            logger.warning(error)

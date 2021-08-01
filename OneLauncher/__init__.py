@@ -12,7 +12,11 @@ __copyright_history__ = ("Based on PyLotRO\n(C) 2009-2010 AJackson\n"
                          "Based on CLI launcher for LOTRO\n(C) 2007-2010 SNy\n"
                          "Based on CLI launcher for LOTRO\n(C) 2007-2010 SNy")
 
-from OneLauncher import Settings
+import logging
+logger = logging.Logger("temp_logger")
+
+from OneLauncher import Settings, logs  # isort:skip # noqa
+logger = logs.Logger(Settings.platform_dirs.user_log_path, "main").logger
 
 program_settings = Settings.ProgramSettings()
 game_settings = Settings.GamesSettings()

@@ -37,7 +37,7 @@ from shutil import move, rmtree
 
 from PySide6 import QtCore, QtWidgets
 
-from OneLauncher import Settings
+from OneLauncher import Settings, logger
 
 
 class BuiltInPrefix:
@@ -51,7 +51,6 @@ class BuiltInPrefix:
     def __init__(self, winePrefix: Path, documentsDir: Path, parent):
         self.winePrefix = winePrefix
         self.documentsDir = documentsDir
-        self.logger = logging.getLogger("main")
 
         (Settings.platform_dirs.user_data_path/"wine").mkdir(parents=True, exist_ok=True)
 
@@ -129,7 +128,7 @@ class BuiltInPrefix:
             )  # nosec
             return True
         except (urllib.error.URLError, urllib.error.HTTPError) as error:
-            self.logger.error(error.reason, exc_info=True)
+            logger.error(error.reason, exc_info=True)
             return False
 
     def handle_download_progress(self, index, frame, size):

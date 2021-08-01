@@ -34,7 +34,7 @@ from pathlib import Path
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 
-from OneLauncher import Settings
+from OneLauncher import Settings, logger
 from OneLauncher.OneLauncherUtils import QByteArray2str
 from OneLauncher.ProgressMonitor import ProgressMonitor
 
@@ -56,9 +56,6 @@ class PatchWindow:
         current_game,
         gameDocumentsDir: Path,
     ):
-
-        self.logger = logging.getLogger("main")
-
         self.winLog = QUiLoader().load(str(data_folder/"ui/winPatch.ui"), parentWidget=parent)
 
         self.winLog.setWindowFlags(
@@ -99,7 +96,7 @@ class PatchWindow:
                 '<font color="Khaki">Patch client %s not found</font>' % (
                     patchClient)
             )
-            self.logger.error("Patch client %s not found" % (patchClient))
+            logger.error("Patch client %s not found" % (patchClient))
             return
 
         self.progressMonitor = ProgressMonitor(self.winLog)
@@ -168,12 +165,12 @@ class PatchWindow:
         line = QByteArray2str(self.process.readAllStandardOutput())
         self.winLog.txtLog.append(line)
         self.progressMonitor.parseOutput(line)
-        self.logger.debug("Patcher: " + line)
+        logger.debug("Patcher: " + line)
 
     def readErrors(self):
         line = QByteArray2str(self.process.readAllStandardError())
         self.winLog.txtLog.append(line)
-        self.logger.debug("Patcher: " + line)
+        logger.debug("Patcher: " + line)
 
     def resetButtons(self):
         self.finished = True
@@ -256,14 +253,14 @@ class PatchWindow:
 
                 self.winLog.txtLog.append(line)
                 self.progressMonitor.parseOutput(line)
-                self.logger.debug("Patcher: " + line)
+                logger.debug("Patcher: " + line)
         else:
             # Add "..." if log is not giving indicator of patching progress
             self.winLog.txtLog.append("...")
 
         self.process_status_timer.start(100)
 
-    def Run(self, app):
-        self.__app = app
+    def Run(self):
+        self.__app = qApp
 
         self.winLog.exec_()

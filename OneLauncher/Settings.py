@@ -42,7 +42,7 @@ from platformdirs import PlatformDirs
 from vkbeautify import xml as prettify_xml
 
 import OneLauncher
-from OneLauncher import resources
+from OneLauncher import resources, logger
 from OneLauncher.OneLauncherUtils import GetText
 
 
@@ -457,7 +457,7 @@ class Settings:
                 ):
                     success = "[E16] Wine executable set does not exist"
         except Exception as error:
-            self.logger.error(error, exc_info=True)
+            logger.error(error, exc_info=True)
             success = False
 
         return success

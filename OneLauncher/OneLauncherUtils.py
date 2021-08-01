@@ -37,7 +37,7 @@ from xml.sax.saxutils import escape as xml_escape
 import defusedxml.minidom
 
 import OneLauncher
-from OneLauncher import Settings
+from OneLauncher import Settings, logger
 
 
 def string_encode(s):
@@ -55,7 +55,7 @@ def QByteArray2str(s):
 sslContext = None
 
 
-def checkForCertificates(logger, data_folder: Path):
+def checkForCertificates(data_folder: Path):
     # Try to locate the server certificates for HTTPS connections
     certfile = data_folder/"certificates/ca_certs.pem"
 

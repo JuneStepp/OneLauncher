@@ -44,7 +44,7 @@ from PySide6.QtUiTools import QUiLoader
 from vkbeautify import xml as prettify_xml
 
 import OneLauncher
-from OneLauncher import Settings, resources
+from OneLauncher import Settings, resources, logger
 from OneLauncher.OneLauncherUtils import GetText
 from OneLauncher.ui_resources import icon_font
 
@@ -92,7 +92,6 @@ class AddonManager:
     ):
         self.currentGame = currentGame
         self.parent = parent
-        self.logger = logging.getLogger("main")
         self.startupScripts = startupScripts
 
         self.winAddonManager = QUiLoader().load(
@@ -617,7 +616,7 @@ class AddonManager:
             return
 
         copy(str(addon_path), self.data_folder_music)
-        self.logger.info(f"{addon_path} installed")
+        logger.info(f"{addon_path} installed")
 
         # Plain .abc files are installed to base music directory,
         # so what is scanned can't be controlled
@@ -728,7 +727,7 @@ class AddonManager:
         self.addInstalledPluginsToDB(plugin_files, compendium_files)
 
         self.handleStartupScriptActivationPrompt(table, interface_id)
-        self.logger.info(
+        logger.info(
             "Installed addon corresponding to "
             f"{plugin_files} )"
             f"{compendium_files}")
@@ -787,7 +786,7 @@ class AddonManager:
 
         self.handleStartupScriptActivationPrompt(table, interface_id)
 
-        self.logger.info(f"{root_dir} music installed")
+        logger.info(f"{root_dir} music installed")
 
         self.installAddonRemoteDependencies(table.objectName() + "Installed")
 
@@ -813,7 +812,7 @@ class AddonManager:
 
         self.handleStartupScriptActivationPrompt(table, interface_id)
 
-        self.logger.info(f"{root_dir} skin installed")
+        logger.info(f"{root_dir} skin installed")
 
         self.installAddonRemoteDependencies(table.objectName() + "Installed")
 
@@ -1231,7 +1230,7 @@ class AddonManager:
             "Errors: " +
             str(int(self.winAddonManager.lblErrors.text()[-1]) + 1)
         )
-        self.logger.warning(message)
+        logger.warning(message)
         self.winAddonManager.txtLog.append(message + "\n")
 
     def btnAddonsClicked(self):
@@ -1411,7 +1410,7 @@ class AddonManager:
             if not list(author_dir.glob("*")):
                 author_dir.rmdir()
 
-            self.logger.info(f"{plugin} plugin uninstalled")
+            logger.info(f"{plugin} plugin uninstalled")
 
             self.setRemoteAddonToUninstalled(
                 plugin, self.winAddonManager.tablePlugins)
@@ -1433,7 +1432,7 @@ class AddonManager:
                 skin_path = Path(skin[1])
             rmtree(skin_path)
 
-            self.logger.info(f"{skin} skin uninstalled")
+            logger.info(f"{skin} skin uninstalled")
 
             self.setRemoteAddonToUninstalled(
                 skin, self.winAddonManager.tableSkins)
@@ -1459,7 +1458,7 @@ class AddonManager:
             else:
                 rmtree(music_path)
 
-            self.logger.info(f"{music} music uninstalled")
+            logger.info(f"{music} music uninstalled")
 
             self.setRemoteAddonToUninstalled(
                 music, self.winAddonManager.tableMusic)
@@ -1599,7 +1598,7 @@ class AddonManager:
             addons_file = urllib.request.urlopen(  # nosec
                 favorites_url).read().decode()
         except (urllib.error.URLError, urllib.error.HTTPError) as error:
-            self.logger.error(error.reason, exc_info=True)
+            logger.error(error.reason, exc_info=True)
             self.addLog(
                 "There was a network error. You may want to check your connection."
             )
@@ -1648,7 +1647,7 @@ class AddonManager:
                     url, path, self.handleDownloadProgress
                 )
             except (urllib.error.URLError, urllib.error.HTTPError) as error:
-                self.logger.error(error.reason, exc_info=True)
+                logger.error(error.reason, exc_info=True)
                 self.addLog(
                     "There was a network error. You may want to check your connection."
                 )
