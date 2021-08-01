@@ -26,13 +26,15 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from OneLauncher import Settings
+import logging
+from pathlib import Path
 from sys import path
+
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtUiTools import QUiLoader
+
+from OneLauncher import Settings
 from OneLauncher.OneLauncherUtils import QByteArray2str
-from pathlib import Path
-import logging
 
 
 class StartGame:

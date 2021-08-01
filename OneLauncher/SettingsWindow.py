@@ -26,11 +26,13 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from OneLauncher import Settings
+import os
+from pathlib import Path
+
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
-from pathlib import Path
-import os
+
+from OneLauncher import Settings
 
 
 class SettingsWindow:

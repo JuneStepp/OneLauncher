@@ -27,14 +27,16 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
+import logging
+import os
+from pathlib import Path
+
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtUiTools import QUiLoader
+
+from OneLauncher import Settings
 from OneLauncher.OneLauncherUtils import QByteArray2str
 from OneLauncher.ProgressMonitor import ProgressMonitor
-from OneLauncher import Settings
-from pathlib import Path
-import os
-import logging
 
 
 class PatchWindow:

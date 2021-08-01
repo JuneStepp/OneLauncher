@@ -26,14 +26,15 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from OneLauncher import Settings
-from PySide6 import QtCore, QtWidgets
-from PySide6.QtUiTools import QUiLoader
+import glob
 import os
 from pathlib import Path
-import glob
+
+from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6.QtUiTools import QUiLoader
 
 import OneLauncher
+from OneLauncher import Settings
 
 class SetupWizard:
     def __init__(self, data_folder: Path):

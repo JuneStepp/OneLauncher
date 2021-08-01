@@ -13,6 +13,7 @@ __copyright_history__ = ("Based on PyLotRO\n(C) 2009-2010 AJackson\n"
                          "Based on CLI launcher for LOTRO\n(C) 2007-2010 SNy")
 
 from OneLauncher import Settings
+
 program_settings = Settings.ProgramSettings()
 game_settings = Settings.GamesSettings()
 game_settings.current_game == program_settings.last_used_game

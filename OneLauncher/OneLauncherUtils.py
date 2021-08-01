@@ -26,20 +26,18 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from OneLauncher import Settings
-
 import os
-from pathlib import Path
-import defusedxml.minidom
-from xml.sax.saxutils import escape as xml_escape
 import ssl
-
 from codecs import open as uopen
-
 from http.client import HTTPConnection, HTTPSConnection
+from pathlib import Path
 from urllib.parse import quote
+from xml.sax.saxutils import escape as xml_escape
+
+import defusedxml.minidom
 
 import OneLauncher
+from OneLauncher import Settings
 
 
 def string_encode(s):

@@ -27,21 +27,23 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from pathlib import Path
+import logging
 import os
+from pathlib import Path
 from sys import platform
 from typing import Dict, List, Optional
-from OneLauncher.OneLauncherUtils import GetText
-import OneLauncher
-from OneLauncher import resources
+from uuid import UUID, uuid4
 from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minidom import Document  # nosec
+
 import defusedxml.minidom
 import rtoml
-from uuid import uuid4, UUID
-from vkbeautify import xml as prettify_xml
-import logging
 from platformdirs import PlatformDirs
+from vkbeautify import xml as prettify_xml
+
+import OneLauncher
+from OneLauncher import resources
+from OneLauncher.OneLauncherUtils import GetText
 
 
 def set_os_specific_variables():
@@ -77,6 +79,7 @@ def set_os_specific_variables():
         builtin_prefix_dir = platform_dirs.user_cache_path/"wine/prefix"
     elif os.name == "nt":
         import ctypes.wintypes
+
         # Get documents folder dynamically since it can be changed on Windows
         CSIDL_PERSONAL = 5       # Value for My Documents
         SHGFP_TYPE_CURRENT = 0   # Get current, not default value

@@ -26,43 +26,38 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-import os
-from pathlib import Path
-import sys
-import OneLauncher
-from OneLauncher.logs import Logger
 import logging
-from typing import List
-import defusedxml.minidom
-from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtUiTools import QUiLoader
-from OneLauncher.SettingsWindow import SettingsWindow
-from OneLauncher.AddonManager import AddonManager
-from OneLauncher.SetupWizard import SetupWizard
-from OneLauncher.PatchWindow import PatchWindow
-from OneLauncher.StartGame import StartGame
-from OneLauncher import Settings, Runner, resources
-from OneLauncher.ui_resources import icon_font
-from OneLauncher.WinePrefix import BuiltInPrefix
-from OneLauncher.OneLauncherUtils import (
-    checkForCertificates,
-    DetermineGame,
-    LanguageConfig,
-    BaseConfig,
-    GLSDataCenter,
-    WorldQueueConfig,
-    AuthenticateUser,
-    JoinWorldQueue,
-    GetText,
-)
-from pkg_resources import parse_version
-import keyring
-from platform import platform
-import urllib
-
+import os
 # For setting global timeout used by urllib
 import socket
+import sys
+import urllib
 from json import loads as jsonLoads
+from pathlib import Path
+from platform import platform
+from typing import List
+
+import defusedxml.minidom
+import keyring
+from pkg_resources import parse_version
+from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6.QtUiTools import QUiLoader
+
+import OneLauncher
+from OneLauncher import Runner, Settings, resources
+from OneLauncher.AddonManager import AddonManager
+from OneLauncher.logs import Logger
+from OneLauncher.OneLauncherUtils import (AuthenticateUser, BaseConfig,
+                                          DetermineGame, GetText,
+                                          GLSDataCenter, JoinWorldQueue,
+                                          LanguageConfig, WorldQueueConfig,
+                                          checkForCertificates)
+from OneLauncher.PatchWindow import PatchWindow
+from OneLauncher.SettingsWindow import SettingsWindow
+from OneLauncher.SetupWizard import SetupWizard
+from OneLauncher.StartGame import StartGame
+from OneLauncher.ui_resources import icon_font
+from OneLauncher.WinePrefix import BuiltInPrefix
 
 
 class MainWindow(QtWidgets.QMainWindow):

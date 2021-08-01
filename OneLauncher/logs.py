@@ -1,8 +1,9 @@
 import logging
-from logging.handlers import RotatingFileHandler
 import sys
-from platform import platform
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
+from platform import platform
+
 import OneLauncher
 
 

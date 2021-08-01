@@ -26,25 +26,27 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from OneLauncher import Settings, resources
-from OneLauncher.ui_resources import icon_font
-from typing import List, Tuple
-from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtUiTools import QUiLoader
+import logging
+import sqlite3
+import urllib
+import zipfile
 from pathlib import Path
+from shutil import copy, copytree, move, rmtree
+from tempfile import TemporaryDirectory
+from time import localtime, strftime
+from typing import List, Tuple
 from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minidom import Document, Element  # nosec
+
 import defusedxml.minidom
+from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6.QtUiTools import QUiLoader
 from vkbeautify import xml as prettify_xml
+
 import OneLauncher
+from OneLauncher import Settings, resources
 from OneLauncher.OneLauncherUtils import GetText
-import sqlite3
-from shutil import rmtree, copy, move, copytree
-import zipfile
-from tempfile import TemporaryDirectory
-import urllib
-from time import strftime, localtime
-import logging
+from OneLauncher.ui_resources import icon_font
 
 
 class AddonManager:

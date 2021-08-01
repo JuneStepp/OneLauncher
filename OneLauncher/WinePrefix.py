@@ -26,18 +26,18 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from OneLauncher import Settings
-import urllib
-
+import errno
+import logging
 # Imports for extracting function
 import lzma
 import tarfile
+import urllib
+from pathlib import Path
 from shutil import move, rmtree
 
-import errno
 from PySide6 import QtCore, QtWidgets
-from pathlib import Path
-import logging
+
+from OneLauncher import Settings
 
 
 class BuiltInPrefix:

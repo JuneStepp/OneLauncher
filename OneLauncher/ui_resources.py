@@ -1,4 +1,5 @@
 from PySide6 import QtGui
+
 from OneLauncher.resources import data_dir
 
 

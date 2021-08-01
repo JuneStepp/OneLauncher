@@ -26,8 +26,10 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from PySide6 import QtCore, QtWidgets, QtGui
 import sys
+
+from PySide6 import QtCore, QtGui, QtWidgets
+
 from OneLauncher import Settings
 
 
