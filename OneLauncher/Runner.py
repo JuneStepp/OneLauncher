@@ -30,7 +30,8 @@ import sys
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from OneLauncher import Settings
+from OneLauncher import Settings, game_settings
+from OneLauncher.resources import get_resource
 
 
 def main():
@@ -46,13 +47,24 @@ def main():
 
     handle_windows_dark_theme()
 
+    # Start setup wizard if game settings haven't been generated
+    if not game_settings.current_game:
+        run_setup_wizard_with_main_window()
+    else:
+        start_main_window()
+
+    sys.exit(qApp.exec())
+
+    
+
+
+def start_main_window():
     # Import has to be done here, because some code run by
     # MainWindow imports requires the QApplication to exist.
     from OneLauncher.MainWindow import MainWindow
+    global main_window
     main_window = MainWindow()
     main_window.run()
-
-    sys.exit(app.exec())
 
 
 def handle_windows_dark_theme():
@@ -99,3 +111,17 @@ def handle_windows_dark_theme():
         app.setPalette(dark_palette)
         app.setStyleSheet(
             "QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
+
+
+def start_setup_wizard():
+    from OneLauncher.SetupWizard import SetupWizard
+    setup_wizard = SetupWizard()
+    setup_wizard.exec()
+
+
+def run_setup_wizard_with_main_window():
+    """Run setup wizard and restart main window."""
+    if "main_window" in globals() and main_window.isVisible():
+        main_window.close()
+    start_setup_wizard()
+    start_main_window()
