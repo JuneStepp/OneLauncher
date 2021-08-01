@@ -27,25 +27,31 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import sys
+from pathlib import Path
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from OneLauncher import Settings, game_settings
+from OneLauncher import (Settings, __title__, __version__, game_settings,
+                         resources, ui_locale)
 from OneLauncher.resources import get_resource
 
 
 def main():
-    global app
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
-    app = QtWidgets.QApplication(sys.argv)
+    QtWidgets.QApplication(sys.argv)
+    qApp.setApplicationName = __title__
+    qApp.setApplicationDisplayName = __title__
+    qApp.setApplicationVersion = __version__
+    qApp.setWindowIcon = QtGui.QIcon(
+        str(get_resource(Path("images/OneLauncherIcon.png"), ui_locale)))
 
     # Set font size explicitly to stop OS text size options from
     # breaking the UI.
     font = QtGui.QFont()
     font.setPointSize(10)
-    app.setFont(font)
+    qApp.setFont(font)
 
-    handle_windows_dark_theme()
+    handle_windows_dark_theme()   
 
     # Start setup wizard if game settings haven't been generated
     if not game_settings.current_game:
@@ -78,7 +84,7 @@ def handle_windows_dark_theme():
         # Use QPalette to set custom dark theme for Windows.
         # The builtin Windows dark theme for Windows is not ready
         # as of 7-5-2021
-        app.setStyle(QtWidgets.QStyleFactory.create("Fusion"))
+        qApp.setStyle(QtWidgets.QStyleFactory.create("Fusion"))
         dark_palette = QtGui.QPalette()
         dark_color = QtGui.QColor(45, 45, 45)
         disabled_color = QtGui.QColor(127, 127, 127)
@@ -108,8 +114,8 @@ def handle_windows_dark_theme():
         dark_palette.setColor(QtGui.QPalette.Disabled,
                               QtGui.QPalette.HighlightedText, disabled_color)
 
-        app.setPalette(dark_palette)
-        app.setStyleSheet(
+        qApp.setPalette(dark_palette)
+        qApp.setStyleSheet(
             "QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
 
 
