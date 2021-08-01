@@ -362,7 +362,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.baseConfig.gameDocumentsDir,
             )
 
-            winPatch.Run(Runner.app)
+            winPatch.Run()
             self.resetFocus()
 
     def btnOptionsSelected(self):
@@ -530,7 +530,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Force a small display to ensure message above is displayed
         # as program can look like it is not responding while validating
         for _ in range(4):
-            Runner.app.processEvents()
+            qApp.processEvents()
 
         self.account = AuthenticateUser(
             self.dataCenter.authServer,
