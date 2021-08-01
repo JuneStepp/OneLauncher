@@ -139,16 +139,13 @@ class ProgramSettings():
         self.always_use_default_language_for_ui: bool = settings_dict.get(
             "always_use_default_language_for_ui", False)
         self.save_password = settings_dict.get("save_password", False)
-        last_used_game = settings_dict.get("last_used_game", None)
-        self.last_used_game = UUID(settings_dict.get(
-            "last_used_game", None)) if last_used_game else None
 
     def save(self):
         settings_dict = {"onelauncher_version": OneLauncher.__version__,
                          "default_language": self.default_locale,
                          "always_use_default_language_for_ui": self.always_use_default_language_for_ui,
                          "save_password": self.save_password,
-                         "last_used_game": OneLauncher.game_settings.current_game.uuid}
+                         }
 
         rtoml.dump(settings_dict, self.config_path, pretty=True)
 
@@ -287,8 +284,16 @@ class GamesSettings():
             if game.share_accounts_with:
                 game.accounts = self.games[game.share_accounts_with].accounts
 
+        if "last_used_game_uuid" in settings_dict:
+            last_used_game_uuid = UUID(settings_dict["last_used_game"])
+            if last_used_game_uuid in self.games:
+                self.current_game = self.games[last_used_game_uuid]
+
     def save(self):
         settings_dict = {}
+        if self.current_game:
+            settings_dict["last_used_game_uuid"] = self.current_game.uuid
+
         for game in self.games.values():
             if usingWindows:
                 wine_settings_dict = {}
@@ -337,7 +342,6 @@ class Settings:
         self.currentGame = "LOTRO"
         self.settingsFile = platform_dirs.user_config_path / \
             f"{OneLauncher.__title__}.config"
-        self.logger = logging.getLogger("main")
 
     def load_game_settings(self, useGame=None):
         self.highResEnabled = True

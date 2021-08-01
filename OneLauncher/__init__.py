@@ -20,4 +20,4 @@ logger = logs.Logger(Settings.platform_dirs.user_log_path, "main").logger
 
 program_settings = Settings.ProgramSettings()
 game_settings = Settings.GamesSettings()
-game_settings.current_game == program_settings.last_used_game
+
