@@ -42,6 +42,7 @@ from OneLauncher.SetupWizard import SetupWizard
 from OneLauncher.PatchWindow import PatchWindow
 from OneLauncher.StartGame import StartGame
 from OneLauncher import Settings, Runner, resources
+from OneLauncher.ui_resources import icon_font
 from OneLauncher.WinePrefix import BuiltInPrefix
 from OneLauncher.OneLauncherUtils import (
     checkForCertificates,
@@ -88,7 +89,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.winMain.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.setFixedSize(790, 470)
-
 
         # Setup buttons
         self.setupBtnAbout()
@@ -162,32 +162,32 @@ class MainWindow(QtWidgets.QMainWindow):
     def setupBtnExit(self):
         self.winMain.btnExit.clicked.connect(self.close)
 
-        self.winMain.btnExit.setFont(resources.icon_font)
+        self.winMain.btnExit.setFont(icon_font)
         self.winMain.btnExit.setText("\uf00d")
 
     def setupBtnMinimize(self):
         self.winMain.btnMinimize.clicked.connect(self.showMinimized)
 
-        self.winMain.btnMinimize.setFont(resources.icon_font)
+        self.winMain.btnMinimize.setFont(icon_font)
         self.winMain.btnMinimize.setText("\uf2d1")
 
     def setupBtnAbout(self):
         self.winMain.btnAbout.clicked.connect(self.btnAboutSelected)
 
-        self.winMain.btnAbout.setFont(resources.icon_font)
+        self.winMain.btnAbout.setFont(icon_font)
         self.winMain.btnAbout.setText("\uf05a")
 
     def setupBtnOptions(self):
         self.winMain.btnOptions.clicked.connect(self.btnOptionsSelected)
 
-        self.winMain.btnOptions.setFont(resources.icon_font)
+        self.winMain.btnOptions.setFont(icon_font)
         self.winMain.btnOptions.setText("\uf013")
 
     def setupBtnAddonManager(self):
         self.winMain.btnAddonManager.clicked.connect(
             self.btnAddonManagerSelected)
 
-        self.winMain.btnAddonManager.setFont(resources.icon_font)
+        self.winMain.btnAddonManager.setFont(icon_font)
         self.winMain.btnAddonManager.setText("\uf055")
 
     def setupBtnLoginMenu(self):

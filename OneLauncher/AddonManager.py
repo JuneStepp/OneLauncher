@@ -27,6 +27,7 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 from OneLauncher import Settings, resources
+from OneLauncher.ui_resources import icon_font
 from typing import List, Tuple
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
@@ -180,7 +181,7 @@ class AddonManager:
             self.actionDisableStartupScriptSelected
         )
 
-        self.winAddonManager.btnCheckForUpdates.setFont(resources.icon_font)
+        self.winAddonManager.btnCheckForUpdates.setFont(icon_font)
         self.winAddonManager.btnCheckForUpdates.setText("\uf2f1")
         self.winAddonManager.btnCheckForUpdates.pressed.connect(
             self.checkForUpdates)
@@ -189,7 +190,7 @@ class AddonManager:
         self.winAddonManager.btnAddons.setMenu(
             self.winAddonManager.btnAddonsMenu)
         self.winAddonManager.btnAddons.clicked.connect(self.btnAddonsClicked)
-        self.winAddonManager.btnAddons.setFont(resources.icon_font)
+        self.winAddonManager.btnAddons.setFont(icon_font)
         self.winAddonManager.btnAddons.setText("\uf068")
 
         self.winAddonManager.tabWidget.currentChanged.connect(

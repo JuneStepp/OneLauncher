@@ -29,13 +29,17 @@
 ###########################################################################
 from pathlib import Path
 import os
+from sys import platform
+from typing import Dict, List, Optional
 from OneLauncher.OneLauncherUtils import GetText
-from OneLauncher import __title__
+import OneLauncher
+from OneLauncher import resources
 from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minidom import Document  # nosec
 import defusedxml.minidom
+import rtoml
+from uuid import uuid4, UUID
 from vkbeautify import xml as prettify_xml
-from collections import OrderedDict
 import logging
 from platformdirs import PlatformDirs
 
@@ -54,7 +58,7 @@ def set_os_specific_variables():
     global macPathCX
     global builtin_prefix_dir
 
-    platform_dirs = PlatformDirs(__title__, False)
+    platform_dirs = PlatformDirs(OneLauncher.__title__, False)
     if os.name == "mac":
         usingMac = True
         usingWindows = False
@@ -112,15 +116,224 @@ def make_settings_dirs():
 
 
 class ProgramSettings():
-    def __init__(self, config_file: Path = None) -> None:
-        if not config_file:
-            config_file = platform_dirs.user_config_path/f"{__title__}.config"
+    def __init__(self, config_path: Path = None) -> None:
+        if not config_path:
+            config_path = platform_dirs.user_config_path / \
+                f"{OneLauncher.__title__}.toml"
+        self.config_path = config_path
+
+        self.load()
+
+    def load(self):
+        # Defaults will be used if the settings file doesn't exist
+        if self.config_path.exists():
+            settings_dict = rtoml.load(self.config_path)
+        else:
+            settings_dict = {}
+
+        self.default_locale = resources.Locale(
+            settings_dict.get("default_language", "en-US"))
+        self.always_use_default_language_for_ui: bool = settings_dict.get(
+            "always_use_default_language_for_ui", False)
+        self.save_password = settings_dict.get("save_password", False)
+        last_used_game = settings_dict.get("last_used_game", None)
+        self.last_used_game = UUID(settings_dict.get(
+            "last_used_game", None)) if last_used_game else None
+
+    def save(self):
+        settings_dict = {"onelauncher_version": OneLauncher.__version__,
+                         "default_language": self.default_locale,
+                         "always_use_default_language_for_ui": self.always_use_default_language_for_ui,
+                         "save_password": self.save_password,
+                         "last_used_game": OneLauncher.game_settings.current_game.uuid}
+
+        rtoml.dump(settings_dict, self.config_path, pretty=True)
+
+
+class Account():
+    def __init__(self, name: str, last_used_world: str) -> None:
+        self._name = name
+        self.last_used_world = last_used_world
+
+    @property
+    def name(self):
+        """Account name. This is immutable."""
+        return self._name
+
+
+class Game():
+    def __init__(self,
+                 uuid: UUID,
+                 game_type: str,
+                 game_directory: Path,
+                 locale: resources.Locale,
+                 client_type: str,
+                 high_res_enabled: bool,
+                 patch_client_path: Path,
+                 startup_scripts: List[Path],
+                 name: str,
+                 description: str,
+                 newsfeed: str = None,
+                 wine_path: Path = None,
+                 builtin_wine_prefix_enabled: bool = None,
+                 wine_prefix_path: Path = None,
+                 wine_debug_level: str = None,
+                 accounts: Dict[str, Account] = None,
+                 share_accounts_with: UUID = None,
+                 ) -> None:
+        self.uuid = uuid
+        self.game_type = game_type
+        self.game_directory = game_directory
+        self.locale = locale
+        self.client_type = client_type
+        self.high_res_enabled = high_res_enabled
+        self.patch_client_path = patch_client_path
+        self.startup_scripts = startup_scripts
+        self.name = name
+        self.description = description
+        self.newsfeed = newsfeed
+        self.wine_path = wine_path
+        self.builtin_wine_prefix_enabled = builtin_wine_prefix_enabled
+        self.wine_prefix_path = wine_prefix_path
+        self.wine_debug_level = wine_debug_level
+        self.accounts = accounts
+        self.share_accounts_with = share_accounts_with
+
+    @property
+    def game_type(self) -> str:
+        return self._game_type
+
+    @game_type.setter
+    def game_type(self, new_value: str) -> None:
+        """LOTRO or DDO"""
+        valid_game_types = ["LOTRO", "DDO"]
+        if new_value not in valid_game_types:
+            raise ValueError(
+                f"{new_value} is not a valid game type. Valid types are {valid_game_types}.")
+
+        self._game_type = new_value
+
+    @property
+    def client_type(self) -> str:
+        return self._client_type
+
+    @client_type.setter
+    def client_type(self, new_value: str) -> None:
+        """WIN32, WIN32Legacy, or WIN64"""
+        valid_client_types = ["WIN32", "WIN32Legacy", "WIN64"]
+        if new_value not in valid_client_types:
+            raise ValueError(
+                f"{new_value} is not a valid client type. Valid types are {valid_client_types}.")
+
+        self._client_type = new_value
+
+
+class GamesSettings():
+    def __init__(self, config_path: Path = None) -> None:
+        if not config_path:
+            config_path = platform_dirs.user_config_path / \
+                "games.toml"
+        self.config_path = config_path
+
+        self.games: Dict[UUID, Game] = {}
+        self.current_game: Optional[Game] = None
+
+        self.load()
+
+    def get_game_name(self, game_directory: Path) -> str:
+        return game_directory.name
+
+    def load(self):
+        if not self.config_path.exists():
+            return
+
+        settings_dict = rtoml.load(self.config_path)
+        if "games" not in settings_dict:
+            return
+        games_dicts = settings_dict["games"]
+        for game_dict in games_dicts:
+            uuid = UUID(game_dict["uuid"])
+            game_directory = Path(game_dict["game_directory"])
+            self.games[uuid] == Game(
+                uuid,
+                game_dict["game_type"],
+                game_directory,
+                resources.Locale(game_dict.get("language", str(
+                    OneLauncher.program_settings.default_locale))),
+                game_dict.get("client_type", "WIN64"),
+                game_dict.get("high_res_enabled", True),
+                Path(game_dict.get("patch_client_path", "patchclient.dll")),
+                [Path(script)
+                 for script in game_dict.get("startup_scripts", [])],
+                game_dict["info"].get(
+                    "name", self.get_game_name(game_directory)),
+                game_dict["info"].get("description", ""),
+                game_dict["info"].get("newsfeed", None),
+                Path(game_dict["wine"].get("wine_path", None)),
+                game_dict["wine"].get("builtin_prefix_enabled", True),
+                Path(game_dict["wine"].get("prefix_path", None)),
+                game_dict["wine"].get("debug_level", None),
+                {account["account_name"]: Account(
+                    account["account_name"], account["last_used_world"]) for account in game_dict["accounts"]},
+                UUID(game_dict.get("share_accounts_with", None)) if game_dict.get(
+                    "share_accounts_with", None) else None,
+            )
+
+        for game in self.games.values():
+            # Replace accounts with ones from game that this one is sharing with
+            if game.share_accounts_with:
+                game.accounts = self.games[game.share_accounts_with].accounts
+
+    def save(self):
+        settings_dict = {}
+        for game in self.games.values():
+            if usingWindows:
+                wine_settings_dict = {}
+            else:
+                wine_settings_dict = {
+                    "wine_path": game.wine_path,
+                    "builtin_prefix_enabled": game.builtin_wine_prefix_enabled,
+                    "prefix_path": game.wine_prefix_path,
+                    "debug_level": game.wine_debug_level,
+                }
+
+            games_info_settings_dict = {
+                "name": game.name,
+                "description": game.description,
+                "newsfeed": game.newsfeed,
+            }
+
+            if not game.share_accounts_with and game.accounts:
+                accounts_settings_list = [
+                    {"account_name": account.name,
+                        "last_used_world": account.last_used_world}
+                    for account in game.accounts.values()]
+            else:
+                accounts_settings_list = []
+
+            settings_dict["games"].append({
+                "uuid": game.uuid,
+                "game_type": game.game_type,
+                "game_directory": game.game_directory,
+                "language": game.locale,
+                "client_type": game.client_type,
+                "high_res_enabled": game.high_res_enabled,
+                "patch_client_path": game.patch_client_path,
+                "startup_scripts": game.startup_scripts,
+                "share_accounts_with": game.share_accounts_with,
+                "wine": wine_settings_dict,
+                "games_info": games_info_settings_dict,
+                "accounts": accounts_settings_list,
+            })
+
+        rtoml.dump(settings_dict, self.config_path, pretty=True)
 
 
 class Settings:
     def __init__(self):
         self.currentGame = "LOTRO"
-        self.settingsFile = platform_dirs.user_config_path/f"{__title__}.config"
+        self.settingsFile = platform_dirs.user_config_path / \
+            f"{OneLauncher.__title__}.config"
         self.logger = logging.getLogger("main")
 
     def load_game_settings(self, useGame=None):
@@ -130,7 +343,7 @@ class Settings:
         self.language = None
         # Key is account name and content is list of details
         # relating to account.
-        self.accountsDictionary = OrderedDict()
+        self.accountsDictionary = {}
         self.wineProg = Path("wine")
         self.wineDebug = "fixme-all"
         self.patchClient = Path("patchclient.dll")
