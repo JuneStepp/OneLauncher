@@ -18,6 +18,15 @@ logger = logging.Logger("temp_logger")
 from OneLauncher import Settings, logs  # isort:skip # noqa
 logger = logs.Logger(Settings.platform_dirs.user_log_path, "main").logger
 
+
 program_settings = Settings.ProgramSettings()
 game_settings = Settings.GamesSettings()
 
+# Set locale for OneLauncher UI
+if (
+    not program_settings.always_use_default_language_for_ui
+    and game_settings.current_game
+):
+    ui_locale = game_settings.current_game.locale
+else:
+    ui_locale = program_settings.default_locale
