@@ -32,7 +32,7 @@ from pathlib import Path
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from OneLauncher import (Settings, __title__, __version__, game_settings,
-                         resources, ui_locale)
+                         program_settings, resources, ui_locale)
 from OneLauncher.resources import get_resource
 
 
@@ -53,16 +53,26 @@ def main():
 
     handle_windows_dark_theme()   
 
-    # Start setup wizard if game settings haven't been generated
-    if not game_settings.current_game:
-        run_setup_wizard_with_main_window()
-    else:
-        start_main_window()
+    handle_program_start_setup_wizard()
+
+    start_main_window()
 
     sys.exit(qApp.exec())
 
     
+def handle_program_start_setup_wizard():
+    """Run setup wizard if there are no settings"""
+    # If game settings haven't been generated,
+    # start setup wizard and reload settings.
+    if not game_settings.current_game:
+        start_setup_wizard()
+        program_settings.load()
+        game_settings.load()
 
+    # Close program if the user left the setup wizard
+    # without generating the game settings
+    if not game_settings.current_game:
+        sys.exit()
 
 def start_main_window():
     # Import has to be done here, because some code run by
