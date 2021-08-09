@@ -19,7 +19,7 @@ qdarkstyle = {git = "https://github.com/JuneStepp/QDarkStyleSheet.git"}
 [tool.poetry.dev-dependencies]
 cx-Freeze = "6.5.3"
 black = {version = "^20.8b1", allow-prereleases = true}
-pywin32 = {version = "^300", markers = "os_name == 'nt'"}
+pywin32 = {version = "^301", markers = "os_name == 'nt'"}
 bandit = "^1.7.0"
 
 [build-system]
