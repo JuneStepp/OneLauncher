@@ -28,207 +28,213 @@
 ###########################################################################
 import os
 from pathlib import Path
+from typing import Final, Optional
+from uuid import UUID
+from bidict import bidict
+import re
 
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 
-from OneLauncher import Settings
+from OneLauncher import Settings, program_settings, game_settings
+from OneLauncher.ui.settings_uic import Ui_dlgSettings
+from OneLauncher.Runner import run_setup_wizard_with_main_window
+from OneLauncher.resources import get_game_dir_available_locales, available_locales
+from OneLauncher.ui_utilities import raise_warning_message
+from OneLauncher.wine_management import edit_qprocess_to_use_wine
+
+import OneLauncher
 
 
-class SettingsWindow:
-    def __init__(
-        self,
-        highRes,
-        wineProg: Path,
-        wineDebug,
-        patchClient: Path,
-        winePrefix,
-        gameDir: Path,
-        settings,
-        LanguageConfig,
-        parent,
-        data_folder: Path,
-    ):
+class SettingsWindow(QtWidgets.QDialog):
+    CLIENT_TYPE_MAPPING: Final = bidict({
+        "64-bit": "WIN64", "32-bit": "WIN32", "32-bit Legacy": "WIN32Legacy"})
+    GAMES_SORTING_MODES_MAPPING: Final = bidict({
+        "Priority": "priority", "Alphabetical": "alphabetical", "Last Used": "last_used"})
 
-        self.settings = settings
-        self.LanguageConfig = LanguageConfig
+    def __init__(self, game: Settings.Game, game_client_filename: Optional[str]):
+        super(SettingsWindow, self).__init__(
+            qApp.activeWindow(), QtCore.Qt.FramelessWindowHint)
+        self.game = game
 
-        self.winSettings = QUiLoader().load(
-            str(data_folder/"ui/winSettings.ui"), parentWidget=parent)
+        self.ui = Ui_dlgSettings()
+        self.ui.setupUi(self)
+        
+        if game_client_filename:
+            self.game_client_filename = game_client_filename
+        else:
+            self.ui.defaultGameLauncherButton.setDisabled(True)
 
-        self.winSettings.setWindowFlags(
-            QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint
-        )
+        self.toggle_advanced_settings()
+
+        self.ui.gameNameLineEdit.setText(self.game.name)
+        escaped_other_game_names = [re.escape(
+            game.name) for game in game_settings.games.values() if game != self.game]
+        self.ui.gameNameLineEdit.setValidator(QtGui.QRegularExpressionValidator(QtCore.QRegularExpression(
+            f"^(?!^({'|'.join(escaped_other_game_names)})$).+$")))
+        self.ui.gameDescriptionLineEdit.setText(
+            self.game.description)
+        self.ui.gameNewsfeedLineEdit.setText(
+            self.game.newsfeed)
+        self.ui.defaultGameLauncherButton.clicked.connect(
+            self.run_default_game_launcher)
 
         if not Settings.usingWindows:
-            self.winSettings.prefixLineEdit.setText(str(winePrefix))
-            self.winSettings.wineDebugLineEdit.setText(wineDebug)
-            self.winSettings.wineExecutableLineEdit.setText(str(wineProg))
-        else:
-            self.winSettings.tabWidget.removeTab(1)
-
-        self.winSettings.txtGameDir.setText(str(gameDir))
-        self.winSettings.cboClient.addItem("32-bit")
-        self.winSettings.cboClient.addItem("32-bit Legacy")
-        self.winSettings.txtPatchClient.setText(str(patchClient))
-
-        self.chkAdvancedClicked()
-        self.winSettings.wineFormGroupBox.setChecked(
-            not self.settings.builtinPrefixEnabled)
-
-        self.winSettings.highResCheckBox.setChecked(highRes)
-
-        # Only adds 64-bit option if 64-bit client is available
-        if settings.checkGameClient64():
-            self.winSettings.cboClient.addItem("64-bit")
-
-        if settings.client == "WIN32":
-            self.winSettings.cboClient.setCurrentIndex(0)
-        elif settings.client == "WIN32Legacy":
-            self.winSettings.cboClient.setCurrentIndex(1)
-        elif settings.client == "WIN64":
-            self.winSettings.cboClient.setCurrentIndex(2)
-
-        self.winSettings.btnEN.setIcon(
-            QtGui.QIcon(str(data_folder/"images/EN-US.png"))
-        )
-        self.winSettings.btnDE.setIcon(
-            QtGui.QIcon(str(data_folder/"images/DE.png"))
-        )
-        self.winSettings.btnFR.setIcon(
-            QtGui.QIcon(str(data_folder/"images/FR.png"))
-        )
-
-        self.setLanguageButtons()
-
-        self.winSettings.btnSetupWizard.clicked.connect(
-            self.btnSetupWizardClicked)
-        self.start_setup_wizard = False
-        self.winSettings.btnGameDir.clicked.connect(self.btnGameDirClicked)
-        self.winSettings.txtGameDir.textChanged.connect(self.txtGameDirChanged)
-        self.winSettings.chkAdvanced.clicked.connect(self.chkAdvancedClicked)
-
-    def chkAdvancedClicked(self):
-        if Settings.usingWindows:
-            if self.winSettings.chkAdvanced.isChecked():
-                self.winSettings.txtPatchClient.setVisible(True)
-                self.winSettings.lblPatchClient.setVisible(True)
+            if self.game.builtin_wine_prefix_enabled:
+                self.ui.wineFormGroupBox.setChecked(False)
             else:
-                self.winSettings.txtPatchClient.setVisible(False)
-                self.winSettings.lblPatchClient.setVisible(False)
-        elif self.winSettings.chkAdvanced.isChecked():
-            self.winSettings.txtPatchClient.setVisible(True)
-            self.winSettings.lblPatchClient.setVisible(True)
-            self.winSettings.wineAdvancedFrame.show()
+                self.ui.wineFormGroupBox.setCheckable(True)
+                self.ui.prefixLineEdit.setText(
+                    str(self.game.wine_prefix_path))
+                self.ui.wineExecutableLineEdit.setText(
+                    str(self.game.wine_path))
+
+            self.ui.wineDebugLineEdit.setText(
+                self.game.wine_debug_level)
         else:
-            self.winSettings.txtPatchClient.setVisible(False)
-            self.winSettings.lblPatchClient.setVisible(False)
-            self.winSettings.wineAdvancedFrame.hide()
+            self.ui.tabWidget.removeTab(1)
 
-    def btnGameDirClicked(self):
-        txtGameDir = self.winSettings.txtGameDir.text()
+        self.ui.gameDirLineEdit.setText(
+            str(self.game.game_directory))
+        self.ui.clientTypeComboBox.addItems(self.CLIENT_TYPE_MAPPING.keys())
+        self.ui.clientTypeComboBox.setCurrentText(
+            self.CLIENT_TYPE_MAPPING.inverse[self.game.client_type])
 
-        if txtGameDir == "":
+        self.ui.patchClientLineEdit.setText(
+            str(self.game.patch_client_path))
+
+        self.ui.highResCheckBox.setChecked(
+            self.game.high_res_enabled)
+
+        self.add_languages_to_combobox(self.ui.gameLanguageComboBox)
+        self.ui.gameLanguageComboBox.setCurrentText(
+            self.game.locale.display_name)
+        self.add_languages_to_combobox(self.ui.defaultLanguageComboBox)
+        self.ui.defaultLanguageComboBox.setCurrentText(
+            program_settings.default_locale.display_name)
+        self.ui.defaultLanguageForUICheckBox.setChecked(
+            program_settings.always_use_default_language_for_ui)
+        self.ui.gamesSortingModeComboBox.addItems(
+            self.GAMES_SORTING_MODES_MAPPING.keys())
+        self.ui.gamesSortingModeComboBox.setCurrentText(
+            self.GAMES_SORTING_MODES_MAPPING.inverse[program_settings.games_sorting_mode])
+
+        self.ui.setupWizardButton.clicked.connect(
+            self.start_setup_wizard)
+        self.ui.gameDirButton.clicked.connect(self.choose_game_dir)
+        self.ui.showAdvancedSettingsCheckbox.clicked.connect(
+            self.toggle_advanced_settings)
+        self.ui.settingsButtonBox.accepted.connect(self.save_settings)
+
+    def toggle_advanced_settings(self):
+        if not Settings.usingWindows:
+            if self.ui.showAdvancedSettingsCheckbox.isChecked():
+                self.ui.wineAdvancedFrame.show()
+            else:
+                self.ui.wineAdvancedFrame.hide()
+
+        if self.ui.showAdvancedSettingsCheckbox.isChecked():
+            self.ui.gameNewsfeedLabel.setVisible(True)
+            self.ui.gameNewsfeedLineEdit.setVisible(True)
+
+            self.ui.patchClientLineEdit.setVisible(True)
+            self.ui.patchClientLabel.setVisible(True)
+        else:
+            self.ui.gameNewsfeedLabel.setVisible(False)
+            self.ui.gameNewsfeedLineEdit.setVisible(False)
+
+            self.ui.patchClientLineEdit.setVisible(False)
+            self.ui.patchClientLabel.setVisible(False)
+
+    def run_default_game_launcher(self):
+        lowercase_launcher_filename = self.game_client_filename.lower().split('client')[
+            0]+"launcher.exe"
+        launcher_path = None
+        for file in self.game.game_directory.iterdir():
+            if file.name.lower() == lowercase_launcher_filename:
+                launcher_path = file
+                break
+
+        if launcher_path is None:
+            raise ValueError(
+                f"Could not find a game launcher from {lowercase_launcher_filename}"
+                f" in {self.game.game_directory}")
+
+        process = QtCore.QProcess()
+        process.setWorkingDirectory(str(self.game.game_directory))
+        process.setProgram(str(launcher_path))
+        edit_qprocess_to_use_wine(process)
+        process.startDetached()
+
+    def choose_game_dir(self):
+        gameDirLineEdit = self.ui.gameDirLineEdit.text()
+
+        if gameDirLineEdit == "":
             if Settings.usingWindows:
                 starting_dir = Path(os.environ.get("ProgramFiles"))
             else:
                 starting_dir = Path("~").expanduser()
         else:
-            starting_dir = Path(txtGameDir)
+            starting_dir = Path(gameDirLineEdit)
 
         filename = QtWidgets.QFileDialog.getExistingDirectory(
-            self.winSettings,
+            self,
             "Game Directory",
             str(starting_dir),
             options=QtWidgets.QFileDialog.ShowDirsOnly,
         )
 
         if filename != "":
-            self.winSettings.txtGameDir.setText(filename)
+            self.ui.gameDirLineEdit.setText(filename)
 
-    def txtGameDirChanged(self, text):
-        if text != "":
-            if self.settings.checkGameClient64(Path(text)):
-                if self.winSettings.cboClient.count() < 3:
-                    self.winSettings.cboClient.addItem("64-bit")
-            else:
-                if self.winSettings.cboClient.currentIndex() == 2:
-                    self.winSettings.cboClient.setCurrentIndex(0)
-                self.winSettings.cboClient.removeItem(2)
+    def start_setup_wizard(self):
+        self.close()
+        run_setup_wizard_with_main_window()
 
-            self.setLanguageButtons()
+    def add_languages_to_combobox(self, combobox: QtWidgets.QComboBox):
+        for locale in available_locales.values():
+            combobox.addItem(QtGui.QPixmap(
+                str(locale.flag_icon)), locale.display_name)
+            combobox.model().sort(0)
 
-    def btnSetupWizardClicked(self):
-        self.start_setup_wizard = True
-        self.winSettings.reject()
+    def save_settings(self):
+        available_locales_display_names_mapping = {
+            locale.display_name: locale for locale in available_locales.values()}
 
-    def getSetupWizardClicked(self):
-        return bool(self.start_setup_wizard)
+        if not self.ui.gameNameLineEdit.hasAcceptableInput():
+            raise_warning_message(
+                "The game name you've chosen is already in use by another game.", self)
+            return
+        self.game.name = self.ui.gameNameLineEdit.text()
+        self.game.description = self.ui.gameDescriptionLineEdit.text()
+        self.game.newsfeed = self.ui.gameNewsfeedLineEdit.text()
 
-    def setLanguageButtons(self):
-        # Sets up language buttons. Only buttons for available languages are enabled.
-        txtGameDir = self.winSettings.txtGameDir.text()
+        self.game.locale = available_locales_display_names_mapping[self.ui.gameLanguageComboBox.currentText(
+        )]
+        self.game.game_directory = Path(
+            self.ui.gameDirLineEdit.text())
+        self.game.high_res_enabled = self.ui.highResCheckBox.isChecked()
+        self.game.client_type = self.CLIENT_TYPE_MAPPING[self.ui.clientTypeComboBox.currentText(
+        )]
+        self.game.patch_client_path = Path(
+            self.ui.patchClientLineEdit.text())
 
-        if Path(txtGameDir).exists():
-            gameDir = Path(txtGameDir)
-        else:
-            gameDir = self.settings.gameDir
+        if not Settings.usingWindows:
+            self.game.builtin_wine_prefix_enabled = not self.ui.wineFormGroupBox.isChecked()
+            if self.game.builtin_wine_prefix_enabled:
+                self.game.wine_prefix_path = Path(
+                    self.ui.prefixLineEdit.text())
+                self.game.wine_path = Path(
+                    self.ui.wineExecutableLineEdit.text())
+            self.game.wine_debug_level = self.ui.wineDebugLineEdit.text()
 
-        for lang in self.LanguageConfig(gameDir).langList:
-            if lang == "EN":
-                self.winSettings.btnEN.setEnabled(True)
-                self.winSettings.btnEN.setToolTip("English")
-            elif lang == "DE":
-                self.winSettings.btnDE.setEnabled(True)
-                self.winSettings.btnDE.setToolTip("Deutsch")
-            elif lang == "FR":
-                self.winSettings.btnFR.setEnabled(True)
-                self.winSettings.btnFR.setToolTip("Français")
+        program_settings.default_locale = available_locales_display_names_mapping[self.ui.defaultLanguageComboBox.currentText(
+        )]
+        program_settings.always_use_default_language_for_ui = self.ui.defaultLanguageForUICheckBox.isChecked()
+        program_settings.games_sorting_mode = self.GAMES_SORTING_MODES_MAPPING[self.ui.gamesSortingModeComboBox.currentText(
+        )]
 
-            if lang == self.settings.language:
-                if lang == "EN":
-                    self.winSettings.btnEN.setChecked(True)
-                elif lang == "DE":
-                    self.winSettings.btnDE.setChecked(True)
-                elif lang == "FR":
-                    self.winSettings.btnFR.setChecked(True)
+        game_settings.save()
+        program_settings.save()
 
-    def getLanguage(self):
-        if self.winSettings.btnEN.isChecked():
-            return "EN"
-        elif self.winSettings.btnDE.isChecked():
-            return "DE"
-        elif self.winSettings.btnFR.isChecked():
-            return "FR"
-
-    def getPrefix(self):
-        return Path(self.winSettings.prefixLineEdit.text())
-
-    def getProg(self):
-        return Path(self.winSettings.wineExecutableLineEdit.text())
-
-    def getDebug(self):
-        return self.winSettings.wineDebugLineEdit.text()
-
-    def getPatchClient(self):
-        return Path(self.winSettings.txtPatchClient.text())
-
-    def getGameDir(self):
-        return Path(self.winSettings.txtGameDir.text())
-
-    def getHighRes(self):
-        return self.winSettings.highResCheckBox.isChecked()
-
-    def getClient(self):
-        if self.winSettings.cboClient.currentIndex() == 0:
-            return "WIN32"
-        elif self.winSettings.cboClient.currentIndex() == 1:
-            return "WIN32Legacy"
-        elif self.winSettings.cboClient.currentIndex() == 2:
-            return "WIN64"
-
-    def getBuiltinPrefixEnabled(self):
-        return not self.winSettings.wineFormGroupBox.isChecked()
-
-    def Run(self):
-        return self.winSettings.exec_()
+        self.accept()

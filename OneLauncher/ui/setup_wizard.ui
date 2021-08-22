@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Wizard</class>
+ <widget class="QWizard" name="Wizard">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>621</width>
+    <height>411</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Wizard</string>
+  </property>
+  <widget class="QWizardPage" name="languageSelectionWizardPage">
+   <property name="title">
+    <string>OneLauncher Setup Wizard:</string>
+   </property>
+   <property name="subTitle">
+    <string>This wizard will quickly take you through the steps needed to get up and running with OneLauncher. </string>
+   </property>
+   <attribute name="pageId">
+    <string notr="true">0</string>
+   </attribute>
+   <widget class="QWidget" name="verticalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>211</width>
+      <height>251</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="toolTip">
+        <string>The language used for games by default</string>
+       </property>
+       <property name="text">
+        <string>Default Language</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QListWidget" name="languagesListWidget">
+       <property name="toolTip">
+        <string>The language used for games by default</string>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::Box</enum>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::CurrentChanged|QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked</set>
+       </property>
+       <property name="showDropIndicator" stdset="0">
+        <bool>false</bool>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+       <property name="sortingEnabled">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="formLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>249</x>
+      <y>39</y>
+      <width>331</width>
+      <height>221</height>
+     </rect>
+    </property>
+    <layout class="QFormLayout" name="formLayout">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetMaximumSize</enum>
+     </property>
+     <property name="rowWrapPolicy">
+      <enum>QFormLayout::WrapLongRows</enum>
+     </property>
+     <property name="formAlignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+     <property name="topMargin">
+      <number>12</number>
+     </property>
+     <item row="0" column="0">
+      <widget class="QLabel" name="alwaysUseDefaultLangForUILabel">
+       <property name="toolTip">
+        <string>Always show OneLauncher interface in default language</string>
+       </property>
+       <property name="text">
+        <string>Always Keep UI in Default Language</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QCheckBox" name="alwaysUseDefaultLangForUICheckBox"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QWizardPage" name="gamesSelectionWizardPage">
+   <property name="title">
+    <string>Games Selection</string>
+   </property>
+   <property name="subTitle">
+    <string>Please select all the game installations you want to use with OneLauncher. The game paths can be dragged and droped to set their priority. The first item will be the main game instance.</string>
+   </property>
+   <attribute name="pageId">
+    <string notr="true">1</string>
+   </attribute>
+   <widget class="QWidget" name="verticalLayoutWidget_2">
+    <property name="geometry">
+     <rect>
+      <x>-20</x>
+      <y>-3</y>
+      <width>631</width>
+      <height>292</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="gamesSelectionLayout">
+     <property name="leftMargin">
+      <number>35</number>
+     </property>
+     <property name="topMargin">
+      <number>10</number>
+     </property>
+     <property name="rightMargin">
+      <number>35</number>
+     </property>
+     <property name="bottomMargin">
+      <number>10</number>
+     </property>
+     <item>
+      <widget class="QLabel" name="lotroLabel">
+       <property name="text">
+        <string>Lord of The Rings Online</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QListWidget" name="lotroListWidget">
+       <property name="dragEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="dragDropMode">
+        <enum>QAbstractItemView::InternalMove</enum>
+       </property>
+       <property name="defaultDropAction">
+        <enum>Qt::TargetMoveAction</enum>
+       </property>
+       <property name="alternatingRowColors">
+        <bool>true</bool>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::MultiSelection</enum>
+       </property>
+       <item>
+        <property name="text">
+         <string>Manually add game from filesystem...</string>
+        </property>
+        <property name="font">
+         <font>
+          <italic>true</italic>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="textAlignment">
+         <set>AlignCenter</set>
+        </property>
+        <property name="flags">
+         <set>ItemIsUserCheckable|ItemIsEnabled</set>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="ddoLabel">
+       <property name="text">
+        <string>Dungeons and Dragons Online</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QListWidget" name="ddoListWidget">
+       <property name="dragEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="dragDropMode">
+        <enum>QAbstractItemView::InternalMove</enum>
+       </property>
+       <property name="defaultDropAction">
+        <enum>Qt::TargetMoveAction</enum>
+       </property>
+       <property name="alternatingRowColors">
+        <bool>true</bool>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::MultiSelection</enum>
+       </property>
+       <item>
+        <property name="text">
+         <string>Manually add game from filesystem...</string>
+        </property>
+        <property name="font">
+         <font>
+          <italic>true</italic>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="textAlignment">
+         <set>AlignCenter</set>
+        </property>
+        <property name="flags">
+         <set>ItemIsUserCheckable|ItemIsEnabled</set>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QWizardPage" name="finishedWizardPage">
+   <property name="title">
+    <string>Setup Finished</string>
+   </property>
+   <property name="subTitle">
+    <string>That's it! You can check out the settings menu for lots more to configure and the addon manager for game customizations.</string>
+   </property>
+   <attribute name="pageId">
+    <string notr="true">3</string>
+   </attribute>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

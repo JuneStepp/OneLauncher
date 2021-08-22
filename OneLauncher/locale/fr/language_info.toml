@@ -1,0 +1,10 @@
+# Text displayed in language switching UI.
+# This should be in the target language.
+display_name = "Français"
+
+# Name that the game uses for this language.
+# The most obvious example of where this is
+# used is in the client_local_{game_language_name}.dat'
+# file in the game directory.
+game_language_name = "FR"
+

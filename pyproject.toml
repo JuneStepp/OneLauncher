@@ -16,6 +16,7 @@ defusedxml = "^0.7.1"
 vkbeautify = "^0.3.0"
 rtoml = "^0.7.0"
 platformdirs = "^2.2.0"
+bidict = "^0.21.2"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"

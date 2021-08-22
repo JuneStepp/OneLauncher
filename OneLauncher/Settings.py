@@ -27,23 +27,19 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-import logging
 import os
 from pathlib import Path
 from sys import platform
-from typing import Dict, List, Optional
+from typing import Callable, Dict, Final, List, Optional
 from uuid import UUID, uuid4
-from xml.dom import EMPTY_NAMESPACE
-from xml.dom.minidom import Document  # nosec
 
-import defusedxml.minidom
 import rtoml
 from platformdirs import PlatformDirs
 from vkbeautify import xml as prettify_xml
 
 import OneLauncher
-from OneLauncher import resources, logger
-from OneLauncher.OneLauncherUtils import GetText
+from OneLauncher import resources
+from OneLauncher.resources import available_locales, Locale, system_locale
 
 
 def set_os_specific_variables():
@@ -58,7 +54,6 @@ def set_os_specific_variables():
     global directoryCXG
     global directoryCXO
     global macPathCX
-    global builtin_prefix_dir
 
     platform_dirs = PlatformDirs(OneLauncher.__title__, False)
     if os.name == "mac":
@@ -76,7 +71,6 @@ def set_os_specific_variables():
             "CrossOver.app/Contents/SharedSupport/CrossOver/bin/")
         macPathCX = "" if os.environ.get(
             "CX_ROOT") is None else Path(os.environ.get("CX_ROOT"))
-        builtin_prefix_dir = platform_dirs.user_cache_path/"wine/prefix"
     elif os.name == "nt":
         import ctypes.wintypes
 
@@ -108,14 +102,6 @@ def set_os_specific_variables():
         directoryCXG = Path("cxgames/bin/")
         directoryCXO = Path("cxoffice/bin/")
         macPathCX = ""
-        builtin_prefix_dir = platform_dirs.user_cache_path/"wine/prefix"
-
-
-def make_settings_dirs():
-    platform_dirs.user_config_path.mkdir(exist_ok=True, parents=True)
-    builtin_prefix_dir.mkdir(exist_ok=True, parents=True)
-    (platform_dirs.user_cache_path/"game").mkdir(exist_ok=True, parents=True)
-    (platform_dirs.user_data_path/"wine").mkdir(exist_ok=True, parents=True)
 
 
 class ProgramSettings():
@@ -124,8 +110,51 @@ class ProgramSettings():
             config_path = platform_dirs.user_config_path / \
                 f"{OneLauncher.__title__}.toml"
         self.config_path = config_path
+        self.config_path.parent.mkdir(parents=True, exist_ok=True)
 
         self.load()
+
+        self.ui_locale = self.default_locale
+
+    @property
+    def games_sorting_mode(self):
+        return self._games_sorting_mode
+
+    @games_sorting_mode.setter
+    def games_sorting_mode(self, new_value):
+        """
+        Games sorting mode.
+
+        priority: The manual order the user set in the setup wizard.
+        alphabetical: Alphabetical order.
+        last_used: Order of the most recently played games.
+        """
+        accepted_values = ["priority", "alphabetical", "last_used"]
+        if new_value not in accepted_values:
+            raise ValueError(f"{new_value} is not a valid games sorting mode.")
+
+        self._games_sorting_mode = new_value
+
+    @property
+    def default_locale(self) -> Locale:
+        """Locale for OneLauncher UI. This is changed by __init__.py"""
+        return self._default_locale
+
+    @default_locale.setter
+    def default_locale(self, new_value: Locale):
+        self._default_locale = new_value
+
+        OneLauncher.set_ui_locale()
+
+    @property
+    def always_use_default_language_for_ui(self) -> bool:
+        return self._always_use_default_language_for_ui
+
+    @always_use_default_language_for_ui.setter
+    def always_use_default_language_for_ui(self, new_value: bool):
+        self._always_use_default_language_for_ui = new_value
+
+        OneLauncher.set_ui_locale()
 
     def load(self):
         # Defaults will be used if the settings file doesn't exist
@@ -134,39 +163,47 @@ class ProgramSettings():
         else:
             settings_dict = {}
 
-        self.default_locale = resources.Locale(
-            settings_dict.get("default_language", "en-US"))
-        self.always_use_default_language_for_ui: bool = settings_dict.get(
+        if "default_language" in settings_dict:
+            self._default_locale = available_locales[settings_dict["default_language"]]
+        elif system_locale:
+            self._default_locale = system_locale
+        else:
+            self._default_locale = available_locales["en-US"]
+
+        self._always_use_default_language_for_ui: bool = settings_dict.get(
             "always_use_default_language_for_ui", False)
-        self.save_password = settings_dict.get("save_password", False)
+        self.save_accounts = settings_dict.get("save_accounts", False)
+        self.save_accounts_passwords = settings_dict.get(
+            "save_accounts_passwords", False)
+        self.games_sorting_mode = settings_dict.get(
+            "games_sorting_mode", "priority")
 
     def save(self):
         settings_dict = {"onelauncher_version": OneLauncher.__version__,
-                         "default_language": self.default_locale,
+                         "default_language": self.default_locale.lang_tag,
                          "always_use_default_language_for_ui": self.always_use_default_language_for_ui,
-                         "save_password": self.save_password,
+                         "save_accounts": self.save_accounts,
+                         "save_accounts_passwords": self.save_accounts_passwords,
+                         "games_sorting_mode": self.games_sorting_mode,
                          }
 
         rtoml.dump(settings_dict, self.config_path, pretty=True)
-
-
 class Account():
-    def __init__(self, name: str, last_used_world: str) -> None:
-        self._name = name
-        self.last_used_world = last_used_world
+    def __init__(self, name: str, last_used_world_name: str) -> None:
+        self._name: Final = name
+        self.last_used_world_name = last_used_world_name
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Account name. This is immutable."""
         return self._name
-
 
 class Game():
     def __init__(self,
                  uuid: UUID,
                  game_type: str,
                  game_directory: Path,
-                 locale: resources.Locale,
+                 locale: Locale,
                  client_type: str,
                  high_res_enabled: bool,
                  patch_client_path: Path,
@@ -179,17 +216,17 @@ class Game():
                  wine_prefix_path: Path = None,
                  wine_debug_level: str = None,
                  accounts: Dict[str, Account] = None,
-                 share_accounts_with: UUID = None,
+                 on_name_change_function: Callable[[], None] = None,
                  ) -> None:
         self.uuid = uuid
         self.game_type = game_type
         self.game_directory = game_directory
-        self.locale = locale
+        self._locale = locale
         self.client_type = client_type
         self.high_res_enabled = high_res_enabled
         self.patch_client_path = patch_client_path
         self.startup_scripts = startup_scripts
-        self.name = name
+        self._name = name
         self.description = description
         self.newsfeed = newsfeed
         self.wine_path = wine_path
@@ -197,7 +234,18 @@ class Game():
         self.wine_prefix_path = wine_prefix_path
         self.wine_debug_level = wine_debug_level
         self.accounts = accounts
-        self.share_accounts_with = share_accounts_with
+        self.on_name_change_function = on_name_change_function
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @name.setter
+    def name(self, new_value: str):
+        self._name = new_value
+
+        if self.on_name_change_function:
+            self.on_name_change_function()
 
     @property
     def game_type(self) -> str:
@@ -217,6 +265,16 @@ class Game():
     def client_type(self) -> str:
         return self._client_type
 
+    @property
+    def locale(self) -> Locale:
+        return self._locale
+
+    @locale.setter
+    def locale(self, new_value: Locale):
+        self._locale = new_value
+
+        OneLauncher.set_ui_locale()
+
     @client_type.setter
     def client_type(self, new_value: str) -> None:
         """WIN32, WIN32Legacy, or WIN64"""
@@ -234,459 +292,254 @@ class GamesSettings():
             config_path = platform_dirs.user_config_path / \
                 "games.toml"
         self.config_path = config_path
+        self.config_path.parent.mkdir(parents=True, exist_ok=True)
 
         self.games: Dict[UUID, Game] = {}
-        self.current_game: Optional[Game] = None
+
+        # These are all in the format of the lower the index the more important
+        self.lotro_games_priority_sorted: List[Game] = []
+        self.lotro_games_last_used_sorted: List[Game] = []
+        self.lotro_games_alphabetical_sorted: List[Game] = []
+        self.ddo_games_priority_sorted: List[Game] = []
+        self.ddo_games_last_used_sorted: List[Game] = []
+        self.ddo_games_alphabetical_sorted: List[Game] = []
 
         self.load()
 
-    def get_game_name(self, game_directory: Path) -> str:
-        return game_directory.name
+    def get_game_name(self, game_directory: Path, uuid: UUID) -> str:
+        return f"{game_directory.name} ({uuid})"
+
+    def uuid_str_list_to_game_list(self, uuid_list: List[str]) -> List[Game]:
+        return [self.games[UUID(uuid_str)] for uuid_str in uuid_list]
 
     def load(self):
         if not self.config_path.exists():
             return
 
         settings_dict = rtoml.load(self.config_path)
-        if "games" not in settings_dict:
+        if "games" not in settings_dict or len(settings_dict["games"]) < 1:
             return
         games_dicts = settings_dict["games"]
         for game_dict in games_dicts:
-            uuid = UUID(game_dict["uuid"])
-            game_directory = Path(game_dict["game_directory"])
-            self.games[uuid] == Game(
-                uuid,
-                game_dict["game_type"],
-                game_directory,
-                resources.Locale(game_dict.get("language", str(
-                    OneLauncher.program_settings.default_locale))),
-                game_dict.get("client_type", "WIN64"),
-                game_dict.get("high_res_enabled", True),
-                Path(game_dict.get("patch_client_path", "patchclient.dll")),
-                [Path(script)
-                 for script in game_dict.get("startup_scripts", [])],
-                game_dict["info"].get(
-                    "name", self.get_game_name(game_directory)),
-                game_dict["info"].get("description", ""),
-                game_dict["info"].get("newsfeed", None),
-                Path(game_dict["wine"].get("wine_path", None)),
-                game_dict["wine"].get("builtin_prefix_enabled", True),
-                Path(game_dict["wine"].get("prefix_path", None)),
-                game_dict["wine"].get("debug_level", None),
-                {account["account_name"]: Account(
-                    account["account_name"], account["last_used_world"]) for account in game_dict["accounts"]},
-                UUID(game_dict.get("share_accounts_with", None)) if game_dict.get(
-                    "share_accounts_with", None) else None,
-            )
+            self.load_game(game_dict)
 
-        for game in self.games.values():
-            # Replace accounts with ones from game that this one is sharing with
-            if game.share_accounts_with:
-                game.accounts = self.games[game.share_accounts_with].accounts
+        # Load games sorting lists
+        if "lotro_games_priority_sorted" in settings_dict:
+            self.lotro_games_priority_sorted = self.uuid_str_list_to_game_list(
+                settings_dict["lotro_games_priority_sorted"])
+        else:
+            self.lotro_games_priority_sorted = [
+                game for game in self.games.values() if game.game_type == "LOTRO"]
+        if "lotro_games_last_used_sorted" in settings_dict:
+            self.lotro_games_last_used_sorted = self.uuid_str_list_to_game_list(
+                settings_dict["lotro_games_last_used_sorted"])
+        else:
+            self.lotro_games_last_used_sorted = [
+                game for game in self.games.values() if game.game_type == "LOTRO"]
+        if "ddo_games_priority_sorted" in settings_dict:
+            self.ddo_games_priority_sorted = self.uuid_str_list_to_game_list(
+                settings_dict["ddo_games_priority_sorted"])
+        else:
+            self.ddo_games_priority_sorted = [
+                game for game in self.games.values() if game.game_type == "DDO"]
+        if "ddo_games_last_used_sorted" in settings_dict:
+            self.ddo_games_last_used_sorted = self.uuid_str_list_to_game_list(
+                settings_dict["ddo_games_last_used_sorted"])
+        else:
+            self.ddo_games_last_used_sorted = [
+                game for game in self.games.values() if game.game_type == "DDO"]
 
-        if "last_used_game_uuid" in settings_dict:
-            last_used_game_uuid = UUID(settings_dict["last_used_game"])
-            if last_used_game_uuid in self.games:
-                self.current_game = self.games[last_used_game_uuid]
+
+        self.lotro_games_alphabetical_sorted = self.lotro_games_priority_sorted.copy()
+        self.ddo_games_alphabetical_sorted = self.ddo_games_priority_sorted.copy()
+        self.sort_alphabetical_sorting_lists()
+
+        self.lotro_sorting_modes = {"priority": self.lotro_games_priority_sorted,
+                                    "last_used": self.lotro_games_last_used_sorted,
+                                    "alphabetical": self.lotro_games_alphabetical_sorted}
+        self.ddo_sorting_modes = {"priority": self.ddo_games_priority_sorted,
+                                  "last_used": self.ddo_games_last_used_sorted,
+                                  "alphabetical": self.ddo_games_alphabetical_sorted}
+
+        if ("last_used_game_uuid" in settings_dict and
+                UUID(settings_dict["last_used_game_uuid"]) in self.games):
+            self._current_game = self.games[UUID(
+                settings_dict["last_used_game_uuid"])]
+        elif self.lotro_games_priority_sorted:
+            self._current_game = self.lotro_games_priority_sorted[0]
+        elif self.ddo_games_priority_sorted:
+            self._current_game = self.ddo_games_priority_sorted[0]
+        elif self.lotro_games_last_used_sorted:
+            self._current_game = self.lotro_games_last_used_sorted[0]
+        elif self.ddo_games_last_used_sorted:
+            self._current_game = self.ddo_games_last_used_sorted[0]
+        else:
+            self._current_game = list(self.games.values())[0]
+
+    def load_game(self, game_dict: dict):
+        uuid = UUID(game_dict["uuid"])
+        game_directory = Path(game_dict["game_directory"])
+
+        # Deal with missing sections
+        game_dict["info"] = game_dict.get("info", {})
+        game_dict["wine"] = game_dict.get("wine", {})
+        game_dict["accounts"] = game_dict.get("accounts", [])
+
+        # Deal with Paths
+        if "wine_path" in game_dict["wine"]:
+            wine_path = Path(game_dict["wine"]["wine_path"])
+        else:
+            wine_path = None
+        if "prefix_path" in game_dict["wine"]:
+            prefix_path = Path(game_dict["wine"]["prefix_path"])
+        else:
+            prefix_path = None
+
+        self.games[uuid] = Game(
+            uuid,
+            game_dict["game_type"],
+            game_directory,
+            available_locales[
+                game_dict.get(
+                    "language", str(
+                        OneLauncher.program_settings.default_locale)
+                )
+            ],
+            game_dict.get("client_type", "WIN64"),
+            game_dict.get("high_res_enabled", True),
+            Path(game_dict.get("patch_client_path", "patchclient.dll")),
+            [Path(script) for script in game_dict.get("startup_scripts", [])],
+            game_dict["info"].get(
+                "name", self.get_game_name(game_directory, uuid)),
+            game_dict["info"].get("description", ""),
+            game_dict["info"].get("newsfeed", None),
+            wine_path,
+            game_dict["wine"].get("builtin_prefix_enabled", True),
+            prefix_path,
+            game_dict["wine"].get("debug_level", None),
+            {
+                account["account_name"]: Account(
+                    account["account_name"], account["last_used_world_name"]
+                )
+                for account in game_dict["accounts"]
+            },
+            on_name_change_function=self.sort_alphabetical_sorting_lists,
+        )
+
+    def sort_alphabetical_sorting_lists(self) -> None:
+        self.lotro_games_alphabetical_sorted.sort(key=lambda game: game.name)
+        self.ddo_games_alphabetical_sorted.sort(key=lambda game: game.name)
 
     def save(self):
         settings_dict = {}
-        if self.current_game:
-            settings_dict["last_used_game_uuid"] = self.current_game.uuid
+        try:
+            if self.current_game.uuid in self.games:
+                if self.current_game.game_type == "LOTRO":
+                    list = self.lotro_games_last_used_sorted
+                elif self.current_game.game_type == "DDO":
+                    list = self.ddo_games_last_used_sorted
+                else:
+                    raise TypeError(
+                        "Settings current_game saving doesn't recognize "
+                        f"{self.current_game.game_type} as a game type")
 
+                # Move current game to front of list
+                list.remove(self.current_game)
+                list.insert(0, self.current_game)
+
+                settings_dict["last_used_game_uuid"] = str(self.current_game.uuid)
+        except AttributeError:
+            pass
+
+        settings_dict["lotro_games_priority_sorted"] = [
+            str(game.uuid) for game in self.lotro_games_priority_sorted]
+        settings_dict["lotro_games_last_used_sorted"] = [
+            str(game.uuid) for game in self.lotro_games_last_used_sorted]
+        settings_dict["ddo_games_priority_sorted"] = [
+            str(game.uuid) for game in self.ddo_games_priority_sorted]
+        settings_dict["ddo_games_last_used_sorted"] = [
+            str(game.uuid) for game in self.ddo_games_last_used_sorted]
+
+        settings_dict["games"] = []
         for game in self.games.values():
             if usingWindows:
                 wine_settings_dict = {}
             else:
                 wine_settings_dict = {
-                    "wine_path": game.wine_path,
+                    "wine_path": str(game.wine_path),
                     "builtin_prefix_enabled": game.builtin_wine_prefix_enabled,
-                    "prefix_path": game.wine_prefix_path,
+                    "prefix_path": str(game.wine_prefix_path),
                     "debug_level": game.wine_debug_level,
                 }
 
-            games_info_settings_dict = {
+            info_settings_dict = {
                 "name": game.name,
                 "description": game.description,
                 "newsfeed": game.newsfeed,
             }
 
-            if not game.share_accounts_with and game.accounts:
+            if game.accounts:
                 accounts_settings_list = [
                     {"account_name": account.name,
-                        "last_used_world": account.last_used_world}
+                        "last_used_world_name": account.last_used_world_name}
                     for account in game.accounts.values()]
             else:
                 accounts_settings_list = []
 
-            settings_dict["games"].append({
-                "uuid": game.uuid,
+            game_dict = {
+                "uuid": str(game.uuid),
                 "game_type": game.game_type,
-                "game_directory": game.game_directory,
-                "language": game.locale,
+                "game_directory": str(game.game_directory),
+                "language": game.locale.lang_tag,
                 "client_type": game.client_type,
                 "high_res_enabled": game.high_res_enabled,
-                "patch_client_path": game.patch_client_path,
-                "startup_scripts": game.startup_scripts,
-                "share_accounts_with": game.share_accounts_with,
+                "patch_client_path": str(game.patch_client_path),
+                "startup_scripts": [str(script) for script in game.startup_scripts],
                 "wine": wine_settings_dict,
-                "games_info": games_info_settings_dict,
+                "info": info_settings_dict,
                 "accounts": accounts_settings_list,
-            })
+            }
+            game_dict = self.remove_empty_values_from_dict(
+                game_dict, recursive=True)
+            settings_dict["games"].append(game_dict)
 
         rtoml.dump(settings_dict, self.config_path, pretty=True)
 
+    @property
+    def current_game(self) -> Game:
+        return self._current_game
 
-class Settings:
-    def __init__(self):
-        self.currentGame = "LOTRO"
-        self.settingsFile = platform_dirs.user_config_path / \
-            f"{OneLauncher.__title__}.config"
+    @current_game.setter
+    def current_game(self, new_value: Game):
+        self._current_game = new_value
 
-    def load_game_settings(self, useGame=None):
-        self.highResEnabled = True
-        # If None isn't overwritten than it will automatically
-        # get set to the first installed language detected.
-        self.language = None
-        # Key is account name and content is list of details
-        # relating to account.
-        self.accountsDictionary = {}
-        self.wineProg = Path("wine")
-        self.wineDebug = "fixme-all"
-        self.patchClient = Path("patchclient.dll")
-        self.focusAccount = True
-        self.builtinPrefixEnabled = True
-        self.gameDir = None
-        self.client = "WIN64"
-        self.winePrefix = None
-        self.savePassword = False
-        self.startupScripts = []
-        success = False
+        OneLauncher.set_ui_locale()
 
-        try:
-            if self.settingsFile.exists():
-                doc = defusedxml.minidom.parse(str(self.settingsFile))
+    def remove_empty_values_from_dict(self, input_dict: dict, recursive=True) -> dict:
+        input_dict = {key: input_dict[key]
+                      for key in input_dict if input_dict[key] and input_dict[key] not in ["None", "."]}
 
-                if useGame is None:
-                    defaultGame = GetText(
-                        doc.getElementsByTagName("Default.Game")[0].childNodes
-                    )
+        if recursive:
+            new_dict = {}
+            for key, value in input_dict.items():
+                if type(value) == dict:
+                    new_dict[key] = self.remove_empty_values_from_dict(
+                        value, recursive=True)
                 else:
-                    defaultGame = useGame
+                    new_dict[key] = value
+            input_dict = new_dict
 
-                self.currentGame = defaultGame
+        return input_dict
 
-                nodes = doc.getElementsByTagName(defaultGame)[0].childNodes
-                for node in nodes:
-                    if node.nodeName == "Wine.Program":
-                        self.wineProg = Path(GetText(node.childNodes))
-                    elif node.nodeName == "Wine.Debug":
-                        self.wineDebug = GetText(node.childNodes)
-                    elif node.nodeName == "Wine.Prefix":
-                        self.winePrefix = Path(GetText(node.childNodes))
-                    elif node.nodeName == "Wine.BuiltinPrefix":
-                        self.builtinPrefixEnabled = GetText(
-                            node.childNodes) == "True"
-                    elif node.nodeName == "HiRes":
-                        self.highResEnabled = GetText(
-                            node.childNodes) == "True"
-                    elif node.nodeName == "Client":
-                        self.client = GetText(node.childNodes)
-                    elif node.nodeName == "x64Client":
-                        self.client = "WIN64" if GetText(
-                            node.childNodes) == "True" else "WIN32"
-                    elif node.nodeName == "Save.Password":
-                        self.savePassword = GetText(node.childNodes) == "True"
-                    elif node.nodeName == "Game.Directory":
-                        self.gameDir = Path(GetText(node.childNodes))
-                    elif node.nodeName == "Language":
-                        self.language = GetText(node.childNodes)
-                    elif node.nodeName == "PatchClient":
-                        self.patchClient = Path(GetText(node.childNodes))
-                    elif node.nodeName == "Accounts" and not self.currentGame.endswith(
-                        ".Test"
-                    ):
-                        account_nodes = node.childNodes
-                        self.setAccountsSettings(account_nodes)
-                    elif (
-                        node.nodeName == "StartupScripts"
-                        and not self.currentGame.endswith(".Test")
-                    ):
-                        startup_script_nodes = node.childNodes
-                        self.setStartupScriptSettings(startup_script_nodes)
+    def get_new_uuid(self) -> UUID:
+        """Return UUID that doesn't already exist in the games config"""
+        current_uuids = list(self.games)
 
-                # Test/preview clients use accounts, save password settings,
-                # and startups scripts from normal clients
-                if self.currentGame.endswith(".Test"):
-                    normalClientNode = self.getNormalClientNode(
-                        self.currentGame, doc)
-                    if normalClientNode:
-                        # Load in accounts and their settings from normal client node
-                        accountsNode = normalClientNode.getElementsByTagName(
-                            "Accounts")
-                        if accountsNode:
-                            account_nodes = accountsNode[0].childNodes
-                            self.setAccountsSettings(account_nodes)
+        uuid = None
+        while uuid in current_uuids or not uuid:
+            uuid = uuid4()
 
-                        # Load in startup scripts from normal client node
-                        startupScriptsNode = normalClientNode.getElementsByTagName(
-                            "StartupScripts"
-                        )
-                        if startupScriptsNode:
-                            startup_script_nodes = startupScriptsNode[0].childNodes
-                            self.setStartupScriptSettings(startup_script_nodes)
-
-                        # Load in save password setting from normal client node
-                        savePasswordNode = normalClientNode.getElementsByTagName(
-                            "Save.Password"
-                        )
-                        if savePasswordNode:
-                            self.savePassword = GetText(
-                                savePasswordNode[0].childNodes)
-
-                # Disable 64-bit client if it is unavailable
-                if (self.client == "WIN64" and not self.checkGameClient64()):
-                    self.client = "WIN32"
-
-                # Set wine prefix to built in one if it is enabled
-                if self.builtinPrefixEnabled:
-                    self.winePrefix = builtin_prefix_dir
-
-                success = True
-
-                if (
-                    not self.wineProg.exists()
-                    and self.wineProg != Path("wine")
-                    and not self.builtinPrefixEnabled
-                ):
-                    success = "[E16] Wine executable set does not exist"
-        except Exception as error:
-            logger.error(error, exc_info=True)
-            success = False
-
-        return success
-
-    def checkGameClient64(self, path=None):
-        if path is None:
-            path = self.gameDir
-
-        exe = "lotroclient64.exe" if self.currentGame.startswith(
-            "LOTRO") else "dndclient64.exe"
-
-        return (path/"x64"/exe).exists()
-
-    def setAccountsSettings(self, account_nodes):
-        for account_node in account_nodes:
-            account_name = account_node.nodeName
-            if account_name != "#text":
-                # Create account settings list. The amount of
-                # empty strings in the list represent the
-                # amount of account settings.
-                self.accountsDictionary[account_name] = [""]
-
-                for node in account_node.childNodes:
-                    if node.nodeName == "World":
-                        self.accountsDictionary[account_name][0] = GetText(
-                            node.childNodes
-                        )
-
-                self.focusAccount = False
-
-    def setStartupScriptSettings(self, startup_script_nodes):
-        for node in startup_script_nodes:
-            if node.nodeName == "script":
-                self.startupScripts.append(GetText(node.childNodes))
-
-    def getNormalClientNode(self, game, doc, make_if_not_found=False):
-        """
-        Get normal client node. Will make it if
-        make_if_not_found=True and it doesn't exist.
-        Normal client as in not the test/preview client
-        """
-        if not game.endswith(".Test"):
-            return
-        normalClient = game.split(".")[0]
-        normalClientNode = doc.getElementsByTagName(normalClient)
-        if normalClientNode:
-            normalClientNode = normalClientNode[0]
-        else:
-            if not make_if_not_found:
-                return None
-
-            normalClientNode = doc.createElementNS(
-                EMPTY_NAMESPACE, normalClient
-            )
-            settingsNode = doc.getElementsByTagName("Settings")[0]
-            settingsNode.appendChild(normalClientNode)
-        return normalClientNode
-
-    def save_game_settings(self, saveAccountDetails=None, savePassword=None, game=None):
-        doc = None
-
-        # Check if settings file exists if not create new settings XML
-        if self.settingsFile.exists():
-            doc = defusedxml.minidom.parse(str(self.settingsFile))
-            settingsNode = doc.getElementsByTagName("Settings")
-        else:
-            doc = Document()
-            settingsNode = doc.createElementNS(EMPTY_NAMESPACE, "Settings")
-            doc.appendChild(settingsNode)
-
-        current_game = game or self.currentGame
-        # Set default game to current game
-        defaultGameNode = doc.getElementsByTagName("Default.Game")
-        if len(defaultGameNode) > 0:
-            defaultGameNode[0].firstChild.nodeValue = current_game
-        else:
-            defaultGameNode = doc.createElementNS(
-                EMPTY_NAMESPACE, "Default.Game")
-            defaultGameNode.appendChild(doc.createTextNode(current_game))
-            settingsNode.appendChild(defaultGameNode)
-
-        # Remove old game block
-        tempNode = doc.getElementsByTagName(current_game)
-        if len(tempNode) > 0:
-            doc.documentElement.removeChild(tempNode[0])
-
-        # Create new game block
-        settingsNode = doc.getElementsByTagName("Settings")[0]
-        gameConfigNode = doc.createElementNS(EMPTY_NAMESPACE, current_game)
-        settingsNode.appendChild(gameConfigNode)
-
-        # Some settings for test/preview clients are saved in normal client settings
-        if current_game.endswith(".Test"):
-            normalClientNode = self.getNormalClientNode(
-                current_game, doc, make_if_not_found=True)
-
-        if not usingWindows:
-            tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Program")
-            tempNode.appendChild(doc.createTextNode("%s" %
-                                 (str(self.wineProg))))
-            gameConfigNode.appendChild(tempNode)
-
-            tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Debug")
-            tempNode.appendChild(doc.createTextNode("%s" % (self.wineDebug)))
-            gameConfigNode.appendChild(tempNode)
-
-            tempNode = doc.createElementNS(
-                EMPTY_NAMESPACE, "Wine.BuiltinPrefix")
-            tempNode.appendChild(doc.createTextNode(
-                "%s" % (self.builtinPrefixEnabled)))
-            gameConfigNode.appendChild(tempNode)
-
-            if self.winePrefix != "":
-                tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Wine.Prefix")
-                tempNode.appendChild(
-                    doc.createTextNode("%s" % (str(self.winePrefix))))
-                gameConfigNode.appendChild(tempNode)
-
-        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "HiRes")
-        if self.highResEnabled:
-            tempNode.appendChild(doc.createTextNode("True"))
-        else:
-            tempNode.appendChild(doc.createTextNode("False"))
-        gameConfigNode.appendChild(tempNode)
-
-        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Client")
-        tempNode.appendChild(doc.createTextNode("%s" % (self.client)))
-        gameConfigNode.appendChild(tempNode)
-
-        if self.client in ["WIN32", "WIN64"]:
-            tempNode = doc.createElementNS(EMPTY_NAMESPACE, "x64Client")
-            value = "True" if self.client == "WIN64" else "False"
-            tempNode.appendChild(doc.createTextNode(value))
-            gameConfigNode.appendChild(tempNode)
-
-        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Game.Directory")
-        tempNode.appendChild(doc.createTextNode("%s" % (str(self.gameDir))))
-        gameConfigNode.appendChild(tempNode)
-
-        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "PatchClient")
-        tempNode.appendChild(doc.createTextNode("%s" %
-                             (str(self.patchClient))))
-        gameConfigNode.appendChild(tempNode)
-
-        if self.language:
-            tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Language")
-            tempNode.appendChild(doc.createTextNode("%s" % (self.language)))
-            gameConfigNode.appendChild(tempNode)
-
-        if saveAccountDetails:
-            accountsNode = doc.createElementNS(EMPTY_NAMESPACE, "Accounts")
-
-            # Adds all saved accounts with their account specific settings.
-            for account in self.accountsDictionary:
-                accountNode = doc.createElementNS(EMPTY_NAMESPACE, account)
-
-                tempNode = doc.createElementNS(EMPTY_NAMESPACE, "World")
-                tempNode.appendChild(
-                    doc.createTextNode(
-                        "%s" % (self.accountsDictionary[account][0]))
-                )
-                accountNode.appendChild(tempNode)
-
-                accountsNode.appendChild(accountNode)
-
-            # Test/preview clients use normal client accounts. I.e they are
-            # saved and loaded to and from the normal client node rather than the test node
-            if current_game.endswith(".Test"):
-                # Delete current accounts node if present. All accounts that were originally
-                # there were loaded as if they were the test client's, so they are not lost.
-                originalAccountsNode = normalClientNode.getElementsByTagName(
-                    "Accounts")
-                if originalAccountsNode:
-                    normalClientNode.removeChild(originalAccountsNode[0])
-
-                normalClientNode.appendChild(accountsNode)
-            else:
-                gameConfigNode.appendChild(accountsNode)
-
-            if savePassword:
-                savePasswordNode = doc.createElementNS(
-                    EMPTY_NAMESPACE, "Save.Password")
-                savePasswordNode.appendChild(doc.createTextNode("True"))
-
-            # Test/Preview clients store if password is enabled in normal client settings,
-            # because the accounts are shared.
-            if current_game.endswith(".Test"):
-                # Delete current password enabled node if present.
-                originalSavePasswordNode = normalClientNode.getElementsByTagName(
-                    "Save.Password"
-                )
-                if originalSavePasswordNode:
-                    normalClientNode.removeChild(originalSavePasswordNode[0])
-
-                normalClientNode.appendChild(savePasswordNode)
-            else:
-                gameConfigNode.appendChild(savePasswordNode)
-
-        startupScriptsNode = doc.createElementNS(
-            EMPTY_NAMESPACE, "StartupScripts")
-        for script in self.startupScripts:
-            scriptNode = doc.createElementNS(EMPTY_NAMESPACE, "script")
-            scriptNode.appendChild(doc.createTextNode("%s" % (script)))
-            startupScriptsNode.appendChild(scriptNode)
-        # Test/Preview clients store startup scripts in normal client settings,
-        # because the add-ons folders are generally shared as well.
-        if current_game.endswith(".Test"):
-            # Delete current startup scripts node if present. All startup scripts
-            # that were originally there were loaded as if they were the test client's,
-            # so they are not lost.
-            originalStartupScriptsNode = normalClientNode.getElementsByTagName(
-                "StartupScripts"
-            )
-            if originalStartupScriptsNode:
-                normalClientNode.removeChild(originalStartupScriptsNode[0])
-
-            normalClientNode.appendChild(startupScriptsNode)
-        else:
-            gameConfigNode.appendChild(startupScriptsNode)
-
-        # write new settings file
-        with self.settingsFile.open(mode="w") as file:
-            pretty_xml = prettify_xml(doc.toxml())
-            file.write(pretty_xml)
+        return uuid
 
 
 set_os_specific_variables()
-make_settings_dirs()

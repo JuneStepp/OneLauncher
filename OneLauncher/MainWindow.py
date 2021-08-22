@@ -38,25 +38,29 @@ from platform import platform
 from typing import List
 
 import defusedxml.minidom
+import xml
 import keyring
 from pkg_resources import parse_version
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 
 import OneLauncher
-from OneLauncher import Runner, Settings, resources, logger
+from OneLauncher import Settings, resources, logger, game_settings, program_settings
+from OneLauncher.ui_utilities import show_message_box_details_as_markdown
 from OneLauncher.AddonManager import AddonManager
 from OneLauncher.OneLauncherUtils import (AuthenticateUser, BaseConfig,
-                                          DetermineGame, GetText,
+                                          GetText,
                                           GLSDataCenter, JoinWorldQueue,
-                                          LanguageConfig, WorldQueueConfig,
+                                          World, WorldQueueConfig,
                                           checkForCertificates)
 from OneLauncher.PatchWindow import PatchWindow
 from OneLauncher.SettingsWindow import SettingsWindow
-from OneLauncher.SetupWizard import SetupWizard
 from OneLauncher.StartGame import StartGame
+from OneLauncher.resources import get_resource
 from OneLauncher.ui_resources import icon_font
-from OneLauncher.WinePrefix import BuiltInPrefix
+from OneLauncher.ui.winMain_uic import Ui_winMain
+from OneLauncher.ui.winAbout_uic import Ui_dlgAbout
+from OneLauncher.ui.select_account_uic import Ui_dlgChooseAccount
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -68,20 +72,12 @@ class MainWindow(QtWidgets.QMainWindow):
     ReturnNews = QtCore.Signal(str)
 
     def __init__(self):
-        super().__init__()
-        # Initialise variables
-        self.data_folder = self.getDataFolder()
-        self.settings = None
-        self.gameType = DetermineGame()
-        self.configFile = ""
-        self.currentGame = None
+        super(MainWindow, self).__init__(None, QtCore.Qt.FramelessWindowHint)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose, on=True)
 
-        # Create the main window and set all text so that translations are handled via gettext
-        self.winMain = QUiLoader().load(
-            str(self.data_folder/"ui"/"winMain.ui"), parentWidget=self)
-        self.winMain.setWindowFlags(QtCore.Qt.Dialog)
-        self.winMain.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-        self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        self.ui = Ui_winMain()
+        self.ui.setupUi(self)
+
         self.setFixedSize(790, 470)
 
         # Setup buttons
@@ -91,21 +87,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setupBtnOptions()
         self.setupBtnAddonManager()
         self.setupBtnLoginMenu()
-        self.initializeBtnSwitchGame()
+        self.ui.btnSwitchGame.clicked.connect(self.btnSwitchGameClicked)
 
         # Accounts combo box item selection signal
-        self.winMain.cboAccount.textActivated.connect(self.cboAccountChanged)
+        self.ui.cboAccount.textActivated.connect(self.cboAccountChanged)
 
         # Pressing enter in password box acts like pressing login button
-        self.winMain.txtPassword.returnPressed.connect(self.btnLoginClicked)
+        self.ui.txtPassword.returnPressed.connect(self.btnLoginClicked)
 
         self.connectMainWindowThreadSignals()
 
         self.setupMousePropagation()
-
-        # Disable login and save settings buttons
-        self.winMain.btnLogin.setEnabled(False)
-        self.winMain.chkSaveSettings.setEnabled(False)
 
         self.configureKeyring()
 
@@ -114,22 +106,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.InitialSetup(first_setup=True)
 
-    def getDataFolder(self):
-        """Returns location equivalent to OneLauncher folder of source code."""
-        if getattr(sys, "frozen", False):
-            # Data location for frozen programs
-            return Path(sys.executable.parent)
-        else:
-            return Path(__file__).parent
-
     def run(self):
         self.show()
 
     def resetFocus(self):
-        if self.winMain.cboAccount.currentText() == "":
-            self.winMain.cboAccount.setFocus()
-        elif self.winMain.txtPassword.text() == "":
-            self.winMain.txtPassword.setFocus()
+        if self.ui.cboAccount.currentText() == "":
+            self.ui.cboAccount.setFocus()
+        elif self.ui.txtPassword.text() == "":
+            self.ui.txtPassword.setFocus()
 
     def mousePressEvent(self, event):
         """Lets the user drag the window when left-click holding it"""
@@ -140,138 +124,94 @@ class MainWindow(QtWidgets.QMainWindow):
     def setupMousePropagation(self):
         """Sets some widgets to WA_NoMousePropagation to avoid window dragging issues"""
         mouse_ignore_list = [
-            self.winMain.btnAbout,
-            self.winMain.btnExit,
-            self.winMain.btnLogin,
-            self.winMain.btnMinimize,
-            self.winMain.btnOptions,
-            self.winMain.btnAddonManager,
-            self.winMain.btnSwitchGame,
-            self.winMain.cboWorld,
-            self.winMain.chkSaveSettings,
+            self.ui.btnAbout,
+            self.ui.btnExit,
+            self.ui.btnLogin,
+            self.ui.btnMinimize,
+            self.ui.btnOptions,
+            self.ui.btnAddonManager,
+            self.ui.btnSwitchGame,
+            self.ui.cboWorld,
+            self.ui.chkSaveSettings,
         ]
         for widget in mouse_ignore_list:
             widget.setAttribute(QtCore.Qt.WA_NoMousePropagation)
 
     def setupBtnExit(self):
-        self.winMain.btnExit.clicked.connect(self.close)
+        self.ui.btnExit.clicked.connect(self.close)
 
-        self.winMain.btnExit.setFont(icon_font)
-        self.winMain.btnExit.setText("\uf00d")
+        self.ui.btnExit.setFont(icon_font)
+        self.ui.btnExit.setText("\uf00d")
 
     def setupBtnMinimize(self):
-        self.winMain.btnMinimize.clicked.connect(self.showMinimized)
+        self.ui.btnMinimize.clicked.connect(self.showMinimized)
 
-        self.winMain.btnMinimize.setFont(icon_font)
-        self.winMain.btnMinimize.setText("\uf2d1")
+        self.ui.btnMinimize.setFont(icon_font)
+        self.ui.btnMinimize.setText("\uf2d1")
 
     def setupBtnAbout(self):
-        self.winMain.btnAbout.clicked.connect(self.btnAboutSelected)
+        self.ui.btnAbout.clicked.connect(self.btnAboutSelected)
 
-        self.winMain.btnAbout.setFont(icon_font)
-        self.winMain.btnAbout.setText("\uf05a")
+        self.ui.btnAbout.setFont(icon_font)
+        self.ui.btnAbout.setText("\uf05a")
 
     def setupBtnOptions(self):
-        self.winMain.btnOptions.clicked.connect(self.btnOptionsSelected)
+        self.ui.btnOptions.clicked.connect(self.btnOptionsSelected)
 
-        self.winMain.btnOptions.setFont(icon_font)
-        self.winMain.btnOptions.setText("\uf013")
+        self.ui.btnOptions.setFont(icon_font)
+        self.ui.btnOptions.setText("\uf013")
 
     def setupBtnAddonManager(self):
-        self.winMain.btnAddonManager.clicked.connect(
+        self.ui.btnAddonManager.clicked.connect(
             self.btnAddonManagerSelected)
 
-        self.winMain.btnAddonManager.setFont(icon_font)
-        self.winMain.btnAddonManager.setText("\uf055")
+        self.ui.btnAddonManager.setFont(icon_font)
+        self.ui.btnAddonManager.setText("\uf055")
 
     def setupBtnLoginMenu(self):
         """Sets up signals and context menu for btnLoginMenu"""
-        self.winMain.btnLogin.clicked.connect(self.btnLoginClicked)
+        self.ui.btnLogin.clicked.connect(self.btnLoginClicked)
 
         # Setup context menu
-        self.winMain.btnLoginMenu = QtWidgets.QMenu()
-        self.winMain.btnLoginMenu.addAction(self.winMain.actionPatch)
-        self.winMain.actionPatch.triggered.connect(self.actionPatchSelected)
-        self.winMain.btnLogin.setMenu(self.winMain.btnLoginMenu)
+        self.ui.btnLoginMenu = QtWidgets.QMenu()
+        self.ui.btnLoginMenu.addAction(self.ui.actionPatch)
+        self.ui.actionPatch.triggered.connect(self.actionPatchSelected)
+        self.ui.btnLogin.setMenu(self.ui.btnLoginMenu)
 
-    def initializeBtnSwitchGame(self):
-        """Sets up signals and actions for btnSwitchGame.
-
-        It needs to later be configured for the current game with
-        `self.configureBtnSwitchGameForGame`.
-        """
-        self.winMain.btnSwitchGame.clicked.connect(self.btnSwitchGameClicked)
-
-        # Initialize context menu
-        self.winMain.btnSwitchGameMenu = QtWidgets.QMenu()
-        self.winMain.btnSwitchGameMenu.addAction(self.winMain.actionLOTROTest)
-        self.winMain.actionLOTROTest.triggered.connect(self.SwitchToLOTROTest)
-        self.winMain.btnSwitchGameMenu.addAction(self.winMain.actionDDOTest)
-        self.winMain.actionDDOTest.triggered.connect(self.SwitchToDDOTest)
-        self.winMain.btnSwitchGameMenu.addAction(self.winMain.actionLOTRO)
-        self.winMain.actionLOTRO.triggered.connect(self.SwitchToLOTRO)
-        self.winMain.btnSwitchGameMenu.addAction(self.winMain.actionDDO)
-        self.winMain.actionDDO.triggered.connect(self.SwitchToDDO)
-        self.winMain.btnSwitchGame.setMenu(self.winMain.btnSwitchGameMenu)
-
-    def configureBtnSwitchGameForGame(self, game):
-        """Set icon and dropdown options of switch game button according to game"""
-        if game == "DDO":
-            self.winMain.btnSwitchGame.setIcon(
+    def setup_switch_game_button(self):
+        """Set icon and dropdown options of switch game button according to current game"""
+        if game_settings.current_game.game_type == "DDO":
+            self.ui.btnSwitchGame.setIcon(
                 QtGui.QIcon(
-                    str(self.data_folder/"images"/"LOTROSwitchIcon.png")
+                    str(get_resource(
+                        Path("images/LOTROSwitchIcon.png"), program_settings.ui_locale))
                 )
             )
-            self.winMain.actionLOTROTest.setEnabled(False)
-            self.winMain.actionLOTROTest.setVisible(False)
-            self.winMain.actionDDOTest.setEnabled(True)
-            self.winMain.actionDDOTest.setVisible(True)
-            self.winMain.actionLOTRO.setEnabled(False)
-            self.winMain.actionLOTRO.setVisible(False)
-            self.winMain.actionDDO.setEnabled(False)
-            self.winMain.actionDDO.setVisible(False)
-        elif game == "DDO.Test":
-            self.winMain.btnSwitchGame.setIcon(
-                QtGui.QIcon(
-                    str(self.data_folder/"images"/"LOTROSwitchIcon.png")
-                )
+
+            games = game_settings.ddo_sorting_modes[program_settings.games_sorting_mode].copy(
             )
-            self.winMain.actionLOTROTest.setEnabled(False)
-            self.winMain.actionLOTROTest.setVisible(False)
-            self.winMain.actionDDOTest.setEnabled(False)
-            self.winMain.actionDDOTest.setVisible(False)
-            self.winMain.actionLOTRO.setEnabled(False)
-            self.winMain.actionLOTRO.setVisible(False)
-            self.winMain.actionDDO.setEnabled(True)
-            self.winMain.actionDDO.setVisible(True)
-        elif game == "LOTRO.Test":
-            self.winMain.btnSwitchGame.setIcon(
-                QtGui.QIcon(
-                    str(self.data_folder/"images"/"DDOSwitchIcon.png")
-                )
-            )
-            self.winMain.actionLOTROTest.setEnabled(False)
-            self.winMain.actionLOTROTest.setVisible(False)
-            self.winMain.actionDDOTest.setEnabled(False)
-            self.winMain.actionDDOTest.setVisible(False)
-            self.winMain.actionLOTRO.setEnabled(True)
-            self.winMain.actionLOTRO.setVisible(True)
-            self.winMain.actionDDO.setEnabled(False)
-            self.winMain.actionDDO.setVisible(False)
         else:
-            self.winMain.btnSwitchGame.setIcon(
+            self.ui.btnSwitchGame.setIcon(
                 QtGui.QIcon(
-                    str(self.data_folder/"images"/"DDOSwitchIcon.png")
+                    str(get_resource(
+                        Path("images/DDOSwitchIcon.png"), program_settings.ui_locale))
                 )
             )
-            self.winMain.actionDDOTest.setEnabled(False)
-            self.winMain.actionDDOTest.setVisible(False)
-            self.winMain.actionLOTROTest.setEnabled(True)
-            self.winMain.actionLOTROTest.setVisible(True)
-            self.winMain.actionLOTRO.setEnabled(False)
-            self.winMain.actionLOTRO.setVisible(False)
-            self.winMain.actionDDO.setEnabled(False)
-            self.winMain.actionDDO.setVisible(False)
+
+            games = game_settings.lotro_sorting_modes[program_settings.games_sorting_mode].copy(
+            )
+        # There is no need to show an action for the currently active game
+        games.remove(game_settings.current_game)
+
+        menu = QtWidgets.QMenu()
+        menu.triggered.connect(self.game_switch_action_triggered)
+        for game in games:
+            action = QtGui.QAction(game.name, self)
+            action.setData(game)
+            menu.addAction(action)
+        self.ui.btnSwitchGame.setMenu(menu)
+        # Needed for menu to show up for some reason
+        self.ui.btnSwitchGame.menu()
 
     def connectMainWindowThreadSignals(self):
         """Connects function signals for communicating with MainWindowThread."""
@@ -302,227 +242,122 @@ class MainWindow(QtWidgets.QMainWindow):
             keyring.set_keyring(SecretService.Keyring())
 
     def btnAboutSelected(self):
-        dlgAbout = QUiLoader().load(str(self.data_folder/"ui/winAbout.ui"), parentWidget=self)
+        dlgAbout = QtWidgets.QDialog(self, QtCore.Qt.Popup)
 
-        dlgAbout.setWindowFlags(QtCore.Qt.Popup)
+        ui = Ui_dlgAbout()
+        ui.setupUi(dlgAbout)
 
-        dlgAbout.lblDescription.setText(OneLauncher.__description__)
-        dlgAbout.lblRepoWebsite.setText(f"<a href='{OneLauncher.__project_url__}'>"
-                                        f"{OneLauncher.__project_url__}</a>")
-        dlgAbout.lblCopyright.setText(OneLauncher.__copyright__)
-        dlgAbout.lblVersion.setText(
+        ui.lblDescription.setText(OneLauncher.__description__)
+        ui.lblRepoWebsite.setText(f"<a href='{OneLauncher.__project_url__}'>"
+                                  f"{OneLauncher.__project_url__}</a>")
+        ui.lblCopyright.setText(OneLauncher.__copyright__)
+        ui.lblVersion.setText(
             "<b>Version:</b> " + OneLauncher.__version__)
-        dlgAbout.lblCopyrightHistory.setText(OneLauncher.__copyright_history__)
+        ui.lblCopyrightHistory.setText(OneLauncher.__copyright_history__)
 
-        dlgAbout.exec_()
+        dlgAbout.exec()
         self.resetFocus()
 
-    def manageBuiltInPrefix(self):
-        # Only manage prefix if prefix management is enabled and the program is on Linux or Mac
-        if not self.settings.builtinPrefixEnabled or Settings.usingWindows:
-            return True
-
-        winBuiltInPrefix = BuiltInPrefix(
-            Settings.builtin_prefix_dir,
-            Settings.documentsDir,
-            self,
+    def actionPatchSelected(self):
+        winPatch = PatchWindow(
+            self.dataCenter.patchServer,
+            self.baseConfig.gameDocumentsDir,
         )
 
-        wineProg = winBuiltInPrefix.Run()
-        if wineProg:
-            self.settings.wineProg = wineProg
-            self.settings.save_game_settings(
-                saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
-                savePassword=self.winMain.chkSavePassword.isChecked(),
-            )
-            return True
-        else:
-            self.AddLog(
-                "[E19] There was an error updating the WINE prefix. "
-                "You may want to check your network connection."
-            )
-            return False
-
-    def actionPatchSelected(self):
-        prefix_status = self.manageBuiltInPrefix()
-        if prefix_status:
-            winPatch = PatchWindow(
-                self.dataCenter.patchServer,
-                self.worldQueueConfig.patchProductCode,
-                self.settings.language,
-                self.settings.gameDir,
-                self.settings.patchClient,
-                self.settings.wineProg,
-                self.settings.highResEnabled,
-                self.settings.winePrefix,
-                self.settings.wineDebug,
-                self,
-                self.data_folder,
-                self.settings.currentGame,
-                self.baseConfig.gameDocumentsDir,
-            )
-
-            winPatch.Run()
-            self.resetFocus()
+        winPatch.Run()
+        self.resetFocus()
 
     def btnOptionsSelected(self):
-        winSettings = SettingsWindow(
-            self.settings.highResEnabled,
-            self.settings.wineProg,
-            self.settings.wineDebug,
-            self.settings.patchClient,
-            self.settings.winePrefix,
-            self.settings.gameDir,
-            self.settings,
-            LanguageConfig,
-            self,
-            self.data_folder,
-        )
-
-        if winSettings.Run() == QtWidgets.QDialog.Accepted:
-            self.settings.highResEnabled = winSettings.getHighRes()
-            self.settings.client = winSettings.getClient()
-            self.settings.patchClient = winSettings.getPatchClient()
-            self.settings.gameDir = winSettings.getGameDir()
-            if winSettings.getLanguage():
-                self.settings.language = winSettings.getLanguage()
-
-            if not Settings.usingWindows:
-                self.settings.wineDebug = winSettings.getDebug()
-                self.settings.builtinPrefixEnabled = winSettings.getBuiltinPrefixEnabled()
-                if not self.settings.builtinPrefixEnabled:
-                    self.settings.wineProg = winSettings.getProg()
-                    self.settings.winePrefix = winSettings.getPrefix()
-
-            self.settings.save_game_settings(
-                saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
-                savePassword=self.winMain.chkSavePassword.isChecked(),
-            )
-            self.resetFocus()
-            self.InitialSetup()
-        else:
-            if winSettings.getSetupWizardClicked():
-                self.settingsWizardCalled()
-            else:
-                self.resetFocus()
+        try:
+            winSettings = SettingsWindow(game_settings.current_game,
+                                         self.worldQueueConfig.gameClientFilename)
+        except AttributeError:
+            winSettings = SettingsWindow(game_settings.current_game, None)
+        winSettings.accepted.connect(self.InitialSetup)
+        winSettings.open()
 
     def btnAddonManagerSelected(self):
         winAddonManager = AddonManager(
-            self.settings.currentGame,
-            self,
-            self.data_folder,
             self.baseConfig.gameDocumentsDir,
-            self.settings.startupScripts,
         )
-
         winAddonManager.Run()
-        self.settings.save_game_settings(
-            saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
-            savePassword=self.winMain.chkSavePassword.isChecked(),
-        )
+        game_settings.save()
 
         self.resetFocus()
 
-    def settingsWizardCalled(self):
-        winWizard = SetupWizard(
-            self.data_folder)
-        self.hide()
-
-        if winWizard.Run() == QtWidgets.QDialog.Accepted:
-            default_game = winWizard.getGame()
-            if default_game:
-                game_list = ["LOTRO", "DDO", "LOTRO.Test", "DDO.Test"]
-                game_list.append(game_list.pop(game_list.index(default_game)))
-                for game in game_list:
-                    dir = winWizard.getGameDir(game)
-                    if dir:
-                        self.settings.gameDir = dir
-                        self.settings.highResEnabled = winWizard.getHiRes(
-                            self.settings.gameDir
-                        )
-                        self.settings.winePrefix = ""
-                        self.settings.save_game_settings(game=game)
-
-                self.InitialSetup()
-
-        self.show()
-
     def btnSwitchGameClicked(self):
-        if self.settings.currentGame.startswith("DDO"):
-            self.currentGame = "LOTRO"
+        if game_settings.current_game.game_type == "DDO":
+            game_settings.current_game = game_settings.lotro_sorting_modes[
+                program_settings.games_sorting_mode][0]
         else:
-            self.currentGame = "DDO"
+            game_settings.current_game = game_settings.ddo_sorting_modes[
+                program_settings.games_sorting_mode][0]
         self.InitialSetup()
 
-    def SwitchToDDOTest(self):
-        self.currentGame = "DDO.Test"
-        self.InitialSetup()
-
-    def SwitchToLOTROTest(self):
-        self.currentGame = "LOTRO.Test"
-        self.InitialSetup()
-
-    def SwitchToLOTRO(self):
-        self.currentGame = "LOTRO"
-        self.InitialSetup()
-
-    def SwitchToDDO(self):
-        self.currentGame = "DDO"
+    def game_switch_action_triggered(self, action: QtGui.QAction):
+        game_settings.current_game = action.data()
         self.InitialSetup()
 
     def btnLoginClicked(self):
         if (
-            self.winMain.cboAccount.currentText() == ""
-            or self.winMain.txtPassword.text() == ""
+            self.ui.cboAccount.currentText() == ""
+            or self.ui.txtPassword.text() == ""
         ):
             self.AddLog(
                 '<font color="Khaki">Please enter account name and password</font>'
             )
         else:
-            prefix_status = self.manageBuiltInPrefix()
-            if prefix_status:
-                self.AuthAccount()
+            self.AuthAccount()
+
+    def save_settings(self):
+        program_settings.save_accounts = self.ui.chkSaveSettings.isChecked()
+        program_settings.save_accounts_passwords = self.ui.chkSavePassword.isChecked()
+
+        program_settings.save()
+        game_settings.save()
 
     def cboAccountChanged(self):
         """Sets saved information for selected account."""
         self.setCurrentAccountWorld()
         self.setCurrentAccountPassword()
-        self.winMain.txtPassword.setFocus()
+        self.ui.txtPassword.setFocus()
 
     def loadAllSavedAccounts(self):
-        accounts = list(self.settings.accountsDictionary.keys())
+        if program_settings.save_accounts is False:
+            game_settings.current_game.accounts = {}
+            return
+
+        accounts = list(game_settings.current_game.accounts.values())
+        if not accounts:
+            return
 
         # Accounts are read backwards, so they
         # are in order of most recentally played
         for account in accounts[::-1]:
-            self.winMain.cboAccount.addItem(account)
+            self.ui.cboAccount.addItem(account.name, userData=account)
+
+        self.ui.cboAccount.setCurrentText(accounts[-1].name)
 
     def setCurrentAccountWorld(self):
-        if not self.settings.focusAccount and self.settings.accountsDictionary:
-            current_account = self.winMain.cboAccount.currentText()
-            account_world = self.settings.accountsDictionary[current_account][0]
+        account: Settings.Account = self.ui.cboAccount.currentData()
+        if type(account) != Settings.Account:
+            return
 
-            self.winMain.cboWorld.setCurrentText(account_world)
+        self.ui.cboWorld.setCurrentText(account.last_used_world_name)
+
+    def get_current_keyring_username(self) -> str:
+        return str(game_settings.current_game.uuid) + \
+            self.ui.cboAccount.currentText()
 
     def setCurrentAccountPassword(self):
-        if self.settings.savePassword:
-            self.winMain.chkSavePassword.setChecked(True)
-            if self.settings.currentGame.startswith("DDO"):
-                self.winMain.txtPassword.setText(
-                    keyring.get_password(
-                        f"{OneLauncher.__title__}DDO",
-                        self.winMain.cboAccount.currentText(),
-                    )
-                )
-            else:
-                self.winMain.txtPassword.setText(
-                    keyring.get_password(
-                        f"{OneLauncher.__title__}LOTRO",
-                        self.winMain.cboAccount.currentText(),
-                    )
-                )
-        else:
-            self.winMain.txtPassword.setFocus()
+        keyring_username = self.get_current_keyring_username()
+
+        if not program_settings.save_accounts_passwords:
+            self.ui.txtPassword.setFocus()
+            return
+
+        self.ui.txtPassword.setText(keyring.get_password(
+            OneLauncher.__title__, keyring_username) or "")
 
     def AuthAccount(self):
         self.AddLog("Checking account details...")
@@ -534,87 +369,68 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.account = AuthenticateUser(
             self.dataCenter.authServer,
-            self.winMain.cboAccount.currentText(),
-            self.winMain.txtPassword.text(),
+            self.ui.cboAccount.currentText(),
+            self.ui.txtPassword.text(),
             self.baseConfig.gameName,
         )
 
         # don't keep password longer in memory than required
-        if not self.winMain.chkSavePassword.isChecked():
-            self.winMain.txtPassword.clear()
+        if not self.ui.chkSavePassword.isChecked():
+            self.ui.txtPassword.clear()
 
         if self.account.authSuccess:
             self.AddLog("Account authenticated")
 
-            if self.winMain.chkSaveSettings.isChecked():
-                current_account = self.winMain.cboAccount.currentText()
-
-                # Test servers only have one world and shouldn't
-                # overwrite world setting on normal servers
-                if self.settings.currentGame.endswith(".Test"):
-                    world = self.settings.accountsDictionary[current_account][0]
+            if self.ui.chkSaveSettings.isChecked():
+                if type(self.ui.cboAccount.currentData()) == Settings.Account:
+                    current_account = self.ui.cboAccount.currentData()
                 else:
-                    world = self.winMain.cboWorld.currentText()
+                    current_account = Settings.Account(
+                        self.ui.cboAccount.currentText(), self.ui.cboWorld.currentText())
+                    self.ui.cboAccount.setItemData(
+                        self.ui.cboAccount.currentIndex(), current_account)
 
                 # Account is deleted first, because accounts are in order of
                 # the most recently played at the end.
                 try:
-                    del self.settings.accountsDictionary[current_account]
+                    del game_settings.current_game.accounts[current_account.name]
                 except KeyError:
                     pass
-                self.settings.accountsDictionary[current_account] = [world]
+                game_settings.current_game.accounts[current_account.name] = current_account
 
-                self.settings.save_game_settings(
-                    saveAccountDetails=self.winMain.chkSaveSettings.isChecked(),
-                    savePassword=self.winMain.chkSavePassword.isChecked(),
-                )
+                self.save_settings()
 
-                if self.winMain.chkSavePassword.isChecked():
-                    if self.settings.currentGame.startswith("DDO"):
-                        keyring.set_password(
-                            f"{OneLauncher.__title__}DDO",
-                            self.winMain.cboAccount.currentText(),
-                            self.winMain.txtPassword.text(),
-                        )
-                    else:
-                        keyring.set_password(
-                            f"{OneLauncher.__title__}LOTRO",
-                            self.winMain.cboAccount.currentText(),
-                            self.winMain.txtPassword.text(),
-                        )
+                keyring_username = self.get_current_keyring_username()
+                if self.ui.chkSavePassword.isChecked():
+                    keyring.set_password(
+                        OneLauncher.__title__,
+                        keyring_username,
+                        self.ui.txtPassword.text(),
+                    )
                 else:
                     try:
-                        if self.settings.currentGame.startswith("DDO"):
-                            keyring.delete_password(
-                                f"{OneLauncher.__title__}DDO",
-                                self.winMain.cboAccount.currentText(),
-                            )
-                        else:
-                            keyring.delete_password(
-                                f"{OneLauncher.__title__}LOTRO",
-                                self.winMain.cboAccount.currentText(),
-                            )
+                        keyring.delete_password(
+                            OneLauncher.__title__,
+                            keyring_username,
+                        )
                     except keyring.errors.PasswordDeleteError:
                         pass
 
-            tempWorld = ""
-
             if len(self.account.gameList) > 1:
-                dlgChooseAccount = QUiLoader().load(
-                    str(self.data_folder/"ui/winSelectAccount.ui"), parentWidget=self)
+                choose_account_dialog = QtWidgets.QDialog(self)
+                ui = Ui_dlgChooseAccount()
+                ui.setupUi(choose_account_dialog)
 
-                dlgChooseAccount.setWindowFlags(QtCore.Qt.Popup)
-
-                dlgChooseAccount.lblMessage.setText(
+                ui.lblMessage.setText(
                     "Multiple game accounts found\n\nPlease select the required game"
                 )
 
                 for game in self.account.gameList:
-                    dlgChooseAccount.comboBox.addItem(game.description)
+                    ui.comboBox.addItem(game.description)
 
-                if dlgChooseAccount.exec_() == QtWidgets.QDialog.Accepted:
+                if choose_account_dialog.exec() == QtWidgets.QDialog.Accepted:
                     self.accNumber = self.account.gameList[
-                        dlgChooseAccount.comboBox.currentIndex()
+                        ui.comboBox.currentIndex()
                     ].name
                     self.resetFocus()
                 else:
@@ -624,8 +440,7 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 self.accNumber = self.account.gameList[0].name
 
-            tempWorld = self.dataCenter.worldList[self.winMain.cboWorld.currentIndex(
-            )]
+            tempWorld: World = self.ui.cboWorld.currentData()
             tempWorld.CheckWorld()
 
             if tempWorld.worldAvailable:
@@ -647,19 +462,12 @@ class MainWindow(QtWidgets.QMainWindow):
     def LaunchGame(self):
         game = StartGame(
             self.worldQueueConfig.gameClientFilename,
-            self.settings.client,
+            game_settings.current_game,
             self.worldQueueConfig.gameClientArgTemplate,
             self.accNumber,
             self.urlLoginServer,
             self.account.ticket,
             self.urlChatServer,
-            self.settings.language,
-            self.settings.gameDir,
-            self.settings.wineProg,
-            self.settings.wineDebug,
-            self.settings.winePrefix,
-            self.settings.highResEnabled,
-            self.settings.builtinPrefixEnabled,
             self.worldQueueConfig.crashreceiver,
             self.worldQueueConfig.DefaultUploadThrottleMbps,
             self.worldQueueConfig.bugurl,
@@ -667,11 +475,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.worldQueueConfig.supporturl,
             self.worldQueueConfig.supportserviceurl,
             self.worldQueueConfig.glsticketlifetime,
-            self.winMain.cboWorld.currentText(),
-            self.winMain.cboAccount.currentText(),
-            self,
-            self.data_folder,
-            self.settings.startupScripts,
+            self.ui.cboWorld.currentText(),
+            self.ui.cboAccount.currentText(),
             self.baseConfig.gameDocumentsDir,
         )
         game.Run()
@@ -750,7 +555,7 @@ class MainWindow(QtWidgets.QMainWindow):
             name = release_dictionary["name"]
             description = release_dictionary["body"]
 
-            messageBox = QtWidgets.QMessageBox(self.winMain)
+            messageBox = QtWidgets.QMessageBox(self)
             messageBox.setWindowFlag(QtCore.Qt.FramelessWindowHint)
             messageBox.setIcon(QtWidgets.QMessageBox.Information)
             messageBox.setStandardButtons(messageBox.Ok)
@@ -763,28 +568,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 f"There is a new version of {OneLauncher.__title__} available! {centered_href}"
             )
             messageBox.setDetailedText(description)
-            self.showMessageBoxDetailsAsMarkdown(messageBox)
+            show_message_box_details_as_markdown(messageBox)
             messageBox.exec()
         else:
             self.AddLog(f"{OneLauncher.__title__} is up to date.")
-
-    def showMessageBoxDetailsAsMarkdown(self, messageBox: QtWidgets.QMessageBox):
-        """Makes the detailed text of messageBox display in Markdown format"""
-        button_box = messageBox.findChild(
-            QtWidgets.QDialogButtonBox, "qt_msgbox_buttonbox"
-        )
-        for button in button_box.buttons():
-            if (
-                messageBox.buttonRole(
-                    button) == QtWidgets.QMessageBox.ActionRole
-                and button.text() == "Show Details..."
-            ):
-                button.click()
-                detailed_text_widget = messageBox.findChild(
-                    QtWidgets.QTextEdit)
-                detailed_text_widget.setMarkdown(messageBox.detailedText())
-                button.click()
-                return
 
     def getLaunchArgument(self, key: str, accepted_values: List[str]):
         launch_arguments = sys.argv
@@ -802,21 +589,23 @@ class MainWindow(QtWidgets.QMainWindow):
                     return value
 
     def InitialSetup(self, first_setup=False):
-        self.winMain.cboAccount.setEnabled(False)
-        self.winMain.txtPassword.setEnabled(False)
-        self.winMain.btnLogin.setEnabled(False)
-        self.winMain.chkSaveSettings.setEnabled(False)
-        self.winMain.chkSavePassword.setEnabled(False)
-        self.winMain.btnOptions.setEnabled(False)
-        self.winMain.btnSwitchGame.setEnabled(False)
+        self.ui.cboAccount.setEnabled(False)
+        self.ui.cboAccount.setFocus()
+        self.ui.txtPassword.setEnabled(False)
+        self.ui.btnLogin.setEnabled(False)
+        self.ui.chkSaveSettings.setEnabled(False)
+        self.ui.chkSavePassword.setEnabled(False)
+        self.ui.btnOptions.setEnabled(False)
+        self.ui.btnSwitchGame.setEnabled(False)
 
-        if self.settings is None:
-            self.settings = Settings.Settings()
+        self.ui.chkSaveSettings.setChecked(program_settings.save_accounts)
+        self.ui.chkSavePassword.setChecked(
+            program_settings.save_accounts_passwords)
 
-        self.winMain.cboAccount.clear()
-        self.winMain.cboAccount.setCurrentText("")
-        self.winMain.txtPassword.setText("")
-        self.winMain.cboWorld.clear()
+        self.ui.cboAccount.clear()
+        self.ui.cboAccount.setCurrentText("")
+        self.ui.txtPassword.setText("")
+        self.ui.cboWorld.clear()
         self.ClearLog()
         self.ClearNews()
 
@@ -829,51 +618,17 @@ class MainWindow(QtWidgets.QMainWindow):
             if game:
                 self.currentGame = game
 
-        sslContext = checkForCertificates(self.data_folder)
+        sslContext = checkForCertificates()
 
         # Set news feed to say "Loading ..." until it is replaced by the news.
-        self.winMain.txtFeed.setHtml(
+        self.ui.txtFeed.setHtml(
             '<html><body><p style="text-align:center;">Loading ...</p></body></html>'
         )
 
         self.AddLog("Initializing, please wait...")
 
-        settings_load_success = self.settings.load_game_settings(
-            self.currentGame)
-        # Prints error message from settings if present.
-        if settings_load_success and settings_load_success is not True:
-            self.AddLog(settings_load_success)
-        elif not settings_load_success:
-            # Checks if the user is running OneLauncher for the first time
-            #  and calls the setup Wizard
-            if not self.settings.settingsFile.exists():
-                logger.debug("First run/no settings file found")
-                self.settingsWizardCalled()
-
-                if not self.settings.settingsFile.exists():
-                    self.AddLog(
-                        "[E17] Settings file does not exist. Please "
-                        "restart the program to access setup wizard."
-                    )
-
-                return False
-            else:
-                self.AddLog("[E01] Error loading settings")
-        else:
-            if self.settings.focusAccount:
-                self.winMain.cboAccount.setFocus()
-                self.winMain.chkSaveSettings.setChecked(False)
-            else:
-                self.loadAllSavedAccounts()
-                if self.settings.accountsDictionary:
-                    self.winMain.cboAccount.setCurrentText(
-                        list(self.settings.accountsDictionary.keys())[-1]
-                    )
-                    self.winMain.chkSaveSettings.setChecked(True)
-
-                    self.winMain.chkSavePassword.setChecked(False)
-
-                    self.setCurrentAccountPassword()
+        self.loadAllSavedAccounts()
+        self.setCurrentAccountPassword()
 
         # Set specific client language if specified in launch argument
         # This is an advanced feature, so there are no checks to make
@@ -883,29 +638,30 @@ class MainWindow(QtWidgets.QMainWindow):
         if language:
             self.settings.language = language
 
-        self.gameType.GetSettings(self.settings.currentGame)
+        self.ui.imgMain.setPixmap(QtGui.QPixmap(str(get_resource(
+            Path(f"images/{game_settings.current_game.game_type}_banner.png"), program_settings.ui_locale))))
+        self.setWindowTitle(
+            f"{OneLauncher.__title__} - {game_settings.current_game.name}")
 
-        pngFile = self.data_folder/self.gameType.pngFile
-        iconFile = self.data_folder/self.gameType.iconFile
+        # Setup btnSwitchGame for current game
+        self.setup_switch_game_button()
 
-        self.winMain.imgMain.setPixmap(QtGui.QPixmap(str(pngFile)))
-        self.setWindowTitle(self.gameType.title)
-        self.setWindowIcon(QtGui.QIcon(str(iconFile)))
-
-        # Configure btnSwitchGame for current game
-        self.configureBtnSwitchGameForGame(self.settings.currentGame)
-
-        self.configFile = self.settings.gameDir/self.gameType.configFile
-        self.configFileAlt = self.settings.gameDir/self.gameType.configFileAlt
-
-        if not self.settings.gameDir.exists():
+        if not game_settings.current_game.game_directory.exists():
             self.AddLog("[E13] Game Directory not found")
+            return
+
+        if not (game_settings.current_game.game_directory /
+                f"client_local_{game_settings.current_game.locale.game_language_name}.dat").exists():
+            self.AddLog("[E20] There is no game language data for "
+                        f"{game_settings.current_game.locale.display_name} installed "
+                        f"You may have to select {game_settings.current_game.locale.display_name}"
+                        " in the normal game launcher and wait for the data to download."
+                        " The normal game launcher can be opened from the settings menu.")
+
+        self.resetFocus()
 
         self.configThread = MainWindowThread()
         self.configThread.SetUp(
-            self.settings,
-            self.configFile,
-            self.configFileAlt,
             self.ReturnLog,
             self.ReturnBaseConfig,
             self.ReturnGLSDataCenter,
@@ -922,43 +678,31 @@ class MainWindow(QtWidgets.QMainWindow):
         self.dataCenter = dataCenter
 
         for world in self.dataCenter.worldList:
-            self.winMain.cboWorld.addItem(world.name)
+            self.ui.cboWorld.addItem(world.name, userData=world)
 
         self.setCurrentAccountWorld()
 
     def GetWorldQueueConfig(self, worldQueueConfig):
         self.worldQueueConfig = worldQueueConfig
 
-        self.winMain.actionPatch.setEnabled(True)
-        self.winMain.actionPatch.setVisible(True)
-        self.winMain.btnLogin.setEnabled(True)
-        self.winMain.chkSaveSettings.setEnabled(True)
-        self.winMain.chkSavePassword.setEnabled(True)
-        self.winMain.cboAccount.setEnabled(True)
-        self.winMain.txtPassword.setEnabled(True)
-
-        if self.settings.focusAccount:
-            self.winMain.cboAccount.setFocus()
-            self.winMain.chkSaveSettings.setChecked(False)
-        else:
-            if self.settings.accountsDictionary:
-                self.winMain.cboAccount.setCurrentText(
-                    list(self.settings.accountsDictionary.keys())[-1]
-                )
-                self.winMain.chkSaveSettings.setChecked(True)
-                if not self.winMain.chkSavePassword.isChecked():
-                    self.winMain.txtPassword.setFocus()
+        self.ui.actionPatch.setEnabled(True)
+        self.ui.actionPatch.setVisible(True)
+        self.ui.btnLogin.setEnabled(True)
+        self.ui.chkSaveSettings.setEnabled(True)
+        self.ui.chkSavePassword.setEnabled(True)
+        self.ui.cboAccount.setEnabled(True)
+        self.ui.txtPassword.setEnabled(True)
 
     def GetNews(self, news):
-        self.winMain.txtFeed.setHtml(news)
+        self.ui.txtFeed.setHtml(news)
 
         self.configThreadFinished()
 
     def ClearLog(self):
-        self.winMain.txtStatus.setText("")
+        self.ui.txtStatus.setText("")
 
     def ClearNews(self):
-        self.winMain.txtFeed.setText("")
+        self.ui.txtFeed.setText("")
 
     def AddLog(self, message):
         for line in message.splitlines():
@@ -969,24 +713,21 @@ class MainWindow(QtWidgets.QMainWindow):
                 line = '<font color="red">' + message + "</font>"
 
                 # Enable buttons that won't normally get re-enabled if MainWindowThread gets frozen.
-                self.winMain.btnOptions.setEnabled(True)
-                self.winMain.btnSwitchGame.setEnabled(True)
+                self.ui.btnOptions.setEnabled(True)
+                self.ui.btnSwitchGame.setEnabled(True)
             else:
                 logger.info(line)
 
-            self.winMain.txtStatus.append(line)
+            self.ui.txtStatus.append(line)
 
     def configThreadFinished(self):
-        self.winMain.btnOptions.setEnabled(True)
-        self.winMain.btnSwitchGame.setEnabled(True)
+        self.ui.btnOptions.setEnabled(True)
+        self.ui.btnSwitchGame.setEnabled(True)
 
 
 class MainWindowThread(QtCore.QThread):
     def SetUp(
         self,
-        settings,
-        configFile: Path,
-        configFileAlt,
         ReturnLog,
         ReturnBaseConfig,
         ReturnGLSDataCenter,
@@ -994,11 +735,6 @@ class MainWindowThread(QtCore.QThread):
         ReturnNews,
         sslContext,
     ):
-
-        self.settings = settings
-        self.configFile = configFile
-        self.configFileAlt = configFileAlt
-
         self.ReturnLog = ReturnLog
         self.ReturnBaseConfig = ReturnBaseConfig
         self.ReturnGLSDataCenter = ReturnGLSDataCenter
@@ -1007,45 +743,16 @@ class MainWindowThread(QtCore.QThread):
         self.sslContext = sslContext
 
     def run(self):
-        self.LoadLanguageList()
-
-    def LoadLanguageList(self):
-        if self.settings.gameDir.exists():
-            langConfig = LanguageConfig(self.settings.gameDir)
-
-            if langConfig.langFound:
-                # Set language to first one detected if none are configured yet
-                if not self.settings.language:
-                    self.settings.language = langConfig.langList[0]
-
-                self.ReturnLog.emit("Available languages checked.")
-
-                self.LoadLauncherConfig()
-            else:
-                self.ReturnLog.emit("[E02] No language files found.")
+        self.LoadLauncherConfig()
 
     def LoadLauncherConfig(self):
-        self.baseConfig = BaseConfig(self.configFile)
+        self.baseConfig = BaseConfig(game_settings.current_game)
 
-        if self.baseConfig.isConfigOK:
-            self.ReturnBaseConfig.emit(self.baseConfig)
+        self.ReturnBaseConfig.emit(self.baseConfig)
 
-            self.AccessGLSDataCenter(
-                self.baseConfig.GLSDataCenterService, self.baseConfig.gameName
-            )
-        else:
-            self.baseConfig = BaseConfig(self.configFileAlt)
-
-            if self.baseConfig.isConfigOK:
-                self.ReturnBaseConfig.emit(self.baseConfig)
-
-                self.AccessGLSDataCenter(
-                    self.baseConfig.GLSDataCenterService,
-                    self.baseConfig.gameName,
-                )
-            else:
-                self.ReturnLog.emit(
-                    "[E03] Error reading launcher configuration file.")
+        self.AccessGLSDataCenter(
+            self.baseConfig.GLSDataCenterService, self.baseConfig.gameName
+        )
 
     def AccessGLSDataCenter(self, urlGLS, gameName):
         self.dataCenter = GLSDataCenter(
@@ -1062,9 +769,7 @@ class MainWindowThread(QtCore.QThread):
 
     def GetWorldQueueConfig(self, urlWorldQueueServer):
         self.worldQueueConfig = WorldQueueConfig(
-            urlWorldQueueServer,
-            self.settings.gameDir,
-            self.settings.client,
+            urlWorldQueueServer, game_settings.current_game
         )
 
         if self.worldQueueConfig.message:
@@ -1080,98 +785,105 @@ class MainWindowThread(QtCore.QThread):
                 "[E05] Error getting world queue configuration.")
 
     def GetNews(self):
-        try:
-            with urllib.request.urlopen(self.worldQueueConfig.newsStyleSheetURL, context=self.sslContext) as xml_feed:
-                doc = defusedxml.minidom.parseString(
-                    xml_feed.read(), forbid_entities=False)
+        with urllib.request.urlopen(self.worldQueueConfig.newsStyleSheetURL, context=self.sslContext) as xml_feed:
+            doc = defusedxml.minidom.parseString(
+                xml_feed.read(), forbid_entities=False)
 
-            nodes = doc.getElementsByTagName("div")
-            for node in nodes:
-                if node.nodeType == node.ELEMENT_NODE and (
-                    node.attributes.item(0).firstChild.nodeValue
-                    == "launcherNewsItemDate"
-                ):
-                    timeCode = GetText(node.childNodes).strip()
-                    timeCode = (
-                        timeCode.replace("\t", "").replace(
-                            ",", "").replace("-", "")
-                    )
-                    if len(timeCode) > 0:
-                        timeCode = " %s" % (timeCode)
+        nodes = doc.getElementsByTagName("div")
+        for node in nodes:
+            if node.nodeType == node.ELEMENT_NODE and (
+                node.attributes.item(0).firstChild.nodeValue
+                == "launcherNewsItemDate"
+            ):
+                timeCode = GetText(node.childNodes).strip()
+                timeCode = (
+                    timeCode.replace("\t", "").replace(
+                        ",", "").replace("-", "")
+                )
+                if len(timeCode) > 0:
+                    timeCode = " %s" % (timeCode)
 
-            links = doc.getElementsByTagName("link")
-            for link in links:
-                if link.nodeType == link.ELEMENT_NODE:
-                    href = link.attributes["href"]
+        links = doc.getElementsByTagName("link")
+        for link in links:
+            if link.nodeType == link.ELEMENT_NODE:
+                href = link.attributes["href"]
 
-            # Ignore broken href (as of 3/30/16) in the style sheet and use Launcher.
-            # NewsFeedCSSUrl defined in launcher.config
-            href.value = self.worldQueueConfig.newsFeedCSSURL
+        # Ignore broken href (as of 3/30/16) in the style sheet and use Launcher.
+        # NewsFeedCSSUrl defined in launcher.config
+        href.value = self.worldQueueConfig.newsFeedCSSURL
 
-            HTMLTEMPLATE = '<html><head><link rel="stylesheet" type="text/css" href="'
-            HTMLTEMPLATE += href.value
-            HTMLTEMPLATE += (
-                '"/><base target="_blank"/></head><body><div '
-                'class="launcherNewsItemsContainer" style="width:auto">'
+        HTMLTEMPLATE = '<html><head><link rel="stylesheet" type="text/css" href="'
+        HTMLTEMPLATE += href.value
+        HTMLTEMPLATE += (
+            '"/><base target="_blank"/></head><body><div '
+            'class="launcherNewsItemsContainer" style="width:auto">'
+        )
+
+        if game_settings.current_game.newsfeed:
+            urlNewsFeed = game_settings.current_game.newsfeed
+        else:
+            urlNewsFeed = self.worldQueueConfig.newsFeedURL.replace(
+                "{lang}", program_settings.ui_locale.lang_tag.split("-")[0]
             )
 
-            # DDO test client doesn't provide a news feed, so one from the forums is used.
-            if self.settings.currentGame == "DDO.Test":
-                urlNewsFeed = (
-                    "https://www.ddo.com/forums/external.php?type=RSS2&forumids=266"
-                )
-            else:
-                urlNewsFeed = self.worldQueueConfig.newsFeedURL.replace(
-                    "{lang}", self.settings.language.lower()
-                )
+        result = HTMLTEMPLATE
 
-            result = HTMLTEMPLATE
-
+        try:
             with urllib.request.urlopen(urlNewsFeed, context=self.sslContext) as xml_feed:
-                doc = defusedxml.minidom.parseString(xml_feed.read())
+                try:
+                    doc = defusedxml.minidom.parseString(xml_feed.read())
+                except xml.parsers.expat.ExpatError:
+                    message = "The news feed is invalid. This is normal for the DDO preview client."
+                    logger.warning(message)
+                    self.ReturnNews.emit(
+                        f"<html><body><center>{message}</center></body></html>")
+                    return
+        except (urllib.error.URLError, urllib.error.HTTPError):
+            message = "There was an error downloading the news feed. You may want to check your network connection."
+            logger.warning(message)
+            self.ReturnNews.emit(
+                f"<html><body><center>{message}</center></body></html>")
+            return
 
-            items = doc.getElementsByTagName("item")
-            for item in items:
-                title = ""
-                description = ""
-                date = ""
+        items = doc.getElementsByTagName("item")
+        for item in items:
+            title = ""
+            description = ""
+            date = ""
 
-                for node in item.childNodes:
-                    if node.nodeType == node.ELEMENT_NODE:
-                        if node.nodeName == "title":
-                            title = (
-                                '<font color="gold"><div class="launcherNewsItemTitle">%s</div></font>'
-                                % (GetText(node.childNodes))
-                            )
-                        elif node.nodeName == "description":
-                            description = (
-                                '<div class="launcherNewsItemDescription">%s</div>'
-                                % (GetText(node.childNodes))
-                            )
-                        elif node.nodeName == "pubDate":
-                            tempDate = GetText(node.childNodes)
-                            dispDate = "%s %s %s %s%s" % (
-                                tempDate[8:11],
-                                tempDate[5:7],
-                                tempDate[12:16],
-                                tempDate[17:22],
-                                timeCode,
-                            )
-                            date = (
-                                '<small><i><div align="right"class="launcherNewsItemDate">%s</div></i></small>'
-                                % (dispDate)
-                            )
+            for node in item.childNodes:
+                if node.nodeType == node.ELEMENT_NODE:
+                    if node.nodeName == "title":
+                        title = (
+                            '<font color="gold"><div class="launcherNewsItemTitle">%s</div></font>'
+                            % (GetText(node.childNodes))
+                        )
+                    elif node.nodeName == "description":
+                        description = (
+                            '<div class="launcherNewsItemDescription">%s</div>'
+                            % (GetText(node.childNodes))
+                        )
+                    elif node.nodeName == "pubDate":
+                        tempDate = GetText(node.childNodes)
+                        displayDate = "%s %s %s %s%s" % (
+                            tempDate[8:11],
+                            tempDate[5:7],
+                            tempDate[12:16],
+                            tempDate[17:22],
+                            timeCode,
+                        )
+                        date = (
+                            '<small><i><div align="right"class="launcherNewsItemDate">%s</div></i></small>'
+                            % (displayDate)
+                        )
 
-                result += '<div class="launcherNewsItemContainer">%s%s%s%s</div>' % (
-                    title,
-                    date,
-                    description,
-                    "<hr>",
-                )
+            result += '<div class="launcherNewsItemContainer">%s%s%s%s</div>' % (
+                title,
+                date,
+                description,
+                "<hr>",
+            )
 
-            result += "</div></body></html>"
+        result += "</div></body></html>"
 
-            self.ReturnNews.emit(result)
-        except Exception as error:
-            self.ReturnLog.emit("[E12] Error getting news")
-            logger.warning(error)
+        self.ReturnNews.emit(result)

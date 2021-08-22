@@ -26,6 +26,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
+from OneLauncher.resources import get_resource
 import os
 import ssl
 from codecs import open as uopen
@@ -37,7 +38,7 @@ from xml.sax.saxutils import escape as xml_escape
 import defusedxml.minidom
 
 import OneLauncher
-from OneLauncher import Settings, logger
+from OneLauncher import Settings, logger, program_settings
 
 
 def string_encode(s):
@@ -55,12 +56,12 @@ def QByteArray2str(s):
 sslContext = None
 
 
-def checkForCertificates(data_folder: Path):
+def checkForCertificates():
     # Try to locate the server certificates for HTTPS connections
-    certfile = data_folder/"certificates/ca_certs.pem"
+    certfile = get_resource(Path("certificates/ca_certs.pem"), program_settings.ui_locale)
 
     if certfile and not os.access(certfile, os.R_OK):
-        logger.error(
+        OneLauncher.logger.error(
             "certificate file expected at '%s' but not found!" % certfile)
         certfile = None
 
@@ -70,7 +71,7 @@ def checkForCertificates(data_folder: Path):
     if certfile:
         sslContext.verify_mode = ssl.CERT_REQUIRED
         sslContext.load_verify_locations(certfile)
-        logger.info("SSL certificate verification enabled!")
+        OneLauncher.logger.info("SSL certificate verification enabled!")
     return sslContext
 
 
@@ -97,53 +98,34 @@ def GetText(nodelist):
 
 
 class BaseConfig:
-    def __init__(self, configFile: Path):
+    def __init__(self, game: Settings.Game):
         self.GLSDataCenterService = ""
         self.gameName = ""
         self.gameDocumentsDir = ""
 
-        try:
-            doc = defusedxml.minidom.parse(str(configFile))
+        self.load(game.game_directory /
+                  "TurbineLauncher.exe.config", missing_ok=True)
+        self.load(game.game_directory /
+                  f"{game.game_type.lower()}.launcherconfig")
 
-            nodes = doc.getElementsByTagName("appSettings")[0].childNodes
-            for node in nodes:
-                if node.nodeType == node.ELEMENT_NODE:
-                    if node.getAttribute("key") == "Launcher.DataCenterService.GLS":
-                        self.GLSDataCenterService = node.getAttribute("value")
-                    elif node.getAttribute("key") == "DataCenter.GameName":
-                        self.gameName = node.getAttribute("value")
-                    elif node.getAttribute("key") == "Product.DocumentFolder":
-                        self.gameDocumentsDir = Path(
-                            node.getAttribute("value"))
+    def load(self, config_file: Path, missing_ok=False):
+        if not config_file.exists():
+            if not missing_ok:
+                logger.error(f"{config_file} does not exist.")
+            return
 
-            self.isConfigOK = True
-        except:
-            self.isConfigOK = False
+        doc = defusedxml.minidom.parse(str(config_file))
 
-
-class DetermineGame:
-    def __init__(self):
-        self.configFile = ""
-        self.configFileAlt = ""
-        self.iconFile = ""
-        self.pngFile = ""
-        self.title = ""
-
-    def GetSettings(self, currentGame):
-        self.configFileAlt = Path("TurbineLauncher.exe.config")
-
-        self.__test = "(Preview)" if currentGame.endswith(".Test") else ""
-        self.iconFile = Path("images/OneLauncherIcon.png")
-        if currentGame.startswith("DDO"):
-            self.configFile = Path("ddo.launcherconfig")
-            self.pngFile = Path("images")/"DDO.png"
-
-            self.title = f"{OneLauncher.__title__} - DDO {self.__test}"
-        else:
-            self.configFile = Path("lotro.launcherconfig")
-            self.pngFile = Path("images/LOTRO.png")
-
-            self.title = f"{OneLauncher.__title__} - LOTRO {self.__test}"
+        nodes = doc.getElementsByTagName("appSettings")[0].childNodes
+        for node in nodes:
+            if node.nodeType == node.ELEMENT_NODE:
+                if node.getAttribute("key") == "Launcher.DataCenterService.GLS":
+                    self.GLSDataCenterService = node.getAttribute("value")
+                elif node.getAttribute("key") == "DataCenter.GameName":
+                    self.gameName = node.getAttribute("value")
+                elif node.getAttribute("key") == "Product.DocumentFolder":
+                    self.gameDocumentsDir = Path(
+                        node.getAttribute("value"))
 
 
 class GLSDataCenter:
@@ -218,22 +200,6 @@ class GLSDataCenter:
             self.loadSuccess = False
 
 
-class LanguageConfig:
-    def __init__(self, runDir: Path):
-        self.langFound = False
-        self.langList = []
-
-        language_data_files = runDir.glob("client_local_*.dat")
-        if language_data_files:
-            self.langFound = True
-            for file in language_data_files:
-                # remove "client_local_" (13 chars) and ".dat" (4 chars) from filename
-                temp = str(file.name)[13:-4]
-                if temp == "English":
-                    temp = "EN"
-                self.langList.append(temp)
-
-
 class World:
     def __init__(self, name, urlChatServer, urlServerStatus):
         self.name = name
@@ -289,8 +255,8 @@ class World:
 
 
 class WorldQueueConfig:
-    def __init__(self, urlConfigServer, gameDir: Path, clientType):
-        self.gameClientFilename = ""
+    def __init__(self, urlConfigServer, game: Settings.Game):
+        self.gameClientFilename: str = ""
         self.gameClientArgTemplate = ""
         self.crashreceiver = ""
         self.DefaultUploadThrottleMbps = ""
@@ -316,7 +282,7 @@ class WorldQueueConfig:
             tempxml = string_decode(webresp.read())
 
             file_path = Settings.platform_dirs.user_cache_path/"game/launcher.config"
-            with uopen(file_path, "w", "utf-8") as outfile:
+            with uopen(str(file_path), "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 
             if tempxml == "":
@@ -325,12 +291,12 @@ class WorldQueueConfig:
                 doc = defusedxml.minidom.parseString(tempxml)
 
                 nodes = doc.getElementsByTagName("appSettings")[0].childNodes
-                clientFilenameKey = "GameClient." + clientType + ".Filename"
+                clientFilenameKey = f"GameClient.{game.client_type}.Filename"
                 for node in nodes:
                     if node.nodeType == node.ELEMENT_NODE:
                         if node.getAttribute("key") == clientFilenameKey:
-                            self.gameClientFilename = Path(node.getAttribute(
-                                "value"))
+                            self.gameClientFilename = node.getAttribute(
+                                "value")
                         elif node.getAttribute("key") == "GameClient.WIN32.ArgTemplate":
                             self.gameClientArgTemplate = node.getAttribute(
                                 "value")
@@ -380,13 +346,12 @@ class WorldQueueConfig:
             tempxml = ""
             filenames = [
                 "TurbineLauncher.exe.config",
-                "ddo.launcherconfig",
-                "lotro.launcherconfig",
+                f"{game.game_type.lower()}.launcherconfig",
             ]
             for filename in filenames:
-                filepath = gameDir/filename
+                filepath = game.game_directory/filename
                 if filepath.exists():
-                    with uopen(filepath, "r", "utf-8") as infile:
+                    with uopen(str(filepath), "r", "utf-8") as infile:
                         tempxml = infile.read()
                     doc = defusedxml.minidom.parseString(tempxml)
                     nodes = doc.getElementsByTagName(
@@ -396,8 +361,8 @@ class WorldQueueConfig:
                     for node in nodes:
                         if node.nodeType == node.ELEMENT_NODE:
                             if node.getAttribute("key") == "GameClient.WIN32.Filename":
-                                self.gameClientFilename = Path(node.getAttribute(
-                                    "value"))
+                                self.gameClientFilename = node.getAttribute(
+                                    "value")
                                 self.message = (
                                     '<font color="Khaki">'
                                     + filename
@@ -406,8 +371,8 @@ class WorldQueueConfig:
                                 )
 
                             if node.getAttribute("key") == "GameClient.WIN64.Filename":
-                                self.gameClientFilename = Path(node.getAttribute(
-                                    "value"))
+                                self.gameClientFilename = node.getAttribute(
+                                    "value")
                                 self.message = (
                                     '<font color="Khaki">' + filename + " 64-bit client"
                                     " override activated</font>"
@@ -565,3 +530,6 @@ class JoinWorldQueue:
                     self.joinSuccess = False
         except:
             self.joinSuccess = False
+
+
+(Settings.platform_dirs.user_cache_path/"game").mkdir(parents=True, exist_ok=True)

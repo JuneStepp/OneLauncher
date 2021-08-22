@@ -27,23 +27,24 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import sys
+from importlib import reload
 from pathlib import Path
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from OneLauncher import (Settings, __title__, __version__, game_settings,
-                         program_settings, resources, ui_locale)
+                         program_settings, resources)
 from OneLauncher.resources import get_resource
 
 
 def main():
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
     QtWidgets.QApplication(sys.argv)
-    qApp.setApplicationName = __title__
-    qApp.setApplicationDisplayName = __title__
-    qApp.setApplicationVersion = __version__
-    qApp.setWindowIcon = QtGui.QIcon(
-        str(get_resource(Path("images/OneLauncherIcon.png"), ui_locale)))
+    qApp.setApplicationName(__title__)
+    qApp.setApplicationDisplayName(__title__)
+    qApp.setApplicationVersion(__version__)
+    qApp.setWindowIcon(QtGui.QIcon(
+        str(get_resource(Path("images/OneLauncherIcon.png"), program_settings.ui_locale))))
 
     # Set font size explicitly to stop OS text size options from
     # breaking the UI.
@@ -62,16 +63,13 @@ def main():
     
 def handle_program_start_setup_wizard():
     """Run setup wizard if there are no settings"""
-    # If game settings haven't been generated,
-    # start setup wizard and reload settings.
-    if not game_settings.current_game:
+    # If game settings haven't been generated
+    if not game_settings.games:
         start_setup_wizard()
-        program_settings.load()
-        game_settings.load()
 
     # Close program if the user left the setup wizard
     # without generating the game settings
-    if not game_settings.current_game:
+    if not game_settings.games:
         sys.exit()
 
 def start_main_window():
@@ -136,8 +134,6 @@ def start_setup_wizard():
 
 
 def run_setup_wizard_with_main_window():
-    """Run setup wizard and restart main window."""
-    if "main_window" in globals() and main_window.isVisible():
-        main_window.close()
+    """Run setup wizard and re-do main window initial setup"""
     start_setup_wizard()
-    start_main_window()
+    main_window.InitialSetup()

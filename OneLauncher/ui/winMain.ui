@@ -12,12 +12,8 @@
   </property>
   <property name="font">
    <font>
-    <family>Verdana</family>
     <pointsize>12</pointsize>
    </font>
-  </property>
-  <property name="windowTitle">
-   <string>Linux Launcher</string>
   </property>
   <property name="statusTip">
    <string/>
@@ -46,7 +42,6 @@
     </property>
     <property name="font">
      <font>
-      <family>Verdana</family>
       <pointsize>12</pointsize>
      </font>
     </property>
@@ -68,7 +63,6 @@
     </property>
     <property name="font">
      <font>
-      <family>Verdana</family>
       <pointsize>12</pointsize>
      </font>
     </property>
@@ -87,7 +81,6 @@
     </property>
     <property name="font">
      <font>
-      <family>Verdana</family>
       <pointsize>12</pointsize>
      </font>
     </property>
@@ -106,7 +99,6 @@
     </property>
     <property name="font">
      <font>
-      <family>Verdana</family>
       <pointsize>12</pointsize>
      </font>
     </property>
@@ -125,7 +117,6 @@
     </property>
     <property name="font">
      <font>
-      <family>Verdana</family>
       <pointsize>12</pointsize>
      </font>
     </property>
@@ -160,7 +151,6 @@
     </property>
     <property name="font">
      <font>
-      <family>Verdana</family>
       <pointsize>12</pointsize>
      </font>
     </property>
@@ -185,7 +175,6 @@
     </property>
     <property name="font">
      <font>
-      <family>Verdana</family>
       <pointsize>12</pointsize>
      </font>
     </property>
@@ -207,7 +196,6 @@
     </property>
     <property name="font">
      <font>
-      <family>Verdana</family>
       <pointsize>12</pointsize>
      </font>
     </property>
@@ -355,7 +343,6 @@
     </property>
     <property name="font">
      <font>
-      <family>Verdana</family>
       <pointsize>12</pointsize>
      </font>
     </property>
@@ -429,7 +416,6 @@
    </property>
    <property name="font">
     <font>
-     <family>Verdana</family>
      <pointsize>12</pointsize>
     </font>
    </property>

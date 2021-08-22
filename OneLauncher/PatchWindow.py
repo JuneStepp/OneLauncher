@@ -34,93 +34,72 @@ from pathlib import Path
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 
-from OneLauncher import Settings, logger
+from OneLauncher import Settings, logger, game_settings
+from OneLauncher.ui.patching_window_uic import Ui_patchingWindow
 from OneLauncher.OneLauncherUtils import QByteArray2str
 from OneLauncher.ProgressMonitor import ProgressMonitor
+from OneLauncher.wine_management import edit_qprocess_to_use_wine
 
 
-class PatchWindow:
+class PatchWindow(QtWidgets.QDialog):
     def __init__(
         self,
         urlPatchServer,
-        prodCode,
-        language,
-        runDir: Path,
-        patchClient: Path,
-        wineProgram: Path,
-        highResEnabled,
-        winePrefix: Path,
-        wineDebug,
-        parent,
-        data_folder: Path,
-        current_game,
         gameDocumentsDir: Path,
     ):
-        self.winLog = QUiLoader().load(str(data_folder/"ui/winPatch.ui"), parentWidget=parent)
+        super(PatchWindow, self).__init__(
+            qApp.activeWindow(), QtCore.Qt.FramelessWindowHint)
 
-        self.winLog.setWindowFlags(
-            QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint)
+        self.ui = Ui_patchingWindow()
+        self.ui.setupUi(self)
 
         if Settings.usingWindows:
-            self.winLog.setWindowTitle("Output")
+            self.setWindowTitle("Patching Output")
         else:
-            self.winLog.setWindowTitle("Patch - Wine output")
+            self.setWindowTitle("Patching - Wine output")
 
-        self.winLog.btnSave.setText("Save Log")
-        self.winLog.btnSave.setEnabled(False)
-        self.winLog.progressBar.reset()
-        self.winLog.btnStop.setText("Close")
-        self.winLog.btnStart.setText("Patch")
-        self.winLog.btnSave.clicked.connect(self.btnSaveClicked)
-        self.winLog.btnStop.clicked.connect(self.btnStopClicked)
-        self.winLog.btnStart.clicked.connect(self.btnStartClicked)
+        self.ui.btnSave.setText("Save Log")
+        self.ui.btnSave.setEnabled(False)
+        self.ui.progressBar.reset()
+        self.ui.btnStop.setText("Close")
+        self.ui.btnStart.setText("Patch")
+        self.ui.btnSave.clicked.connect(self.btnSaveClicked)
+        self.ui.btnStop.clicked.connect(self.btnStopClicked)
+        self.ui.btnStart.clicked.connect(self.btnStartClicked)
 
         self.aborted = False
         self.finished = True
         self.lastRun = False
-        self.command = ""
-        self.arguments = []
 
         self.process_status_timer = QtCore.QTimer()
         self.process_status_timer.timeout.connect(
             self.activelyShowProcessStatus)
 
-        patchClient = runDir/patchClient
+        patch_client = game_settings.current_game.game_directory / \
+            game_settings.current_game.patch_client_path
         # Fix for the at least one person who has a title case patchclient.dll
-        if patchClient.name == "patchclient.dll" and not patchClient.exists():
-            patchClient = runDir/"PatchClient.dll"
+        if patch_client.name == "patchclient.dll" and not patch_client.exists():
+            patch_client = patch_client.parent/"PatchClient.dll"
 
-        # Make sure patchClient exists
-        if not patchClient.exists():
-            self.winLog.txtLog.append(
+        # Make sure patch_client exists
+        if not patch_client.exists():
+            self.ui.txtLog.append(
                 '<font color="Khaki">Patch client %s not found</font>' % (
-                    patchClient)
+                    patch_client)
             )
-            logger.error("Patch client %s not found" % (patchClient))
+            logger.error("Patch client %s not found" % (patch_client))
             return
 
-        self.progressMonitor = ProgressMonitor(self.winLog)
+        self.progressMonitor = ProgressMonitor(self.ui)
 
         self.process = QtCore.QProcess()
         self.process.readyReadStandardOutput.connect(self.readOutput)
         self.process.readyReadStandardError.connect(self.readErrors)
         self.process.finished.connect(self.processFinished)
-
-        processEnvironment = QtCore.QProcessEnvironment.systemEnvironment()
+        self.process.setWorkingDirectory(
+            str(game_settings.current_game.game_directory))
 
         if Settings.usingWindows:
-            self.arguments = [
-                patchClient,
-                "Patch",
-                urlPatchServer,
-                "--language",
-                language,
-                "--productcode",
-                prodCode,
-            ]
-
-            self.command = "rundll32.exe"
-
             # Get log file to read patching details from, since
             # rundll32 doesn't provide output on Windows
             log_folder_name = gameDocumentsDir
@@ -128,78 +107,70 @@ class PatchWindow:
             game_logs_folder = Path(os.environ.get(
                 "APPDATA")).parent/"Local"/log_folder_name
 
-            self.patch_log_file = game_logs_folder/"PatchClient.log"
-            self.patch_log_file.unlink(missing_ok=True)
-            self.patch_log_file.touch()
-            self.patch_log_file = self.patch_log_file.open(mode="r")
-        else:
-            if winePrefix != "":
-                processEnvironment.insert("WINEPREFIX", str(winePrefix))
+            patch_log_path = game_logs_folder/"PatchClient.log"
+            patch_log_path.unlink(missing_ok=True)
+            patch_log_path.touch()
+            self.patch_log_file = patch_log_path.open(mode="r")
 
-            if wineDebug != "":
-                processEnvironment.insert("WINEDEBUG", wineDebug)
+        self.process.setProgram("rundll32.exe")
+        arguments = [
+            str(patch_client),
+            "Patch",
+            urlPatchServer,
+            "--language",
+            game_settings.current_game.locale.game_language_name,
+        ]
 
-            self.arguments = [
-                "rundll32.exe",
-                str(patchClient),
-                "Patch",
-                urlPatchServer,
-                "--language",
-                language,
-                "--productcode",
-                prodCode,
-            ]
+        if game_settings.current_game.high_res_enabled:
+            arguments.append("--highres")
+        self.process.setArguments(arguments)
+        edit_qprocess_to_use_wine(self.process)
 
-            self.command = str(wineProgram)
-
-        self.process.setProcessEnvironment(processEnvironment)
-        self.process.setWorkingDirectory(str(runDir))
-
-        if highResEnabled:
-            self.arguments.append("--highres")
-
-        self.file_arguments = self.arguments.copy()
+        # Arguments have to be gotten from self.process, because
+        # they mey have been changed by edit_qprocess_to_use_wine().
+        self.file_arguments = self.process.arguments().copy()
         self.file_arguments.append("--filesonly")
+        self.data_arguments = self.process.arguments().copy()
+        self.data_arguments.append("--dataonly")
 
     def readOutput(self):
         line = QByteArray2str(self.process.readAllStandardOutput())
-        self.winLog.txtLog.append(line)
+        self.ui.txtLog.append(line)
         self.progressMonitor.parseOutput(line)
         logger.debug("Patcher: " + line)
 
     def readErrors(self):
         line = QByteArray2str(self.process.readAllStandardError())
-        self.winLog.txtLog.append(line)
+        self.ui.txtLog.append(line)
         logger.debug("Patcher: " + line)
 
     def resetButtons(self):
         self.finished = True
-        self.winLog.btnStop.setText("Close")
-        self.winLog.btnSave.setEnabled(True)
-        self.winLog.btnStart.setEnabled(True)
+        self.ui.btnStop.setText("Close")
+        self.ui.btnSave.setEnabled(True)
+        self.ui.btnStart.setEnabled(True)
         self.progressMonitor.reset()
         if self.aborted:
-            self.winLog.txtLog.append("<b>***  Aborted  ***</b>")
-        else:
-            if self.lastRun:
-                self.winLog.txtLog.append("<b>***  Finished  ***</b>")
+            self.ui.txtLog.append("<b>***  Aborted  ***</b>")
+        elif self.lastRun:
+            self.ui.txtLog.append("<b>***  Finished  ***</b>")
 
     def btnStopClicked(self):
         if self.finished:
-            self.winLog.close()
+            self.close()
         else:
             self.process.kill()
             self.aborted = True
 
     def btnSaveClicked(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(
-            self.winLog, "Save log file", str(
+            self, "Save log file", str(
                 Settings.platform_dirs.user_log_path)
         )[0]
 
         if filename != "":
             with open(filename, "w") as outfile:
-                outfile.write(self.winLog.txtLog.toPlainText())
+                outfile.write(self.ui.txtLog.toPlainText())
 
     def processFinished(self, exitCode, exitStatus):
         if self.aborted:
@@ -208,12 +179,12 @@ class PatchWindow:
         # handle remaining patching phases
         if self.phase == 1:
             # run file patching again (to avoid problems when patchclient.dll self-patches)
-            self.process.start(self.command, self.file_arguments)
+            self.process.setArguments(self.file_arguments)
+            self.process.start()
         elif self.phase == 2:
             # run data patching
-            data_arguments = self.arguments.copy()
-            data_arguments.append("--dataonly")
-            self.process.start(self.command, data_arguments)
+            self.process.setArguments(self.data_arguments)
+            self.process.start()
         else:
             # finished
             self.lastRun = True
@@ -227,12 +198,12 @@ class PatchWindow:
         self.aborted = False
         self.finished = False
         self.phase = 1
-        self.winLog.btnStart.setEnabled(False)
-        self.winLog.btnStop.setText("Abort")
-        self.winLog.btnSave.setEnabled(False)
+        self.ui.btnStart.setEnabled(False)
+        self.ui.btnStop.setText("Abort")
+        self.ui.btnSave.setEnabled(False)
 
-        self.process.start(self.command, self.file_arguments)
-        self.winLog.txtLog.append("<b>***  Started  ***</b>")
+        self.process.start()
+        self.ui.txtLog.append("<b>***  Started  ***</b>")
 
         if Settings.usingWindows:
             self.process_status_timer.start(100)
@@ -251,16 +222,16 @@ class PatchWindow:
             if not line.startswith("//"):
                 line = line.split(": ")[1]
 
-                self.winLog.txtLog.append(line)
+                self.ui.txtLog.append(line)
                 self.progressMonitor.parseOutput(line)
                 logger.debug("Patcher: " + line)
         else:
             # Add "..." if log is not giving indicator of patching progress
-            self.winLog.txtLog.append("...")
+            self.ui.txtLog.append("...")
 
         self.process_status_timer.start(100)
 
     def Run(self):
         self.__app = qApp
 
-        self.winLog.exec_()
+        self.exec()

@@ -9,23 +9,22 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>460</width>
+    <width>469</width>
     <height>366</height>
    </rect>
   </property>
   <property name="font">
    <font>
-    <family>Verdana</family>
     <pointsize>12</pointsize>
    </font>
   </property>
   <property name="windowTitle">
-   <string>Game Settings</string>
+   <string>Settings</string>
   </property>
   <property name="modal">
    <bool>true</bool>
   </property>
-  <widget class="QCheckBox" name="chkAdvanced">
+  <widget class="QCheckBox" name="showAdvancedSettingsCheckbox">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -56,15 +55,138 @@
    <property name="currentIndex">
     <number>0</number>
    </property>
+   <widget class="QWidget" name="tab">
+    <attribute name="title">
+     <string>Game Info</string>
+    </attribute>
+    <widget class="QLabel" name="gameNameLabel">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>17</y>
+       <width>131</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>Name</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="gameNameLineEdit">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>12</y>
+       <width>300</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="clearButtonEnabled">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="gameDescriptionLabel">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>57</y>
+       <width>131</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>Description</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="gameDescriptionLineEdit">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>52</y>
+       <width>300</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="clearButtonEnabled">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="gameNewsfeedLabel">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>262</y>
+       <width>131</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>RSS Newsfeed</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="gameNewsfeedLineEdit">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>257</y>
+       <width>300</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="clearButtonEnabled">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="defaultGameLauncherButton">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>110</y>
+       <width>281</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Run Default Game Launcher</string>
+     </property>
+    </widget>
+   </widget>
    <widget class="QWidget" name="tabGame">
     <attribute name="title">
      <string>Game</string>
     </attribute>
-    <widget class="QComboBox" name="cboClient">
+    <widget class="QComboBox" name="clientTypeComboBox">
      <property name="geometry">
       <rect>
        <x>151</x>
-       <y>86</y>
+       <y>136</y>
        <width>300</width>
        <height>33</height>
       </rect>
@@ -73,11 +195,11 @@
       <string>Game client version to use. 64-bit is the most modern. It does work with WINE</string>
      </property>
     </widget>
-    <widget class="QLabel" name="lblPatchClient">
+    <widget class="QLabel" name="patchClientLabel">
      <property name="geometry">
       <rect>
        <x>12</x>
-       <y>264</y>
+       <y>261</y>
        <width>131</width>
        <height>23</height>
       </rect>
@@ -89,21 +211,21 @@
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
-    <widget class="QLineEdit" name="txtPatchClient">
+    <widget class="QLineEdit" name="patchClientLineEdit">
      <property name="geometry">
       <rect>
        <x>150</x>
-       <y>260</y>
+       <y>257</y>
        <width>300</width>
        <height>31</height>
       </rect>
      </property>
     </widget>
-    <widget class="QToolButton" name="btnGameDir">
+    <widget class="QToolButton" name="gameDirButton">
      <property name="geometry">
       <rect>
        <x>415</x>
-       <y>6</y>
+       <y>56</y>
        <width>36</width>
        <height>30</height>
       </rect>
@@ -115,11 +237,11 @@
       <string>...</string>
      </property>
     </widget>
-    <widget class="QLabel" name="lblGraphics">
+    <widget class="QLabel" name="highResLabel">
      <property name="geometry">
       <rect>
        <x>13</x>
-       <y>47</y>
+       <y>97</y>
        <width>131</width>
        <height>23</height>
       </rect>
@@ -134,11 +256,11 @@
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
-    <widget class="QLabel" name="lblClient">
+    <widget class="QLabel" name="clientLabel">
      <property name="geometry">
       <rect>
        <x>13</x>
-       <y>91</y>
+       <y>141</y>
        <width>131</width>
        <height>23</height>
       </rect>
@@ -153,11 +275,11 @@
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
-    <widget class="QLabel" name="lblGameDir">
+    <widget class="QLabel" name="gameDirLabel">
      <property name="geometry">
       <rect>
        <x>13</x>
-       <y>10</y>
+       <y>60</y>
        <width>131</width>
        <height>23</height>
       </rect>
@@ -172,11 +294,11 @@
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
-    <widget class="QLineEdit" name="txtGameDir">
+    <widget class="QLineEdit" name="gameDirLineEdit">
      <property name="geometry">
       <rect>
        <x>151</x>
-       <y>5</y>
+       <y>55</y>
        <width>260</width>
        <height>31</height>
       </rect>
@@ -185,24 +307,11 @@
       <string>Game install directory. There should be a file called patchclient.dll here</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="btnSetupWizard">
-     <property name="geometry">
-      <rect>
-       <x>150</x>
-       <y>150</y>
-       <width>301</width>
-       <height>25</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Run Setup Wizard</string>
-     </property>
-    </widget>
     <widget class="QCheckBox" name="highResCheckBox">
      <property name="geometry">
       <rect>
        <x>155</x>
-       <y>45</y>
+       <y>95</y>
        <width>21</width>
        <height>31</height>
       </rect>
@@ -211,6 +320,38 @@
       <string>Enable high resolution game files. You may need to patch the game after enabling this</string>
      </property>
      <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="gameLanguageLabel">
+     <property name="geometry">
+      <rect>
+       <x>12</x>
+       <y>17</y>
+       <width>131</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>Language</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="gameLanguageComboBox">
+     <property name="geometry">
+      <rect>
+       <x>151</x>
+       <y>12</y>
+       <width>300</width>
+       <height>33</height>
+      </rect>
+     </property>
+     <property name="toolTip">
       <string/>
      </property>
     </widget>
@@ -364,8 +505,135 @@
     <zorder>wineAdvancedFrame</zorder>
     <zorder>wineFormGroupBox</zorder>
    </widget>
+   <widget class="QWidget" name="tabProgram">
+    <attribute name="title">
+     <string>OneLauncher</string>
+    </attribute>
+    <widget class="QPushButton" name="setupWizardButton">
+     <property name="geometry">
+      <rect>
+       <x>181</x>
+       <y>160</y>
+       <width>261</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Run Setup Wizard</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="defaultLanguageComboBox">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>12</y>
+       <width>281</width>
+       <height>33</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Default language to use for games</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="defaultLanguageLabel">
+     <property name="geometry">
+      <rect>
+       <x>12</x>
+       <y>17</y>
+       <width>151</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Default language to use for games</string>
+     </property>
+     <property name="text">
+      <string>Default Language</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="defaultLanguageForUICheckBox">
+     <property name="geometry">
+      <rect>
+       <x>178</x>
+       <y>52</y>
+       <width>21</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Use the default language for OneLauncher even when the current game is set to a different language</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="defaultLanguageForUILabel">
+     <property name="geometry">
+      <rect>
+       <x>-6</x>
+       <y>52</y>
+       <width>201</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Use the default language for OneLauncher even when the current game is set to a different language</string>
+     </property>
+     <property name="text">
+      <string>Always Use Default Language For UI</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="gamesSortingModeLabel">
+     <property name="geometry">
+      <rect>
+       <x>12</x>
+       <y>113</y>
+       <width>151</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Default language to use for games</string>
+     </property>
+     <property name="text">
+      <string>Games Sorting Mode</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="gamesSortingModeComboBox">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>108</y>
+       <width>281</width>
+       <height>33</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Default language to use for games</string>
+     </property>
+    </widget>
+    <zorder>setupWizardButton</zorder>
+    <zorder>defaultLanguageComboBox</zorder>
+    <zorder>defaultLanguageLabel</zorder>
+    <zorder>defaultLanguageForUILabel</zorder>
+    <zorder>defaultLanguageForUICheckBox</zorder>
+    <zorder>gamesSortingModeLabel</zorder>
+    <zorder>gamesSortingModeComboBox</zorder>
+   </widget>
   </widget>
-  <widget class="QDialogButtonBox" name="btnBoxOptions">
+  <widget class="QDialogButtonBox" name="settingsButtonBox">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -381,85 +649,14 @@
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Save</set>
    </property>
   </widget>
-  <widget class="QWidget" name="horizontalLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>310</x>
-     <y>2</y>
-     <width>141</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <property name="bottomMargin">
-     <number>0</number>
-    </property>
-    <item>
-     <widget class="QRadioButton" name="btnEN">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Language unavailable. It must be selected in the official launcher, so that the client_local_English.dat file can be downloaded.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QRadioButton" name="btnDE">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Language unavailable. It must be selected in the official launcher, so that the client_local_DE.dat file can be downloaded.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QRadioButton" name="btnFR">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Language unavailable. It must be selected in the official launcher, so that the client_local_FR.dat file can be downloaded.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
   <zorder>tabWidget</zorder>
-  <zorder>btnBoxOptions</zorder>
-  <zorder>chkAdvanced</zorder>
-  <zorder>horizontalLayoutWidget</zorder>
+  <zorder>settingsButtonBox</zorder>
+  <zorder>showAdvancedSettingsCheckbox</zorder>
  </widget>
  <resources/>
  <connections>
   <connection>
-   <sender>btnBoxOptions</sender>
-   <signal>accepted()</signal>
-   <receiver>dlgSettings</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnBoxOptions</sender>
+   <sender>settingsButtonBox</sender>
    <signal>rejected()</signal>
    <receiver>dlgSettings</receiver>
    <slot>reject()</slot>

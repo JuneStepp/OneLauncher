@@ -35,25 +35,20 @@ from PySide6.QtUiTools import QUiLoader
 
 from OneLauncher import Settings, logger
 from OneLauncher.OneLauncherUtils import QByteArray2str
+from OneLauncher.wine_management import edit_qprocess_to_use_wine
+from OneLauncher.ui.winLog_uic import Ui_winLog
 
 
-class StartGame:
+class StartGame(QtWidgets.QDialog):
     def __init__(
         self,
-        appName: Path,
-        clientType,
+        client_filename: str,
+        game: Settings.Game,
         argTemplate,
         account,
         server,
         ticket,
         chatServer,
-        language,
-        runDir: Path,
-        wineProgram: Path,
-        wineDebug,
-        winePrefix: Path,
-        highResEnabled: bool,
-        builtinPrefixEnabled: bool,
         crashreceiver,
         DefaultUploadThrottleMbps,
         bugurl,
@@ -63,52 +58,48 @@ class StartGame:
         glsticketlifetime,
         worldName,
         accountText,
-        parent,
-        data_folder: Path,
-        startupScripts,
         gameConfigDir: Path,
     ):
+        super(StartGame, self).__init__(
+            qApp.activeWindow(), QtCore.Qt.FramelessWindowHint)
+
+        self.ui = Ui_winLog()
+        self.ui.setupUi(self)
 
         # Fixes binary path for 64-bit client
-        if clientType == "WIN64":
-            appName = "x64"/appName
+        if game.client_type == "WIN64":
+            client_relative_path = Path("x64")/client_filename
+        else:
+            client_relative_path = Path(client_filename)
 
         self.worldName = worldName
         self.accountText = accountText
-        self.parent = parent
-        self.startupScripts = startupScripts
+        self.game = game
         self.gameConfigDirPath = Settings.documentsDir/gameConfigDir
 
-        self.winLog = QUiLoader().load(str(data_folder/"ui/winLog.ui"), parentWidget=parent)
-        self.winLog.setWindowFlags(
-            QtCore.Qt.Dialog | QtCore.Qt.FramelessWindowHint)
-
         if Settings.usingWindows:
-            self.winLog.setWindowTitle("Output")
+            self.setWindowTitle("Output")
         else:
-            self.winLog.setWindowTitle("Launch Game - Wine output")
+            self.setWindowTitle("Launch Game - Wine output")
 
-        # self.winLog.btnStart.setVisible(False)
-        self.winLog.btnStart.setText("Back")
-        self.winLog.btnStart.setEnabled(False)
-        self.winLog.btnSave.setText("Save")
-        self.winLog.btnSave.setEnabled(False)
-        self.winLog.btnStop.setText("Exit")
-        self.winLog.btnStart.clicked.connect(self.btnStartClicked)
-        self.winLog.btnSave.clicked.connect(self.btnSaveClicked)
-        self.winLog.btnStop.clicked.connect(self.btnStopClicked)
+        self.ui.btnStart.setText("Back")
+        self.ui.btnStart.setEnabled(False)
+        self.ui.btnSave.setText("Save")
+        self.ui.btnSave.setEnabled(False)
+        self.ui.btnStop.setText("Exit")
+        self.ui.btnStart.clicked.connect(self.btnStartClicked)
+        self.ui.btnSave.clicked.connect(self.btnSaveClicked)
+        self.ui.btnStop.clicked.connect(self.btnStopClicked)
 
         self.aborted = False
         self.finished = False
-        self.command = ""
-        self.arguments = []
 
         gameParams = (
             argTemplate.replace("{SUBSCRIPTION}", account)
             .replace("{LOGIN}", server)
             .replace("{GLS}", ticket)
             .replace("{CHAT}", chatServer)
-            .replace("{LANG}", language)
+            .replace("{LANG}", game.locale.game_language_name)
             .replace("{CRASHRECEIVER}", crashreceiver)
             .replace("{UPLOADTHROTTLE}", DefaultUploadThrottleMbps)
             .replace("{BUGURL}", bugurl)
@@ -118,7 +109,7 @@ class StartGame:
             .replace("{SUPPORTSERVICEURL}", supportserviceurl)
         )
 
-        if not highResEnabled:
+        if not game.high_res_enabled:
             gameParams += " --HighResOutOfDate"
 
         self.process = QtCore.QProcess()
@@ -126,86 +117,49 @@ class StartGame:
         self.process.readyReadStandardError.connect(self.readErrors)
         self.process.finished.connect(self.resetButtons)
 
-        if Settings.usingWindows:
-            self.command = str(appName)
-            self.process.setWorkingDirectory(str(runDir))
+        self.process.setProgram(str(client_relative_path))
+        self.process.setArguments([arg for arg in gameParams.split(" ")])
+        if not Settings.usingWindows:
+            edit_qprocess_to_use_wine(self.process)
+        
+        self.process.setWorkingDirectory(str(game.game_directory))
 
-            for arg in gameParams.split(" "):
-                self.arguments.append(arg)
+        self.ui.txtLog.append("Connecting to server: " + worldName)
+        self.ui.txtLog.append("Account: " + accountText)
+        self.ui.txtLog.append("Game Directory: " + str(game.game_directory))
+        self.ui.txtLog.append("Game Client: " + str(client_relative_path))
 
-        else:
-            processEnvironment = QtCore.QProcessEnvironment.systemEnvironment()
-
-            if wineDebug != "":
-                processEnvironment.insert("WINEDEBUG", wineDebug)
-
-            if winePrefix != "":
-                processEnvironment.insert("WINEPREFIX", str(winePrefix))
-
-            self.command = str(wineProgram)
-            self.process.setWorkingDirectory(str(runDir))
-
-            self.arguments.append(str(appName))
-
-            for arg in gameParams.split(" "):
-                self.arguments.append(arg)
-
-            # Applies needed settings for the builtin wine prefix
-            if builtinPrefixEnabled:
-                # Enables ESYNC if open file limit is high enough
-                path = Path("/proc/sys/fs/file-max")
-                if path.exists():
-                    with path.open() as file:
-                        file_data = file.read()
-                        if int(file_data) >= 524288:
-                            processEnvironment.insert("WINEESYNC", "1")
-
-                # Enables FSYNC. It overides ESYNC and will only be used if
-                # the required kernel patches are installed.
-                processEnvironment.insert("WINEFSYNC", "1")
-
-                # Adds dll overrides for DirectX, so DXVK is used instead of wine3d
-                processEnvironment.insert(
-                    "WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10=n")
-
-            self.process.setProcessEnvironment(processEnvironment)
-
-        self.winLog.txtLog.append("Connecting to server: " + worldName)
-        self.winLog.txtLog.append("Account: " + accountText)
-        self.winLog.txtLog.append("Game Directory: " + str(runDir))
-        self.winLog.txtLog.append("Game Client: " + str(appName))
-
-        self.winLog.show()
+        self.show()
 
         self.runStatupScripts()
 
     def readOutput(self):
         text = QByteArray2str(self.process.readAllStandardOutput())
-        self.winLog.txtLog.append(text)
+        self.ui.txtLog.append(text)
         logger.debug("Game: " + text)
 
     def readErrors(self):
         text = QByteArray2str(self.process.readAllStandardError())
-        self.winLog.txtLog.append(text)
+        self.ui.txtLog.append(text)
         logger.debug("Game: " + text)
 
     def resetButtons(self, exitCode, exitStatus):
         self.finished = True
-        self.winLog.btnStop.setText("Exit")
-        self.winLog.btnSave.setEnabled(True)
-        self.winLog.btnStart.setEnabled(True)
+        self.ui.btnStop.setText("Exit")
+        self.ui.btnSave.setEnabled(True)
+        self.ui.btnStart.setEnabled(True)
         if self.aborted:
-            self.winLog.txtLog.append("<b>***  Aborted  ***</b>")
+            self.ui.txtLog.append("<b>***  Aborted  ***</b>")
         else:
-            self.winLog.txtLog.append("<b>***  Finished  ***</b>")
+            self.ui.txtLog.append("<b>***  Finished  ***</b>")
 
     def btnStartClicked(self):
         if self.finished:
-            self.winLog.close()
+            self.close()
 
     def btnStopClicked(self):
         if self.finished:
-            self.parent.close()
+            qApp.quit()
         else:
             self.aborted = True
             self.process.kill()
@@ -213,20 +167,20 @@ class StartGame:
     # Saves a file with the debug log generated by running the game
     def btnSaveClicked(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(
-            self.winLog, "Save log file", str(
+            self, "Save log file", str(
                 Settings.platform_dirs.user_log_path)
         )[0]
 
         if filename != "":
             with open(filename, "w") as outfile:
-                outfile.write(self.winLog.txtLog.toPlainText())
+                outfile.write(self.ui.txtLog.toPlainText())
 
     def runStatupScripts(self):
         """Runs Python scripts from add-ons with one that is approved by user"""
-        for script in self.startupScripts:
+        for script in self.game.startup_scripts:
             file_path = self.gameConfigDirPath/script
             if file_path.exists():
-                self.winLog.txtLog.append(
+                self.ui.txtLog.append(
                     f"Running '{script}' startup script...")
 
                 with file_path.open() as file:
@@ -235,18 +189,18 @@ class StartGame:
                 try:
                     exec(code, {"__file__": str(file_path)})
                 except SyntaxError as e:
-                    self.winLog.txtLog.append(
+                    self.ui.txtLog.append(
                         f"'{script}' ran into syntax error: {e}")
             else:
-                self.winLog.txtLog.append(
+                self.ui.txtLog.append(
                     f"'{script}' startup script does not exist")
 
     def Run(self):
         self.finished = False
 
-        self.winLog.btnStop.setText("Abort")
-        self.process.start(self.command, self.arguments)
+        self.ui.btnStop.setText("Abort")
+        self.process.start()
         logger.info("Game started with: " +
-                         str([self.command, self.arguments]))
+                         str([self.process.program(), self.process.arguments()]))
 
-        return self.winLog.exec_()
+        self.exec()

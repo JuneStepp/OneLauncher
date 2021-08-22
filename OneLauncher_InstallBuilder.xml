@@ -6,6 +6,9 @@
     <licenseFile>${build_project_directory}/COPYING</licenseFile>
     <leftImage>${build_project_directory}/OneLauncher/images/installer_lotro-ddo_collage.png</leftImage>
     <logoImage>${build_project_directory}/RunOneLauncher.dist/OneLauncher/images/OneLauncherIcon.png</logoImage>
+    <defaultLanguage>auto</defaultLanguage>
+    <allowLanguageSelection>1</allowLanguageSelection>
+    <languageSelectionStyle>onlyNativeNames</languageSelectionStyle>
     <componentList>
         <component>
             <name>default</name>
@@ -126,6 +129,7 @@
             </startMenuShortcutList>
         </component>
     </componentList>
+    <allowedLanguages>en fr de</allowedLanguages>
     <disableSplashScreen>1</disableSplashScreen>
     <enableGtkDarkThemesSupport>1</enableGtkDarkThemesSupport>
     <enableRollback>1</enableRollback>
@@ -174,4 +178,3 @@
         </directoryParameter>
     </parameterList>
 </project>
-
