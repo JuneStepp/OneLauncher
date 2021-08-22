@@ -638,8 +638,11 @@ class MainWindow(QtWidgets.QMainWindow):
         if language:
             self.settings.language = language
 
-        self.ui.imgMain.setPixmap(QtGui.QPixmap(str(get_resource(
-            Path(f"images/{game_settings.current_game.game_type}_banner.png"), program_settings.ui_locale))))
+        banner_pixmap = QtGui.QPixmap(str(get_resource(
+            Path(f"images/{game_settings.current_game.game_type}_banner.png"), program_settings.ui_locale)))
+        banner_pixmap = banner_pixmap.scaledToHeight(self.ui.imgMain.height())
+        self.ui.imgMain.setPixmap(banner_pixmap)
+        
         self.setWindowTitle(
             f"{OneLauncher.__title__} - {game_settings.current_game.name}")
 
