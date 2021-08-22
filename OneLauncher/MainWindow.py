@@ -588,6 +588,18 @@ class MainWindow(QtWidgets.QMainWindow):
                 if value in accepted_values:
                     return value
 
+    def set_banner_image(self):
+        game_dir_banner_overide_path = game_settings.current_game.game_directory / \
+            program_settings.ui_locale.lang_tag.split("-")[0]/"banner.png"
+        if game_dir_banner_overide_path.exists():
+            banner_pixmap = QtGui.QPixmap(str(game_dir_banner_overide_path))
+        else:
+            banner_pixmap = QtGui.QPixmap(str(get_resource(
+                Path(f"images/{game_settings.current_game.game_type}_banner.png"), program_settings.ui_locale)))
+
+        banner_pixmap = banner_pixmap.scaledToHeight(self.ui.imgMain.height())
+        self.ui.imgMain.setPixmap(banner_pixmap)
+
     def InitialSetup(self, first_setup=False):
         self.ui.cboAccount.setEnabled(False)
         self.ui.cboAccount.setFocus()
@@ -638,11 +650,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if language:
             self.settings.language = language
 
-        banner_pixmap = QtGui.QPixmap(str(get_resource(
-            Path(f"images/{game_settings.current_game.game_type}_banner.png"), program_settings.ui_locale)))
-        banner_pixmap = banner_pixmap.scaledToHeight(self.ui.imgMain.height())
-        self.ui.imgMain.setPixmap(banner_pixmap)
-        
+        self.set_banner_image()
         self.setWindowTitle(
             f"{OneLauncher.__title__} - {game_settings.current_game.name}")
 
