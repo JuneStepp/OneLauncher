@@ -4,8 +4,18 @@ version = "1.2.6"
 description = "The OneLauncher for LOTRO and DDO"
 authors = ["June Stepp <contact@JuneStepp.me>"]
 license = "GPL-3.0-or-later"
+readme = "README.md"
+repository = "https://github.com/JuneStepp/OneLauncher"
 packages = [{include = "onelauncher", from = "src"}]
-
+keywords = ["LOTRO", "DDO", "launcher", "addon-manager", "custom-launcher"]
+classifiers = [
+    "Development Status :: 6 - Mature",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: OS Independent",
+    "Topic :: Games/Entertainment :: Role-Playing",
+    "Topic :: Utilities"
+]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.10"
