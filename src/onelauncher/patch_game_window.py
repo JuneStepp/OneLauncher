@@ -34,11 +34,11 @@ from pathlib import Path
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 
-from OneLauncher import Settings, logger, game_settings
-from OneLauncher.ui.patching_window_uic import Ui_patchingWindow
-from OneLauncher.OneLauncherUtils import QByteArray2str
-from OneLauncher.ProgressMonitor import ProgressMonitor
-from OneLauncher.wine_management import edit_qprocess_to_use_wine
+from onelauncher import settings, logger, game_settings
+from onelauncher.ui.patching_window_uic import Ui_patchingWindow
+from onelauncher.utilities import QByteArray2str
+from onelauncher.patching_progress_monitor import ProgressMonitor
+from onelauncher.wine_management import edit_qprocess_to_use_wine
 
 
 class PatchWindow(QtWidgets.QDialog):
@@ -53,7 +53,7 @@ class PatchWindow(QtWidgets.QDialog):
         self.ui = Ui_patchingWindow()
         self.ui.setupUi(self)
 
-        if Settings.usingWindows:
+        if settings.usingWindows:
             self.setWindowTitle("Patching Output")
         else:
             self.setWindowTitle("Patching - Wine output")
@@ -99,7 +99,7 @@ class PatchWindow(QtWidgets.QDialog):
         self.process.setWorkingDirectory(
             str(game_settings.current_game.game_directory))
 
-        if Settings.usingWindows:
+        if settings.usingWindows:
             # Get log file to read patching details from, since
             # rundll32 doesn't provide output on Windows
             log_folder_name = gameDocumentsDir
@@ -165,7 +165,7 @@ class PatchWindow(QtWidgets.QDialog):
     def btnSaveClicked(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(
             self, "Save log file", str(
-                Settings.platform_dirs.user_log_path)
+                settings.platform_dirs.user_log_path)
         )[0]
 
         if filename != "":
@@ -189,7 +189,7 @@ class PatchWindow(QtWidgets.QDialog):
             # finished
             self.lastRun = True
             self.resetButtons()
-            if Settings.usingWindows:
+            if settings.usingWindows:
                 self.patch_log_file.close()
         self.phase += 1
 
@@ -205,7 +205,7 @@ class PatchWindow(QtWidgets.QDialog):
         self.process.start()
         self.ui.txtLog.append("<b>***  Started  ***</b>")
 
-        if Settings.usingWindows:
+        if settings.usingWindows:
             self.process_status_timer.start(100)
 
     def activelyShowProcessStatus(self):

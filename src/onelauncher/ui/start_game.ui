@@ -1,10 +1,11 @@
-<ui version="4.0" >
- <class>winLog</class>
- <widget class="QDialog" name="winLog" >
-  <property name="windowModality" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>startGameDialog</class>
+ <widget class="QDialog" name="startGameDialog">
+  <property name="windowModality">
    <enum>Qt::ApplicationModal</enum>
   </property>
-  <property name="geometry" >
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
@@ -12,20 +13,19 @@
     <height>400</height>
    </rect>
   </property>
-  <property name="font" >
+  <property name="font">
    <font>
-    <family>Verdana</family>
     <pointsize>12</pointsize>
    </font>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>MainWindow</string>
   </property>
-  <property name="modal" >
+  <property name="modal">
    <bool>true</bool>
   </property>
-  <widget class="QTextBrowser" name="txtLog" >
-   <property name="geometry" >
+  <widget class="QTextBrowser" name="txtLog">
+   <property name="geometry">
     <rect>
      <x>5</x>
      <y>5</y>
@@ -34,8 +34,8 @@
     </rect>
    </property>
   </widget>
-  <widget class="QPushButton" name="btnSave" >
-   <property name="geometry" >
+  <widget class="QPushButton" name="btnSave">
+   <property name="geometry">
     <rect>
      <x>625</x>
      <y>361</y>
@@ -43,12 +43,12 @@
      <height>34</height>
     </rect>
    </property>
-   <property name="text" >
+   <property name="text">
     <string>Save</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="btnStop" >
-   <property name="geometry" >
+  <widget class="QPushButton" name="btnStop">
+   <property name="geometry">
     <rect>
      <x>530</x>
      <y>361</y>
@@ -56,12 +56,12 @@
      <height>34</height>
     </rect>
    </property>
-   <property name="text" >
+   <property name="text">
     <string>Stop</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="btnStart" >
-   <property name="geometry" >
+  <widget class="QPushButton" name="btnStart">
+   <property name="geometry">
     <rect>
      <x>435</x>
      <y>361</y>
@@ -69,7 +69,7 @@
      <height>34</height>
     </rect>
    </property>
-   <property name="text" >
+   <property name="text">
     <string>Start</string>
    </property>
   </widget>

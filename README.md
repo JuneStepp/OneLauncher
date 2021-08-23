@@ -56,27 +56,30 @@ OneLauncher uses [Poetry](https://python-poetry.org) for dependency management. 
 
 # To run from source
 
-`poetry run ./RunOneLauncher`
+`poetry run ./start_onelauncher`
 
 Or.
 
-`poetry run python RunOneLauncher`
+`poetry run python start_onelauncher`
 
 # To build
 
-The build ends up in `RunOneLauncher.dist`.
+The build ends up in `start_onelauncher.dist`.
 
 Nuitka can't currently cross-compile, but the InstallBuilder installers can be
 cross-compiled.
 
-## Linux
-`poetry run python -m nuitka --standalone --assume-yes-for-downloads --nofollow-import-to=tkinter,unittest,pydoc,pdb --plugin-enable=pyside6 --include-qt-plugins=wayland-shell-integration,platforms --include-package keyring.backends --include-data-dir OneLauncher/ui=OneLauncher/ui --include-data-dir OneLauncher/certificates=OneLauncher/certificates --include-data-dir OneLauncher/images=OneLauncher/images RunOneLauncher`
+### Linux
 
-## Windows
-`poetry run python -m nuitka --standalone --windows-disable-console --assume-yes-for-downloads --nofollow-import-to=tkinter,unittest,pydoc,pdb --plugin-enable=pyside6 --include-package keyring.backends --include-package win32timezone --include-data-dir OneLauncher/ui=OneLauncher/ui --include-data-dir OneLauncher/certificates=OneLauncher/certificates --include-data-dir OneLauncher/images=OneLauncher/images --windows-icon-from-ico=OneLauncher/images/OneLauncherIcon.ico RunOneLauncher`
+`poetry run python -m nuitka --standalone --assume-yes-for-downloads --nofollow-import-to=tkinter,unittest,pydoc,pdb --plugin-enable=pyside6 --include-qt-plugins=wayland-shell-integration,platforms --include-package keyring.backends --include-data-dir src/onelauncher/certificates=src/onelauncher/certificates --include-data-dir src/onelauncher/images=src/onelauncher/images --include-data-dir src/onelauncher/locale=src/onelauncher/locale --include-data-dir src/onelauncher/fonts=src/onelauncher/fonts start_onelauncher`
 
-## Mac
-`poetry run python -m nuitka --standalone --assume-yes-for-downloads --nofollow-import-to=tkinter,unittest,pydoc,pdb --plugin-enable=pyside6 --include-package keyring.backends --include-data-dir OneLauncher/ui=OneLauncher/ui --include-data-dir OneLauncher/certificates=OneLauncher/certificates --include-data-dir OneLauncher/images=OneLauncher/images RunOneLauncher`
+### Windows
+
+`poetry run python -m nuitka --standalone --windows-disable-console --assume-yes-for-downloads --nofollow-import-to=tkinter,unittest,pydoc,pdb --plugin-enable=pyside6 --include-package keyring.backends --include-package win32timezone --include-data-dir src/onelauncher/certificates=src/onelauncher/certificates --include-data-dir src/onelauncher/images=src/onelauncher/images --include-data-dir src/onelauncher/locale=src/onelauncher/locale --include-data-dir src/onelauncher/fonts=src/onelauncher/fonts --windows-icon-from-ico=src/onelauncher/images/OneLauncherIcon.ico start_onelauncher`
+
+### Mac
+
+`poetry run python -m nuitka --standalone --assume-yes-for-downloads --nofollow-import-to=tkinter,unittest,pydoc,pdb --plugin-enable=pyside6 --include-package keyring.backends --include-data-dir src/onelauncher/certificates=src/onelauncher/certificates --include-data-dir src/onelauncher/images=src/onelauncher/images --include-data-dir src/onelauncher/locale=src/onelauncher/locale --include-data-dir src/onelauncher/fonts=src/onelauncher/fonts start_onelauncher`
 
 # Add-on Manager Info For Developers
 

@@ -32,9 +32,9 @@ from pathlib import Path
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from OneLauncher import (Settings, __title__, __version__, game_settings,
+from onelauncher import (settings, __title__, __version__, game_settings,
                          program_settings, resources)
-from OneLauncher.resources import get_resource
+from onelauncher.resources import get_resource
 
 
 def main():
@@ -52,7 +52,7 @@ def main():
     font.setPointSize(10)
     qApp.setFont(font)
 
-    handle_windows_dark_theme()   
+    handle_windows_dark_theme()
 
     handle_program_start_setup_wizard()
 
@@ -60,7 +60,7 @@ def main():
 
     sys.exit(qApp.exec())
 
-    
+
 def handle_program_start_setup_wizard():
     """Run setup wizard if there are no settings"""
     # If game settings haven't been generated
@@ -72,23 +72,24 @@ def handle_program_start_setup_wizard():
     if not game_settings.games:
         sys.exit()
 
+
 def start_main_window():
     # Import has to be done here, because some code run by
-    # MainWindow imports requires the QApplication to exist.
-    from OneLauncher.MainWindow import MainWindow
+    # main_window.py imports requires the QApplication to exist.
+    from onelauncher.main_window import MainWindow
     global main_window
     main_window = MainWindow()
     main_window.run()
 
 
 def handle_windows_dark_theme():
-    if not Settings.usingWindows:
+    if not settings.usingWindows:
         return
 
-    settings = QtCore.QSettings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+    qsettings = QtCore.QSettings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
                                 QtCore.QSettings.NativeFormat)
     # If user has dark theme activated
-    if not settings.value("AppsUseLightTheme"):
+    if not qsettings.value("AppsUseLightTheme"):
         # Use QPalette to set custom dark theme for Windows.
         # The builtin Windows dark theme for Windows is not ready
         # as of 7-5-2021
@@ -128,7 +129,7 @@ def handle_windows_dark_theme():
 
 
 def start_setup_wizard(**kwargs):
-    from OneLauncher.SetupWizard import SetupWizard
+    from onelauncher.setup_wizard import SetupWizard
     setup_wizard = SetupWizard(**kwargs)
     setup_wizard.exec()
 

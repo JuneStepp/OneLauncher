@@ -43,11 +43,11 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 from vkbeautify import xml as prettify_xml
 
-import OneLauncher
-from OneLauncher import Settings, resources, logger, game_settings
-from OneLauncher.OneLauncherUtils import GetText
-from OneLauncher.ui_resources import icon_font
-from OneLauncher.ui.addon_manager_uic import Ui_winAddonManager
+import onelauncher
+from onelauncher import settings, resources, logger, game_settings
+from onelauncher.utilities import GetText
+from onelauncher.ui_resources import icon_font
+from onelauncher.ui.addon_manager_uic import Ui_winAddonManager
 
 
 class AddonManager(QtWidgets.QDialog):
@@ -92,7 +92,7 @@ class AddonManager(QtWidgets.QDialog):
 
         self.ui = Ui_winAddonManager()
         self.ui.setupUi(self)
-        
+
         if game_settings.current_game.game_type == "DDO":
             # Removes plugin and music tabs when using DDO.
             # This has to be done before the tab switching signals are connected.
@@ -217,7 +217,7 @@ class AddonManager(QtWidgets.QDialog):
 
         self.openDB()
 
-        self.data_folder = Settings.documentsDir/gameDocumentsDir
+        self.data_folder = settings.documentsDir/gameDocumentsDir
         if game_settings.current_game.game_type == "DDO":
             self.data_folder_skins = self.data_folder/"ui/skins"
 
@@ -483,7 +483,7 @@ class AddonManager(QtWidgets.QDialog):
         Opens addons_cache database and creates new database if 
         one doesn't exist or the current one has an outdated structure
         """
-        addons_cache_db_path = Settings.platform_dirs.user_cache_path/"addons_cache.sqlite"
+        addons_cache_db_path = settings.platform_dirs.user_cache_path/"addons_cache.sqlite"
         if addons_cache_db_path.exists():
             # Connects to addons_cache database
             self.conn = sqlite3.connect(str(addons_cache_db_path))
@@ -545,7 +545,7 @@ class AddonManager(QtWidgets.QDialog):
     def createDB(self):
         """Creates ans sets up addons_cache database"""
         self.conn = sqlite3.connect(
-            str(Settings.platform_dirs.user_cache_path/"addons_cache.sqlite")
+            str(settings.platform_dirs.user_cache_path/"addons_cache.sqlite")
         )
         self.c = self.conn.cursor()
 
@@ -595,7 +595,7 @@ class AddonManager(QtWidgets.QDialog):
             return
         elif addon_path.suffix == ".rar":
             self.addLog(
-                f"{OneLauncher.__title__} does not support .rar archives, because it"
+                f"{onelauncher.__title__} does not support .rar archives, because it"
                 " is a proprietary format that would require and external "
                 "program to extract"
             )
@@ -2202,7 +2202,8 @@ class AddonManager(QtWidgets.QDialog):
         if script:
             script_path = addon_data_folder/(script.replace("\\", "/"))
 
-            relative_to_game_documents_dir_script = script_path.relative_to(self.data_folder)
+            relative_to_game_documents_dir_script = script_path.relative_to(
+                self.data_folder)
 
             if relative_to_game_documents_dir_script in game_settings.current_game.startup_scripts:
                 game_settings.current_game.startup_scripts.remove(

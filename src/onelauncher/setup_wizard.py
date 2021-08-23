@@ -36,11 +36,11 @@ from bidict import bidict
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 
-import OneLauncher
-from OneLauncher import Settings, __title__
-from OneLauncher.resources import available_locales
-from OneLauncher.ui_utilities import raise_warning_message
-from OneLauncher.ui.setup_wizard_uic import Ui_Wizard
+import onelauncher
+from onelauncher import settings, __title__
+from onelauncher.resources import available_locales
+from onelauncher.ui_utilities import raise_warning_message
+from onelauncher.ui.setup_wizard_uic import Ui_Wizard
 
 
 # Files that can be used to check if a folder is the installation
@@ -89,7 +89,7 @@ class SetupWizard(QtWidgets.QWizard):
             self.ui.languagesListWidget.addItem(item)
 
             # Default locale should be selected in the list by default.
-            if locale == OneLauncher.program_settings.default_locale:
+            if locale == onelauncher.program_settings.default_locale:
                 self.ui.languagesListWidget.setCurrentItem(item)
 
     def current_id_changed(self, new_id):
@@ -106,7 +106,7 @@ class SetupWizard(QtWidgets.QWizard):
         if self.show_existing_games:
             self.add_existing_games()
 
-        if Settings.usingWindows:
+        if settings.usingWindows:
             startDir = Path("C:/")
             self.find_game_dirs(startDir/"Program Files")
             if (startDir/"Program Files (x86)").exists():
@@ -114,8 +114,8 @@ class SetupWizard(QtWidgets.QWizard):
         else:
             for dir, pattern in [
                 (Path("~").expanduser(), "*wine*"),
-                (Path("~").expanduser()/Settings.settingsCXG, "*"),
-                (Path("~").expanduser()/Settings.settingsCXO, "*"),
+                (Path("~").expanduser()/settings.settingsCXG, "*"),
+                (Path("~").expanduser()/settings.settingsCXO, "*"),
                 (Path("~").expanduser()/".steam/steam/steamapps/compatdata", "*"),
                 (Path("~").expanduser()/".steam/steam/SteamApps/compatdata", "*"),
                 (Path("~").expanduser()/".steam/steamapps/compatdata", "*"),
@@ -135,11 +135,11 @@ class SetupWizard(QtWidgets.QWizard):
 
     def add_existing_games(self):
         self.add_games_from_list(
-            OneLauncher.game_settings.lotro_games_priority_sorted)
+            onelauncher.game_settings.lotro_games_priority_sorted)
         self.add_games_from_list(
-            OneLauncher.game_settings.ddo_games_priority_sorted)
+            onelauncher.game_settings.ddo_games_priority_sorted)
 
-    def add_games_from_list(self, games: List[Settings.Game]) -> None:
+    def add_games_from_list(self, games: List[settings.Game]) -> None:
         """Add games from list to game finding UI. All games in list 
         must be of the same type. Ex. LOTRO"""
         ui_list = self.game_type_to_ui_list[games[0].game_type]
@@ -169,7 +169,7 @@ class SetupWizard(QtWidgets.QWizard):
                 self.find_game_dirs(path, search_depth=search_depth-1)
 
     def browse_for_game_dir(self, output_list: QtWidgets.QListWidget):
-        if Settings.usingWindows:
+        if settings.usingWindows:
             starting_dir = Path(os.environ.get("ProgramFiles"))
         else:
             starting_dir = Path("~").expanduser()
@@ -246,39 +246,39 @@ class SetupWizard(QtWidgets.QWizard):
     def save_settings(self):
         if not self.game_selection_only:
             # Reset settings
-            OneLauncher.program_settings.config_path.unlink(missing_ok=True)
-            OneLauncher.game_settings.config_path.unlink(missing_ok=True)
-            OneLauncher.program_settings.__init__(
-                OneLauncher.program_settings.config_path)
-            OneLauncher.game_settings.__init__(
-                OneLauncher.game_settings.config_path)
+            onelauncher.program_settings.config_path.unlink(missing_ok=True)
+            onelauncher.game_settings.config_path.unlink(missing_ok=True)
+            onelauncher.program_settings.__init__(
+                onelauncher.program_settings.config_path)
+            onelauncher.game_settings.__init__(
+                onelauncher.game_settings.config_path)
 
             selected_locale_display_name = self.ui.languagesListWidget.currentItem().text()
-            OneLauncher.program_settings.default_locale = [locale for locale in available_locales.values(
+            onelauncher.program_settings.default_locale = [locale for locale in available_locales.values(
             ) if locale.display_name == selected_locale_display_name][0]
 
-            OneLauncher.program_settings.always_use_default_language_for_ui = self.ui.alwaysUseDefaultLangForUICheckBox.isChecked()
+            onelauncher.program_settings.always_use_default_language_for_ui = self.ui.alwaysUseDefaultLangForUICheckBox.isChecked()
 
-            OneLauncher.program_settings.games_sorting_mode = "priority"
+            onelauncher.program_settings.games_sorting_mode = "priority"
 
         self.add_games_to_settings()
 
-        OneLauncher.program_settings.save()
-        OneLauncher.game_settings.save()
-        OneLauncher.program_settings.__init__(
-            OneLauncher.program_settings.config_path)
-        OneLauncher.game_settings.__init__(
-            OneLauncher.game_settings.config_path)
+        onelauncher.program_settings.save()
+        onelauncher.game_settings.save()
+        onelauncher.program_settings.__init__(
+            onelauncher.program_settings.config_path)
+        onelauncher.game_settings.__init__(
+            onelauncher.game_settings.config_path)
 
     def add_games_to_settings(self):
         """Add games to settings. This has to be done after language settings are set."""
         for game_type in self.game_type_to_ui_list:
             if game_type == "LOTRO":
-                games_priority_sorted = OneLauncher.game_settings.lotro_games_priority_sorted
-                games_last_used_sorted = OneLauncher.game_settings.lotro_games_last_used_sorted
+                games_priority_sorted = onelauncher.game_settings.lotro_games_priority_sorted
+                games_last_used_sorted = onelauncher.game_settings.lotro_games_last_used_sorted
             elif game_type == "DDO":
-                games_priority_sorted = OneLauncher.game_settings.ddo_games_priority_sorted
-                games_last_used_sorted = OneLauncher.game_settings.ddo_games_last_used_sorted
+                games_priority_sorted = onelauncher.game_settings.ddo_games_priority_sorted
+                games_last_used_sorted = onelauncher.game_settings.ddo_games_last_used_sorted
             else:
                 raise ValueError(
                     f"{game_type} isn't recognized as a game type in self.add_games_to_settings")
@@ -290,25 +290,25 @@ class SetupWizard(QtWidgets.QWizard):
             for game_item in selected_items:
                 if self.game_selection_only:
                     game = game_item.data(QtCore.Qt.UserRole)
-                    if type(game) == Settings.Game:
+                    if type(game) == settings.Game:
                         games_priority_sorted.append(game)
                         continue
 
-                uuid = OneLauncher.game_settings.get_new_uuid()
-                OneLauncher.game_settings.load_game({"uuid": str(uuid),
+                uuid = onelauncher.game_settings.get_new_uuid()
+                onelauncher.game_settings.load_game({"uuid": str(uuid),
                                                      "game_type": game_type,
                                                      "game_directory": game_item.text()})
-                game = OneLauncher.game_settings.games[uuid]
+                game = onelauncher.game_settings.games[uuid]
                 games_priority_sorted.append(game)
                 games_last_used_sorted.append(game)
 
             # Remove any games that were not selected by the user.
-            for game in list(OneLauncher.game_settings.games.values()):
+            for game in list(onelauncher.game_settings.games.values()):
                 if game.game_type != game_type:
                     continue
-                
+
                 if game not in games_priority_sorted:
-                    del OneLauncher.game_settings.games[game.uuid]
+                    del onelauncher.game_settings.games[game.uuid]
                     try:
                         games_last_used_sorted.remove(game)
                     except ValueError:

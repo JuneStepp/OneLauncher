@@ -4,7 +4,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from platform import platform
 
-import OneLauncher
+import onelauncher
 
 
 class Logger():
@@ -81,5 +81,5 @@ class Logger():
 
     def log_basic_info(self):
         self.logger.info("Logging started")
-        self.logger.info(f"{OneLauncher.__title__}: {OneLauncher.__version__}")
+        self.logger.info(f"{onelauncher.__title__}: {onelauncher.__version__}")
         self.logger.info(platform())

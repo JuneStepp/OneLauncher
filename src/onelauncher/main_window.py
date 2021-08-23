@@ -44,23 +44,23 @@ from pkg_resources import parse_version
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 
-import OneLauncher
-from OneLauncher import Settings, resources, logger, game_settings, program_settings
-from OneLauncher.ui_utilities import show_message_box_details_as_markdown
-from OneLauncher.AddonManager import AddonManager
-from OneLauncher.OneLauncherUtils import (AuthenticateUser, BaseConfig,
-                                          GetText,
-                                          GLSDataCenter, JoinWorldQueue,
-                                          World, WorldQueueConfig,
-                                          checkForCertificates)
-from OneLauncher.PatchWindow import PatchWindow
-from OneLauncher.SettingsWindow import SettingsWindow
-from OneLauncher.StartGame import StartGame
-from OneLauncher.resources import get_resource
-from OneLauncher.ui_resources import icon_font
-from OneLauncher.ui.winMain_uic import Ui_winMain
-from OneLauncher.ui.winAbout_uic import Ui_dlgAbout
-from OneLauncher.ui.select_account_uic import Ui_dlgChooseAccount
+import onelauncher
+from onelauncher import settings, resources, logger, game_settings, program_settings
+from onelauncher.ui_utilities import show_message_box_details_as_markdown
+from onelauncher.addon_manager import AddonManager
+from onelauncher.utilities import (AuthenticateUser, BaseConfig,
+                                   GetText,
+                                   GLSDataCenter, JoinWorldQueue,
+                                   World, WorldQueueConfig,
+                                   checkForCertificates)
+from onelauncher.patch_game_window import PatchWindow
+from onelauncher.settings_window import SettingsWindow
+from onelauncher.start_game_window import StartGame
+from onelauncher.resources import get_resource
+from onelauncher.ui_resources import icon_font
+from onelauncher.ui.main_uic import Ui_winMain
+from onelauncher.ui.about_uic import Ui_dlgAbout
+from onelauncher.ui.select_account_uic import Ui_dlgChooseAccount
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -231,10 +231,10 @@ class MainWindow(QtWidgets.QMainWindow):
         Sets the propper keyring backend for the used OS. This isn't
         automatically detected correctly with Nuitka
         """
-        if Settings.usingWindows:
+        if settings.usingWindows:
             from keyring.backends import Windows
             keyring.set_keyring(Windows.WinVaultKeyring())
-        elif Settings.usingMac:
+        elif settings.usingMac:
             from keyring.backends import OS_X
             keyring.set_keyring(OS_X.Keyring())
         else:
@@ -247,13 +247,13 @@ class MainWindow(QtWidgets.QMainWindow):
         ui = Ui_dlgAbout()
         ui.setupUi(dlgAbout)
 
-        ui.lblDescription.setText(OneLauncher.__description__)
-        ui.lblRepoWebsite.setText(f"<a href='{OneLauncher.__project_url__}'>"
-                                  f"{OneLauncher.__project_url__}</a>")
-        ui.lblCopyright.setText(OneLauncher.__copyright__)
+        ui.lblDescription.setText(onelauncher.__description__)
+        ui.lblRepoWebsite.setText(f"<a href='{onelauncher.__project_url__}'>"
+                                  f"{onelauncher.__project_url__}</a>")
+        ui.lblCopyright.setText(onelauncher.__copyright__)
         ui.lblVersion.setText(
-            "<b>Version:</b> " + OneLauncher.__version__)
-        ui.lblCopyrightHistory.setText(OneLauncher.__copyright_history__)
+            "<b>Version:</b> " + onelauncher.__version__)
+        ui.lblCopyrightHistory.setText(onelauncher.__copyright_history__)
 
         dlgAbout.exec()
         self.resetFocus()
@@ -339,8 +339,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.cboAccount.setCurrentText(accounts[-1].name)
 
     def setCurrentAccountWorld(self):
-        account: Settings.Account = self.ui.cboAccount.currentData()
-        if type(account) != Settings.Account:
+        account: settings.Account = self.ui.cboAccount.currentData()
+        if type(account) != settings.Account:
             return
 
         self.ui.cboWorld.setCurrentText(account.last_used_world_name)
@@ -357,7 +357,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return
 
         self.ui.txtPassword.setText(keyring.get_password(
-            OneLauncher.__title__, keyring_username) or "")
+            onelauncher.__title__, keyring_username) or "")
 
     def AuthAccount(self):
         self.AddLog("Checking account details...")
@@ -382,10 +382,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.AddLog("Account authenticated")
 
             if self.ui.chkSaveSettings.isChecked():
-                if type(self.ui.cboAccount.currentData()) == Settings.Account:
+                if type(self.ui.cboAccount.currentData()) == settings.Account:
                     current_account = self.ui.cboAccount.currentData()
                 else:
-                    current_account = Settings.Account(
+                    current_account = settings.Account(
                         self.ui.cboAccount.currentText(), self.ui.cboWorld.currentText())
                     self.ui.cboAccount.setItemData(
                         self.ui.cboAccount.currentIndex(), current_account)
@@ -403,14 +403,14 @@ class MainWindow(QtWidgets.QMainWindow):
                 keyring_username = self.get_current_keyring_username()
                 if self.ui.chkSavePassword.isChecked():
                     keyring.set_password(
-                        OneLauncher.__title__,
+                        onelauncher.__title__,
                         keyring_username,
                         self.ui.txtPassword.text(),
                     )
                 else:
                     try:
                         keyring.delete_password(
-                            OneLauncher.__title__,
+                            onelauncher.__title__,
                             keyring_username,
                         )
                     except keyring.errors.PasswordDeleteError:
@@ -521,8 +521,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def checkForUpdate(self):
         """Notifies user if their copy of OneLauncher is out of date"""
-        current_version = parse_version(OneLauncher.__version__)
-        repository_url = OneLauncher.__project_url__
+        current_version = parse_version(onelauncher.__version__)
+        repository_url = onelauncher.__project_url__
         if "github.com" not in repository_url.lower():
             logger.warning(
                 "Repository URL set in Information.py is not "
@@ -544,7 +544,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 release_dictionary = jsonLoads(response.read())
         except (urllib.error.URLError, urllib.error.HTTPError) as error:
             self.AddLog(
-                f"[E18] Error checking for {OneLauncher.__title__} updates.")
+                f"[E18] Error checking for {onelauncher.__title__} updates.")
             logger.error(error.reason, exc_info=True)
             return
 
@@ -565,13 +565,13 @@ class MainWindow(QtWidgets.QMainWindow):
                 f'<span>{name}</span></a></p></body></html>'
             )
             messageBox.setInformativeText(
-                f"There is a new version of {OneLauncher.__title__} available! {centered_href}"
+                f"There is a new version of {onelauncher.__title__} available! {centered_href}"
             )
             messageBox.setDetailedText(description)
             show_message_box_details_as_markdown(messageBox)
             messageBox.exec()
         else:
-            self.AddLog(f"{OneLauncher.__title__} is up to date.")
+            self.AddLog(f"{onelauncher.__title__} is up to date.")
 
     def getLaunchArgument(self, key: str, accepted_values: List[str]):
         launch_arguments = sys.argv
@@ -652,7 +652,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.set_banner_image()
         self.setWindowTitle(
-            f"{OneLauncher.__title__} - {game_settings.current_game.name}")
+            f"{onelauncher.__title__} - {game_settings.current_game.name}")
 
         # Setup btnSwitchGame for current game
         self.setup_switch_game_button()

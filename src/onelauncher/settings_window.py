@@ -36,14 +36,14 @@ import re
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 
-from OneLauncher import Settings, program_settings, game_settings
-from OneLauncher.ui.settings_uic import Ui_dlgSettings
-from OneLauncher.Runner import run_setup_wizard_with_main_window
-from OneLauncher.resources import get_game_dir_available_locales, available_locales
-from OneLauncher.ui_utilities import raise_warning_message
-from OneLauncher.wine_management import edit_qprocess_to_use_wine
+from onelauncher import settings, program_settings, game_settings
+from onelauncher.ui.settings_uic import Ui_dlgSettings
+from onelauncher.start_ui import run_setup_wizard_with_main_window
+from onelauncher.resources import get_game_dir_available_locales, available_locales
+from onelauncher.ui_utilities import raise_warning_message
+from onelauncher.wine_management import edit_qprocess_to_use_wine
 
-import OneLauncher
+import onelauncher
 
 
 class SettingsWindow(QtWidgets.QDialog):
@@ -52,7 +52,7 @@ class SettingsWindow(QtWidgets.QDialog):
     GAMES_SORTING_MODES_MAPPING: Final = bidict({
         "Priority": "priority", "Alphabetical": "alphabetical", "Last Used": "last_used"})
 
-    def __init__(self, game: Settings.Game, game_client_filename: Optional[str]):
+    def __init__(self, game: settings.Game, game_client_filename: Optional[str]):
         super(SettingsWindow, self).__init__(
             qApp.activeWindow(), QtCore.Qt.FramelessWindowHint)
         self.game = game
@@ -79,7 +79,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.ui.defaultGameLauncherButton.clicked.connect(
             self.run_default_game_launcher)
 
-        if not Settings.usingWindows:
+        if not settings.usingWindows:
             if self.game.builtin_wine_prefix_enabled:
                 self.ui.wineFormGroupBox.setChecked(False)
             else:
@@ -129,7 +129,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.ui.settingsButtonBox.accepted.connect(self.save_settings)
 
     def toggle_advanced_settings(self):
-        if not Settings.usingWindows:
+        if not settings.usingWindows:
             if self.ui.showAdvancedSettingsCheckbox.isChecked():
                 self.ui.wineAdvancedFrame.show()
             else:
@@ -172,7 +172,7 @@ class SettingsWindow(QtWidgets.QDialog):
         gameDirLineEdit = self.ui.gameDirLineEdit.text()
 
         if gameDirLineEdit == "":
-            if Settings.usingWindows:
+            if settings.usingWindows:
                 starting_dir = Path(os.environ.get("ProgramFiles"))
             else:
                 starting_dir = Path("~").expanduser()
@@ -228,7 +228,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.game.patch_client_path = Path(
             self.ui.patchClientLineEdit.text())
 
-        if not Settings.usingWindows:
+        if not settings.usingWindows:
             self.game.builtin_wine_prefix_enabled = not self.ui.wineFormGroupBox.isChecked()
             if self.game.builtin_wine_prefix_enabled:
                 self.game.wine_prefix_path = Path(

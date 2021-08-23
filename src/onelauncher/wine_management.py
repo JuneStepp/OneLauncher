@@ -27,7 +27,7 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 # Imports for extracting function
-from OneLauncher.ui_utilities import raise_warning_message
+from onelauncher.ui_utilities import raise_warning_message
 import lzma
 import tarfile
 from typing import Optional
@@ -38,7 +38,7 @@ from shutil import move, rmtree
 
 from PySide6 import QtCore, QtWidgets
 
-from OneLauncher import Settings, logger, game_settings
+from onelauncher import settings, logger, game_settings
 
 # To use Proton, replace link with Proton build and uncomment
 # `self.proton_documents_symlinker()` in wine_setup in wine_management
@@ -52,13 +52,13 @@ class WineManagement:
     def __init__(self):
         self.is_setup = False
 
-        (Settings.platform_dirs.user_data_path /
+        (settings.platform_dirs.user_data_path /
          "wine").mkdir(parents=True, exist_ok=True)
 
         self.wine_path: Optional[Path] = None
-        self.prefix_path = Settings.platform_dirs.user_cache_path/"wine/prefix"
+        self.prefix_path = settings.platform_dirs.user_cache_path/"wine/prefix"
         self.prefix_path.mkdir(exist_ok=True, parents=True)
-        self.downloads_path = Settings.platform_dirs.user_data_path/"wine"
+        self.downloads_path = settings.platform_dirs.user_data_path/"wine"
         self.downloads_path.mkdir(exist_ok=True, parents=True)
         self._dlgDownloader = None
 
@@ -95,7 +95,7 @@ class WineManagement:
 
         self.latest_wine_version = WINE_URL.split(
             "/download/")[1].split("/")[0]
-        latest_wine_path = Settings.platform_dirs.user_data_path / \
+        latest_wine_path = settings.platform_dirs.user_data_path / \
             ("wine/wine-"+self.latest_wine_version)
 
         if latest_wine_path.exists():
@@ -116,7 +116,7 @@ class WineManagement:
         self.dlgDownloader.setValue(100)
 
         self.wine_path = (
-            Settings.platform_dirs.user_data_path /
+            settings.platform_dirs.user_data_path /
             ("wine/wine-"+self.latest_wine_version)/"bin/wine"
         )
 
@@ -124,7 +124,7 @@ class WineManagement:
         self.latest_dxvk_version = DXVK_URL.split(
             "download/v")[1].split("/")[0]
         self.latest_dxvk_path = (
-            Settings.platform_dirs.user_data_path /
+            settings.platform_dirs.user_data_path /
             ("wine/dxvk-"+self.latest_dxvk_version)
         )
         if self.latest_dxvk_path.exists():
@@ -175,8 +175,8 @@ class WineManagement:
         # Moves files from nested directory to main one
         source_dir = [path for path in path_no_suffix.glob("*")
                       if path.is_dir()][0]
-        move(source_dir, Settings.platform_dirs.user_data_path/"wine")
-        source_dir = Settings.platform_dirs.user_data_path/"wine"/source_dir.name
+        move(source_dir, settings.platform_dirs.user_data_path/"wine")
+        source_dir = settings.platform_dirs.user_data_path/"wine"/source_dir.name
         path_no_suffix.rmdir()
         source_dir.rename(source_dir.parent/path_no_suffix.name)
 
@@ -184,7 +184,7 @@ class WineManagement:
         path.unlink()
 
         # Removes old wine versions
-        for dir in (Settings.platform_dirs.user_data_path/"wine").glob("*"):
+        for dir in (settings.platform_dirs.user_data_path/"wine").glob("*"):
             if not dir.is_dir():
                 continue
 
@@ -205,7 +205,7 @@ class WineManagement:
             path_no_suffix.name+"_TEMP").glob("*") if dir.is_dir()][0]
         move(
             path_no_suffix.with_name(
-                path_no_suffix.name + "_TEMP")/source_dir, Settings.platform_dirs.user_data_path/"wine",
+                path_no_suffix.name + "_TEMP")/source_dir, settings.platform_dirs.user_data_path/"wine",
         )
         path_no_suffix.with_name(path_no_suffix.name+"_TEMP").rmdir()
 
@@ -213,7 +213,7 @@ class WineManagement:
         path.unlink()
 
         # Removes old dxvk versions
-        for dir in (Settings.platform_dirs.user_data_path/"wine").glob("*"):
+        for dir in (settings.platform_dirs.user_data_path/"wine").glob("*"):
             if not dir.is_dir():
                 continue
 
@@ -253,11 +253,11 @@ class WineManagement:
             return
 
         # Make sure system documents folder and prefix documents root folder exists
-        Settings.documentsDir.mkdir(exist_ok=True)
+        settings.documentsDir.mkdir(exist_ok=True)
         prefix_documents_folder.parent.mkdir(exist_ok=True, parents=True)
 
         # Make symlink to system documents folder
-        Settings.documentsDir.symlink_to(
+        settings.documentsDir.symlink_to(
             prefix_documents_folder, target_is_directory=True)
 
     def setup_files(self):

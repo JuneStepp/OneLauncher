@@ -33,17 +33,17 @@ from sys import path
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 
-from OneLauncher import Settings, logger
-from OneLauncher.OneLauncherUtils import QByteArray2str
-from OneLauncher.wine_management import edit_qprocess_to_use_wine
-from OneLauncher.ui.winLog_uic import Ui_winLog
+from onelauncher import settings, logger
+from onelauncher.utilities import QByteArray2str
+from onelauncher.wine_management import edit_qprocess_to_use_wine
+from onelauncher.ui.start_game_uic import Ui_startGameDialog
 
 
 class StartGame(QtWidgets.QDialog):
     def __init__(
         self,
         client_filename: str,
-        game: Settings.Game,
+        game: settings.Game,
         argTemplate,
         account,
         server,
@@ -63,7 +63,7 @@ class StartGame(QtWidgets.QDialog):
         super(StartGame, self).__init__(
             qApp.activeWindow(), QtCore.Qt.FramelessWindowHint)
 
-        self.ui = Ui_winLog()
+        self.ui = Ui_startGameDialog()
         self.ui.setupUi(self)
 
         # Fixes binary path for 64-bit client
@@ -75,9 +75,9 @@ class StartGame(QtWidgets.QDialog):
         self.worldName = worldName
         self.accountText = accountText
         self.game = game
-        self.gameConfigDirPath = Settings.documentsDir/gameConfigDir
+        self.gameConfigDirPath = settings.documentsDir/gameConfigDir
 
-        if Settings.usingWindows:
+        if settings.usingWindows:
             self.setWindowTitle("Output")
         else:
             self.setWindowTitle("Launch Game - Wine output")
@@ -119,9 +119,9 @@ class StartGame(QtWidgets.QDialog):
 
         self.process.setProgram(str(client_relative_path))
         self.process.setArguments([arg for arg in gameParams.split(" ")])
-        if not Settings.usingWindows:
+        if not settings.usingWindows:
             edit_qprocess_to_use_wine(self.process)
-        
+
         self.process.setWorkingDirectory(str(game.game_directory))
 
         self.ui.txtLog.append("Connecting to server: " + worldName)
@@ -168,7 +168,7 @@ class StartGame(QtWidgets.QDialog):
     def btnSaveClicked(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(
             self, "Save log file", str(
-                Settings.platform_dirs.user_log_path)
+                settings.platform_dirs.user_log_path)
         )[0]
 
         if filename != "":
@@ -201,6 +201,6 @@ class StartGame(QtWidgets.QDialog):
         self.ui.btnStop.setText("Abort")
         self.process.start()
         logger.info("Game started with: " +
-                         str([self.process.program(), self.process.arguments()]))
+                    str([self.process.program(), self.process.arguments()]))
 
         self.exec()

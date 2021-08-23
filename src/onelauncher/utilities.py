@@ -26,7 +26,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from OneLauncher.resources import get_resource
+from onelauncher.resources import get_resource
 import os
 import ssl
 from codecs import open as uopen
@@ -37,8 +37,8 @@ from xml.sax.saxutils import escape as xml_escape
 
 import defusedxml.minidom
 
-import OneLauncher
-from OneLauncher import Settings, logger, program_settings
+import onelauncher
+from onelauncher import settings, logger, program_settings
 
 
 def string_encode(s):
@@ -58,10 +58,11 @@ sslContext = None
 
 def checkForCertificates():
     # Try to locate the server certificates for HTTPS connections
-    certfile = get_resource(Path("certificates/ca_certs.pem"), program_settings.ui_locale)
+    certfile = get_resource(
+        Path("certificates/ca_certs.pem"), program_settings.ui_locale)
 
     if certfile and not os.access(certfile, os.R_OK):
-        OneLauncher.logger.error(
+        onelauncher.logger.error(
             "certificate file expected at '%s' but not found!" % certfile)
         certfile = None
 
@@ -71,7 +72,7 @@ def checkForCertificates():
     if certfile:
         sslContext.verify_mode = ssl.CERT_REQUIRED
         sslContext.load_verify_locations(certfile)
-        OneLauncher.logger.info("SSL certificate verification enabled!")
+        onelauncher.logger.info("SSL certificate verification enabled!")
     return sslContext
 
 
@@ -98,7 +99,7 @@ def GetText(nodelist):
 
 
 class BaseConfig:
-    def __init__(self, game: Settings.Game):
+    def __init__(self, game: settings.Game):
         self.GLSDataCenterService = ""
         self.gameName = ""
         self.gameDocumentsDir = ""
@@ -154,7 +155,7 @@ class GLSDataCenter:
 
             tempxml = string_decode(webresp.read())
 
-            file_path = Settings.platform_dirs.user_cache_path/"game/GLSDataCenter.config"
+            file_path = settings.platform_dirs.user_cache_path/"game/GLSDataCenter.config"
             with uopen(file_path, "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 
@@ -221,7 +222,7 @@ class World:
 
             tempxml = string_decode(webresp.read())
 
-            file_path = Settings.platform_dirs.user_cache_path/"game/server.config"
+            file_path = settings.platform_dirs.user_cache_path/"game/server.config"
             with uopen(file_path, "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 
@@ -255,7 +256,7 @@ class World:
 
 
 class WorldQueueConfig:
-    def __init__(self, urlConfigServer, game: Settings.Game):
+    def __init__(self, urlConfigServer, game: settings.Game):
         self.gameClientFilename: str = ""
         self.gameClientArgTemplate = ""
         self.crashreceiver = ""
@@ -281,7 +282,7 @@ class WorldQueueConfig:
 
             tempxml = string_decode(webresp.read())
 
-            file_path = Settings.platform_dirs.user_cache_path/"game/launcher.config"
+            file_path = settings.platform_dirs.user_cache_path/"game/launcher.config"
             with uopen(str(file_path), "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 
@@ -426,7 +427,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
 
             tempxml = string_decode(webresp.read())
 
-            file_path = Settings.platform_dirs.user_cache_path/"game/GLSAuthServer.config"
+            file_path = settings.platform_dirs.user_cache_path/"game/GLSAuthServer.config"
             with uopen(file_path, "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 
@@ -504,7 +505,7 @@ class JoinWorldQueue:
 
             tempxml = string_decode(webresp.read())
 
-            file_path = Settings.platform_dirs.user_cache_path/"game/WorldQueue.config"
+            file_path = settings.platform_dirs.user_cache_path/"game/WorldQueue.config"
             with uopen(file_path, "w", "utf-8") as outfile:
                 outfile.write(tempxml)
 
@@ -532,4 +533,4 @@ class JoinWorldQueue:
             self.joinSuccess = False
 
 
-(Settings.platform_dirs.user_cache_path/"game").mkdir(parents=True, exist_ok=True)
+(settings.platform_dirs.user_cache_path/"game").mkdir(parents=True, exist_ok=True)

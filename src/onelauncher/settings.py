@@ -37,9 +37,9 @@ import rtoml
 from platformdirs import PlatformDirs
 from vkbeautify import xml as prettify_xml
 
-import OneLauncher
-from OneLauncher import resources
-from OneLauncher.resources import available_locales, Locale, system_locale
+import onelauncher
+from onelauncher import resources
+from onelauncher.resources import available_locales, Locale, system_locale
 
 
 def set_os_specific_variables():
@@ -55,7 +55,7 @@ def set_os_specific_variables():
     global directoryCXO
     global macPathCX
 
-    platform_dirs = PlatformDirs(OneLauncher.__title__, False)
+    platform_dirs = PlatformDirs(onelauncher.__title__, False)
     if os.name == "mac":
         usingMac = True
         usingWindows = False
@@ -108,7 +108,7 @@ class ProgramSettings():
     def __init__(self, config_path: Path = None) -> None:
         if not config_path:
             config_path = platform_dirs.user_config_path / \
-                f"{OneLauncher.__title__}.toml"
+                f"{onelauncher.__title__}.toml"
         self.config_path = config_path
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -144,7 +144,7 @@ class ProgramSettings():
     def default_locale(self, new_value: Locale):
         self._default_locale = new_value
 
-        OneLauncher.set_ui_locale()
+        onelauncher.set_ui_locale()
 
     @property
     def always_use_default_language_for_ui(self) -> bool:
@@ -154,7 +154,7 @@ class ProgramSettings():
     def always_use_default_language_for_ui(self, new_value: bool):
         self._always_use_default_language_for_ui = new_value
 
-        OneLauncher.set_ui_locale()
+        onelauncher.set_ui_locale()
 
     def load(self):
         # Defaults will be used if the settings file doesn't exist
@@ -179,7 +179,7 @@ class ProgramSettings():
             "games_sorting_mode", "priority")
 
     def save(self):
-        settings_dict = {"onelauncher_version": OneLauncher.__version__,
+        settings_dict = {"onelauncher_version": onelauncher.__version__,
                          "default_language": self.default_locale.lang_tag,
                          "always_use_default_language_for_ui": self.always_use_default_language_for_ui,
                          "save_accounts": self.save_accounts,
@@ -276,7 +276,7 @@ class Game():
     def locale(self, new_value: Locale):
         self._locale = new_value
 
-        OneLauncher.set_ui_locale()
+        onelauncher.set_ui_locale()
 
     @client_type.setter
     def client_type(self, new_value: str) -> None:
@@ -404,7 +404,7 @@ class GamesSettings():
             available_locales[
                 game_dict.get(
                     "language", str(
-                        OneLauncher.program_settings.default_locale)
+                        onelauncher.program_settings.default_locale)
                 )
             ],
             game_dict.get("client_type", "WIN64"),
@@ -516,7 +516,7 @@ class GamesSettings():
     def current_game(self, new_value: Game):
         self._current_game = new_value
 
-        OneLauncher.set_ui_locale()
+        onelauncher.set_ui_locale()
 
     def remove_empty_values_from_dict(self, input_dict: dict, recursive=True) -> dict:
         input_dict = {key: input_dict[key]

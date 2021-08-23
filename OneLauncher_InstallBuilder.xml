@@ -4,8 +4,8 @@
     <version>1.2.6</version>
     <readmeFile>${build_project_directory}/README.md</readmeFile>
     <licenseFile>${build_project_directory}/COPYING</licenseFile>
-    <leftImage>${build_project_directory}/OneLauncher/images/installer_lotro-ddo_collage.png</leftImage>
-    <logoImage>${build_project_directory}/RunOneLauncher.dist/OneLauncher/images/OneLauncherIcon.png</logoImage>
+    <leftImage>${build_project_directory}/src/onelauncher/images/installer_lotro-ddo_collage.png</leftImage>
+    <logoImage>${build_project_directory}/start_onelauncher.dist/src/onelauncher/images/OneLauncherIcon.png</logoImage>
     <defaultLanguage>auto</defaultLanguage>
     <allowLanguageSelection>1</allowLanguageSelection>
     <languageSelectionStyle>onlyNativeNames</languageSelectionStyle>
@@ -19,16 +19,16 @@
             <desktopShortcutList>
                 <shortcut>
                     <comment>Run ${product_fullname}</comment>
-                    <exec>${installdir}/RunOneLauncher.dist/RunOneLauncher</exec>
-                    <icon>${installdir}/RunOneLauncher.dist/OneLauncher/images/OneLauncherIcon.png</icon>
+                    <exec>${installdir}/start_onelauncher.dist/start_onelauncher</exec>
+                    <icon>${installdir}/start_onelauncher.dist/src/onelauncher/images/OneLauncherIcon.png</icon>
                     <name>${product_fullname}</name>
                     <path></path>
                     <platforms>all</platforms>
                     <runAsAdmin>0</runAsAdmin>
                     <runInTerminal>0</runInTerminal>
-                    <windowsExec>${installdir}/RunOneLauncher.dist/RunOneLauncher.exe</windowsExec>
+                    <windowsExec>${installdir}/start_onelauncher.dist/start_onelauncher.exe</windowsExec>
                     <windowsExecArgs></windowsExecArgs>
-                    <windowsIcon>${installdir}/RunOneLauncher.dist/OneLauncher/images/OneLauncherIcon.ico</windowsIcon>
+                    <windowsIcon>${installdir}/start_onelauncher.dist/src/onelauncher/images/OneLauncherIcon.ico</windowsIcon>
                     <windowsPath></windowsPath>
                 </shortcut>
             </desktopShortcutList>
@@ -40,7 +40,7 @@
                     <platforms>all</platforms>
                     <distributionFileList>
                         <distributionDirectory>
-                            <origin>RunOneLauncher.dist</origin>
+                            <origin>start_onelauncher.dist</origin>
                         </distributionDirectory>
                     </distributionFileList>
                     <shortcutList>
@@ -60,16 +60,16 @@
                         </shortcut>
                         <shortcut>
                             <comment>Run OneLauncher</comment>
-                            <exec>${installdir}/RunOneLauncher.dist/RunOneLauncher</exec>
-                            <icon>${installdir}/RunOneLauncher.dist/OneLauncher/images/OneLauncherIcon.png</icon>
+                            <exec>${installdir}/start_onelauncher.dist/start_onelauncher</exec>
+                            <icon>${installdir}/start_onelauncher.dist/src/onelauncher/images/OneLauncherIcon.png</icon>
                             <name>OneLauncher</name>
                             <path></path>
                             <platforms>all</platforms>
                             <runAsAdmin>0</runAsAdmin>
                             <runInTerminal>0</runInTerminal>
-                            <windowsExec>${installdir}/RunOneLauncher.dist/RunOneLauncher.exe</windowsExec>
+                            <windowsExec>${installdir}/start_onelauncher.dist/start_onelauncher.exe</windowsExec>
                             <windowsExecArgs></windowsExecArgs>
-                            <windowsIcon>${installdir}/RunOneLauncher.dist/OneLauncher/images/OneLauncherIcon.ico</windowsIcon>
+                            <windowsIcon>${installdir}/start_onelauncher.dist/src/onelauncher/images/OneLauncherIcon.ico</windowsIcon>
                             <windowsPath></windowsPath>
                         </shortcut>
                     </shortcutList>
@@ -121,9 +121,9 @@
                     <name>${product_fullname}</name>
                     <runAsAdmin>0</runAsAdmin>
                     <runInTerminal>0</runInTerminal>
-                    <windowsExec>${installdir}/RunOneLauncher.dist/RunOneLauncher.exe</windowsExec>
+                    <windowsExec>${installdir}/start_onelauncher.dist/start_onelauncher.exe</windowsExec>
                     <windowsExecArgs></windowsExecArgs>
-                    <windowsIcon>${installdir}/RunOneLauncher.dist/OneLauncher/images/OneLauncherIcon.ico</windowsIcon>
+                    <windowsIcon>${installdir}/start_onelauncher.dist/src/onelauncher/images/OneLauncherIcon.ico</windowsIcon>
                     <windowsPath></windowsPath>
                 </startMenuShortcut>
             </startMenuShortcutList>
@@ -138,14 +138,14 @@
     <outputDirectory>${build_project_directory}/installer_build</outputDirectory>
     <saveRelativePaths>1</saveRelativePaths>
     <vendor>June Stepp</vendor>
-    <windowsExecutableIcon>${build_project_directory}/RunOneLauncher.dist/OneLauncher/images/OneLauncherIcon.ico</windowsExecutableIcon>
+    <windowsExecutableIcon>${build_project_directory}/start_onelauncher.dist/src/onelauncher/images/OneLauncherIcon.ico</windowsExecutableIcon>
     <finalPageActionList>
         <if>
             <progressText>Run ${product_fullname}?</progressText>
             <actionList>
                 <runProgram>
                     <program>${windows_folder_system}\cmd.exe</program>
-                    <programArguments>/c "${installdir}\RunOneLauncher.dist\RunOneLauncher.exe"</programArguments>
+                    <programArguments>/c "${installdir}\start_onelauncher.dist\start_onelauncher.exe"</programArguments>
                     <progressText>Run ${product_fullname}?</progressText>
                 </runProgram>
             </actionList>
@@ -156,7 +156,7 @@
             </conditionRuleList>
             <elseActionList>
                 <runProgram>
-                    <program>${installdir}/RunOneLauncher.dist/RunOneLauncher</program>
+                    <program>${installdir}/start_onelauncher.dist/start_onelauncher</program>
                     <programArguments></programArguments>
                     <progressText>Run ${product_fullname}?</progressText>
                 </runProgram>
