@@ -36,6 +36,10 @@ autopep8 = "^1.5.7"
 pytest = "^6.2.4"
 isort = "^5.9.3"
 
+[tool.poetry.scripts]
+run = "onelauncher.start_ui:main"
+compile = "compile:main"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

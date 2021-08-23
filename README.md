@@ -54,15 +54,11 @@ OneLauncher supports custom game settings folders through the `ddo.launcherconfi
 
 OneLauncher uses [Poetry](https://python-poetry.org) for dependency management. To get everything setup simply run `poetry install --no-root` in the root folder of the OneLauncher source code.
 
-# To run from source
+## To run from source
 
-`poetry run ./start_onelauncher`
+`poetry run`
 
-Or.
-
-`poetry run python start_onelauncher`
-
-# To build
+## To build
 
 The build ends up in `start_onelauncher.dist`.
 
