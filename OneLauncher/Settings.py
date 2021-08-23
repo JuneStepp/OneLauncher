@@ -188,6 +188,8 @@ class ProgramSettings():
                          }
 
         rtoml.dump(settings_dict, self.config_path, pretty=True)
+
+
 class Account():
     def __init__(self, name: str, last_used_world_name: str) -> None:
         self._name: Final = name
@@ -197,6 +199,7 @@ class Account():
     def name(self) -> str:
         """Account name. This is immutable."""
         return self._name
+
 
 class Game():
     def __init__(self,
@@ -310,7 +313,7 @@ class GamesSettings():
         return f"{game_directory.name} ({uuid})"
 
     def uuid_str_list_to_game_list(self, uuid_list: List[str]) -> List[Game]:
-        return [self.games[UUID(uuid_str)] for uuid_str in uuid_list]
+        return [self.games[UUID(uuid_str)] for uuid_str in uuid_list if UUID(uuid_str) in self.games]
 
     def load(self):
         if not self.config_path.exists():
@@ -348,7 +351,6 @@ class GamesSettings():
         else:
             self.ddo_games_last_used_sorted = [
                 game for game in self.games.values() if game.game_type == "DDO"]
-
 
         self.lotro_games_alphabetical_sorted = self.lotro_games_priority_sorted.copy()
         self.ddo_games_alphabetical_sorted = self.ddo_games_priority_sorted.copy()
@@ -447,7 +449,8 @@ class GamesSettings():
                 list.remove(self.current_game)
                 list.insert(0, self.current_game)
 
-                settings_dict["last_used_game_uuid"] = str(self.current_game.uuid)
+                settings_dict["last_used_game_uuid"] = str(
+                    self.current_game.uuid)
         except AttributeError:
             pass
 

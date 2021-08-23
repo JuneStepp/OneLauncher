@@ -513,7 +513,7 @@
      <property name="geometry">
       <rect>
        <x>181</x>
-       <y>160</y>
+       <y>196</y>
        <width>261</width>
        <height>25</height>
       </rect>
@@ -624,6 +624,20 @@
       <string>Default language to use for games</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="gamesManagementButton">
+     <property name="geometry">
+      <rect>
+       <x>181</x>
+       <y>160</y>
+       <width>261</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Manage Games</string>
+     </property>
+    </widget>
+    <zorder>gamesManagementButton</zorder>
     <zorder>setupWizardButton</zorder>
     <zorder>defaultLanguageComboBox</zorder>
     <zorder>defaultLanguageLabel</zorder>

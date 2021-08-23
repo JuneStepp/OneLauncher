@@ -127,13 +127,13 @@ def handle_windows_dark_theme():
             "QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
 
 
-def start_setup_wizard():
+def start_setup_wizard(**kwargs):
     from OneLauncher.SetupWizard import SetupWizard
-    setup_wizard = SetupWizard()
+    setup_wizard = SetupWizard(**kwargs)
     setup_wizard.exec()
 
 
-def run_setup_wizard_with_main_window():
+def run_setup_wizard_with_main_window(**kwargs):
     """Run setup wizard and re-do main window initial setup"""
-    start_setup_wizard()
+    start_setup_wizard(**kwargs)
     main_window.InitialSetup()

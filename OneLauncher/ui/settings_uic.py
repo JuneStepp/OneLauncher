@@ -164,7 +164,7 @@ class Ui_dlgSettings(object):
         self.tabProgram.setObjectName(u"tabProgram")
         self.setupWizardButton = QPushButton(self.tabProgram)
         self.setupWizardButton.setObjectName(u"setupWizardButton")
-        self.setupWizardButton.setGeometry(QRect(181, 160, 261, 25))
+        self.setupWizardButton.setGeometry(QRect(181, 196, 261, 25))
         self.defaultLanguageComboBox = QComboBox(self.tabProgram)
         self.defaultLanguageComboBox.setObjectName(u"defaultLanguageComboBox")
         self.defaultLanguageComboBox.setGeometry(QRect(170, 12, 281, 33))
@@ -187,7 +187,11 @@ class Ui_dlgSettings(object):
         self.gamesSortingModeComboBox = QComboBox(self.tabProgram)
         self.gamesSortingModeComboBox.setObjectName(u"gamesSortingModeComboBox")
         self.gamesSortingModeComboBox.setGeometry(QRect(170, 108, 281, 33))
+        self.gamesManagementButton = QPushButton(self.tabProgram)
+        self.gamesManagementButton.setObjectName(u"gamesManagementButton")
+        self.gamesManagementButton.setGeometry(QRect(181, 160, 261, 25))
         self.tabWidget.addTab(self.tabProgram, "")
+        self.gamesManagementButton.raise_()
         self.setupWizardButton.raise_()
         self.defaultLanguageComboBox.raise_()
         self.defaultLanguageLabel.raise_()
@@ -326,6 +330,7 @@ class Ui_dlgSettings(object):
 #if QT_CONFIG(tooltip)
         self.gamesSortingModeComboBox.setToolTip(QCoreApplication.translate("dlgSettings", u"Default language to use for games", None))
 #endif // QT_CONFIG(tooltip)
+        self.gamesManagementButton.setText(QCoreApplication.translate("dlgSettings", u"Manage Games", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabProgram), QCoreApplication.translate("dlgSettings", u"OneLauncher", None))
     # retranslateUi
 

@@ -59,7 +59,7 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.ui = Ui_dlgSettings()
         self.ui.setupUi(self)
-        
+
         if game_client_filename:
             self.game_client_filename = game_client_filename
         else:
@@ -121,6 +121,8 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.ui.setupWizardButton.clicked.connect(
             self.start_setup_wizard)
+        self.ui.gamesManagementButton.clicked.connect(
+            self.manage_games)
         self.ui.gameDirButton.clicked.connect(self.choose_game_dir)
         self.ui.showAdvancedSettingsCheckbox.clicked.connect(
             self.toggle_advanced_settings)
@@ -187,9 +189,16 @@ class SettingsWindow(QtWidgets.QDialog):
         if filename != "":
             self.ui.gameDirLineEdit.setText(filename)
 
-    def start_setup_wizard(self):
+    def manage_games(self):
+        self.start_setup_wizard(games_managing=True)
+
+    def start_setup_wizard(self, games_managing=False):
         self.close()
-        run_setup_wizard_with_main_window()
+        if games_managing:
+            run_setup_wizard_with_main_window(
+                game_selection_only=True, show_existing_games=True)
+        else:
+            run_setup_wizard_with_main_window()
 
     def add_languages_to_combobox(self, combobox: QtWidgets.QComboBox):
         for locale in available_locales.values():
