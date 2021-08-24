@@ -37,16 +37,9 @@ jobs:
           pip install --upgrade pip
           pip install poetry
       - name: Install dependencies
-        run: poetry install --no-root
-      - name: Build Linux
-        if: runner.os == 'Linux'
-        run: poetry run python -m nuitka --standalone --assume-yes-for-downloads --nofollow-import-to=tkinter,unittest,pydoc,pdb --plugin-enable=pyside6 --include-qt-plugins=wayland-shell-integration,platforms --include-package keyring.backends --include-data-dir src/onelauncher/certificates=src/onelauncher/certificates --include-data-dir src/onelauncher/images=src/onelauncher/images --include-data-dir src/onelauncher/locale=src/onelauncher/locale --include-data-dir src/onelauncher/fonts=src/onelauncher/fonts start_onelauncher
-      - name: Build Windows
-        if: runner.os == 'Windows'
-        run: poetry run python -m nuitka --standalone --windows-disable-console --assume-yes-for-downloads --nofollow-import-to=tkinter,unittest,pydoc,pdb --plugin-enable=pyside6 --include-package keyring.backends --include-package win32timezone --include-data-dir src/onelauncher/certificates=src/onelauncher/certificates --include-data-dir src/onelauncher/images=src/onelauncher/images --include-data-dir src/onelauncher/locale=src/onelauncher/locale --include-data-dir src/onelauncher/fonts=src/onelauncher/fonts --windows-icon-from-ico=src/onelauncher/images/OneLauncherIcon.ico start_onelauncher
-      - name: Build macOS
-        if: runner.os == 'macOS'
-        run: poetry run python -m nuitka --standalone --assume-yes-for-downloads --nofollow-import-to=tkinter,unittest,pydoc,pdb --plugin-enable=pyside6 --include-package keyring.backends --include-data-dir src/onelauncher/certificates=src/onelauncher/certificates --include-data-dir src/onelauncher/images=src/onelauncher/images --include-data-dir src/onelauncher/locale=src/onelauncher/locale --include-data-dir src/onelauncher/fonts=src/onelauncher/fonts start_onelauncher
+        run: poetry install
+      - name: Build
+        run: poetry run compile.py
       - name: Upload build artifact
         uses: actions/upload-artifact@v2
         with:
