@@ -56,7 +56,7 @@ OneLauncher uses [Poetry](https://python-poetry.org) for dependency management. 
 
 ## To run from source
 
-`poetry run`
+`poetry run onelauncher`
 
 ## To build
 
