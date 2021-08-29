@@ -14,15 +14,6 @@ __copyright_history__ = ("Based on PyLotRO\n(C) 2009-2010 AJackson\n"
                          "Based on CLI launcher for LOTRO\n(C) 2007-2010 SNy")
 
 
-def setup_settings():
-    global program_settings
-    global game_settings
-    program_settings = settings.ProgramSettings()
-    game_settings = settings.GamesSettings()
-
-    set_ui_locale()
-
-
 def set_ui_locale():
     """Set locale for OneLauncher UI"""
     if (
@@ -39,4 +30,7 @@ logger = logging.Logger("temp_logger")
 from onelauncher import settings, logs  # isort:skip # noqa
 logger = logs.Logger(settings.platform_dirs.user_log_path, "main").logger
 
-setup_settings()
+program_settings = settings.ProgramSettings()
+game_settings = settings.GamesSettings()
+
+set_ui_locale()
