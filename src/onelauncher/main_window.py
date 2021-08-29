@@ -67,8 +67,8 @@ class MainWindow(QtWidgets.QMainWindow):
     # Make signals for communicating with MainWindowThread
     ReturnLog = QtCore.Signal(str)
     ReturnBaseConfig = QtCore.Signal(BaseConfig)
-    ReturnGLSDataCenter = QtCore.Signal(BaseConfig)
-    ReturnWorldQueueConfig = QtCore.Signal(BaseConfig)
+    ReturnGLSDataCenter = QtCore.Signal(GLSDataCenter)
+    ReturnWorldQueueConfig = QtCore.Signal(WorldQueueConfig)
     ReturnNews = QtCore.Signal(str)
 
     def __init__(self):
@@ -215,15 +215,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def connectMainWindowThreadSignals(self):
         """Connects function signals for communicating with MainWindowThread."""
-        self.ReturnLog = self.ReturnLog
         self.ReturnLog.connect(self.AddLog)
-        self.ReturnBaseConfig = self.ReturnBaseConfig
         self.ReturnBaseConfig.connect(self.GetBaseConfig)
-        self.ReturnGLSDataCenter = self.ReturnGLSDataCenter
         self.ReturnGLSDataCenter.connect(self.GetGLSDataCenter)
-        self.ReturnWorldQueueConfig = self.ReturnWorldQueueConfig
         self.ReturnWorldQueueConfig.connect(self.GetWorldQueueConfig)
-        self.ReturnNews = self.ReturnNews
         self.ReturnNews.connect(self.GetNews)
 
     def configureKeyring(self):
@@ -682,10 +677,10 @@ class MainWindow(QtWidgets.QMainWindow):
         )
         self.configThread.start()
 
-    def GetBaseConfig(self, baseConfig):
+    def GetBaseConfig(self, baseConfig: BaseConfig):
         self.baseConfig = baseConfig
 
-    def GetGLSDataCenter(self, dataCenter):
+    def GetGLSDataCenter(self, dataCenter: GLSDataCenter):
         self.dataCenter = dataCenter
 
         for world in self.dataCenter.worldList:
@@ -693,7 +688,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setCurrentAccountWorld()
 
-    def GetWorldQueueConfig(self, worldQueueConfig):
+    def GetWorldQueueConfig(self, worldQueueConfig: WorldQueueConfig):
         self.worldQueueConfig = worldQueueConfig
 
         self.ui.actionPatch.setEnabled(True)
@@ -704,7 +699,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.cboAccount.setEnabled(True)
         self.ui.txtPassword.setEnabled(True)
 
-    def GetNews(self, news):
+    def GetNews(self, news: str):
         self.ui.txtFeed.setHtml(news)
 
         self.configThreadFinished()
@@ -715,7 +710,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def ClearNews(self):
         self.ui.txtFeed.setText("")
 
-    def AddLog(self, message):
+    def AddLog(self, message: str) -> None:
         for line in message.splitlines():
             # Make line red if it is an error
             if line.startswith("[E"):
@@ -731,7 +726,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.ui.txtStatus.append(line)
 
-    def configThreadFinished(self):
+    def configThreadFinished(self) -> None:
         self.ui.btnOptions.setEnabled(True)
         self.ui.btnSwitchGame.setEnabled(True)
 
@@ -778,7 +773,7 @@ class MainWindowThread(QtCore.QThread):
         else:
             self.ReturnLog.emit("[E04] Error accessing GLS data center.")
 
-    def GetWorldQueueConfig(self, urlWorldQueueServer):
+    def GetWorldQueueConfig(self, urlWorldQueueServer: str):
         self.worldQueueConfig = WorldQueueConfig(
             urlWorldQueueServer, game_settings.current_game
         )

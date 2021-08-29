@@ -26,6 +26,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
+from typing import List
 from onelauncher.resources import get_resource
 import os
 import ssl
@@ -130,7 +131,7 @@ class BaseConfig:
 
 
 class GLSDataCenter:
-    def __init__(self, urlGLSDataCenterService, gameName):
+    def __init__(self, urlGLSDataCenterService, gameName: str):
         SM_TEMPLATE = '<?xml version="1.0" encoding="utf-8"?>\
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
 <soap:Body><GetDatacenters xmlns="http://www.turbine.com/SE/GLS"><game>%s</game>\
@@ -175,7 +176,7 @@ class GLSDataCenter:
                         0].childNodes
                 )
 
-                self.worldList = []
+                self.worldList: List[World] = []
 
                 name = ""
                 urlChatServer = ""
@@ -256,7 +257,7 @@ class World:
 
 
 class WorldQueueConfig:
-    def __init__(self, urlConfigServer, game: settings.Game):
+    def __init__(self, urlConfigServer: str, game: settings.Game):
         self.gameClientFilename: str = ""
         self.gameClientArgTemplate = ""
         self.crashreceiver = ""
