@@ -71,8 +71,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     ReturnLog = QtCore.Signal(str)
     ReturnBaseConfig = QtCore.Signal(BaseConfig)
-    ReturnGLSDataCenter = QtCore.Signal(BaseConfig)
-    ReturnWorldQueueConfig = QtCore.Signal(BaseConfig)
+    ReturnGLSDataCenter = QtCore.Signal(GLSDataCenter)
+    ReturnWorldQueueConfig = QtCore.Signal(WorldQueueConfig)
     ReturnNews = QtCore.Signal(str)
 
     def __init__(self):
