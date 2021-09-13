@@ -287,7 +287,7 @@ def edit_qprocess_to_use_wine(qprocess: QtCore.QProcess) -> None:
                 if int(file_data) >= 524288:
                     processEnvironment.insert("WINEESYNC", "1")
 
-        # Enables FSYNC. It overides ESYNC and will only be used if
+        # Enables FSYNC. It overrides ESYNC and will only be used if
         # the required kernel patches are installed.
         processEnvironment.insert("WINEFSYNC", "1")
 

@@ -584,10 +584,10 @@ class MainWindow(QtWidgets.QMainWindow):
                     return value
 
     def set_banner_image(self):
-        game_dir_banner_overide_path = game_settings.current_game.game_directory / \
+        game_dir_banner_override_path = game_settings.current_game.game_directory / \
             program_settings.ui_locale.lang_tag.split("-")[0]/"banner.png"
-        if game_dir_banner_overide_path.exists():
-            banner_pixmap = QtGui.QPixmap(str(game_dir_banner_overide_path))
+        if game_dir_banner_override_path.exists():
+            banner_pixmap = QtGui.QPixmap(str(game_dir_banner_override_path))
         else:
             banner_pixmap = QtGui.QPixmap(str(get_resource(
                 Path(f"images/{game_settings.current_game.game_type}_banner.png"), program_settings.ui_locale)))
