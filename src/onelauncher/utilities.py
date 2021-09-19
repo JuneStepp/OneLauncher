@@ -51,18 +51,18 @@ GAME_FOLDER_VERIFICATION_FILES = bidict({
     "LOTRO": Path("lotroclient.exe"), "DDO": Path("dndclient.exe")})
 
 def check_if_valid_game_folder(folder: Path, game_type: str = None) -> Optional[str]:
-        """
-        Checks for the game's verification file to validate that the
-        folder is a valid game folder.
-        """
-        if game_type:
-            verifying_files = [GAME_FOLDER_VERIFICATION_FILES[game_type]]
-        else:
-            verifying_files = GAME_FOLDER_VERIFICATION_FILES.values()
+    """
+    Checks for the game's verification file to validate that the
+    folder is a valid game folder.
+    """
+    if game_type:
+        verifying_files = [GAME_FOLDER_VERIFICATION_FILES[game_type]]
+    else:
+        verifying_files = GAME_FOLDER_VERIFICATION_FILES.values()
 
-        for verifying_file in verifying_files:
-            if (folder/verifying_file).exists():
-                return GAME_FOLDER_VERIFICATION_FILES.inverse[verifying_file]
+    for verifying_file in verifying_files:
+        if (folder/verifying_file).exists():
+            return GAME_FOLDER_VERIFICATION_FILES.inverse[verifying_file]
 
 
 def string_encode(s):

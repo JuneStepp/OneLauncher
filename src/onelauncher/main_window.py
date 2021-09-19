@@ -52,7 +52,7 @@ from onelauncher.utilities import (AuthenticateUser, BaseConfig,
                                    GetText,
                                    GLSDataCenter, JoinWorldQueue,
                                    World, WorldQueueConfig,
-                                   checkForCertificates)
+                                   checkForCertificates, check_if_valid_game_folder)
 from onelauncher.patch_game_window import PatchWindow
 from onelauncher.settings_window import SettingsWindow
 from onelauncher.start_game_window import StartGame
@@ -595,6 +595,26 @@ class MainWindow(QtWidgets.QMainWindow):
         banner_pixmap = banner_pixmap.scaledToHeight(self.ui.imgMain.height())
         self.ui.imgMain.setPixmap(banner_pixmap)
 
+    def check_game_dir(self) -> bool:
+        if not game_settings.current_game.game_directory.exists():
+            self.AddLog("[E13] Game directory not found")
+            return False
+
+        if not check_if_valid_game_folder(game_settings.current_game.game_directory, game_settings.current_game.game_type):
+            self.AddLog("The game directory is not valid.", is_error=True)
+            return False
+
+        if not (game_settings.current_game.game_directory /
+                f"client_local_{game_settings.current_game.locale.game_language_name}.dat").exists():
+            self.AddLog("[E20] There is no game language data for "
+                        f"{game_settings.current_game.locale.display_name} installed "
+                        f"You may have to select {game_settings.current_game.locale.display_name}"
+                        " in the normal game launcher and wait for the data to download."
+                        " The normal game launcher can be opened from the settings menu.")
+            return False
+
+        return True
+
     def InitialSetup(self, first_setup=False):
         self.ui.cboAccount.setEnabled(False)
         self.ui.cboAccount.setFocus()
@@ -652,17 +672,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # Setup btnSwitchGame for current game
         self.setup_switch_game_button()
 
-        if not game_settings.current_game.game_directory.exists():
-            self.AddLog("[E13] Game Directory not found")
+        if not self.check_game_dir():
             return
-
-        if not (game_settings.current_game.game_directory /
-                f"client_local_{game_settings.current_game.locale.game_language_name}.dat").exists():
-            self.AddLog("[E20] There is no game language data for "
-                        f"{game_settings.current_game.locale.display_name} installed "
-                        f"You may have to select {game_settings.current_game.locale.display_name}"
-                        " in the normal game launcher and wait for the data to download."
-                        " The normal game launcher can be opened from the settings menu.")
 
         self.resetFocus()
 
@@ -710,10 +721,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def ClearNews(self):
         self.ui.txtFeed.setText("")
 
-    def AddLog(self, message: str) -> None:
+    def AddLog(self, message: str, is_error: bool=False) -> None:
         for line in message.splitlines():
             # Make line red if it is an error
-            if line.startswith("[E"):
+            if line.startswith("[E") or is_error:
                 logger.error(line)
 
                 line = '<font color="red">' + message + "</font>"
