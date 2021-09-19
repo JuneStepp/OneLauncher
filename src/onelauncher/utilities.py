@@ -157,7 +157,7 @@ class GLSDataCenter:
             tempxml = string_decode(webresp.read())
 
             file_path = settings.platform_dirs.user_cache_path/"game/GLSDataCenter.config"
-            with uopen(file_path, "w", "utf-8") as outfile:
+            with file_path.open("w") as outfile:
                 outfile.write(tempxml)
 
             if tempxml == "":
@@ -224,7 +224,7 @@ class World:
             tempxml = string_decode(webresp.read())
 
             file_path = settings.platform_dirs.user_cache_path/"game/server.config"
-            with uopen(file_path, "w", "utf-8") as outfile:
+            with file_path.open("w") as outfile:
                 outfile.write(tempxml)
 
             if tempxml == "":
@@ -284,7 +284,7 @@ class WorldQueueConfig:
             tempxml = string_decode(webresp.read())
 
             file_path = settings.platform_dirs.user_cache_path/"game/launcher.config"
-            with uopen(str(file_path), "w", "utf-8") as outfile:
+            with file_path.open("w") as outfile:
                 outfile.write(tempxml)
 
             if tempxml == "":
@@ -429,7 +429,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
             tempxml = string_decode(webresp.read())
 
             file_path = settings.platform_dirs.user_cache_path/"game/GLSAuthServer.config"
-            with uopen(file_path, "w", "utf-8") as outfile:
+            with file_path.open("w") as outfile:
                 outfile.write(tempxml)
 
             if tempxml == "":
@@ -507,7 +507,7 @@ class JoinWorldQueue:
             tempxml = string_decode(webresp.read())
 
             file_path = settings.platform_dirs.user_cache_path/"game/WorldQueue.config"
-            with uopen(file_path, "w", "utf-8") as outfile:
+            with file_path.open("w") as outfile:
                 outfile.write(tempxml)
 
             if tempxml == "":
