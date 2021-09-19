@@ -343,43 +343,6 @@ class WorldQueueConfig:
                             self.worldQueueParam = node.getAttribute("value")
 
                 self.loadSuccess = True
-
-            # check launcher configs in gameDir for local game client override
-            tempxml = ""
-            filenames = [
-                "TurbineLauncher.exe.config",
-                f"{game.game_type.lower()}.launcherconfig",
-            ]
-            for filename in filenames:
-                filepath = game.game_directory/filename
-                if filepath.exists():
-                    with uopen(str(filepath), "r", "utf-8") as infile:
-                        tempxml = infile.read()
-                    doc = defusedxml.minidom.parseString(tempxml)
-                    nodes = doc.getElementsByTagName(
-                        "appSettings")[0].childNodes
-
-                    self.message = ""
-                    for node in nodes:
-                        if node.nodeType == node.ELEMENT_NODE:
-                            if node.getAttribute("key") == "GameClient.WIN32.Filename":
-                                self.gameClientFilename = node.getAttribute(
-                                    "value")
-                                self.message = (
-                                    '<font color="Khaki">'
-                                    + filename
-                                    + " 32-bit and/or legacy"
-                                    " client override activated</font>"
-                                )
-
-                            if node.getAttribute("key") == "GameClient.WIN64.Filename":
-                                self.gameClientFilename = node.getAttribute(
-                                    "value")
-                                self.message = (
-                                    '<font color="Khaki">' + filename + " 64-bit client"
-                                    " override activated</font>"
-                                )
-
         except:
             self.loadSuccess = False
             raise
