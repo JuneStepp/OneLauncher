@@ -41,6 +41,7 @@ from onelauncher.ui.settings_uic import Ui_dlgSettings
 from onelauncher.start_ui import run_setup_wizard_with_main_window
 from onelauncher.resources import get_game_dir_available_locales, available_locales
 from onelauncher.ui_utilities import raise_warning_message
+from onelauncher.utilities import check_if_valid_game_folder
 from onelauncher.wine_management import edit_qprocess_to_use_wine
 
 import onelauncher
@@ -187,7 +188,14 @@ class SettingsWindow(QtWidgets.QDialog):
         )
 
         if filename != "":
-            self.ui.gameDirLineEdit.setText(filename)
+            if check_if_valid_game_folder(Path(filename),
+                                          game_type=game_settings.current_game.game_type):
+                self.ui.gameDirLineEdit.setText(filename)
+            else:
+                raise_warning_message(
+                    f"The folder selected isn't a valid installation folder for "
+                    f"{game_settings.current_game.game_type}.", self
+                )
 
     def manage_games(self):
         self.start_setup_wizard(games_managing=True)
