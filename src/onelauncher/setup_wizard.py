@@ -40,14 +40,8 @@ import onelauncher
 from onelauncher import settings, __title__
 from onelauncher.resources import available_locales
 from onelauncher.ui_utilities import raise_warning_message
+from onelauncher.utilities import check_if_valid_game_folder
 from onelauncher.ui.setup_wizard_uic import Ui_Wizard
-
-
-# Files that can be used to check if a folder is the installation
-# direcotry of a game. These files should be in the root installation
-# folder. Not for example, the 64-bit client folder within the root folder.
-GAME_FOLDER_VERIFICATION_FILES = bidict({
-    "LOTRO": Path("lotroclient.exe"), "DDO": Path("dndclient.exe")})
 
 
 class SetupWizard(QtWidgets.QWizard):
@@ -154,7 +148,7 @@ class SetupWizard(QtWidgets.QWizard):
         if search_depth <= 0:
             return
 
-        game_type = self.check_if_valid_game_folder(search_dir)
+        game_type = check_if_valid_game_folder(search_dir)
         if game_type:
             list_widget = self.game_type_to_ui_list[game_type]
             # Only add the game folder to the list if it isn't already there
@@ -187,7 +181,7 @@ class SetupWizard(QtWidgets.QWizard):
             return
 
         game_type = self.game_type_to_ui_list.inverse[output_list]
-        if self.check_if_valid_game_folder(Path(folder_str),
+        if check_if_valid_game_folder(Path(folder_str),
                                            game_type=game_type):
             output_list.insertItem(0, folder_str)
 
@@ -197,20 +191,6 @@ class SetupWizard(QtWidgets.QWizard):
             raise_warning_message(
                 f"The folder selected isn't a valid installation folder for {game_type}.", self
             )
-
-    def check_if_valid_game_folder(self, folder: Path, game_type: str = None) -> Optional[str]:
-        """
-        Checks for the game's verification file to validate that the
-        folder is a valid game folder.
-        """
-        if game_type:
-            verifying_files = [GAME_FOLDER_VERIFICATION_FILES[game_type]]
-        else:
-            verifying_files = GAME_FOLDER_VERIFICATION_FILES.values()
-
-        for verifying_file in verifying_files:
-            if (folder/verifying_file).exists():
-                return GAME_FOLDER_VERIFICATION_FILES.inverse[verifying_file]
 
     def is_any_game_folder_selected(self) -> bool:
         """

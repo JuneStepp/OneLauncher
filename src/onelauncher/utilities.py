@@ -26,7 +26,8 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from typing import List
+from typing import List, Optional
+from bidict import bidict
 from xml.etree.ElementTree import ElementTree
 from onelauncher.resources import get_resource
 import os
@@ -41,6 +42,27 @@ import defusedxml.minidom
 
 import onelauncher
 from onelauncher import settings, logger, program_settings
+
+
+# Files that can be used to check if a folder is the installation
+# direcotry of a game. These files should be in the root installation
+# folder. Not for example, the 64-bit client folder within the root folder.
+GAME_FOLDER_VERIFICATION_FILES = bidict({
+    "LOTRO": Path("lotroclient.exe"), "DDO": Path("dndclient.exe")})
+
+def check_if_valid_game_folder(folder: Path, game_type: str = None) -> Optional[str]:
+        """
+        Checks for the game's verification file to validate that the
+        folder is a valid game folder.
+        """
+        if game_type:
+            verifying_files = [GAME_FOLDER_VERIFICATION_FILES[game_type]]
+        else:
+            verifying_files = GAME_FOLDER_VERIFICATION_FILES.values()
+
+        for verifying_file in verifying_files:
+            if (folder/verifying_file).exists():
+                return GAME_FOLDER_VERIFICATION_FILES.inverse[verifying_file]
 
 
 def string_encode(s):
