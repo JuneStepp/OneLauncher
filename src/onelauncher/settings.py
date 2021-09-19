@@ -61,17 +61,6 @@ def set_os_specific_variables():
         usingMac = True
         usingWindows = False
         documentsDir = Path("~").expanduser()/"Documents"
-        globalDir = Path("Application")
-        settingsCXG = Path(
-            "Library/Application Support/CrossOver Games/Bottles")
-        settingsCXO = Path("Library/Application Support/CrossOver/Bottles")
-        directoryCXG = Path(
-            "CrossOver Games.app/Contents/SharedSupport/CrossOverGames/bin/"
-        )
-        directoryCXO = Path(
-            "CrossOver.app/Contents/SharedSupport/CrossOver/bin/")
-        macPathCX = "" if os.environ.get(
-            "CX_ROOT") is None else Path(os.environ.get("CX_ROOT"))
     elif os.name == "nt":
         import ctypes.wintypes
 
@@ -87,22 +76,10 @@ def set_os_specific_variables():
 
         usingMac = False
         usingWindows = True
-        globalDir = ""
-        settingsCXG = ""
-        settingsCXO = ""
-        directoryCXG = ""
-        directoryCXO = ""
-        macPathCX = ""
     else:
         usingMac = False
         usingWindows = False
         documentsDir = Path("~").expanduser()/"Documents"
-        globalDir = Path("opt")
-        settingsCXG = Path(".cxgames")
-        settingsCXO = Path(".cxoffice")
-        directoryCXG = Path("cxgames/bin/")
-        directoryCXO = Path("cxoffice/bin/")
-        macPathCX = ""
 
 
 class ProgramSettings():

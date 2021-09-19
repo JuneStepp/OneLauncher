@@ -114,8 +114,6 @@ class SetupWizard(QtWidgets.QWizard):
         else:
             for dir, pattern in [
                 (Path("~").expanduser(), "*wine*"),
-                (Path("~").expanduser()/settings.settingsCXG, "*"),
-                (Path("~").expanduser()/settings.settingsCXO, "*"),
                 (Path("~").expanduser()/".steam/steam/steamapps/compatdata", "*"),
                 (Path("~").expanduser()/".steam/steam/SteamApps/compatdata", "*"),
                 (Path("~").expanduser()/".steam/steamapps/compatdata", "*"),
