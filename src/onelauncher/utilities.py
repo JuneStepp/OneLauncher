@@ -27,15 +27,16 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 from typing import List
+from xml.etree.ElementTree import ElementTree
 from onelauncher.resources import get_resource
 import os
 import ssl
-from codecs import open as uopen
 from http.client import HTTPConnection, HTTPSConnection
 from pathlib import Path
 from urllib.parse import quote
 from xml.sax.saxutils import escape as xml_escape
 
+import defusedxml.ElementTree
 import defusedxml.minidom
 
 import onelauncher
@@ -101,9 +102,9 @@ def GetText(nodelist):
 
 class BaseConfig:
     def __init__(self, game: settings.Game):
-        self.GLSDataCenterService = ""
-        self.gameName = ""
-        self.gameDocumentsDir = ""
+        self.GLSDataCenterService: str
+        self.gameName: str
+        self.gameDocumentsDir: Path
 
         self.load(game.game_directory /
                   "TurbineLauncher.exe.config", missing_ok=True)
@@ -116,19 +117,17 @@ class BaseConfig:
                 logger.error(f"{config_file} does not exist.")
             return
 
-        doc = defusedxml.minidom.parse(str(config_file))
+        config: ElementTree = defusedxml.ElementTree.parse(config_file)
+        app_settings = config.find("appSettings")
+        if app_settings is None:
+            raise KeyError(f"`{config_file}` doesn't have `appSettings` element.")
 
-        nodes = doc.getElementsByTagName("appSettings")[0].childNodes
-        for node in nodes:
-            if node.nodeType == node.ELEMENT_NODE:
-                if node.getAttribute("key") == "Launcher.DataCenterService.GLS":
-                    self.GLSDataCenterService = node.getAttribute("value")
-                elif node.getAttribute("key") == "DataCenter.GameName":
-                    self.gameName = node.getAttribute("value")
-                elif node.getAttribute("key") == "Product.DocumentFolder":
-                    self.gameDocumentsDir = Path(
-                        node.getAttribute("value"))
+        keys = {element.get("key"): element.get("value") for element in app_settings.findall("add")}
+        keys = {key: value for key, value in keys.items() if value is not None}
 
+        self.GLSDataCenterService = keys["Launcher.DataCenterService.GLS"]
+        self.gameName = keys["DataCenter.GameName"]
+        self.gameDocumentsDir = Path(keys["Product.DocumentFolder"])
 
 class GLSDataCenter:
     def __init__(self, urlGLSDataCenterService, gameName: str):

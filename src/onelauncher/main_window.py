@@ -777,10 +777,6 @@ class MainWindowThread(QtCore.QThread):
         self.worldQueueConfig = WorldQueueConfig(
             urlWorldQueueServer, game_settings.current_game
         )
-
-        if self.worldQueueConfig.message:
-            self.ReturnLog.emit(self.worldQueueConfig.message)
-
         if self.worldQueueConfig.loadSuccess:
             self.ReturnLog.emit("World queue configuration read.")
             self.ReturnWorldQueueConfig.emit(self.worldQueueConfig)
