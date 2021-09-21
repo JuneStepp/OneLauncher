@@ -88,7 +88,7 @@ class AddonManager(QtWidgets.QDialog):
         gameDocumentsDir: Path,
     ):
         super(AddonManager, self).__init__(
-            qApp.activeWindow(), QtCore.Qt.FramelessWindowHint)
+            QtCore.QCoreApplication.instance().activeWindow(), QtCore.Qt.FramelessWindowHint)
 
         self.ui = Ui_winAddonManager()
         self.ui.setupUi(self)

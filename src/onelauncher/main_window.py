@@ -360,7 +360,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Force a small display to ensure message above is displayed
         # as program can look like it is not responding while validating
         for _ in range(4):
-            qApp.processEvents()
+            QtCore.QCoreApplication.instance().processEvents()
 
         self.account = AuthenticateUser(
             self.dataCenter.authServer,
@@ -721,7 +721,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def ClearNews(self):
         self.ui.txtFeed.setText("")
 
-    def AddLog(self, message: str, is_error: bool=False) -> None:
+    def AddLog(self, message: str, is_error: bool = False) -> None:
         for line in message.splitlines():
             # Make line red if it is an error
             if line.startswith("[E") or is_error:

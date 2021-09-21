@@ -48,7 +48,7 @@ class PatchWindow(QtWidgets.QDialog):
         gameDocumentsDir: Path,
     ):
         super(PatchWindow, self).__init__(
-            qApp.activeWindow(), QtCore.Qt.FramelessWindowHint)
+            QtCore.QCoreApplication.instance().activeWindow(), QtCore.Qt.FramelessWindowHint)
 
         self.ui = Ui_patchingWindow()
         self.ui.setupUi(self)
@@ -232,6 +232,6 @@ class PatchWindow(QtWidgets.QDialog):
         self.process_status_timer.start(100)
 
     def Run(self):
-        self.__app = qApp
+        self.__app = QtCore.QCoreApplication.instance()
 
         self.exec()

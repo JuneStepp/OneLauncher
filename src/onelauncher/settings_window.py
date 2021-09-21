@@ -55,7 +55,7 @@ class SettingsWindow(QtWidgets.QDialog):
 
     def __init__(self, game: settings.Game, game_client_filename: Optional[str]):
         super(SettingsWindow, self).__init__(
-            qApp.activeWindow(), QtCore.Qt.FramelessWindowHint)
+            QtCore.QCoreApplication.instance().activeWindow(), QtCore.Qt.FramelessWindowHint)
         self.game = game
 
         self.ui = Ui_dlgSettings()

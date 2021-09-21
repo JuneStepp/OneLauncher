@@ -79,7 +79,7 @@ class WineManagement:
             "",
             0,
             100,
-            qApp.activeWindow(),
+            QtCore.QCoreApplication.instance().activeWindow(),
             QtCore.Qt.FramelessWindowHint,
         )
         dialog.setWindowModality(QtCore.Qt.WindowModal)

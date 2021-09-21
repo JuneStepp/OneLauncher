@@ -27,7 +27,6 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import sys
-from importlib import reload
 from pathlib import Path
 
 from PySide6 import QtCore, QtGui, QtWidgets
@@ -39,18 +38,18 @@ from onelauncher.resources import get_resource
 
 def main():
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
-    QtWidgets.QApplication(sys.argv)
-    qApp.setApplicationName(__title__)
-    qApp.setApplicationDisplayName(__title__)
-    qApp.setApplicationVersion(__version__)
-    qApp.setWindowIcon(QtGui.QIcon(
+    application = QtWidgets.QApplication(sys.argv)
+    application.setApplicationName(__title__)
+    application.setApplicationDisplayName(__title__)
+    application.setApplicationVersion(__version__)
+    application.setWindowIcon(QtGui.QIcon(
         str(get_resource(Path("images/OneLauncherIcon.png"), program_settings.ui_locale))))
 
     # Set font size explicitly to stop OS text size options from
     # breaking the UI.
     font = QtGui.QFont()
     font.setPointSize(10)
-    qApp.setFont(font)
+    application.setFont(font)
 
     handle_windows_dark_theme()
 
@@ -58,7 +57,7 @@ def main():
 
     start_main_window()
 
-    sys.exit(qApp.exec())
+    sys.exit(application.exec())
 
 
 def handle_program_start_setup_wizard():
@@ -87,13 +86,14 @@ def handle_windows_dark_theme():
         return
 
     qsettings = QtCore.QSettings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
-                                QtCore.QSettings.NativeFormat)
+                                 QtCore.QSettings.NativeFormat)
     # If user has dark theme activated
     if not qsettings.value("AppsUseLightTheme"):
         # Use QPalette to set custom dark theme for Windows.
         # The builtin Windows dark theme for Windows is not ready
         # as of 7-5-2021
-        qApp.setStyle(QtWidgets.QStyleFactory.create("Fusion"))
+        QtCore.QCoreApplication.instance().setStyle(
+            QtWidgets.QStyleFactory.create("Fusion"))
         dark_palette = QtGui.QPalette()
         dark_color = QtGui.QColor(45, 45, 45)
         disabled_color = QtGui.QColor(127, 127, 127)
@@ -123,8 +123,8 @@ def handle_windows_dark_theme():
         dark_palette.setColor(QtGui.QPalette.Disabled,
                               QtGui.QPalette.HighlightedText, disabled_color)
 
-        qApp.setPalette(dark_palette)
-        qApp.setStyleSheet(
+        QtCore.QCoreApplication.instance().setPalette(dark_palette)
+        QtCore.QCoreApplication.instance().setStyleSheet(
             "QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
 
 

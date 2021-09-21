@@ -61,7 +61,7 @@ class StartGame(QtWidgets.QDialog):
         gameConfigDir: Path,
     ):
         super(StartGame, self).__init__(
-            qApp.activeWindow(), QtCore.Qt.FramelessWindowHint)
+            QtCore.QCoreApplication.instance().activeWindow(), QtCore.Qt.FramelessWindowHint)
 
         self.ui = Ui_startGameDialog()
         self.ui.setupUi(self)
@@ -159,7 +159,7 @@ class StartGame(QtWidgets.QDialog):
 
     def btnStopClicked(self):
         if self.finished:
-            qApp.quit()
+            QtCore.QCoreApplication.instance().quit()
         else:
             self.aborted = True
             self.process.kill()
