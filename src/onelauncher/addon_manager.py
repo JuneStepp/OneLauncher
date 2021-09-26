@@ -217,7 +217,7 @@ class AddonManager(QtWidgets.QDialog):
 
         self.openDB()
 
-        self.data_folder = settings.documentsDir/gameDocumentsDir
+        self.data_folder = settings.platform_dirs.user_documents_path/gameDocumentsDir
         if game_settings.current_game.game_type == "DDO":
             self.data_folder_skins = self.data_folder/"ui/skins"
 

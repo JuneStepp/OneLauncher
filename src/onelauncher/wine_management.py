@@ -253,11 +253,11 @@ class WineManagement:
             return
 
         # Make sure system documents folder and prefix documents root folder exists
-        settings.documentsDir.mkdir(exist_ok=True)
+        settings.platform_dirs.user_documents_path.mkdir(exist_ok=True)
         prefix_documents_folder.parent.mkdir(exist_ok=True, parents=True)
 
         # Make symlink to system documents folder
-        settings.documentsDir.symlink_to(
+        settings.platform_dirs.user_documents_path.symlink_to(
             prefix_documents_folder, target_is_directory=True)
 
     def setup_files(self):

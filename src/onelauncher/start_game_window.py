@@ -75,7 +75,7 @@ class StartGame(QtWidgets.QDialog):
         self.worldName = worldName
         self.accountText = accountText
         self.game = game
-        self.gameConfigDirPath = settings.documentsDir/gameConfigDir
+        self.gameConfigDirPath = settings.platform_dirs.user_documents_path/gameConfigDir
 
         if settings.usingWindows:
             self.setWindowTitle("Output")

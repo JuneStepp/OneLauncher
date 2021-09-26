@@ -47,39 +47,17 @@ def set_os_specific_variables():
     global platform_dirs
     global usingMac
     global usingWindows
-    global config_dir
-    global documentsDir
-    global globalDir
-    global settingsCXG
-    global settingsCXO
-    global directoryCXG
-    global directoryCXO
-    global macPathCX
 
     platform_dirs = PlatformDirs(onelauncher.__title__, False)
     if os.name == "mac":
         usingMac = True
         usingWindows = False
-        documentsDir = Path("~").expanduser()/"Documents"
     elif os.name == "nt":
-        import ctypes.wintypes
-
-        # Get documents folder dynamically since it can be changed on Windows
-        CSIDL_PERSONAL = 5       # Value for My Documents
-        SHGFP_TYPE_CURRENT = 0   # Get current, not default value
-
-        buffer = ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
-        ctypes.windll.shell32.SHGetFolderPathW(
-            None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buffer)
-
-        documentsDir = Path(buffer.value)
-
         usingMac = False
         usingWindows = True
     else:
         usingMac = False
         usingWindows = False
-        documentsDir = Path("~").expanduser()/"Documents"
 
 
 class ProgramSettings():
