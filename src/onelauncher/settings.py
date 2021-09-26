@@ -158,7 +158,7 @@ class Account():
 
 
 class CaseInsensitiveAbsolutePath(Path):
-    _flavour = pathlib._windows_flavour if os.name == 'nt' else pathlib._posix_flavour # type: ignore
+    _flavour = pathlib._windows_flavour if os.name == 'nt' else pathlib._posix_flavour  # type: ignore
 
     def __new__(cls, *pathsegments, **kwargs):
         normal_path = Path(*pathsegments, **kwargs)
@@ -169,7 +169,7 @@ class CaseInsensitiveAbsolutePath(Path):
 
     @classmethod
     def _get_real_path_from_fully_case_insensitive_path(cls, base_path: Path) -> Path:
-        """Return any found path that matches base_path when ignoring case"""        
+        """Return any found path that matches base_path when ignoring case"""
         # Base version already exists
         if base_path.exists():
             return base_path
@@ -182,14 +182,15 @@ class CaseInsensitiveAbsolutePath(Path):
         # Range starts at 1 to ingore root which has already been checked
         for i in range(1, len(parts)):
             current_path = Path(*(parts if i == len(parts)-1 else parts[:i+1]))
-            real_path = cls._get_real_path_from_name_case_insensitive_path(current_path)
+            real_path = cls._get_real_path_from_name_case_insensitive_path(
+                current_path)
             if real_path:
                 parts[i] = real_path.name
             else:
                 # No version exists, so the original is just returned
-                return base_path       
+                return base_path
 
-        return Path(*parts)             
+        return Path(*parts)
 
     @staticmethod
     def _get_real_path_from_name_case_insensitive_path(base_path: Path) -> Optional[Path]:
@@ -199,11 +200,12 @@ class CaseInsensitiveAbsolutePath(Path):
         this is not the case.
         """
         if not base_path.parent.exists():
-            raise FileNotFoundError(f"`{base_path.parent}` parent path does not exist")
+            raise FileNotFoundError(
+                f"`{base_path.parent}` parent path does not exist")
 
         if base_path.exists():
             return base_path
-            
+
         for path in base_path.parent.iterdir():
             if path.name.lower() == base_path.name.lower():
                 return path
@@ -211,9 +213,10 @@ class CaseInsensitiveAbsolutePath(Path):
         return None
 
     def _make_child(self, args) -> Path:
-        _, _, parts = super()._parse_args(args) # type: ignore
-        joined_path = super()._make_child((Path(*parts),)) # type: ignore
+        _, _, parts = super()._parse_args(args)  # type: ignore
+        joined_path = super()._make_child((Path(*parts),))  # type: ignore
         return self._get_real_path_from_fully_case_insensitive_path(joined_path)
+
 
 class Game():
     def __init__(self,

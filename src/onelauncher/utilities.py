@@ -50,6 +50,7 @@ from onelauncher import settings, logger, program_settings
 GAME_FOLDER_VERIFICATION_FILES = bidict({
     "LOTRO": Path("lotroclient.exe"), "DDO": Path("dndclient.exe")})
 
+
 def check_if_valid_game_folder(folder: Path, game_type: str = None) -> Optional[str]:
     """
     Checks for the game's verification file to validate that the
@@ -142,14 +143,17 @@ class BaseConfig:
         config: ElementTree = defusedxml.ElementTree.parse(config_file)
         app_settings = config.find("appSettings")
         if app_settings is None:
-            raise KeyError(f"`{config_file}` doesn't have `appSettings` element.")
+            raise KeyError(
+                f"`{config_file}` doesn't have `appSettings` element.")
 
-        keys = {element.get("key"): element.get("value") for element in app_settings.findall("add")}
+        keys = {element.get("key"): element.get("value")
+                for element in app_settings.findall("add")}
         keys = {key: value for key, value in keys.items() if value is not None}
 
         self.GLSDataCenterService = keys["Launcher.DataCenterService.GLS"]
         self.gameName = keys["DataCenter.GameName"]
         self.gameDocumentsDir = Path(keys["Product.DocumentFolder"])
+
 
 class GLSDataCenter:
     def __init__(self, urlGLSDataCenterService, gameName: str):

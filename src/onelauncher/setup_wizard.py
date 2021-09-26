@@ -182,7 +182,7 @@ class SetupWizard(QtWidgets.QWizard):
 
         game_type = self.game_type_to_ui_list.inverse[output_list]
         if check_if_valid_game_folder(Path(folder_str),
-                                           game_type=game_type):
+                                      game_type=game_type):
             output_list.insertItem(0, folder_str)
 
             # Select the added item
