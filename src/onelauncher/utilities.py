@@ -181,7 +181,7 @@ class GLSDataCenter:
 
             tempxml = string_decode(webresp.read())
 
-            file_path = settings.platform_dirs.user_cache_path/"game/GLSDataCenter.config"
+            file_path = settings.platform_dirs.user_cache_path/"game/GLSDataCenter.xml"
             with file_path.open("w") as outfile:
                 outfile.write(tempxml)
 
@@ -248,7 +248,7 @@ class World:
 
             tempxml = string_decode(webresp.read())
 
-            file_path = settings.platform_dirs.user_cache_path/"game/server.config"
+            file_path = settings.platform_dirs.user_cache_path/"game/server.xml"
             with file_path.open("w") as outfile:
                 outfile.write(tempxml)
 
@@ -308,7 +308,7 @@ class WorldQueueConfig:
 
             tempxml = string_decode(webresp.read())
 
-            file_path = settings.platform_dirs.user_cache_path/"game/launcher.config"
+            file_path = settings.platform_dirs.user_cache_path/"game/launcher.xml"
             with file_path.open("w") as outfile:
                 outfile.write(tempxml)
 
@@ -416,7 +416,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
 
             tempxml = string_decode(webresp.read())
 
-            file_path = settings.platform_dirs.user_cache_path/"game/GLSAuthServer.config"
+            file_path = settings.platform_dirs.user_cache_path/"game/GLSAuthServer.xml"
             with file_path.open("w") as outfile:
                 outfile.write(tempxml)
 
@@ -494,7 +494,7 @@ class JoinWorldQueue:
 
             tempxml = string_decode(webresp.read())
 
-            file_path = settings.platform_dirs.user_cache_path/"game/WorldQueue.config"
+            file_path = settings.platform_dirs.user_cache_path/"game/WorldQueue.xml"
             with file_path.open("w") as outfile:
                 outfile.write(tempxml)
 
