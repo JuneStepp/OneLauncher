@@ -552,21 +552,6 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.AddLog(f"{onelauncher.__title__} is up to date.")
 
-    def getLaunchArgument(self, key: str, accepted_values: List[str]):
-        launch_arguments = sys.argv
-        try:
-            modifier_index = launch_arguments.index(key)
-        except ValueError:
-            pass
-        else:
-            try:
-                value = launch_arguments[modifier_index + 1]
-            except IndexError:
-                pass
-            else:
-                if value in accepted_values:
-                    return value
-
     def set_banner_image(self):
         game_dir_banner_override_path = game_settings.current_game.game_directory / \
             program_settings.ui_locale.lang_tag.split("-")[0]/"banner.png"
@@ -623,12 +608,6 @@ class MainWindow(QtWidgets.QMainWindow):
         if first_setup:
             self.checkForUpdate()
 
-            # Launch into specific game if specified in launch argument
-            game = self.getLaunchArgument("--game",
-                                          ["LOTRO", "LOTRO.Test", "DDO", "DDO.Test"])
-            if game:
-                self.currentGame = game
-
         sslContext = checkForCertificates()
 
         # Set news feed to say "Loading ..." until it is replaced by the news.
@@ -640,14 +619,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.loadAllSavedAccounts()
         self.setCurrentAccountPassword()
-
-        # Set specific client language if specified in launch argument
-        # This is an advanced feature, so there are no checks to make
-        # sure the specified language is installed. The game will
-        # give an error if that is the case anyways.
-        language = self.getLaunchArgument("--language", ["EN", "DE", "FR"])
-        if language:
-            self.settings.language = language
 
         self.set_banner_image()
         self.setWindowTitle(

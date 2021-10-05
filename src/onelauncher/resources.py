@@ -4,7 +4,6 @@ from typing import Dict, List, Optional
 import rtoml
 from PySide6.QtCore import QLocale
 import onelauncher
-from onelauncher import __title__
 
 
 class Locale():
@@ -136,7 +135,7 @@ def get_game_dir_available_locales(game_dir: Path) -> List[Locale]:
         except KeyError:
             onelauncher.logger.error(
                 f"{game_language_name} does not match a game language name for"
-                f" an available locale in {__title__}")
+                f" an available locale.")
 
     return available_game_locales
 
