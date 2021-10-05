@@ -38,6 +38,7 @@ from PySide6.QtUiTools import QUiLoader
 
 import onelauncher
 from onelauncher import settings, __title__
+from onelauncher.settings import CaseInsensitiveAbsolutePath
 from onelauncher.resources import available_locales
 from onelauncher.ui_utilities import raise_warning_message
 from onelauncher.utilities import check_if_valid_game_folder
@@ -101,7 +102,7 @@ class SetupWizard(QtWidgets.QWizard):
             self.add_existing_games()
 
         if os.name == "nt":
-            startDir = Path("C:/")
+            startDir = CaseInsensitiveAbsolutePath("C:/")
             self.find_game_dirs(startDir/"Program Files")
             if (startDir/"Program Files (x86)").exists():
                 self.find_game_dirs(startDir/"Program Files (x86)")
@@ -144,7 +145,7 @@ class SetupWizard(QtWidgets.QWizard):
             # Select the added item
             ui_list.setCurrentRow(0)
 
-    def find_game_dirs(self, search_dir: Path, search_depth=5):
+    def find_game_dirs(self, search_dir: CaseInsensitiveAbsolutePath, search_depth=5):
         if search_depth <= 0:
             return
 
@@ -181,7 +182,7 @@ class SetupWizard(QtWidgets.QWizard):
             return
 
         game_type = self.game_type_to_ui_list.inverse[output_list]
-        if check_if_valid_game_folder(Path(folder_str),
+        if check_if_valid_game_folder(CaseInsensitiveAbsolutePath(folder_str),
                                       game_type=game_type):
             output_list.insertItem(0, folder_str)
 
