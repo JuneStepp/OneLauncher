@@ -100,7 +100,7 @@ class SetupWizard(QtWidgets.QWizard):
         if self.show_existing_games:
             self.add_existing_games()
 
-        if settings.usingWindows:
+        if os.name == "nt":
             startDir = Path("C:/")
             self.find_game_dirs(startDir/"Program Files")
             if (startDir/"Program Files (x86)").exists():
@@ -161,7 +161,7 @@ class SetupWizard(QtWidgets.QWizard):
                 self.find_game_dirs(path, search_depth=search_depth-1)
 
     def browse_for_game_dir(self, output_list: QtWidgets.QListWidget):
-        if settings.usingWindows:
+        if os.name == "nt":
             starting_dir = Path(os.environ.get("ProgramFiles"))
         else:
             starting_dir = Path("~").expanduser()

@@ -80,7 +80,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.ui.defaultGameLauncherButton.clicked.connect(
             self.run_default_game_launcher)
 
-        if not settings.usingWindows:
+        if os.name != "nt":
             if self.game.builtin_wine_prefix_enabled:
                 self.ui.wineFormGroupBox.setChecked(False)
             else:
@@ -129,7 +129,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.ui.settingsButtonBox.accepted.connect(self.save_settings)
 
     def toggle_advanced_settings(self):
-        if not settings.usingWindows:
+        if os.name != "nt":
             if self.ui.showAdvancedSettingsCheckbox.isChecked():
                 self.ui.wineAdvancedFrame.show()
             else:
@@ -172,7 +172,7 @@ class SettingsWindow(QtWidgets.QDialog):
         gameDirLineEdit = self.ui.gameDirLineEdit.text()
 
         if gameDirLineEdit == "":
-            if settings.usingWindows:
+            if os.name == "nt":
                 starting_dir = Path(os.environ.get("ProgramFiles"))
             else:
                 starting_dir = Path("~").expanduser()
@@ -235,7 +235,7 @@ class SettingsWindow(QtWidgets.QDialog):
         )]
         self.game.patch_client_filename = self.ui.patchClientLineEdit.text()
 
-        if not settings.usingWindows:
+        if os.name != "nt":
             self.game.builtin_wine_prefix_enabled = not self.ui.wineFormGroupBox.isChecked()
             if self.game.builtin_wine_prefix_enabled:
                 self.game.wine_prefix_path = Path(

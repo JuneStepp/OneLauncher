@@ -27,6 +27,7 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import sys
+import os
 from pathlib import Path
 
 from PySide6 import QtCore, QtGui, QtWidgets
@@ -82,7 +83,7 @@ def start_main_window():
 
 
 def handle_windows_dark_theme():
-    if not settings.usingWindows:
+    if os.name != "nt":
         return
 
     qsettings = QtCore.QSettings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",

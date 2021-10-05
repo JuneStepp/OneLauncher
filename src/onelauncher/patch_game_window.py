@@ -53,7 +53,7 @@ class PatchWindow(QtWidgets.QDialog):
         self.ui = Ui_patchingWindow()
         self.ui.setupUi(self)
 
-        if settings.usingWindows:
+        if os.name == "nt":
             self.setWindowTitle("Patching Output")
         else:
             self.setWindowTitle("Patching - Wine output")
@@ -96,7 +96,7 @@ class PatchWindow(QtWidgets.QDialog):
         self.process.setWorkingDirectory(
             str(game_settings.current_game.game_directory))
 
-        if settings.usingWindows:
+        if os.name == "nt":
             # Get log file to read patching details from, since
             # rundll32 doesn't provide output on Windows
             log_folder_name = gameDocumentsDir.name
@@ -186,7 +186,7 @@ class PatchWindow(QtWidgets.QDialog):
             # finished
             self.lastRun = True
             self.resetButtons()
-            if settings.usingWindows:
+            if os.name == "nt":
                 self.patch_log_file.close()
         self.phase += 1
 
@@ -202,7 +202,7 @@ class PatchWindow(QtWidgets.QDialog):
         self.process.start()
         self.ui.txtLog.append("<b>***  Started  ***</b>")
 
-        if settings.usingWindows:
+        if os.name == "nt":
             self.process_status_timer.start(100)
 
     def activelyShowProcessStatus(self):

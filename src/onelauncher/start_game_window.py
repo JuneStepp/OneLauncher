@@ -29,6 +29,7 @@
 import logging
 from pathlib import Path
 from sys import path
+import os
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtUiTools import QUiLoader
@@ -77,11 +78,6 @@ class StartGame(QtWidgets.QDialog):
         self.game = game
         self.gameConfigPath = gameConfigPath
 
-        if settings.usingWindows:
-            self.setWindowTitle("Output")
-        else:
-            self.setWindowTitle("Launch Game - Wine output")
-
         self.ui.btnStart.setText("Back")
         self.ui.btnStart.setEnabled(False)
         self.ui.btnSave.setText("Save")
@@ -119,7 +115,7 @@ class StartGame(QtWidgets.QDialog):
 
         self.process.setProgram(str(client_relative_path))
         self.process.setArguments([arg for arg in gameParams.split(" ")])
-        if not settings.usingWindows:
+        if os.name != "nt":
             edit_qprocess_to_use_wine(self.process)
 
         self.process.setWorkingDirectory(str(game.game_directory))

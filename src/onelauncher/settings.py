@@ -42,24 +42,6 @@ import onelauncher
 from onelauncher import resources
 from onelauncher.resources import available_locales, Locale, system_locale
 
-
-def set_os_specific_variables():
-    global platform_dirs
-    global usingMac
-    global usingWindows
-
-    platform_dirs = PlatformDirs(onelauncher.__title__, False)
-    if os.name == "mac":
-        usingMac = True
-        usingWindows = False
-    elif os.name == "nt":
-        usingMac = False
-        usingWindows = True
-    else:
-        usingMac = False
-        usingWindows = False
-
-
 class ProgramSettings():
     def __init__(self, config_path: Path = None) -> None:
         if not config_path:
@@ -482,7 +464,7 @@ class GamesSettings():
 
         settings_dict["games"] = []
         for game in self.games.values():
-            if usingWindows:
+            if os.name == "nt":
                 wine_settings_dict = {}
             else:
                 wine_settings_dict = {
@@ -540,13 +522,12 @@ class GamesSettings():
                       for key in input_dict if input_dict[key] and input_dict[key] not in ["None", "."]}
 
         if recursive:
-            new_dict = {}
-            for key, value in input_dict.items():
-                if type(value) == dict:
-                    new_dict[key] = self.remove_empty_values_from_dict(
-                        value, recursive=True)
-                else:
-                    new_dict[key] = value
+            new_dict = {
+                key: self.remove_empty_values_from_dict(value, recursive=True)
+                if type(value) == dict
+                else value
+                for key, value in input_dict.items()
+            }
             input_dict = new_dict
 
         return input_dict
@@ -562,4 +543,4 @@ class GamesSettings():
         return uuid
 
 
-set_os_specific_variables()
+platform_dirs = PlatformDirs(onelauncher.__title__, False)
