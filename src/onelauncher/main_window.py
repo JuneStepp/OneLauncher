@@ -99,8 +99,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setupMousePropagation()
 
-        self.configureKeyring()
-
         # Set default timeout used by urllib
         socket.setdefaulttimeout(6)
 
@@ -221,20 +219,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ReturnWorldQueueConfig.connect(self.GetWorldQueueConfig)
         self.ReturnNews.connect(self.GetNews)
 
-    def configureKeyring(self):
-        """
-        Sets the propper keyring backend for the used OS. This isn't
-        automatically detected correctly with Nuitka
-        """
-        if settings.usingWindows:
-            from keyring.backends import Windows
-            keyring.set_keyring(Windows.WinVaultKeyring())
-        elif settings.usingMac:
-            from keyring.backends import OS_X
-            keyring.set_keyring(OS_X.Keyring())
-        else:
-            from keyring.backends import SecretService
-            keyring.set_keyring(SecretService.Keyring())
 
     def btnAboutSelected(self):
         dlgAbout = QtWidgets.QDialog(self, QtCore.Qt.Popup)
