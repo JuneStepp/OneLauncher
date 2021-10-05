@@ -58,7 +58,7 @@ class StartGame(QtWidgets.QDialog):
         glsticketlifetime,
         worldName,
         accountText,
-        gameConfigDir: Path,
+        gameConfigPath: settings.CaseInsensitiveAbsolutePath,
     ):
         super(StartGame, self).__init__(
             QtCore.QCoreApplication.instance().activeWindow(), QtCore.Qt.FramelessWindowHint)
@@ -75,7 +75,7 @@ class StartGame(QtWidgets.QDialog):
         self.worldName = worldName
         self.accountText = accountText
         self.game = game
-        self.gameConfigDirPath = settings.platform_dirs.user_documents_path/gameConfigDir
+        self.gameConfigPath = gameConfigPath
 
         if settings.usingWindows:
             self.setWindowTitle("Output")
@@ -178,7 +178,7 @@ class StartGame(QtWidgets.QDialog):
     def runStatupScripts(self):
         """Runs Python scripts from add-ons with one that is approved by user"""
         for script in self.game.startup_scripts:
-            file_path = self.gameConfigDirPath/script
+            file_path = self.gameConfigPath/script
             if file_path.exists():
                 self.ui.txtLog.append(
                     f"Running '{script}' startup script...")

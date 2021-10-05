@@ -45,7 +45,7 @@ class PatchWindow(QtWidgets.QDialog):
     def __init__(
         self,
         urlPatchServer,
-        gameDocumentsDir: Path,
+        gameDocumentsDir: settings.CaseInsensitiveAbsolutePath,
     ):
         super(PatchWindow, self).__init__(
             QtCore.QCoreApplication.instance().activeWindow(), QtCore.Qt.FramelessWindowHint)
@@ -76,10 +76,7 @@ class PatchWindow(QtWidgets.QDialog):
             self.activelyShowProcessStatus)
 
         patch_client = game_settings.current_game.game_directory / \
-            game_settings.current_game.patch_client_path
-        # Fix for the at least one person who has a title case patchclient.dll
-        if patch_client.name == "patchclient.dll" and not patch_client.exists():
-            patch_client = patch_client.parent/"PatchClient.dll"
+            game_settings.current_game.patch_client_filename
 
         # Make sure patch_client exists
         if not patch_client.exists():
@@ -102,9 +99,9 @@ class PatchWindow(QtWidgets.QDialog):
         if settings.usingWindows:
             # Get log file to read patching details from, since
             # rundll32 doesn't provide output on Windows
-            log_folder_name = gameDocumentsDir
+            log_folder_name = gameDocumentsDir.name
 
-            game_logs_folder = Path(os.environ.get(
+            game_logs_folder = settings.CaseInsensitiveAbsolutePath(os.environ.get(
                 "APPDATA")).parent/"Local"/log_folder_name
 
             patch_log_path = game_logs_folder/"PatchClient.log"

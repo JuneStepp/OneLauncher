@@ -222,11 +222,11 @@ class Game():
     def __init__(self,
                  uuid: UUID,
                  game_type: str,
-                 game_directory: Path,
+                 game_directory: CaseInsensitiveAbsolutePath,
                  locale: Locale,
                  client_type: str,
                  high_res_enabled: bool,
-                 patch_client_path: Path,
+                 patch_client_filename: str,
                  startup_scripts: List[Path],
                  name: str,
                  description: str,
@@ -244,7 +244,7 @@ class Game():
         self._locale = locale
         self.client_type = client_type
         self.high_res_enabled = high_res_enabled
-        self.patch_client_path = patch_client_path
+        self.patch_client_filename = patch_client_filename
         self.startup_scripts = startup_scripts
         self._name = name
         self.description = description
@@ -397,7 +397,7 @@ class GamesSettings():
 
     def load_game(self, game_dict: dict):
         uuid = UUID(game_dict["uuid"])
-        game_directory = Path(game_dict["game_directory"])
+        game_directory = CaseInsensitiveAbsolutePath(game_dict["game_directory"])
 
         # Deal with missing sections
         game_dict["info"] = game_dict.get("info", {})
@@ -426,7 +426,7 @@ class GamesSettings():
             ],
             game_dict.get("client_type", "WIN64"),
             game_dict.get("high_res_enabled", True),
-            Path(game_dict.get("patch_client_path", "patchclient.dll")),
+            game_dict.get("patch_client_filename", "patchclient.dll"),
             [Path(script) for script in game_dict.get("startup_scripts", [])],
             game_dict["info"].get(
                 "name", self.get_game_name(game_directory, uuid)),
@@ -513,7 +513,7 @@ class GamesSettings():
                 "language": game.locale.lang_tag,
                 "client_type": game.client_type,
                 "high_res_enabled": game.high_res_enabled,
-                "patch_client_path": str(game.patch_client_path),
+                "patch_client_filename": game.patch_client_filename,
                 "startup_scripts": [str(script) for script in game.startup_scripts],
                 "wine": wine_settings_dict,
                 "info": info_settings_dict,

@@ -90,8 +90,7 @@ class SettingsWindow(QtWidgets.QDialog):
                 self.ui.wineExecutableLineEdit.setText(
                     str(self.game.wine_path))
 
-            self.ui.wineDebugLineEdit.setText(
-                self.game.wine_debug_level)
+            self.ui.wineDebugLineEdit.setText(self.game.wine_debug_level or "")
         else:
             self.ui.tabWidget.removeTab(1)
 
@@ -102,7 +101,7 @@ class SettingsWindow(QtWidgets.QDialog):
             self.CLIENT_TYPE_MAPPING.inverse[self.game.client_type])
 
         self.ui.patchClientLineEdit.setText(
-            str(self.game.patch_client_path))
+            self.game.patch_client_filename)
 
         self.ui.highResCheckBox.setChecked(
             self.game.high_res_enabled)
@@ -188,9 +187,10 @@ class SettingsWindow(QtWidgets.QDialog):
         )
 
         if filename != "":
-            if check_if_valid_game_folder(Path(filename),
+            folder = settings.CaseInsensitiveAbsolutePath(filename)
+            if check_if_valid_game_folder(folder,
                                           game_type=game_settings.current_game.game_type):
-                self.ui.gameDirLineEdit.setText(filename)
+                self.ui.gameDirLineEdit.setText(str(folder))
             else:
                 raise_warning_message(
                     f"The folder selected isn't a valid installation folder for "
@@ -228,13 +228,12 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.game.locale = available_locales_display_names_mapping[self.ui.gameLanguageComboBox.currentText(
         )]
-        self.game.game_directory = Path(
+        self.game.game_directory = settings.CaseInsensitiveAbsolutePath(
             self.ui.gameDirLineEdit.text())
         self.game.high_res_enabled = self.ui.highResCheckBox.isChecked()
         self.game.client_type = self.CLIENT_TYPE_MAPPING[self.ui.clientTypeComboBox.currentText(
         )]
-        self.game.patch_client_path = Path(
-            self.ui.patchClientLineEdit.text())
+        self.game.patch_client_filename = self.ui.patchClientLineEdit.text()
 
         if not settings.usingWindows:
             self.game.builtin_wine_prefix_enabled = not self.ui.wineFormGroupBox.isChecked()

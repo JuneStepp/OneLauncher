@@ -42,6 +42,7 @@ import defusedxml.minidom
 
 import onelauncher
 from onelauncher import settings, logger, program_settings
+from onelauncher.settings import CaseInsensitiveAbsolutePath
 
 
 # Files that can be used to check if a folder is the installation
@@ -51,7 +52,7 @@ GAME_FOLDER_VERIFICATION_FILES = bidict({
     "LOTRO": Path("lotroclient.exe"), "DDO": Path("dndclient.exe")})
 
 
-def check_if_valid_game_folder(folder: Path, game_type: str = None) -> Optional[str]:
+def check_if_valid_game_folder(folder: CaseInsensitiveAbsolutePath, game_type: str = None) -> Optional[str]:
     """
     Checks for the game's verification file to validate that the
     folder is a valid game folder.
@@ -127,14 +128,14 @@ class BaseConfig:
     def __init__(self, game: settings.Game):
         self.GLSDataCenterService: str
         self.gameName: str
-        self.gameDocumentsDir: Path
+        self.gameDocumentsDir: CaseInsensitiveAbsolutePath
 
         self.load(game.game_directory /
                   "TurbineLauncher.exe.config", missing_ok=True)
         self.load(game.game_directory /
                   f"{game.game_type.lower()}.launcherconfig")
 
-    def load(self, config_file: Path, missing_ok=False):
+    def load(self, config_file: CaseInsensitiveAbsolutePath, missing_ok=False):
         if not config_file.exists():
             if not missing_ok:
                 logger.error(f"{config_file} does not exist.")
@@ -152,7 +153,8 @@ class BaseConfig:
 
         self.GLSDataCenterService = keys["Launcher.DataCenterService.GLS"]
         self.gameName = keys["DataCenter.GameName"]
-        self.gameDocumentsDir = Path(keys["Product.DocumentFolder"])
+        self.gameDocumentsDir = CaseInsensitiveAbsolutePath(
+            settings.platform_dirs.user_documents_path/keys["Product.DocumentFolder"])
 
 
 class GLSDataCenter:
