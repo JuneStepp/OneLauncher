@@ -1304,15 +1304,15 @@ class AddonManager(QtWidgets.QDialog):
 
         return table
 
-    def installRemoteAddon(self, url, name, interface_id):
-        downloads_dir = self.data_folder/"Downloads"
-        downloads_dir.mkdir(parents=True, exist_ok=True)
+    def installRemoteAddon(self, url, name: str, interface_id):
+        with TemporaryDirectory() as tmp_dir_name:
+            tmp_dir = Path(tmp_dir_name)
 
-        path = downloads_dir/f"{name}.zip"
-        status = self.downloader(url, path)
-        if status:
-            self.installAddon(path, interface_id=interface_id)
-            path.unlink()
+            path = tmp_dir/f"{name}.zip"
+            status = self.downloader(url, path)
+            if status:
+                self.installAddon(path, interface_id=interface_id)
+                path.unlink()
 
     def getUninstallConfirm(self, table):
         addons, details = self.getSelectedAddons(table)
