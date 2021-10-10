@@ -29,12 +29,16 @@
 import sys
 import os
 from pathlib import Path
+from pkg_resources import parse_version
+from json import loads as jsonLoads
+import urllib.request, urllib.error
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from onelauncher import (settings, __title__, __version__, game_settings,
-                         program_settings, resources)
+from onelauncher import (__title__, __version__, __project_url__,
+                         program_settings, game_settings, logger)
 from onelauncher.resources import get_resource
+from onelauncher.ui_utilities import show_message_box_details_as_markdown
 
 
 def main():
@@ -53,6 +57,8 @@ def main():
     application.setFont(font)
 
     handle_windows_dark_theme()
+
+    check_for_update()
 
     handle_program_start_setup_wizard()
 
@@ -139,3 +145,55 @@ def run_setup_wizard_with_main_window(**kwargs):
     """Run setup wizard and re-do main window initial setup"""
     start_setup_wizard(**kwargs)
     main_window.InitialSetup()
+
+def check_for_update():
+    """Notifies user if their copy of OneLauncher is out of date"""
+    current_version = parse_version(__version__)
+    repository_url = __project_url__
+    if "github.com" not in repository_url.lower():
+        logger.warning(
+            "Repository URL set in Information.py is not "
+            "at github.com. The system for update notifications"
+            " only supports this site."
+        )
+        return
+
+    latest_release_template = (
+        "https://api.github.com/repos/{user_and_repo}/releases/latest"
+    )
+    latest_release_url = latest_release_template.format(
+        user_and_repo=repository_url.lower().split("github.com")[
+            1].strip("/")
+    )
+
+    try:
+        with urllib.request.urlopen(latest_release_url, timeout=2) as response:
+            release_dictionary = jsonLoads(response.read())
+    except (urllib.error.URLError, urllib.error.HTTPError) as error:
+        logger.error(error.reason, exc_info=True)
+        return
+
+    release_version = parse_version(release_dictionary["tag_name"])
+
+    if release_version > current_version:
+        url = release_dictionary["html_url"]
+        name = release_dictionary["name"]
+        description = release_dictionary["body"]
+
+        messageBox = QtWidgets.QMessageBox()
+        messageBox.setWindowFlag(QtCore.Qt.FramelessWindowHint)
+        messageBox.setIcon(QtWidgets.QMessageBox.Information)
+        messageBox.setStandardButtons(messageBox.Ok)
+
+        centered_href = (
+            f'<html><head/><body><p align="center"><a href="{url}">'
+            f'<span>{name}</span></a></p></body></html>'
+        )
+        messageBox.setInformativeText(
+            f"There is a new version of {__title__} available! {centered_href}"
+        )
+        messageBox.setDetailedText(description)
+        show_message_box_details_as_markdown(messageBox)
+        messageBox.exec()
+    else:
+        logger.info(f"{__title__} is up to date.")

@@ -26,27 +26,19 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-import logging
-import os
 # For setting global timeout used by urllib
 import socket
-import sys
 import urllib
-from json import loads as jsonLoads
 from pathlib import Path
-from platform import platform
-from typing import List, Optional
+from typing import Optional
 
 import defusedxml.minidom
 import xml
 import keyring
-from pkg_resources import parse_version
 from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtUiTools import QUiLoader
 
 import onelauncher
-from onelauncher import settings, resources, logger, game_settings, program_settings
-from onelauncher.ui_utilities import show_message_box_details_as_markdown
+from onelauncher import settings, logger, game_settings, program_settings
 from onelauncher.addon_manager import AddonManager
 from onelauncher.utilities import (AuthenticateUser, BaseConfig,
                                    GetText,
@@ -103,7 +95,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Set default timeout used by urllib
         socket.setdefaulttimeout(6)
 
-        self.InitialSetup(first_setup=True)
+        self.InitialSetup()
 
     def run(self):
         self.show()
@@ -547,60 +539,6 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.AddLog("[E11] Error joining world queue.")
 
-    def checkForUpdate(self):
-        """Notifies user if their copy of OneLauncher is out of date"""
-        current_version = parse_version(onelauncher.__version__)
-        repository_url = onelauncher.__project_url__
-        if "github.com" not in repository_url.lower():
-            logger.warning(
-                "Repository URL set in Information.py is not "
-                "at github.com. The system for update notifications"
-                " only supports this site."
-            )
-            return
-
-        latest_release_template = (
-            "https://api.github.com/repos/{user_and_repo}/releases/latest"
-        )
-        latest_release_url = latest_release_template.format(
-            user_and_repo=repository_url.lower().split("github.com")[
-                1].strip("/")
-        )
-
-        try:
-            with urllib.request.urlopen(latest_release_url, timeout=2) as response:
-                release_dictionary = jsonLoads(response.read())
-        except (urllib.error.URLError, urllib.error.HTTPError) as error:
-            self.AddLog(
-                f"[E18] Error checking for {onelauncher.__title__} updates.")
-            logger.error(error.reason, exc_info=True)
-            return
-
-        release_version = parse_version(release_dictionary["tag_name"])
-
-        if release_version > current_version:
-            url = release_dictionary["html_url"]
-            name = release_dictionary["name"]
-            description = release_dictionary["body"]
-
-            messageBox = QtWidgets.QMessageBox(self)
-            messageBox.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-            messageBox.setIcon(QtWidgets.QMessageBox.Information)
-            messageBox.setStandardButtons(messageBox.Ok)
-
-            centered_href = (
-                f'<html><head/><body><p align="center"><a href="{url}">'
-                f'<span>{name}</span></a></p></body></html>'
-            )
-            messageBox.setInformativeText(
-                f"There is a new version of {onelauncher.__title__} available! {centered_href}"
-            )
-            messageBox.setDetailedText(description)
-            show_message_box_details_as_markdown(messageBox)
-            messageBox.exec()
-        else:
-            self.AddLog(f"{onelauncher.__title__} is up to date.")
-
     def set_banner_image(self):
         game_dir_banner_override_path = game_settings.current_game.game_directory / \
             program_settings.ui_locale.lang_tag.split("-")[0]/"banner.png"
@@ -633,7 +571,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         return True
 
-    def InitialSetup(self, first_setup=False):
+    def InitialSetup(self):
         self.ui.cboAccount.setEnabled(False)
         self.ui.cboAccount.setFocus()
         self.ui.txtPassword.setEnabled(False)
@@ -653,9 +591,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.cboWorld.clear()
         self.ClearLog()
         self.ClearNews()
-
-        if first_setup:
-            self.checkForUpdate()
 
         sslContext = checkForCertificates()
 
