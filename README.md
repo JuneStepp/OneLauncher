@@ -43,12 +43,12 @@ installs are met.
 
 ## Launch Arguments
 
-- `--game`: Specifies starting game or game type. Accepted values are `LOTRO`, `DDO`, or the UUID of a game. You can find the UUIDs of your games in the games.toml configuration file
-- `--language`: Specifies game client language. Accepted values are IETF language tags such as `de`, `en-US`, or `fr`
+- `--game`: Specifies starting game or game type. Accepted values are `LOTRO`, `DDO`, or the UUID of a game. You can find the UUIDs of your games in the games.toml configuration file.
+- `--language`: Specifies game client language. Accepted values are IETF language tags such as `de`, `en-US`, or `fr`.
 
 ## Separate Settings Folders for Default and Preview Game Versions
 
-OneLauncher supports custom game settings folders through the `ddo.launcherconfig` and `lotro.launcherconfig` files located in their respective game install folders. Changing the value for `Product.DocumentFolder` will register the new folder with both OneLauncher and the game. Setting different directory names for the normal and preview versions of games allows for completely separate in-game settings and add-ons between them. The only exception is that add-on startup scripts installed on both versions of the game will run on both versions if enabled for one. 
+OneLauncher supports custom game settings folders through the `ddo.launcherconfig` and `lotro.launcherconfig` files located in their respective game install folders. Changing the value for `Product.DocumentFolder` will register the new folder with both OneLauncher and the game. Setting different directory names for the normal and preview versions of games allows for completely separate in-game settings and add-ons between them.
 
 # Development Install
 
