@@ -1608,6 +1608,8 @@ class AddonManager(QtWidgets.QDialog):
             for node in nodes:
                 if node.nodeName == "UIName":
                     items_row[0] = GetText(node.childNodes)
+                    # Sanitize
+                    items_row[0] = items_row[0].replace('/', '-').replace('\\', '-')
                 elif node.nodeName == "UIAuthorName":
                     items_row[3] = GetText(node.childNodes)
                 elif node.nodeName == "UICategory":
