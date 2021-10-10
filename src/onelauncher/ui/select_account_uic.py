@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'select_account.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.1.2
+## Created by: Qt User Interface Compiler version 6.1.3
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -18,36 +18,39 @@ class Ui_dlgChooseAccount(object):
         if not dlgChooseAccount.objectName():
             dlgChooseAccount.setObjectName(u"dlgChooseAccount")
         dlgChooseAccount.setWindowModality(Qt.ApplicationModal)
-        dlgChooseAccount.resize(320, 205)
+        dlgChooseAccount.resize(320, 169)
         font = QFont()
-        font.setFamilies([u"Verdana"])
         font.setPointSize(12)
         dlgChooseAccount.setFont(font)
         dlgChooseAccount.setModal(True)
-        self.lblMessage = QLabel(dlgChooseAccount)
-        self.lblMessage.setObjectName(u"lblMessage")
-        self.lblMessage.setGeometry(QRect(5, 5, 291, 121))
-        self.comboBox = QComboBox(dlgChooseAccount)
-        self.comboBox.setObjectName(u"comboBox")
-        self.comboBox.setGeometry(QRect(5, 117, 310, 33))
-        self.btnOK = QPushButton(dlgChooseAccount)
-        self.btnOK.setObjectName(u"btnOK")
-        self.btnOK.setGeometry(QRect(225, 160, 90, 33))
-        self.btnCancel = QPushButton(dlgChooseAccount)
-        self.btnCancel.setObjectName(u"btnCancel")
-        self.btnCancel.setGeometry(QRect(130, 160, 90, 33))
+        self.accountsComboBox = QComboBox(dlgChooseAccount)
+        self.accountsComboBox.setObjectName(u"accountsComboBox")
+        self.accountsComboBox.setGeometry(QRect(5, 90, 310, 33))
+        self.label = QLabel(dlgChooseAccount)
+        self.label.setObjectName(u"label")
+        self.label.setGeometry(QRect(-5, 8, 331, 71))
+        self.label.setAlignment(Qt.AlignCenter)
+        self.buttonBox = QDialogButtonBox(dlgChooseAccount)
+        self.buttonBox.setObjectName(u"buttonBox")
+        self.buttonBox.setGeometry(QRect(145, 135, 166, 27))
+        self.buttonBox.setOrientation(Qt.Horizontal)
+        self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
+        self.saveSelectionCheckBox = QCheckBox(dlgChooseAccount)
+        self.saveSelectionCheckBox.setObjectName(u"saveSelectionCheckBox")
+        self.saveSelectionCheckBox.setGeometry(QRect(4, 138, 141, 21))
 
         self.retranslateUi(dlgChooseAccount)
-        self.btnOK.clicked.connect(dlgChooseAccount.accept)
-        self.btnCancel.clicked.connect(dlgChooseAccount.reject)
+        self.buttonBox.accepted.connect(dlgChooseAccount.accept)
+        self.buttonBox.rejected.connect(dlgChooseAccount.reject)
 
         QMetaObject.connectSlotsByName(dlgChooseAccount)
     # setupUi
 
     def retranslateUi(self, dlgChooseAccount):
         dlgChooseAccount.setWindowTitle(QCoreApplication.translate("dlgChooseAccount", u"Choose Account", None))
-        self.lblMessage.setText("")
-        self.btnOK.setText(QCoreApplication.translate("dlgChooseAccount", u"OK", None))
-        self.btnCancel.setText(QCoreApplication.translate("dlgChooseAccount", u"Cancel", None))
+        self.label.setText(QCoreApplication.translate("dlgChooseAccount", u"Multiple game accounts found\n"
+"\n"
+"Please select one", None))
+        self.saveSelectionCheckBox.setText(QCoreApplication.translate("dlgChooseAccount", u"Save Selection", None))
     # retranslateUi
 

@@ -1,110 +1,118 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>dlgChooseAccount</class>
- <widget class="QDialog" name="dlgChooseAccount" >
-  <property name="windowModality" >
+ <widget class="QDialog" name="dlgChooseAccount">
+  <property name="windowModality">
    <enum>Qt::ApplicationModal</enum>
   </property>
-  <property name="geometry" >
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>320</width>
-    <height>205</height>
+    <height>169</height>
    </rect>
   </property>
-  <property name="font" >
+  <property name="font">
    <font>
-    <family>Verdana</family>
     <pointsize>12</pointsize>
    </font>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>Choose Account</string>
   </property>
-  <property name="modal" >
+  <property name="modal">
    <bool>true</bool>
   </property>
-  <widget class="QLabel" name="lblMessage" >
-   <property name="geometry" >
+  <widget class="QComboBox" name="accountsComboBox">
+   <property name="geometry">
     <rect>
      <x>5</x>
-     <y>5</y>
-     <width>291</width>
-     <height>121</height>
-    </rect>
-   </property>
-   <property name="text" >
-    <string/>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="comboBox" >
-   <property name="geometry" >
-    <rect>
-     <x>5</x>
-     <y>117</y>
+     <y>90</y>
      <width>310</width>
      <height>33</height>
     </rect>
    </property>
   </widget>
-  <widget class="QPushButton" name="btnOK" >
-   <property name="geometry" >
+  <widget class="QLabel" name="label">
+   <property name="geometry">
     <rect>
-     <x>225</x>
-     <y>160</y>
-     <width>90</width>
-     <height>33</height>
+     <x>-5</x>
+     <y>8</y>
+     <width>331</width>
+     <height>71</height>
     </rect>
    </property>
-   <property name="text" >
-    <string>OK</string>
+   <property name="text">
+    <string>Multiple game accounts found
+
+Please select one</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
-  <widget class="QPushButton" name="btnCancel" >
-   <property name="geometry" >
+  <widget class="QDialogButtonBox" name="buttonBox">
+   <property name="geometry">
     <rect>
-     <x>130</x>
-     <y>160</y>
-     <width>90</width>
-     <height>33</height>
+     <x>145</x>
+     <y>135</y>
+     <width>166</width>
+     <height>27</height>
     </rect>
    </property>
-   <property name="text" >
-    <string>Cancel</string>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <property name="standardButtons">
+    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="saveSelectionCheckBox">
+   <property name="geometry">
+    <rect>
+     <x>4</x>
+     <y>138</y>
+     <width>141</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Save Selection</string>
    </property>
   </widget>
  </widget>
  <resources/>
  <connections>
   <connection>
-   <sender>btnOK</sender>
-   <signal>clicked()</signal>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
    <receiver>dlgChooseAccount</receiver>
    <slot>accept()</slot>
    <hints>
-    <hint type="sourcelabel" >
-     <x>228</x>
-     <y>176</y>
+    <hint type="sourcelabel">
+     <x>227</x>
+     <y>148</y>
     </hint>
-    <hint type="destinationlabel" >
-     <x>149</x>
-     <y>102</y>
+    <hint type="destinationlabel">
+     <x>159</x>
+     <y>84</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>btnCancel</sender>
-   <signal>clicked()</signal>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
    <receiver>dlgChooseAccount</receiver>
    <slot>reject()</slot>
    <hints>
-    <hint type="sourcelabel" >
-     <x>174</x>
-     <y>176</y>
+    <hint type="sourcelabel">
+     <x>227</x>
+     <y>148</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>159</x>
-     <y>102</y>
+     <y>84</y>
     </hint>
    </hints>
   </connection>

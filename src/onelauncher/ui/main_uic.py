@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'main.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.1.2
+## Created by: Qt User Interface Compiler version 6.1.3
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -25,14 +25,12 @@ class Ui_winMain(object):
         self.actionPatch = QAction(winMain)
         self.actionPatch.setObjectName(u"actionPatch")
         self.actionPatch.setFont(font)
-        self.actionDDOTest = QAction(winMain)
-        self.actionDDOTest.setObjectName(u"actionDDOTest")
-        self.actionLOTROTest = QAction(winMain)
-        self.actionLOTROTest.setObjectName(u"actionLOTROTest")
         self.actionLOTRO = QAction(winMain)
         self.actionLOTRO.setObjectName(u"actionLOTRO")
         self.actionDDO = QAction(winMain)
         self.actionDDO.setObjectName(u"actionDDO")
+        self.actionForgetSubaccountSelection = QAction(winMain)
+        self.actionForgetSubaccountSelection.setObjectName(u"actionForgetSubaccountSelection")
         self.centralwidget = QWidget(winMain)
         self.centralwidget.setObjectName(u"centralwidget")
         self.lblWorld = QLabel(self.centralwidget)
@@ -116,6 +114,13 @@ class Ui_winMain(object):
         self.cboAccount.setObjectName(u"cboAccount")
         self.cboAccount.setGeometry(QRect(525, 95, 260, 32))
         self.cboAccount.setEditable(True)
+        self.saveSettingsToolButton = QToolButton(self.centralwidget)
+        self.saveSettingsToolButton.setObjectName(u"saveSettingsToolButton")
+        self.saveSettingsToolButton.setGeometry(QRect(736, 175, 16, 26))
+        self.saveSettingsToolButton.setStyleSheet(u"QToolButton::menu-indicator { image: none; }")
+        self.saveSettingsToolButton.setPopupMode(QToolButton.InstantPopup)
+        self.saveSettingsToolButton.setToolButtonStyle(Qt.ToolButtonIconOnly)
+        self.saveSettingsToolButton.setArrowType(Qt.DownArrow)
         winMain.setCentralWidget(self.centralwidget)
         self.lblWorld.raise_()
         self.lblAccount.raise_()
@@ -135,6 +140,7 @@ class Ui_winMain(object):
         self.btnAddonManager.raise_()
         self.cboAccount.raise_()
         self.btnOptions.raise_()
+        self.saveSettingsToolButton.raise_()
         QWidget.setTabOrder(self.cboWorld, self.cboAccount)
         QWidget.setTabOrder(self.cboAccount, self.txtPassword)
         QWidget.setTabOrder(self.txtPassword, self.btnLogin)
@@ -170,10 +176,9 @@ class Ui_winMain(object):
 #if QT_CONFIG(tooltip)
         self.actionPatch.setToolTip(QCoreApplication.translate("winMain", u"Patch", None))
 #endif // QT_CONFIG(tooltip)
-        self.actionDDOTest.setText(QCoreApplication.translate("winMain", u"Dungeons and Dragons Online (Preview Client)", None))
-        self.actionLOTROTest.setText(QCoreApplication.translate("winMain", u"Lord of the Rings Online (Preview Client)", None))
         self.actionLOTRO.setText(QCoreApplication.translate("winMain", u"Lord of the Rings Online", None))
         self.actionDDO.setText(QCoreApplication.translate("winMain", u"Dungeons and Dragons Online", None))
+        self.actionForgetSubaccountSelection.setText(QCoreApplication.translate("winMain", u"Forget sub-account selection", None))
 #if QT_CONFIG(tooltip)
         self.lblWorld.setToolTip(QCoreApplication.translate("winMain", u"<html><head/><body><p>Game server</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
@@ -220,5 +225,6 @@ class Ui_winMain(object):
         self.btnAddonManager.setToolTip(QCoreApplication.translate("winMain", u"<html><head/><body><p>Addon manager</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.btnAddonManager.setText("")
+        self.saveSettingsToolButton.setText("")
     # retranslateUi
 

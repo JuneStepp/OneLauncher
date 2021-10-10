@@ -42,6 +42,7 @@ import onelauncher
 from onelauncher import resources
 from onelauncher.resources import available_locales, Locale, system_locale
 
+
 class ProgramSettings():
     def __init__(self, config_path: Path = None) -> None:
         if not config_path:
@@ -129,9 +130,11 @@ class ProgramSettings():
 
 
 class Account():
-    def __init__(self, name: str, last_used_world_name: str) -> None:
+    def __init__(self, name: str, last_used_world_name: str,
+                 save_subaccount_selection: bool = False) -> None:
         self._name: Final = name
         self.last_used_world_name = last_used_world_name
+        self.save_subaccount_selection = save_subaccount_selection
 
     @property
     def name(self) -> str:
@@ -379,7 +382,8 @@ class GamesSettings():
 
     def load_game(self, game_dict: dict):
         uuid = UUID(game_dict["uuid"])
-        game_directory = CaseInsensitiveAbsolutePath(game_dict["game_directory"])
+        game_directory = CaseInsensitiveAbsolutePath(
+            game_dict["game_directory"])
 
         # Deal with missing sections
         game_dict["info"] = game_dict.get("info", {})
@@ -420,7 +424,8 @@ class GamesSettings():
             game_dict["wine"].get("debug_level", None),
             {
                 account["account_name"]: Account(
-                    account["account_name"], account["last_used_world_name"]
+                    account["account_name"], account["last_used_world_name"],
+                    account["save_subaccount_selection"]
                 )
                 for account in game_dict["accounts"]
             },
@@ -483,7 +488,8 @@ class GamesSettings():
             if game.accounts:
                 accounts_settings_list = [
                     {"account_name": account.name,
-                        "last_used_world_name": account.last_used_world_name}
+                        "last_used_world_name": account.last_used_world_name,
+                        "save_subaccount_selection": account.save_subaccount_selection}
                     for account in game.accounts.values()]
             else:
                 accounts_settings_list = []

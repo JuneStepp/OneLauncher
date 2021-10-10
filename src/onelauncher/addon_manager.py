@@ -768,7 +768,7 @@ class AddonManager(QtWidgets.QDialog):
             return
 
         if interface_id:
-            compendium_file = self.generateCompendiumFile(
+            self.generateCompendiumFile(
                 root_dir, interface_id, "Music", table.objectName(),
                 existing_compendium_file)
 
@@ -795,7 +795,7 @@ class AddonManager(QtWidgets.QDialog):
             return
 
         if interface_id:
-            compendium_file = self.generateCompendiumFile(
+            self.generateCompendiumFile(
                 root_dir, interface_id, "Skin", table.objectName(), existing_compendium_file)
 
         # Move the addon into the real data folder

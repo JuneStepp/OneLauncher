@@ -35,7 +35,7 @@ import urllib
 from json import loads as jsonLoads
 from pathlib import Path
 from platform import platform
-from typing import List
+from typing import List, Optional
 
 import defusedxml.minidom
 import xml
@@ -87,6 +87,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setupBtnOptions()
         self.setupBtnAddonManager()
         self.setupBtnLoginMenu()
+        self.setup_save_accounts_dropdown()
         self.ui.btnSwitchGame.clicked.connect(self.btnSwitchGameClicked)
 
         # Accounts combo box item selection signal
@@ -175,6 +176,25 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btnLoginMenu.addAction(self.ui.actionPatch)
         self.ui.actionPatch.triggered.connect(self.actionPatchSelected)
         self.ui.btnLogin.setMenu(self.ui.btnLoginMenu)
+
+    def setup_save_accounts_dropdown(self):
+        self.ui.saveSettingsMenu = QtWidgets.QMenu()
+        self.ui.saveSettingsMenu.addAction(self.ui.actionForgetSubaccountSelection)
+        self.ui.actionForgetSubaccountSelection.triggered.connect(self.forget_subaccount_selection)
+        self.ui.saveSettingsToolButton.setMenu(self.ui.saveSettingsMenu)
+
+    def forget_subaccount_selection(self):
+        self.ui.saveSettingsToolButton.setVisible(False)
+        self.ui.cboAccount.currentData().save_subaccount_selection = False
+
+        try:
+            keyring.delete_password(
+                onelauncher.__title__,
+                self.get_current_keyring_subaccount_username(),
+            )
+        except keyring.errors.PasswordDeleteError:
+            pass
+
 
     def setup_switch_game_button(self):
         """Set icon and dropdown options of switch game button according to current game"""
@@ -302,6 +322,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.txtPassword.setFocus()
 
     def loadAllSavedAccounts(self):
+        self.ui.saveSettingsToolButton.setVisible(False)
+
         if program_settings.save_accounts is False:
             game_settings.current_game.accounts = {}
             return
@@ -316,6 +338,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.cboAccount.addItem(account.name, userData=account)
 
         self.ui.cboAccount.setCurrentText(accounts[-1].name)
+        if self.ui.cboAccount.currentData().save_subaccount_selection:
+            self.ui.saveSettingsToolButton.setVisible(True)
 
     def setCurrentAccountWorld(self):
         account: settings.Account = self.ui.cboAccount.currentData()
@@ -328,6 +352,9 @@ class MainWindow(QtWidgets.QMainWindow):
         return str(game_settings.current_game.uuid) + \
             self.ui.cboAccount.currentText()
 
+    def get_current_keyring_subaccount_username(self) -> str:
+        return "SubaccountSelection" + self.get_current_keyring_username()
+
     def setCurrentAccountPassword(self):
         keyring_username = self.get_current_keyring_username()
 
@@ -337,6 +364,44 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ui.txtPassword.setText(keyring.get_password(
             onelauncher.__title__, keyring_username) or "")
+
+    def get_subaccount_number(self, account: settings.Account) -> Optional[str]:
+        if account.save_subaccount_selection:
+            account_number = keyring.get_password(
+                onelauncher.__title__,
+                self.get_current_keyring_subaccount_username(),
+            )
+            if account_number:
+                return account_number
+
+        choose_account_dialog = QtWidgets.QDialog(self, QtCore.Qt.FramelessWindowHint)
+        ui = Ui_dlgChooseAccount()
+        ui.setupUi(choose_account_dialog)
+
+        for game in self.account.gameList:
+            ui.accountsComboBox.addItem(game.description, game.name)
+
+        ui.saveSelectionCheckBox.setChecked(account.save_subaccount_selection)
+
+        if choose_account_dialog.exec() == QtWidgets.QDialog.Accepted:
+            account_number = ui.accountsComboBox.currentData()
+            account.save_subaccount_selection = ui.saveSelectionCheckBox.isChecked()
+            self.ui.saveSettingsToolButton.setVisible(account.save_subaccount_selection)
+            # The subaccount selection can only be saved if the account is saved
+            if account.save_subaccount_selection:
+                self.ui.chkSaveSettings.setChecked(True)
+
+            keyring.set_password(
+                onelauncher.__title__,
+                self.get_current_keyring_subaccount_username(),
+                account_number,
+            )
+            self.resetFocus()
+            return account_number
+        else:
+            self.resetFocus()
+            self.AddLog("No game selected - aborting")
+            return None
 
     def AuthAccount(self):
         self.AddLog("Checking account details...")
@@ -360,15 +425,15 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.account.authSuccess:
             self.AddLog("Account authenticated")
 
-            if self.ui.chkSaveSettings.isChecked():
-                if type(self.ui.cboAccount.currentData()) == settings.Account:
+            if type(self.ui.cboAccount.currentData()) == settings.Account:
                     current_account = self.ui.cboAccount.currentData()
-                else:
-                    current_account = settings.Account(
-                        self.ui.cboAccount.currentText(), self.ui.cboWorld.currentText())
-                    self.ui.cboAccount.setItemData(
-                        self.ui.cboAccount.currentIndex(), current_account)
+            else:
+                current_account = settings.Account(
+                    self.ui.cboAccount.currentText(), self.ui.cboWorld.currentText())
+                self.ui.cboAccount.setItemData(
+                    self.ui.cboAccount.currentIndex(), current_account)
 
+            if self.ui.chkSaveSettings.isChecked():
                 # Account is deleted first, because accounts are in order of
                 # the most recently played at the end.
                 try:
@@ -376,8 +441,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 except KeyError:
                     pass
                 game_settings.current_game.accounts[current_account.name] = current_account
-
-                self.save_settings()
 
                 keyring_username = self.get_current_keyring_username()
                 if self.ui.chkSavePassword.isChecked():
@@ -395,29 +458,15 @@ class MainWindow(QtWidgets.QMainWindow):
                     except keyring.errors.PasswordDeleteError:
                         pass
 
+            # Handle merged accounts. Some people have multiple accounts attached to one login.
             if len(self.account.gameList) > 1:
-                choose_account_dialog = QtWidgets.QDialog(self)
-                ui = Ui_dlgChooseAccount()
-                ui.setupUi(choose_account_dialog)
-
-                ui.lblMessage.setText(
-                    "Multiple game accounts found\n\nPlease select the required game"
-                )
-
-                for game in self.account.gameList:
-                    ui.comboBox.addItem(game.description)
-
-                if choose_account_dialog.exec() == QtWidgets.QDialog.Accepted:
-                    self.accNumber = self.account.gameList[
-                        ui.comboBox.currentIndex()
-                    ].name
-                    self.resetFocus()
-                else:
-                    self.resetFocus()
-                    self.AddLog("No game selected - aborting")
+                self.accNumber = self.get_subaccount_number(current_account)
+                if not self.accNumber:
                     return
             else:
                 self.accNumber = self.account.gameList[0].name
+
+            self.save_settings()
 
             tempWorld: World = self.ui.cboWorld.currentData()
             tempWorld.CheckWorld()
