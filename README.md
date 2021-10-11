@@ -1,20 +1,12 @@
-<img src="https://i.imgur.com/tlWsBoY.png" alt="OneLauncher window examples">
+# [OneLauncher](https://Github.com/JuneStepp/OneLauncher)
+
+![OneLauncher window examples](https://i.imgur.com/tlWsBoY.png "OneLauncher window examples")
 
 OneLauncher is an enhanced launcher for both LOTRO and DDO with many features including an Add-on manager for plugins, skins, and music.
 
-[OneLauncher](https://github.com/JuneStepp/OneLauncher)
-(c) 2019-2021 June Stepp
+**Version 2.0 is on the way with many many changes. The current version is stable and has all major features, though.**
 
-Based on [PyLotRO](https://github.com/nwestfal/pylotro)
-(C) 2009 AJackson
-
-Based on [LotROLinux](https://web.archive.org/web/20120424132519/http://www.lotrolinux.com/)
-(C) 2007-2008 AJackson
-
-Based on [CLI launcher for
-LOTRO](https://sny.name/LOTRO/) (C) 2007-2009 SNy
-
-# Features Overview
+## Features Overview
 
 - Patching and launching of LOTRO and DDO
 - Plugins, skins, and music manager
@@ -26,33 +18,32 @@ LOTRO](https://sny.name/LOTRO/) (C) 2007-2009 SNy
 - Multiple clients support
 - *more*
 
-# Basic Usage
+## Basic Usage
 
-Simply download the executable for your operating system from 
-[the releases page](https://Github.com/JuneStepp/OneLauncher/releases) and install it.
+Simply download the executable for your operating system from [the releases page](https://Github.com/JuneStepp/OneLauncher/releases) and install it.
 If on Linux or Mac make sure WINE is installed, so all dependencies for the version OneLauncher
 installs are met.
 
-# Advanced Usage
+## Advanced Usage
 
-## Launch Arguments
+### Launch Arguments
 
 - `--game`: Specifies starting game or game type. Accepted values are `LOTRO`, `DDO`, or the UUID of a game. You can find the UUIDs of your games in the games.toml configuration file.
 - `--language`: Specifies game client language. Accepted values are IETF language tags such as `de`, `en-US`, or `fr`.
 
-## Separate Settings Folders for Default and Preview Game Versions
+### Separate Settings Folders for Default and Preview Game Versions
 
 OneLauncher supports custom game settings folders through the `ddo.launcherconfig` and `lotro.launcherconfig` files located in their respective game install folders. Changing the value for `Product.DocumentFolder` will register the new folder with both OneLauncher and the game. Setting different directory names for the normal and preview versions of games allows for completely separate in-game settings and add-ons between them.
 
-# Development Install
+## Development Install
 
-OneLauncher uses [Poetry](https://python-poetry.org) for dependency management. To get everything setup simply run `poetry install` in the root folder of the OneLauncher source code.
+OneLauncher uses [Poetry](https://python-poetry.org) for dependency management. To get everything setup, simply run `poetry install` in the root folder of the OneLauncher source code.
 
-## To run from source
+### To run from source
 
 `poetry run onelauncher`
 
-## To build
+### To build
 
 The build ends up in `start_onelauncher.dist`.
 
@@ -61,32 +52,32 @@ cross-compiled.
 
 `poetry run python compile.py`
 
-# Add-on Manager Info For Developers
+## Add-on Manager Info For Developers
 
-## Getting Your Add-on in OneLauncher
+### Getting Your Add-on in OneLauncher
 
-I follow the the RSS feed on [LotroInterface](https://lotrointerface.com) and will add any add-ons that look
+I follow the RSS feed on [LotroInterface](https://lotrointerface.com) and will add any add-ons that look
 to be in the correct format. You can open an issue here or email me if you feel
 your add-on needs to be added.
 
-## Archive Format
+### Archive Format
 
 - Add-ons must be uploaded as a zip!
-- Zip should have descriptive name (i.e not "skin" or "plugin")
+- Archive should have a descriptive name (i.e. not "skin" or "plugin")
 - It's not recommended, but ok if zip has no root folder, multiple root folders, or includes part of the path to the data folder like "ui/skins" or "Plugins".
 
-## Compendium Files
+### Compendium Files
 
 You don't need to make a compendium file unless you need dependencies to be auto installed or want a startup script to be run. One is auto generated during installation.
 
-Compendium files should be placed inside the top level directory of your add-on and their names follow the format:
+Compendium files should be placed inside the top-level directory of your add-on, and their names follow the format:
 
 `{NAME}.{plugin/skin/music}compendium`
 An example is `Example Plugin.plugincompendium`
 
 The contents of compendium files follow the format:
 
-```
+```xml
 <?xml version="1.0" ?>
 <{Plugin/Skin/Music}Config>
     <Id>{LOTRO INTERFACE ID}</Id>
@@ -113,7 +104,7 @@ The contents of compendium files follow the format:
 
 An example is:
 
-```
+```xml
 <?xml version="1.0" ?>
 <PluginConfig>
     <Id>314159</Id>
@@ -135,7 +126,7 @@ An example is:
 </PluginConfig>
 ```
 
-## Patches
+### Patches
 
 Patches must follow the same format as the add-on that is being patched. The most common issue is leaving out folders farther up the tree from what is changed.
 
@@ -148,20 +139,20 @@ Make sure patch...
 - Is installed after what is being patched.
 - Has clear name.
 
-## Collections
+### Collections
 
 Collections of add-ons can be made by listing the add-ons you would like in the collection as dependencies of your add-on. See the [Compendium Files](#Compendium-Files) section for how to add dependencies to your add-on.
 
-## Dependencies
+### Dependencies
 
-Dependencies will be installed automatically after your add-on. See the [Compendium Files](#Compendium-Files) section for how to add dependencies to your add-on. Turbine Utilities uses to ID `0`.
+Dependencies will be installed automatically after your add-on. See the [Compendium Files](#Compendium-Files) section for how to add dependencies to your add-on. Turbine Utilities uses ID `0`.
 
-## Startup Scripts
+### Startup Scripts
 
-Startup scripts are Python scripts that will be run before every game launch. When installing an add-on with a startup script the user will be prompted for permission for the script to run and shown the contents of the script. It is likely that users will not give permission for your script to run, so make sure to program in a message for that situation. See the [Compendium Files](#Compendium-Files) section for how to add a startup script to your add-on.
+Startup scripts are Python scripts that will be run before every game launch. When installing an add-on with a startup script, the user will be prompted for permission for the script to run and shown the contents of the script. It is likely that users will not give permission for your script to run, so make sure to program in a message for that situation. See the [Compendium Files](#Compendium-Files) section for how to add a startup script to your add-on.
 
-# Custom Clients
+## Custom Clients
 
-## OneLauncher Banner Image
+### OneLauncher Banner Image
 
 Game banner images are displayed above the newsfeed in OneLauncher. All images are scaled to 136 pixels in height keeping aspect ratio and should ideally should be 300x136. Images following the path `{Game Directory}/{Locale Resources Folder}/banner.png` will replace the default image for that game and locale. If there is no image for a user's selected locale, the default image will be shown. An example path is `C://Program Files/Standing Stone Games/Lord of The Rings Online/en/banner.png`.
