@@ -97,6 +97,7 @@ The contents of compendium files follow the format:
 <{Plugin/Skin/Music}Config>
     <Id>{LOTRO INTERFACE ID}</Id>
     <Name>{NAME}</Name>
+    <Description>{DESCRIPTION}</Description>
     <Version>{VERSION}</Version>
     <Author>{AUTHOR}</Author>
     <InfoUrl>http://www.lotrointerface.com/downloads/info{LOTRO INTERFACE ID}</InfoUrl>
@@ -123,6 +124,7 @@ An example is:
 <PluginConfig>
     <Id>314159</Id>
     <Name>Example Plugin</Name>
+    <Description>Does example things</Description>
     <Version>4.0.4</Version>
     <Author>June Stepp</Author>
     <InfoUrl>http://www.lotrointerface.com/downloads/info314159</InfoUrl>
