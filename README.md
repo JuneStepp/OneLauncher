@@ -2,19 +2,34 @@
 
 ![OneLauncher window examples](https://i.imgur.com/tlWsBoY.png "OneLauncher window examples")
 
-OneLauncher is an enhanced launcher for both LOTRO and DDO with many features including an Add-on manager for plugins, skins, and music.
+<p align="center">
+  <a href="https://github.com/junestepp/onelauncher/tree/main/locale/de#onelauncher">Deutsch</a> |
+  <span>English</span> |
+  <a href="https://github.com/junestepp/onelauncher/tree/main/locale/fr#onelauncher">Français</a>
+</p>
 
-**Version 2.0 is on the way with many many changes. The current version is stable and has all major features, though.**
+<p align="center">
+    Distributed on <a href="https://Github.com/JuneStepp/OneLauncher/releases">GitHub</a>, <a href="https://lotrointerface.com/downloads/info1098-OneLauncher-Add-onmanagerandlauncherforLOTROandDDO.html">LotroInterface</a>, and <a href="https://www.nexusmods.com/lotronline/mods/1?tab=description">NexusMods</a>.
+</p>
+
+---
+![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/junestepp/onelauncher?include_prereleases)
+![Weblate project translated](https://img.shields.io/weblate/progress/onelauncher)
+![GitHub](https://img.shields.io/github/license/junestepp/onelauncher)
+
+An enhanced launcher for both [LOTRO](https://www.lotro.com/) and [DDO](https://www.ddo.com/) with many features including an Add-on manager for plugins, skins, and music.
+
+***Version 2.0 is on the way with many many changes. The current version is stable and has all major features, though.***
 
 ## Features Overview
 
-- Patching and launching of LOTRO and DDO
 - Plugins, skins, and music manager
 - Multiple accounts support
 - Password saving
 - External scripting support for add-ons
 - Auto optimum WINE setup for Mac and Linux
 - Easy game detection
+- Game patching and launching
 - Multiple clients support
 - *more*
 
@@ -51,6 +66,10 @@ Nuitka can't currently cross-compile, but the InstallBuilder installers can be
 cross-compiled.
 
 `poetry run python compile.py`
+
+### To translate
+
+OneLauncher uses [Weblate](weblate.org) for translations. You can make an account and conntribute translations through their site. See the project page [here](https://hosted.weblate.org/projects/onelauncher/).
 
 ## Add-on Manager Info For Developers
 
