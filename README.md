@@ -170,6 +170,14 @@ Dependencies will be installed automatically after your add-on. See the [Compend
 
 Startup scripts are Python scripts that will be run before every game launch. When installing an add-on with a startup script, the user will be prompted for permission for the script to run and shown the contents of the script. It is likely that users will not give permission for your script to run, so make sure to program in a message for that situation. See the [Compendium Files](#Compendium-Files) section for how to add a startup script to your add-on.
 
+#### Builtin Variables
+
+These are pre-set variables that you can access in your startup script.
+
+- `__file__`: The string path to your startup script.
+- `__game_dir__`: The string path to the current game directory.
+- `__game_config_dir__` The string path to the current game settings folder. This is normally "The Lord of The Rings Online" or "Dungeons and Dragons Online" in the user's documents folder, but it can be configured differently.
+
 ## Custom Clients
 
 ### OneLauncher Banner Image

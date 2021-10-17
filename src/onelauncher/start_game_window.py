@@ -180,7 +180,9 @@ class StartGame(QtWidgets.QDialog):
                     code = file.read()
 
                 try:
-                    exec(code, {"__file__": str(file_path)})
+                    exec(code, {"__file__": str(file_path),
+                                "__game_dir__": str(self.game.game_directory),
+                                "__game_config_dir__": str(self.gameConfigPath)})
                 except SyntaxError as e:
                     self.ui.txtLog.append(
                         f"'{script}' ran into syntax error: {e}")
