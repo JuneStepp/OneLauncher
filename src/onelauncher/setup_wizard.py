@@ -26,15 +26,12 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-import glob
 import os
 from pathlib import Path
-from typing import List, Optional
-from uuid import UUID, uuid4
+from typing import List
 from bidict import bidict
 
 from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtUiTools import QUiLoader
 
 import onelauncher
 from onelauncher import settings, __title__

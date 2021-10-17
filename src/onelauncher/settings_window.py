@@ -29,22 +29,18 @@
 import os
 from pathlib import Path
 from typing import Final, Optional
-from uuid import UUID
 from bidict import bidict
 import re
 
 from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtUiTools import QUiLoader
 
 from onelauncher import settings, program_settings, game_settings
 from onelauncher.ui.settings_uic import Ui_dlgSettings
 from onelauncher.start_ui import run_setup_wizard_with_main_window
-from onelauncher.resources import get_game_dir_available_locales, available_locales
+from onelauncher.resources import available_locales
 from onelauncher.ui_utilities import raise_warning_message
 from onelauncher.utilities import check_if_valid_game_folder
 from onelauncher.wine_management import edit_qprocess_to_use_wine
-
-import onelauncher
 
 
 class SettingsWindow(QtWidgets.QDialog):
