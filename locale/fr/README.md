@@ -4,12 +4,12 @@
 
 <p align="center">
   <a href="https://github.com/junestepp/onelauncher/tree/main/locale/de#onelauncher">Deutsch</a> |
-  <span>English</span> |
-  <a href="https://github.com/junestepp/onelauncher/tree/main/locale/fr#onelauncher">Français</a>
+  <a href="https://github.com/junestepp/onelauncher/tree/main#onelauncher">English</a> |
+  <span>Français</span>
 </p>
 
 <p align="center">
-    Distributed on <a href="https://Github.com/JuneStepp/OneLauncher/releases">GitHub</a>, <a href="https://lotrointerface.com/downloads/info1098-OneLauncher-Add-onmanagerandlauncherforLOTROandDDO.html">LotroInterface</a>, and <a href="https://www.nexusmods.com/lotronline/mods/1?tab=description">NexusMods</a>.
+    Distribué sur <a href="https://Github.com/JuneStepp/OneLauncher/releases">GitHub</a>, <a href="https://lotrointerface.com/downloads/info1098-OneLauncher-Add-onmanagerandlauncherforLOTROandDDO.html">LotroInterface</a>, et <a href="https://www.nexusmods.com/lotronline/mods/1?tab=description">NexusMods</a>.
 </p>
 
 ---
