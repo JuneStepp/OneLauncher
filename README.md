@@ -69,7 +69,7 @@ cross-compiled.
 
 ### To translate
 
-OneLauncher uses [Weblate](weblate.org) for translations. You can make an account and conntribute translations through their site. See the project page [here](https://hosted.weblate.org/projects/onelauncher/).
+OneLauncher uses [Weblate](weblate.org) for translations. You can make an account and contribute translations through their site. See the project page [here](https://hosted.weblate.org/projects/onelauncher/).
 
 ## Add-on Manager Info For Developers
 
@@ -151,7 +151,7 @@ Patches must follow the same format as the add-on that is being patched. The mos
 
 Here is a list of possible issues to keep in mind when making a patch:
 
-Make sure patch...
+Make sure patch…
 
 - Follows the exact same folder structure as the add-on being patched.
 - Doesn't edit the compendium file of the add-on being patched.
