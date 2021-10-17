@@ -176,7 +176,7 @@ These are pre-set variables that you can access in your startup script.
 
 - `__file__`: The string path to your startup script.
 - `__game_dir__`: The string path to the current game directory.
-- `__game_config_dir__` The string path to the current game settings folder. This is normally "The Lord of The Rings Online" or "Dungeons and Dragons Online" in the user's documents folder, but it can be configured differently.
+- `__game_config_dir__`: The string path to the current game settings folder. This is normally "The Lord of The Rings Online" or "Dungeons and Dragons Online" in the user's documents folder, but it can be configured differently.
 
 ## Custom Clients
 
