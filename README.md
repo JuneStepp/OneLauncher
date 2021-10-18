@@ -2,20 +2,12 @@
 
 ![OneLauncher window examples](https://i.imgur.com/tlWsBoY.png "OneLauncher window examples")
 
-<p align="center">
-  <a href="https://github.com/junestepp/onelauncher/tree/main/locale/de#onelauncher">Deutsch</a> |
-  <span>English</span> |
-  <a href="https://github.com/junestepp/onelauncher/tree/main/locale/fr#onelauncher">Français</a>
-</p>
-
-<p align="center">
-    Distributed on <a href="https://Github.com/JuneStepp/OneLauncher/releases">GitHub</a>, <a href="https://lotrointerface.com/downloads/info1098-OneLauncher-Add-onmanagerandlauncherforLOTROandDDO.html">LotroInterface</a>, and <a href="https://www.nexusmods.com/lotronline/mods/1?tab=description">NexusMods</a>.
-</p>
+<p align="center"><a href="https://github.com/junestepp/onelauncher/tree/main/locale/de#onelauncher">Deutsch</a> | <span>English</span> | <a href="https://github.com/junestepp/onelauncher/tree/main/locale/fr#onelauncher">Français</a></p>
+<p align="center">Distributed on <a href="https://Github.com/JuneStepp/OneLauncher/releases">GitHub</a>, <a href="https://lotrointerface.com/downloads/info1098-OneLauncher-Add-onmanagerandlauncherforLOTROandDDO.html">LotroInterface</a>, and <a href="https://www.nexusmods.com/lotronline/mods/1?tab=description">NexusMods</a>.</p>
 
 ---
-[![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/junestepp/onelauncher?include_prereleases)](https://Github.com/JuneStepp/OneLauncher/releases/latest)
-[![Weblate project translated](https://img.shields.io/weblate/progress/onelauncher)](https://hosted.weblate.org/projects/onelauncher/)
-[![GitHub](https://img.shields.io/github/license/junestepp/onelauncher)](https://github.com/JuneStepp/OneLauncher/blob/main/LICENSE.txt)
+
+[![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/junestepp/onelauncher?include_prereleases)](https://Github.com/JuneStepp/OneLauncher/releases/latest) [![Weblate project translated](https://img.shields.io/weblate/progress/onelauncher)](https://hosted.weblate.org/projects/onelauncher/) [![GitHub](https://img.shields.io/github/license/junestepp/onelauncher)](https://github.com/JuneStepp/OneLauncher/blob/main/LICENSE.txt)
 
 An enhanced launcher for both [LOTRO](https://www.lotro.com/) and [DDO](https://www.ddo.com/) with many features including an Add-on manager for plugins, skins, and music.
 
@@ -97,7 +89,6 @@ An example is `Example Plugin.plugincompendium`
 The contents of compendium files follow the format:
 
 ```xml
-<?xml version="1.0" ?>
 <{Plugin/Skin/Music}Config>
     <Id>{LOTRO INTERFACE ID}</Id>
     <Name>{NAME}</Name>
@@ -124,7 +115,6 @@ The contents of compendium files follow the format:
 An example is:
 
 ```xml
-<?xml version="1.0" ?>
 <PluginConfig>
     <Id>314159</Id>
     <Name>Example Plugin</Name>
