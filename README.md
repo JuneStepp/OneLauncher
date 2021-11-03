@@ -7,7 +7,7 @@
 
 ---
 
-[![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/junestepp/onelauncher?include_prereleases)](https://Github.com/JuneStepp/OneLauncher/releases/latest) [![Weblate project translated](https://img.shields.io/weblate/progress/onelauncher)](https://hosted.weblate.org/projects/onelauncher/) [![GitHub](https://img.shields.io/github/license/junestepp/onelauncher)](https://github.com/JuneStepp/OneLauncher/blob/main/LICENSE.txt)
+[![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/junestepp/onelauncher?include_prereleases)](https://Github.com/JuneStepp/OneLauncher/releases/latest) [![Weblate project translated](https://img.shields.io/weblate/progress/onelauncher)](https://hosted.weblate.org/projects/onelauncher/) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 An enhanced launcher for both [LOTRO](https://www.lotro.com/) and [DDO](https://www.ddo.com/) with many features including an Add-on manager for plugins, skins, and music.
 
