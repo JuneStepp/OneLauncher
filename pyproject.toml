@@ -43,3 +43,6 @@ onelauncher = "onelauncher.start_ui:main"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.autopep8]
+aggressive = 3
