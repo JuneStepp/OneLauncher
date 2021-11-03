@@ -118,13 +118,14 @@ class ProgramSettings():
             "games_sorting_mode", "priority")
 
     def save(self):
-        settings_dict = {"onelauncher_version": onelauncher.__version__,
-                         "default_language": self.default_locale.lang_tag,
-                         "always_use_default_language_for_ui": self.always_use_default_language_for_ui,
-                         "save_accounts": self.save_accounts,
-                         "save_accounts_passwords": self.save_accounts_passwords,
-                         "games_sorting_mode": self.games_sorting_mode,
-                         }
+        settings_dict = {
+            "onelauncher_version": onelauncher.__version__,
+            "default_language": self.default_locale.lang_tag,
+            "always_use_default_language_for_ui": self.always_use_default_language_for_ui,
+            "save_accounts": self.save_accounts,
+            "save_accounts_passwords": self.save_accounts_passwords,
+            "games_sorting_mode": self.games_sorting_mode,
+        }
 
         rtoml.dump(settings_dict, self.config_path, pretty=True)
 
@@ -153,7 +154,8 @@ class CaseInsensitiveAbsolutePath(Path):
         return super().__new__(cls, path, **kwargs)
 
     @classmethod
-    def _get_real_path_from_fully_case_insensitive_path(cls, base_path: Path) -> Path:
+    def _get_real_path_from_fully_case_insensitive_path(
+            cls, base_path: Path) -> Path:
         """Return any found path that matches base_path when ignoring case"""
         # Base version already exists
         if base_path.exists():
@@ -166,19 +168,25 @@ class CaseInsensitiveAbsolutePath(Path):
 
         # Range starts at 1 to ingore root which has already been checked
         for i in range(1, len(parts)):
-            current_path = Path(*(parts if i == len(parts)-1 else parts[:i+1]))
+            current_path = Path(
+                *(parts if i == len(parts) - 1 else parts[:i + 1]))
             real_path = cls._get_real_path_from_name_case_insensitive_path(
                 current_path)
-            if real_path:
-                parts[i] = real_path.name
-            else:
+            # Second check is for if there is a file or broken symlink before
+            # the end of the path. Without the check it would raise and
+            # exception in cls._get_real_path_from_name_case_insensitive_path
+            if real_path is None or (
+                    i < len(parts) and not real_path.is_dir()):
                 # No version exists, so the original is just returned
                 return base_path
+
+            parts[i] = real_path.name
 
         return Path(*parts)
 
     @staticmethod
-    def _get_real_path_from_name_case_insensitive_path(base_path: Path) -> Optional[Path]:
+    def _get_real_path_from_name_case_insensitive_path(
+            base_path: Path) -> Optional[Path]:
         """
         Return any found path where path.name == base_path.name ignoring case.
         base_path.parent has to exist. Use _get_case_sensitive_full_path if
@@ -200,7 +208,8 @@ class CaseInsensitiveAbsolutePath(Path):
     def _make_child(self, args) -> Path:
         _, _, parts = super()._parse_args(args)  # type: ignore
         joined_path = super()._make_child((Path(*parts),))  # type: ignore
-        return self._get_real_path_from_fully_case_insensitive_path(joined_path)
+        return self._get_real_path_from_fully_case_insensitive_path(
+            joined_path)
 
 
 class Game():
@@ -315,7 +324,8 @@ class GamesSettings():
         return f"{game_directory.name} ({uuid})"
 
     def uuid_str_list_to_game_list(self, uuid_list: List[str]) -> List[Game]:
-        return [self.games[UUID(uuid_str)] for uuid_str in uuid_list if UUID(uuid_str) in self.games]
+        return [self.games[UUID(uuid_str)] for uuid_str in uuid_list if UUID(
+            uuid_str) in self.games]
 
     def load(self):
         if not self.config_path.exists():
@@ -358,12 +368,14 @@ class GamesSettings():
         self.ddo_games_alphabetical_sorted = self.ddo_games_priority_sorted.copy()
         self.sort_alphabetical_sorting_lists()
 
-        self.lotro_sorting_modes = {"priority": self.lotro_games_priority_sorted,
-                                    "last_used": self.lotro_games_last_used_sorted,
-                                    "alphabetical": self.lotro_games_alphabetical_sorted}
-        self.ddo_sorting_modes = {"priority": self.ddo_games_priority_sorted,
-                                  "last_used": self.ddo_games_last_used_sorted,
-                                  "alphabetical": self.ddo_games_alphabetical_sorted}
+        self.lotro_sorting_modes = {
+            "priority": self.lotro_games_priority_sorted,
+            "last_used": self.lotro_games_last_used_sorted,
+            "alphabetical": self.lotro_games_alphabetical_sorted}
+        self.ddo_sorting_modes = {
+            "priority": self.ddo_games_priority_sorted,
+            "last_used": self.ddo_games_last_used_sorted,
+            "alphabetical": self.ddo_games_alphabetical_sorted}
 
         if ("last_used_game_uuid" in settings_dict and
                 UUID(settings_dict["last_used_game_uuid"]) in self.games):
@@ -495,14 +507,17 @@ class GamesSettings():
                 accounts_settings_list = []
 
             game_dict = {
-                "uuid": str(game.uuid),
+                "uuid": str(
+                    game.uuid),
                 "game_type": game.game_type,
-                "game_directory": str(game.game_directory),
+                "game_directory": str(
+                    game.game_directory),
                 "language": game.locale.lang_tag,
                 "client_type": game.client_type,
                 "high_res_enabled": game.high_res_enabled,
                 "patch_client_filename": game.patch_client_filename,
-                "startup_scripts": [str(script) for script in game.startup_scripts],
+                "startup_scripts": [
+                    str(script) for script in game.startup_scripts],
                 "wine": wine_settings_dict,
                 "info": info_settings_dict,
                 "accounts": accounts_settings_list,
@@ -523,14 +538,18 @@ class GamesSettings():
 
         onelauncher.set_ui_locale()
 
-    def remove_empty_values_from_dict(self, input_dict: dict, recursive=True) -> dict:
-        input_dict = {key: input_dict[key]
-                      for key in input_dict if input_dict[key] and input_dict[key] not in ["None", "."]}
+    def remove_empty_values_from_dict(
+            self,
+            input_dict: dict,
+            recursive=True) -> dict:
+        input_dict = {
+            key: input_dict[key] for key in input_dict if input_dict[key] and input_dict[key] not in [
+                "None", "."]}
 
         if recursive:
             new_dict = {
                 key: self.remove_empty_values_from_dict(value, recursive=True)
-                if type(value) == dict
+                if isinstance(value, dict)
                 else value
                 for key, value in input_dict.items()
             }
