@@ -434,6 +434,8 @@ class MainWindow(QtWidgets.QMainWindow):
                     pass
                 game_settings.current_game.accounts[current_account.name] = current_account
 
+                current_account.last_used_world_name = self.ui.cboWorld.currentText()
+
                 keyring_username = self.get_current_keyring_username()
                 if self.ui.chkSavePassword.isChecked():
                     keyring.set_password(
