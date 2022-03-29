@@ -176,7 +176,7 @@ class CaseInsensitiveAbsolutePath(Path):
             # the end of the path. Without the check it would raise and
             # exception in cls._get_real_path_from_name_case_insensitive_path
             if real_path is None or (
-                    i < len(parts) and not real_path.is_dir()):
+                    i < len(parts)-1 and not real_path.is_dir()):
                 # No version exists, so the original is just returned
                 return base_path
 
