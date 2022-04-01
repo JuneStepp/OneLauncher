@@ -39,7 +39,7 @@ from shutil import move, rmtree
 
 from PySide6 import QtCore, QtWidgets
 
-from onelauncher import game_settings
+from onelauncher.settings import game_settings
 from onelauncher.config import platform_dirs
 
 # To use Proton, replace link with Proton build and uncomment

@@ -36,8 +36,8 @@ import urllib.request, urllib.error
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from onelauncher import (__title__, __version__, __project_url__,
-                         program_settings, game_settings)
+from onelauncher import __title__, __version__, __project_url__, launch_arguments
+from onelauncher.settings import program_settings, game_settings
 from onelauncher.resources import get_resource
 from onelauncher.ui_utilities import show_message_box_details_as_markdown
 import onelauncher.logs
@@ -47,6 +47,8 @@ def main():
     onelauncher.logs.setup_application_logging()
     global logger
     logger = logging.getLogger("main")
+
+    launch_arguments.process_launch_arguments()
     
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
     application = QtWidgets.QApplication(sys.argv)

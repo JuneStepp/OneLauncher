@@ -34,7 +34,8 @@ import re
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from onelauncher import settings, program_settings, game_settings
+from onelauncher import settings
+from onelauncher.settings import program_settings, game_settings
 from onelauncher.ui.settings_uic import Ui_dlgSettings
 from onelauncher.start_ui import run_setup_wizard_with_main_window
 from onelauncher.resources import available_locales

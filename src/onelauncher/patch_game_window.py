@@ -32,7 +32,8 @@ import logging
 
 from PySide6 import QtCore, QtWidgets
 
-from onelauncher import settings, game_settings
+from onelauncher import settings
+from onelauncher.settings import game_settings
 from onelauncher.config import platform_dirs
 from onelauncher.ui.patching_window_uic import Ui_patchingWindow
 from onelauncher.utilities import QByteArray2str

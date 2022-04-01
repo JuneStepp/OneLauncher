@@ -42,7 +42,7 @@ import defusedxml.ElementTree
 import defusedxml.minidom
 
 import onelauncher
-from onelauncher import settings, program_settings
+from onelauncher import settings
 from onelauncher.config import platform_dirs
 from onelauncher.settings import CaseInsensitiveAbsolutePath
 
@@ -54,7 +54,9 @@ GAME_FOLDER_VERIFICATION_FILES = bidict({
     "LOTRO": Path("lotroclient.exe"), "DDO": Path("dndclient.exe")})
 
 
-def check_if_valid_game_folder(folder: CaseInsensitiveAbsolutePath, game_type: str = None) -> Optional[str]:
+def check_if_valid_game_folder(
+        folder: CaseInsensitiveAbsolutePath,
+        game_type: str = None) -> Optional[str]:
     """
     Checks for the game's verification file to validate that the
     folder is a valid game folder.
@@ -65,7 +67,7 @@ def check_if_valid_game_folder(folder: CaseInsensitiveAbsolutePath, game_type: s
         verifying_files = GAME_FOLDER_VERIFICATION_FILES.values()
 
     for verifying_file in verifying_files:
-        if (folder/verifying_file).exists():
+        if (folder / verifying_file).exists():
             return GAME_FOLDER_VERIFICATION_FILES.inverse[verifying_file]
 
 
@@ -87,7 +89,7 @@ sslContext = None
 def checkForCertificates():
     # Try to locate the server certificates for HTTPS connections
     certfile = get_resource(
-        Path("certificates/ca_certs.pem"), program_settings.ui_locale)
+        Path("certificates/ca_certs.pem"), settings.program_settings.ui_locale)
 
     if certfile and not os.access(certfile, os.R_OK):
         onelauncher.logger.error(
@@ -220,14 +222,16 @@ class GLSDataCenter:
                         elif world.nodeName == "StatusServerUrl":
                             urlStatusServer = world.firstChild.nodeValue
 
-                            # Fix for legendary servers always returning nothing for status
-                            urlStatusServer = (f"{urlGLSDataCenterService.rsplit('/Service.asmx', maxsplit=1)[0]}/StatusServer.aspx?s="
-                                               f"{urlStatusServer.rsplit('StatusServer.aspx?s=', maxsplit=1)[1]}")
+                            # Fix for legendary servers always returning
+                            # nothing for status
+                            urlStatusServer = (
+                                f"{urlGLSDataCenterService.rsplit('/Service.asmx', maxsplit=1)[0]}/StatusServer.aspx?s="
+                                f"{urlStatusServer.rsplit('StatusServer.aspx?s=', maxsplit=1)[1]}")
                     self.worldList.append(
                         World(name, urlChatServer, urlStatusServer))
 
                 self.loadSuccess = True
-        except:
+        except BaseException:
             self.loadSuccess = False
 
 
@@ -266,14 +270,14 @@ class World:
                         doc.getElementsByTagName("nowservingqueuenumber")[
                             0].childNodes
                     )
-                except:
+                except BaseException:
                     self.nowServing = ""
 
                 try:
                     self.queueURL = GetText(
                         doc.getElementsByTagName("queueurls")[0].childNodes
                     ).split(";")[0]
-                except:
+                except BaseException:
                     self.queueURL = ""
 
                 self.loginServer = GetText(
@@ -281,7 +285,7 @@ class World:
                 ).split(";")[0]
 
                 self.worldAvailable = True
-        except:
+        except BaseException:
             self.worldAvailable = False
 
 
@@ -372,7 +376,7 @@ class WorldQueueConfig:
                             self.worldQueueParam = node.getAttribute("value")
 
                 self.loadSuccess = True
-        except:
+        except BaseException:
             self.loadSuccess = False
             raise
 
@@ -458,18 +462,16 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
                 else:
                     self.messError = (
                         "[E14] Game account not associated with user account "
-                        "- please visit games website and check account details"
-                    )
+                        "- please visit games website and check account details")
 
         except ssl.SSLError:
             self.messError = "[E15] SSL Error occurred in HTTPS connection"
-        except:
+        except BaseException:
             if webresp and webresp.status == 500:
                 self.messError = "[E07] Account details incorrect"
             else:
                 self.messError = "[E08] Server not found - may be down (%s)" % (
-                    webresp and webresp.status or "N/A"
-                )
+                    webresp and webresp.status or "N/A")
 
 
 class JoinWorldQueue:
@@ -522,7 +524,7 @@ class JoinWorldQueue:
                     self.joinSuccess = True
                 else:
                     self.joinSuccess = False
-        except:
+        except BaseException:
             self.joinSuccess = False
 
 

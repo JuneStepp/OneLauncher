@@ -83,7 +83,7 @@ class ProgramSettings():
     def default_locale(self, new_value: Locale):
         self._default_locale = new_value
 
-        onelauncher.set_ui_locale()
+        set_ui_locale()
 
     @property
     def always_use_default_language_for_ui(self) -> bool:
@@ -93,7 +93,7 @@ class ProgramSettings():
     def always_use_default_language_for_ui(self, new_value: bool):
         self._always_use_default_language_for_ui = new_value
 
-        onelauncher.set_ui_locale()
+        set_ui_locale()
 
     def load(self):
         # Defaults will be used if the settings file doesn't exist
@@ -176,7 +176,7 @@ class CaseInsensitiveAbsolutePath(Path):
             # the end of the path. Without the check it would raise and
             # exception in cls._get_real_path_from_name_case_insensitive_path
             if real_path is None or (
-                    i < len(parts)-1 and not real_path.is_dir()):
+                    i < len(parts) - 1 and not real_path.is_dir()):
                 # No version exists, so the original is just returned
                 return base_path
 
@@ -287,7 +287,7 @@ class Game():
     def locale(self, new_value: Locale):
         self._locale = new_value
 
-        onelauncher.set_ui_locale()
+        set_ui_locale()
 
     @client_type.setter
     def client_type(self, new_value: str) -> None:
@@ -419,7 +419,7 @@ class GamesSettings():
             available_locales[
                 game_dict.get(
                     "language", str(
-                        onelauncher.program_settings.default_locale)
+                        program_settings.default_locale)
                 )
             ],
             game_dict.get("client_type", "WIN64"),
@@ -536,7 +536,7 @@ class GamesSettings():
     def current_game(self, new_value: Game):
         self._current_game = new_value
 
-        onelauncher.set_ui_locale()
+        set_ui_locale()
 
     def remove_empty_values_from_dict(
             self,
@@ -568,4 +568,17 @@ class GamesSettings():
         return uuid
 
 
+def set_ui_locale():
+    """Set locale for OneLauncher UI"""
+    if (
+        not program_settings.always_use_default_language_for_ui
+        and game_settings.games
+    ):
+        program_settings.ui_locale = game_settings.current_game.locale
+    else:
+        program_settings.ui_locale = program_settings.default_locale
+
+
 logger = logging.getLogger("main")
+program_settings = ProgramSettings()
+game_settings = GamesSettings()
