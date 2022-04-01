@@ -56,11 +56,11 @@ class ProgramSettings():
         self.ui_locale = self.default_locale
 
     @property
-    def games_sorting_mode(self):
+    def games_sorting_mode(self) -> str:
         return self._games_sorting_mode
 
     @games_sorting_mode.setter
-    def games_sorting_mode(self, new_value):
+    def games_sorting_mode(self, new_value: str) -> None:
         """
         Games sorting mode.
 
