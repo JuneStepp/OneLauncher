@@ -31,7 +31,7 @@ import os
 
 from PySide6 import QtCore, QtWidgets
 
-from onelauncher import settings, logger, game_settings
+from onelauncher.config import platform_dirs
 from onelauncher.ui.patching_window_uic import Ui_patchingWindow
 from onelauncher.utilities import QByteArray2str
 from onelauncher.patching_progress_monitor import ProgressMonitor
@@ -159,7 +159,7 @@ class PatchWindow(QtWidgets.QDialog):
     def btnSaveClicked(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(
             self, "Save log file", str(
-                settings.platform_dirs.user_log_path)
+                platform_dirs.user_log_path)
         )[0]
 
         if filename != "":

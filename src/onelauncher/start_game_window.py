@@ -31,7 +31,7 @@ import os
 
 from PySide6 import QtCore, QtWidgets
 
-from onelauncher import settings, logger
+from onelauncher.config import platform_dirs
 from onelauncher.utilities import QByteArray2str
 from onelauncher.wine_management import edit_qprocess_to_use_wine
 from onelauncher.ui.start_game_uic import Ui_startGameDialog
@@ -161,7 +161,7 @@ class StartGame(QtWidgets.QDialog):
     def btnSaveClicked(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(
             self, "Save log file", str(
-                settings.platform_dirs.user_log_path)
+                platform_dirs.user_log_path)
         )[0]
 
         if filename != "":

@@ -41,7 +41,7 @@ import defusedxml.ElementTree
 import defusedxml.minidom
 
 import onelauncher
-from onelauncher import settings, logger, program_settings
+from onelauncher.config import platform_dirs
 from onelauncher.settings import CaseInsensitiveAbsolutePath
 
 
@@ -183,7 +183,7 @@ class GLSDataCenter:
 
             tempxml = string_decode(webresp.read())
 
-            file_path = settings.platform_dirs.user_cache_path/"game/GLSDataCenter.xml"
+            file_path = platform_dirs.user_cache_path / "game/GLSDataCenter.xml"
             with file_path.open("w") as outfile:
                 outfile.write(tempxml)
 
@@ -250,7 +250,7 @@ class World:
 
             tempxml = string_decode(webresp.read())
 
-            file_path = settings.platform_dirs.user_cache_path/"game/server.xml"
+            file_path = platform_dirs.user_cache_path / "game/server.xml"
             with file_path.open("w") as outfile:
                 outfile.write(tempxml)
 
@@ -310,7 +310,7 @@ class WorldQueueConfig:
 
             tempxml = string_decode(webresp.read())
 
-            file_path = settings.platform_dirs.user_cache_path/"game/launcher.xml"
+            file_path = platform_dirs.user_cache_path / "game/launcher.xml"
             with file_path.open("w") as outfile:
                 outfile.write(tempxml)
 
@@ -418,7 +418,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
 
             tempxml = string_decode(webresp.read())
 
-            file_path = settings.platform_dirs.user_cache_path/"game/GLSAuthServer.xml"
+            file_path = platform_dirs.user_cache_path / "game/GLSAuthServer.xml"
             with file_path.open("w") as outfile:
                 outfile.write(tempxml)
 
@@ -496,7 +496,7 @@ class JoinWorldQueue:
 
             tempxml = string_decode(webresp.read())
 
-            file_path = settings.platform_dirs.user_cache_path/"game/WorldQueue.xml"
+            file_path = platform_dirs.user_cache_path / "game/WorldQueue.xml"
             with file_path.open("w") as outfile:
                 outfile.write(tempxml)
 
@@ -524,4 +524,5 @@ class JoinWorldQueue:
             self.joinSuccess = False
 
 
-(settings.platform_dirs.user_cache_path/"game").mkdir(parents=True, exist_ok=True)
+(platform_dirs.user_cache_path /
+ "game").mkdir(parents=True, exist_ok=True)

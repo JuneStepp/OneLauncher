@@ -39,7 +39,7 @@ from platformdirs import PlatformDirs
 from vkbeautify import xml as prettify_xml
 
 import onelauncher
-from onelauncher import resources
+from onelauncher.config import platform_dirs
 from onelauncher.resources import available_locales, Locale, system_locale
 
 
@@ -568,4 +568,4 @@ class GamesSettings():
         return uuid
 
 
-platform_dirs = PlatformDirs(onelauncher.__title__, False)
+
