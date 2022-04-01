@@ -1,9 +1,9 @@
+import logging
 import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 import rtoml
 from PySide6.QtCore import QLocale
-import onelauncher
 
 
 class Locale():
@@ -133,12 +133,14 @@ def get_game_dir_available_locales(game_dir: Path) -> List[Locale]:
             available_game_locales.append(
                 available_locales_game_names[game_language_name])
         except KeyError:
-            onelauncher.logger.error(
+            logger.error(
                 f"{game_language_name} does not match a game language name for"
                 f" an available locale.")
 
     return available_game_locales
 
+
+logger = logging.getLogger("main")
 
 data_dir = _get_data_dir()
 available_locales = _get_available_locales(data_dir)

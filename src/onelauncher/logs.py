@@ -5,6 +5,7 @@ from pathlib import Path
 from platform import platform
 
 import onelauncher
+from onelauncher import config
 
 
 class Logger():
@@ -83,3 +84,7 @@ class Logger():
         self.logger.info("Logging started")
         self.logger.info(f"{onelauncher.__title__}: {onelauncher.__version__}")
         self.logger.info(platform())
+
+def setup_application_logging():
+    """Create main logger configured for running application"""
+    Logger(config.platform_dirs.user_log_path, "main")

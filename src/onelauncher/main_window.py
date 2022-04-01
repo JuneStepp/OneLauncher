@@ -30,6 +30,7 @@
 import socket
 import urllib
 from pathlib import Path
+import logging
 from typing import Optional
 
 import defusedxml.minidom
@@ -38,7 +39,7 @@ import keyring
 from PySide6 import QtCore, QtGui, QtWidgets
 
 import onelauncher
-from onelauncher import settings, logger, game_settings, program_settings
+from onelauncher import settings, game_settings, program_settings
 from onelauncher.addon_manager import AddonManager
 from onelauncher.utilities import (AuthenticateUser, BaseConfig,
                                    GetText,
@@ -841,3 +842,6 @@ class MainWindowThread(QtCore.QThread):
         result += "</div></body></html>"
 
         self.ReturnNews.emit(result)
+
+
+logger = logging.getLogger("main")

@@ -28,9 +28,11 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import os
+import logging
 
 from PySide6 import QtCore, QtWidgets
 
+from onelauncher import settings, game_settings
 from onelauncher.config import platform_dirs
 from onelauncher.ui.patching_window_uic import Ui_patchingWindow
 from onelauncher.utilities import QByteArray2str
@@ -44,8 +46,11 @@ class PatchWindow(QtWidgets.QDialog):
         urlPatchServer,
         gameDocumentsDir: settings.CaseInsensitiveAbsolutePath,
     ):
-        super(PatchWindow, self).__init__(
-            QtCore.QCoreApplication.instance().activeWindow(), QtCore.Qt.FramelessWindowHint)
+        super(
+            PatchWindow,
+            self).__init__(
+            QtCore.QCoreApplication.instance().activeWindow(),
+            QtCore.Qt.FramelessWindowHint)
 
         self.ui = Ui_patchingWindow()
         self.ui.setupUi(self)
@@ -98,10 +103,10 @@ class PatchWindow(QtWidgets.QDialog):
             # rundll32 doesn't provide output on Windows
             log_folder_name = gameDocumentsDir.name
 
-            game_logs_folder = settings.CaseInsensitiveAbsolutePath(os.environ.get(
-                "APPDATA")).parent/"Local"/log_folder_name
+            game_logs_folder = settings.CaseInsensitiveAbsolutePath(
+                os.environ.get("APPDATA")).parent / "Local" / log_folder_name
 
-            patch_log_path = game_logs_folder/"PatchClient.log"
+            patch_log_path = game_logs_folder / "PatchClient.log"
             patch_log_path.unlink(missing_ok=True)
             patch_log_path.touch()
             self.patch_log_file = patch_log_path.open(mode="r")
@@ -172,7 +177,8 @@ class PatchWindow(QtWidgets.QDialog):
             return
         # handle remaining patching phases
         if self.phase == 1:
-            # run file patching again (to avoid problems when patchclient.dll self-patches)
+            # run file patching again (to avoid problems when patchclient.dll
+            # self-patches)
             self.process.setArguments(self.file_arguments)
             self.process.start()
         elif self.phase == 2:
@@ -229,3 +235,6 @@ class PatchWindow(QtWidgets.QDialog):
         self.__app = QtCore.QCoreApplication.instance()
 
         self.exec()
+
+
+logger = logging.getLogger("main")

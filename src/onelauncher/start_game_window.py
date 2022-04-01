@@ -28,9 +28,11 @@
 ###########################################################################
 from pathlib import Path
 import os
+import logging
 
 from PySide6 import QtCore, QtWidgets
 
+from onelauncher import settings
 from onelauncher.config import platform_dirs
 from onelauncher.utilities import QByteArray2str
 from onelauncher.wine_management import edit_qprocess_to_use_wine
@@ -58,15 +60,18 @@ class StartGame(QtWidgets.QDialog):
         accountText,
         gameConfigPath: settings.CaseInsensitiveAbsolutePath,
     ):
-        super(StartGame, self).__init__(
-            QtCore.QCoreApplication.instance().activeWindow(), QtCore.Qt.FramelessWindowHint)
+        super(
+            StartGame,
+            self).__init__(
+            QtCore.QCoreApplication.instance().activeWindow(),
+            QtCore.Qt.FramelessWindowHint)
 
         self.ui = Ui_startGameDialog()
         self.ui.setupUi(self)
 
         # Fixes binary path for 64-bit client
         if game.client_type == "WIN64":
-            client_relative_path = Path("x64")/client_filename
+            client_relative_path = Path("x64") / client_filename
         else:
             client_relative_path = Path(client_filename)
 
@@ -171,7 +176,7 @@ class StartGame(QtWidgets.QDialog):
     def runStatupScripts(self):
         """Runs Python scripts from add-ons with one that is approved by user"""
         for script in self.game.startup_scripts:
-            file_path = self.gameConfigPath/script
+            file_path = self.gameConfigPath / script
             if file_path.exists():
                 self.ui.txtLog.append(
                     f"Running '{script}' startup script...")
@@ -180,9 +185,11 @@ class StartGame(QtWidgets.QDialog):
                     code = file.read()
 
                 try:
-                    exec(code, {"__file__": str(file_path),
-                                "__game_dir__": str(self.game.game_directory),
-                                "__game_config_dir__": str(self.gameConfigPath)})
+                    exec(
+                        code, {
+                            "__file__": str(file_path), "__game_dir__": str(
+                                self.game.game_directory), "__game_config_dir__": str(
+                                self.gameConfigPath)})
                 except SyntaxError as e:
                     self.ui.txtLog.append(
                         f"'{script}' ran into syntax error: {e}")
@@ -199,3 +206,6 @@ class StartGame(QtWidgets.QDialog):
                     str([self.process.program(), self.process.arguments()]))
 
         self.exec()
+
+
+logger = logging.getLogger("main")

@@ -26,6 +26,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
+import logging
 import sys
 import os
 from pathlib import Path
@@ -36,12 +37,17 @@ import urllib.request, urllib.error
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from onelauncher import (__title__, __version__, __project_url__,
-                         program_settings, game_settings, logger)
+                         program_settings, game_settings)
 from onelauncher.resources import get_resource
 from onelauncher.ui_utilities import show_message_box_details_as_markdown
+import onelauncher.logs
 
 
 def main():
+    onelauncher.logs.setup_application_logging()
+    global logger
+    logger = logging.getLogger("main")
+    
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
     application = QtWidgets.QApplication(sys.argv)
     application.setApplicationName(__title__)
@@ -197,3 +203,7 @@ def check_for_update():
         messageBox.exec()
     else:
         logger.info(f"{__title__} is up to date.")
+
+
+if __name__ == "__main__":
+    main()

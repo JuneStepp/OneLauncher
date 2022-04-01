@@ -28,6 +28,7 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import os
+import logging
 from pathlib import Path
 import pathlib
 from sys import platform
@@ -35,7 +36,6 @@ from typing import Callable, Dict, Final, List, Optional
 from uuid import UUID, uuid4
 
 import rtoml
-from platformdirs import PlatformDirs
 from vkbeautify import xml as prettify_xml
 
 import onelauncher
@@ -568,4 +568,4 @@ class GamesSettings():
         return uuid
 
 
-
+logger = logging.getLogger("main")

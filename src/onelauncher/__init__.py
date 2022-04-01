@@ -1,6 +1,5 @@
 from typing import List
 
-import logging
 import sys
 from uuid import UUID
 
@@ -80,11 +79,7 @@ def set_ui_locale():
         program_settings.ui_locale = program_settings.default_locale
 
 
-logger = logging.Logger("temp_logger")
-
-from onelauncher import settings, logs  # isort:skip # noqa
-logger = logs.Logger(settings.platform_dirs.user_log_path, "main").logger
-
+from onelauncher import settings  # isort:skip # noqa
 program_settings = settings.ProgramSettings()
 game_settings = settings.GamesSettings()
 

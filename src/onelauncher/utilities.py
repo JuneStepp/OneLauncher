@@ -30,6 +30,7 @@ from typing import List, Optional
 from bidict import bidict
 from xml.etree.ElementTree import ElementTree
 from onelauncher.resources import get_resource
+import logging
 import os
 import ssl
 from http.client import HTTPConnection, HTTPSConnection
@@ -41,6 +42,7 @@ import defusedxml.ElementTree
 import defusedxml.minidom
 
 import onelauncher
+from onelauncher import settings, program_settings
 from onelauncher.config import platform_dirs
 from onelauncher.settings import CaseInsensitiveAbsolutePath
 
@@ -524,5 +526,6 @@ class JoinWorldQueue:
             self.joinSuccess = False
 
 
+logger = logging.getLogger("main")
 (platform_dirs.user_cache_path /
  "game").mkdir(parents=True, exist_ok=True)

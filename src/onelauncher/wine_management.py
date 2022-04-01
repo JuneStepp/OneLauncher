@@ -28,6 +28,7 @@
 ###########################################################################
 # Imports for extracting function
 from onelauncher.ui_utilities import raise_warning_message
+import logging
 import lzma
 import tarfile
 from typing import Optional
@@ -38,6 +39,7 @@ from shutil import move, rmtree
 
 from PySide6 import QtCore, QtWidgets
 
+from onelauncher import game_settings
 from onelauncher.config import platform_dirs
 
 # To use Proton, replace link with Proton build and uncomment
@@ -324,4 +326,5 @@ def edit_qprocess_to_use_wine(qprocess: QtCore.QProcess) -> None:
     qprocess.setProcessEnvironment(processEnvironment)
 
 
+logger = logging.getLogger("main")
 wine_management = WineManagement()
