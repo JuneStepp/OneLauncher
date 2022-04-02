@@ -301,16 +301,23 @@ class Game():
         set_ui_locale()
 
     def load_launcher_config(self):
+        """
+        Load launcher config data from game_directory.
+        This includes game documents settings dir and data that is used during login.
+        This function should be re-run if something in the launcher config has changed.
+        """
         old_config_file = self.game_directory / "TurbineLauncher.exe.config"
-        config_file = self.game_directory / f"{self.game_type.lower()}.launcherconfig"
+        config_file = self.game_directory / \
+            f"{self.game_type.lower()}.launcherconfig"
         if config_file.exists():
             self.load_launcher_config_file(config_file)
         elif old_config_file.exists():
             self.load_launcher_config_file(old_config_file)
         else:
-            raise FileNotFoundError(f"`{self.game_directory}` has no launcher config file")
+            raise FileNotFoundError(
+                f"`{self.game_directory}` has no launcher config file")
 
-    def get_launcher_config_value(
+    def _get_launcher_config_value(
             self,
             key: str,
             app_settings_element: ElementTree.Element,
@@ -320,7 +327,7 @@ class Game():
         if element is None:
             raise KeyError(
                 f"`{config_file_path}` launcher config file doesn't have `{key}` key.")
-        
+
         if value := element.get("value"):
             return value
         else:
@@ -336,13 +343,16 @@ class Game():
             raise KeyError(
                 f"`{config_file}` launcher config file doesn't have `appSettings` element.")
 
-        self._gls_datacenter_service = self.get_launcher_config_value(
+        self._gls_datacenter_service = self._get_launcher_config_value(
             "Launcher.DataCenterService.GLS", app_settings, config_file)
-        self._datacenter_game_name = self.get_launcher_config_value(
+        self._datacenter_game_name = self._get_launcher_config_value(
             "DataCenter.GameName", app_settings, config_file)
         self._documents_config_dir = CaseInsensitiveAbsolutePath(
-            platform_dirs.user_documents_path / self.get_launcher_config_value(
-                "Product.DocumentFolder", app_settings, config_file))
+            platform_dirs.user_documents_path /
+            self._get_launcher_config_value(
+                "Product.DocumentFolder",
+                app_settings,
+                config_file))
 
     @property
     def gls_datacenter_service(self) -> str:
@@ -354,7 +364,29 @@ class Game():
 
     @property
     def documents_config_dir(self) -> CaseInsensitiveAbsolutePath:
+        """
+        The folder in the user documents dir that the game stores information in.
+        This includes addons, screenshots, user config files, ect
+        """
         return self._documents_config_dir
+
+    @property
+    def plugins_dir(self) -> CaseInsensitiveAbsolutePath:
+        return self.documents_config_dir / "Plugins"
+
+    @property
+    def skins_dir(self) -> CaseInsensitiveAbsolutePath:
+        return self.documents_config_dir / "ui" / "skins"
+
+    @property
+    def music_dir(self) -> CaseInsensitiveAbsolutePath:
+        return self.documents_config_dir / "Music"
+
+    def get_addon_dir(self, addon_type: str) -> CaseInsensitiveAbsolutePath:
+        return {
+            "Plugin": self.plugins_dir,
+            "Skin": self.skins_dir,
+            "Music": self.music_dir}[addon_type]
 
 
 class GamesSettings():
