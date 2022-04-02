@@ -92,7 +92,7 @@ def checkForCertificates():
         Path("certificates/ca_certs.pem"), settings.program_settings.ui_locale)
 
     if certfile and not os.access(certfile, os.R_OK):
-        onelauncher.logger.error(
+        logger.error(
             "certificate file expected at '%s' but not found!" % certfile)
         certfile = None
 
@@ -102,7 +102,7 @@ def checkForCertificates():
     if certfile:
         sslContext.verify_mode = ssl.CERT_REQUIRED
         sslContext.load_verify_locations(certfile)
-        onelauncher.logger.info("SSL certificate verification enabled!")
+        logger.info("SSL certificate verification enabled!")
     return sslContext
 
 
@@ -126,39 +126,6 @@ def GetText(nodelist):
         for node in nodelist
         if node.nodeType in [node.TEXT_NODE, node.CDATA_SECTION_NODE]
     )
-
-
-class BaseConfig:
-    def __init__(self, game: settings.Game):
-        self.GLSDataCenterService: str
-        self.gameName: str
-        self.gameDocumentsDir: CaseInsensitiveAbsolutePath
-
-        self.load(game.game_directory /
-                  "TurbineLauncher.exe.config", missing_ok=True)
-        self.load(game.game_directory /
-                  f"{game.game_type.lower()}.launcherconfig")
-
-    def load(self, config_file: CaseInsensitiveAbsolutePath, missing_ok=False):
-        if not config_file.exists():
-            if not missing_ok:
-                logger.error(f"{config_file} does not exist.")
-            return
-
-        config: ElementTree = defusedxml.ElementTree.parse(config_file)
-        app_settings = config.find("appSettings")
-        if app_settings is None:
-            raise KeyError(
-                f"`{config_file}` doesn't have `appSettings` element.")
-
-        keys = {element.get("key"): element.get("value")
-                for element in app_settings.findall("add")}
-        keys = {key: value for key, value in keys.items() if value is not None}
-
-        self.GLSDataCenterService = keys["Launcher.DataCenterService.GLS"]
-        self.gameName = keys["DataCenter.GameName"]
-        self.gameDocumentsDir = CaseInsensitiveAbsolutePath(
-            settings.platform_dirs.user_documents_path/keys["Product.DocumentFolder"])
 
 
 class GLSDataCenter:
@@ -388,7 +355,7 @@ class Game:
 
 
 class AuthenticateUser:
-    def __init__(self, urlLoginServer, name, password, game):
+    def __init__(self, urlLoginServer: str, name: str, password: str, datacenter_game_name: str):
         self.authSuccess = False
 
         SM_TEMPLATE = '<?xml version="1.0" encoding="utf-8"?>\
@@ -452,7 +419,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\
                         elif node.nodeName == "Description":
                             desc = GetText(node.childNodes)
 
-                    if game2 == game:
+                    if game2 == datacenter_game_name:
                         activeAccount = True
                         self.gameList.append(Game(name, desc))
 

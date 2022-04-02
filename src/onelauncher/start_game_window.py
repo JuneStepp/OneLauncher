@@ -58,7 +58,6 @@ class StartGame(QtWidgets.QDialog):
         glsticketlifetime,
         worldName,
         accountText,
-        gameConfigPath: settings.CaseInsensitiveAbsolutePath,
     ):
         super(
             StartGame,
@@ -78,7 +77,6 @@ class StartGame(QtWidgets.QDialog):
         self.worldName = worldName
         self.accountText = accountText
         self.game = game
-        self.gameConfigPath = gameConfigPath
 
         self.ui.btnStart.setText("Back")
         self.ui.btnStart.setEnabled(False)
@@ -176,7 +174,7 @@ class StartGame(QtWidgets.QDialog):
     def runStatupScripts(self):
         """Runs Python scripts from add-ons with one that is approved by user"""
         for script in self.game.startup_scripts:
-            file_path = self.gameConfigPath / script
+            file_path = self.game.documents_config_dir / script
             if file_path.exists():
                 self.ui.txtLog.append(
                     f"Running '{script}' startup script...")
@@ -189,7 +187,7 @@ class StartGame(QtWidgets.QDialog):
                         code, {
                             "__file__": str(file_path), "__game_dir__": str(
                                 self.game.game_directory), "__game_config_dir__": str(
-                                self.gameConfigPath)})
+                                self.game.documents_config_dir)})
                 except SyntaxError as e:
                     self.ui.txtLog.append(
                         f"'{script}' ran into syntax error: {e}")

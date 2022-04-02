@@ -31,12 +31,12 @@ import os
 import logging
 from pathlib import Path
 import pathlib
-from sys import platform
 from typing import Callable, Dict, Final, List, Optional
 from uuid import UUID, uuid4
 
 import rtoml
 from vkbeautify import xml as prettify_xml
+from xml.etree import ElementTree
 
 import onelauncher
 from onelauncher.config import platform_dirs
@@ -249,6 +249,7 @@ class Game():
         self.wine_debug_level = wine_debug_level
         self.accounts = accounts
         self.on_name_change_function = on_name_change_function
+        self.load_launcher_config()
 
     @property
     def name(self) -> str:
@@ -279,6 +280,16 @@ class Game():
     def client_type(self) -> str:
         return self._client_type
 
+    @client_type.setter
+    def client_type(self, new_value: str) -> None:
+        """WIN32, WIN32Legacy, or WIN64"""
+        valid_client_types = ["WIN32", "WIN32Legacy", "WIN64"]
+        if new_value not in valid_client_types:
+            raise ValueError(
+                f"{new_value} is not a valid client type. Valid types are {valid_client_types}.")
+
+        self._client_type = new_value
+
     @property
     def locale(self) -> Locale:
         return self._locale
@@ -289,15 +300,61 @@ class Game():
 
         set_ui_locale()
 
-    @client_type.setter
-    def client_type(self, new_value: str) -> None:
-        """WIN32, WIN32Legacy, or WIN64"""
-        valid_client_types = ["WIN32", "WIN32Legacy", "WIN64"]
-        if new_value not in valid_client_types:
-            raise ValueError(
-                f"{new_value} is not a valid client type. Valid types are {valid_client_types}.")
+    def load_launcher_config(self):
+        old_config_file = self.game_directory / "TurbineLauncher.exe.config"
+        config_file = self.game_directory / f"{self.game_type.lower()}.launcherconfig"
+        if config_file.exists():
+            self.load_launcher_config_file(config_file)
+        elif old_config_file.exists():
+            self.load_launcher_config_file(old_config_file)
+        else:
+            raise FileNotFoundError(f"`{self.game_directory}` has no launcher config file")
 
-        self._client_type = new_value
+    def get_launcher_config_value(
+            self,
+            key: str,
+            app_settings_element: ElementTree.Element,
+            config_file_path: CaseInsensitiveAbsolutePath) -> str:
+        element = app_settings_element.find(
+            f"./add[@key='{key}']")
+        if element is None:
+            raise KeyError(
+                f"`{config_file_path}` launcher config file doesn't have `{key}` key.")
+        
+        if value := element.get("value"):
+            return value
+        else:
+            raise KeyError(
+                f"`{config_file_path}` launcher config file doesn't have `{key}` value.")
+
+    def load_launcher_config_file(
+            self,
+            config_file: CaseInsensitiveAbsolutePath,) -> None:
+        config = ElementTree.parse(config_file)
+        app_settings = config.find("appSettings")
+        if app_settings is None:
+            raise KeyError(
+                f"`{config_file}` launcher config file doesn't have `appSettings` element.")
+
+        self._gls_datacenter_service = self.get_launcher_config_value(
+            "Launcher.DataCenterService.GLS", app_settings, config_file)
+        self._datacenter_game_name = self.get_launcher_config_value(
+            "DataCenter.GameName", app_settings, config_file)
+        self._documents_config_dir = CaseInsensitiveAbsolutePath(
+            platform_dirs.user_documents_path / self.get_launcher_config_value(
+                "Product.DocumentFolder", app_settings, config_file))
+
+    @property
+    def gls_datacenter_service(self) -> str:
+        return self._gls_datacenter_service
+
+    @property
+    def datacenter_game_name(self) -> str:
+        return self._datacenter_game_name
+
+    @property
+    def documents_config_dir(self) -> CaseInsensitiveAbsolutePath:
+        return self._documents_config_dir
 
 
 class GamesSettings():

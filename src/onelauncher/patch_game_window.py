@@ -44,8 +44,7 @@ from onelauncher.wine_management import edit_qprocess_to_use_wine
 class PatchWindow(QtWidgets.QDialog):
     def __init__(
         self,
-        urlPatchServer,
-        gameDocumentsDir: settings.CaseInsensitiveAbsolutePath,
+        urlPatchServer: str,
     ):
         super(
             PatchWindow,
@@ -102,7 +101,7 @@ class PatchWindow(QtWidgets.QDialog):
         if os.name == "nt":
             # Get log file to read patching details from, since
             # rundll32 doesn't provide output on Windows
-            log_folder_name = gameDocumentsDir.name
+            log_folder_name = game_settings.current_game.documents_config_dir.name
 
             game_logs_folder = settings.CaseInsensitiveAbsolutePath(
                 os.environ.get("APPDATA")).parent / "Local" / log_folder_name

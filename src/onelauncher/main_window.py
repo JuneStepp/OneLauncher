@@ -40,9 +40,9 @@ from PySide6 import QtCore, QtGui, QtWidgets
 
 import onelauncher
 from onelauncher import settings
-from onelauncher.settings import game_settings, program_settings
+from onelauncher.settings import Game, game_settings, program_settings
 from onelauncher.addon_manager import AddonManager
-from onelauncher.utilities import (AuthenticateUser, BaseConfig,
+from onelauncher.utilities import (AuthenticateUser,
                                    GetText,
                                    GLSDataCenter, JoinWorldQueue,
                                    World, WorldQueueConfig,
@@ -60,7 +60,6 @@ from onelauncher.ui.select_account_uic import Ui_dlgChooseAccount
 class MainWindow(QtWidgets.QMainWindow):
     # Make signals for communicating with MainWindowThread
     ReturnLog = QtCore.Signal(str)
-    ReturnBaseConfig = QtCore.Signal(BaseConfig)
     ReturnGLSDataCenter = QtCore.Signal(GLSDataCenter)
     ReturnWorldQueueConfig = QtCore.Signal(WorldQueueConfig)
     ReturnNews = QtCore.Signal(str)
@@ -228,7 +227,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def connectMainWindowThreadSignals(self):
         """Connects function signals for communicating with MainWindowThread."""
         self.ReturnLog.connect(self.AddLog)
-        self.ReturnBaseConfig.connect(self.GetBaseConfig)
         self.ReturnGLSDataCenter.connect(self.GetGLSDataCenter)
         self.ReturnWorldQueueConfig.connect(self.GetWorldQueueConfig)
         self.ReturnNews.connect(self.GetNews)
@@ -252,11 +250,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.resetFocus()
 
     def actionPatchSelected(self):
-        winPatch = PatchWindow(
-            self.dataCenter.patchServer,
-            self.baseConfig.gameDocumentsDir,
-        )
-
+        winPatch = PatchWindow(self.dataCenter.patchServer)
         winPatch.Run()
         self.resetFocus()
 
@@ -270,9 +264,7 @@ class MainWindow(QtWidgets.QMainWindow):
         winSettings.open()
 
     def btnAddonManagerSelected(self):
-        winAddonManager = AddonManager(
-            self.baseConfig.gameDocumentsDir,
-        )
+        winAddonManager = AddonManager()
         winAddonManager.Run()
         game_settings.save()
 
@@ -409,7 +401,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.dataCenter.authServer,
             self.ui.cboAccount.currentText(),
             self.ui.txtPassword.text(),
-            self.baseConfig.gameName,
+            game_settings.current_game.datacenter_game_name,
         )
 
         # don't keep password longer in memory than required
@@ -501,7 +493,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.worldQueueConfig.glsticketlifetime,
             self.ui.cboWorld.currentText(),
             self.ui.cboAccount.currentText(),
-            self.baseConfig.gameDocumentsDir,
         )
         game.Run()
 
@@ -623,16 +614,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.configThread = MainWindowThread()
         self.configThread.SetUp(
             self.ReturnLog,
-            self.ReturnBaseConfig,
             self.ReturnGLSDataCenter,
             self.ReturnWorldQueueConfig,
             self.ReturnNews,
             sslContext,
         )
         self.configThread.start()
-
-    def GetBaseConfig(self, baseConfig: BaseConfig):
-        self.baseConfig = baseConfig
 
     def GetGLSDataCenter(self, dataCenter: GLSDataCenter):
         self.dataCenter = dataCenter
@@ -689,34 +676,23 @@ class MainWindowThread(QtCore.QThread):
     def SetUp(
         self,
         ReturnLog,
-        ReturnBaseConfig,
         ReturnGLSDataCenter,
         ReturnWorldQueueConfig,
         ReturnNews,
         sslContext,
     ):
         self.ReturnLog = ReturnLog
-        self.ReturnBaseConfig = ReturnBaseConfig
         self.ReturnGLSDataCenter = ReturnGLSDataCenter
         self.ReturnWorldQueueConfig = ReturnWorldQueueConfig
         self.ReturnNews = ReturnNews
         self.sslContext = sslContext
 
     def run(self):
-        self.LoadLauncherConfig()
+        self.AccessGLSDataCenter(game_settings.current_game)
 
-    def LoadLauncherConfig(self):
-        self.baseConfig = BaseConfig(game_settings.current_game)
-
-        self.ReturnBaseConfig.emit(self.baseConfig)
-
-        self.AccessGLSDataCenter(
-            self.baseConfig.GLSDataCenterService, self.baseConfig.gameName
-        )
-
-    def AccessGLSDataCenter(self, urlGLS, gameName):
+    def AccessGLSDataCenter(self, game: Game):
         self.dataCenter = GLSDataCenter(
-            urlGLS, gameName)
+            game.gls_datacenter_service, game.datacenter_game_name)
 
         if self.dataCenter.loadSuccess:
             self.ReturnLog.emit("Fetched details from GLS data center.")
