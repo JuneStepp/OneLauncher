@@ -68,7 +68,8 @@ OneLauncher uses [Weblate](weblate.org) for translations. You can make an accoun
 ### Getting Your Add-on in OneLauncher
 
 I follow the RSS feed on [LotroInterface](https://lotrointerface.com) and will add any add-ons that look
-to be in the correct format. You can open an issue here or email me if you feel
+to be in the correct format. Compendium files are **not** required.
+You can open an issue here or email me if you feel
 your add-on needs to be added.
 
 ### Archive Format
@@ -78,8 +79,6 @@ your add-on needs to be added.
 - It's not recommended, but ok if zip has no root folder, multiple root folders, or includes part of the path to the data folder like "ui/skins" or "Plugins".
 
 ### Compendium Files
-
-You don't need to make a compendium file unless you need dependencies to be auto installed or want a startup script to be run. One is auto generated during installation.
 
 Compendium files should be placed inside the top-level directory of your add-on, and their names follow the format:
 
@@ -134,6 +133,8 @@ An example is:
     <StartupScript>JuneStepp\example.py</StartupScript>
 </PluginConfig>
 ```
+
+There is a [vscode extension](https://github.com/lunarwtr/vscode-lotro-api) by @lunarwtr that can lint compendium and other related files. It includes [XML schemas](https://github.com/lunarwtr/vscode-lotro-api/tree/main/xsds) you can manually reference as well.
 
 ### Patches
 

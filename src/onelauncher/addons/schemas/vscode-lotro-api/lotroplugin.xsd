@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="Plugin">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Information">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="Name" type="xs:string">
+                                <xs:annotation>
+                                    <xs:documentation xml:lang="en">
+                                        The name used to load the plugin with the "/plugins load PluginName" as well as how it will appear in game in the "/plugins list" and "/plugins refresh" commands. If you use a plugin manager (a plugin that controls loading other plugins) this is also the name that will be listed in the manager.
+                                    </xs:documentation>
+                                </xs:annotation>
+                            </xs:element>
+                            <xs:element name="Author" type="xs:string">
+                                <xs:annotation>
+                                    <xs:documentation xml:lang="en">
+                                        The name of the plugin author and is only included for documentary/organizational purposes. This has no actual impact on the functioning of the plugin but can be accessed programatially using the Plugins table.
+                                    </xs:documentation>
+                                </xs:annotation>                                
+                            </xs:element>
+                            <xs:element name="Version" type="xs:string">
+                                <xs:annotation>
+                                    <xs:documentation xml:lang="en">
+                                        The version that will be displayed in the "/plugins list", "/plugins refresh" and plugin manager lists. This value can also be used programatically for tagging saved data and automatically processing data updates.
+                                    </xs:documentation>
+                                </xs:annotation>
+                            </xs:element>
+                            <xs:element minOccurs="0" name="Description" type="xs:string">
+                                <xs:annotation>
+                                    <xs:documentation xml:lang="en">
+                                       The text that will display in the Turbine Plugin Manager to describe the plugin
+                                    </xs:documentation>
+                                </xs:annotation>
+                            </xs:element>
+                            <xs:element minOccurs="0" name="Image" type="xs:string">
+                                <xs:annotation>
+                                    <xs:documentation xml:lang="en">
+                                        The realtive path to a .JPG or .TGA file. Note, if the file is greater than 32x32 it will be cropped to 32x32. If the image is less than 32x32 it will be tiled. This image will be displayed in the Turbine Plugin Manager
+                                    </xs:documentation>
+                                </xs:annotation>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="Package" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en">
+                            The path relative to the Plugins folder to the main Lua code file. Note that the path uses "." as a folder separator instead of "\" or "/". This is the first file that will be loaded, parsed and processed.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element minOccurs="0" name="Configuration">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en">
+                            The Configuration setting is optional and will allow a plugin to run in its own Apartment or address space.
+                        </xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                        <xs:attribute name="Apartment" type="xs:string" use="required">
+                            <xs:annotation>
+                                <xs:documentation xml:lang="en">
+                                    Allows a plugin to be unloaded without affecting other plugins or to prevent other plugins from 
+                                    interfering with global values and event handlers. If your plugin does not need to be 
+                                    unloaded and if it uses safe event handlers (discussed later) then you probably do not 
+                                    need a separate apartment. Note that using a separate apartment will significantly increase 
+                                    the amount of memory used by the Lua system since multiple copies of the environment and 
+                                    global object must be created for each apartment.
+
+                                    One important thing to remember, Plugins are not unloaded, Apartments are unloaded. 
+                                    That is, when you use the "/plugins unload ApartmentName" command you are unloading 
+                                    all of the plugins that share that apartment.
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
