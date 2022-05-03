@@ -31,11 +31,10 @@ import os
 import logging
 from pathlib import Path
 import pathlib
-from typing import Callable, Dict, Final, List, Optional
+from typing import Any, Callable, Dict, Final, List, Optional
 from uuid import UUID, uuid4
 
 import rtoml
-from vkbeautify import xml as prettify_xml
 from xml.etree import ElementTree
 
 import onelauncher
@@ -44,7 +43,7 @@ from onelauncher.resources import available_locales, Locale, system_locale
 
 
 class ProgramSettings():
-    def __init__(self, config_path: Path = None) -> None:
+    def __init__(self, config_path: Optional[Path] = None) -> None:
         if not config_path:
             config_path = platform_dirs.user_config_path / \
                 f"{onelauncher.__title__}.toml"
@@ -224,13 +223,13 @@ class Game():
                  startup_scripts: List[Path],
                  name: str,
                  description: str,
-                 newsfeed: str = None,
-                 wine_path: Path = None,
-                 builtin_wine_prefix_enabled: bool = None,
-                 wine_prefix_path: Path = None,
-                 wine_debug_level: str = None,
-                 accounts: Dict[str, Account] = None,
-                 on_name_change_function: Callable[[], None] = None,
+                 newsfeed: Optional[str] = None,
+                 wine_path: Optional[Path] = None,
+                 builtin_wine_prefix_enabled: Optional[bool] = None,
+                 wine_prefix_path: Optional[Path] = None,
+                 wine_debug_level: Optional[str] = None,
+                 accounts: Optional[Dict[str, Account]] = None,
+                 on_name_change_function: Optional[Callable[[], None]] = None,
                  ) -> None:
         self.uuid = uuid
         self.game_type = game_type
@@ -382,7 +381,7 @@ class Game():
     def music_dir(self) -> CaseInsensitiveAbsolutePath:
         return self.documents_config_dir / "Music"
 
-    def get_addon_dir(self, addon_type: str) -> CaseInsensitiveAbsolutePath:
+    def get_addons_dir(self, addon_type: str) -> CaseInsensitiveAbsolutePath:
         return {
             "Plugin": self.plugins_dir,
             "Skin": self.skins_dir,
@@ -390,7 +389,7 @@ class Game():
 
 
 class GamesSettings():
-    def __init__(self, config_path: Path = None) -> None:
+    def __init__(self, config_path: Optional[Path] = None) -> None:
         if not config_path:
             config_path = platform_dirs.user_config_path / \
                 "games.toml"
@@ -481,7 +480,7 @@ class GamesSettings():
         else:
             self._current_game = list(self.games.values())[0]
 
-    def load_game(self, game_dict: dict):
+    def load_game(self, game_dict: dict[str, Any]):
         uuid = UUID(game_dict["uuid"])
         game_directory = CaseInsensitiveAbsolutePath(
             game_dict["game_directory"])
@@ -492,14 +491,14 @@ class GamesSettings():
         game_dict["accounts"] = game_dict.get("accounts", [])
 
         # Deal with Paths
+        wine_path = None
         if "wine_path" in game_dict["wine"]:
             wine_path = Path(game_dict["wine"]["wine_path"])
-        else:
-            wine_path = None
+
+        prefix_path = None
         if "prefix_path" in game_dict["wine"]:
             prefix_path = Path(game_dict["wine"]["prefix_path"])
-        else:
-            prefix_path = None
+
 
         self.games[uuid] = Game(
             uuid,
@@ -538,21 +537,21 @@ class GamesSettings():
         self.ddo_games_alphabetical_sorted.sort(key=lambda game: game.name)
 
     def save(self):
-        settings_dict = {}
+        settings_dict: Dict[str, Any] = {}
         try:
             if self.current_game.uuid in self.games:
                 if self.current_game.game_type == "LOTRO":
-                    list = self.lotro_games_last_used_sorted
+                    last_used_sorted = self.lotro_games_last_used_sorted
                 elif self.current_game.game_type == "DDO":
-                    list = self.ddo_games_last_used_sorted
+                    last_used_sorted = self.ddo_games_last_used_sorted
                 else:
                     raise TypeError(
                         "Settings current_game saving doesn't recognize "
                         f"{self.current_game.game_type} as a game type")
 
                 # Move current game to front of list
-                list.remove(self.current_game)
-                list.insert(0, self.current_game)
+                last_used_sorted.remove(self.current_game)
+                last_used_sorted.insert(0, self.current_game)
 
                 settings_dict["last_used_game_uuid"] = str(
                     self.current_game.uuid)
@@ -568,7 +567,8 @@ class GamesSettings():
         settings_dict["ddo_games_last_used_sorted"] = [
             str(game.uuid) for game in self.ddo_games_last_used_sorted]
 
-        settings_dict["games"] = []
+        games_list: List[Dict[str, Any]] = []
+        settings_dict["games"] = games_list
         for game in self.games.values():
             if os.name == "nt":
                 wine_settings_dict = {}
@@ -611,9 +611,9 @@ class GamesSettings():
                 "info": info_settings_dict,
                 "accounts": accounts_settings_list,
             }
-            game_dict = self.remove_empty_values_from_dict(
+            game_dict = self._remove_empty_values_from_dict(
                 game_dict, recursive=True)
-            settings_dict["games"].append(game_dict)
+            games_list.append(game_dict)
 
         rtoml.dump(settings_dict, self.config_path, pretty=True)
 
@@ -627,17 +627,17 @@ class GamesSettings():
 
         set_ui_locale()
 
-    def remove_empty_values_from_dict(
+    def _remove_empty_values_from_dict(
             self,
-            input_dict: dict,
-            recursive=True) -> dict:
+            input_dict: dict[Any,Any],
+            recursive: bool = True) -> dict[Any,Any]:
         input_dict = {
             key: input_dict[key] for key in input_dict if input_dict[key] and input_dict[key] not in [
                 "None", "."]}
 
         if recursive:
             new_dict = {
-                key: self.remove_empty_values_from_dict(value, recursive=True)
+                key: self._remove_empty_values_from_dict(value, recursive=True)
                 if isinstance(value, dict)
                 else value
                 for key, value in input_dict.items()
