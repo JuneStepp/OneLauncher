@@ -42,11 +42,11 @@ import onelauncher
 from onelauncher import settings
 from onelauncher.settings import Game, game_settings, program_settings
 from onelauncher.addon_manager import AddonManager
-from onelauncher.utilities import (AuthenticateUser,
-                                   GetText,
+from onelauncher.game_network_utils import (AuthenticateUser,
                                    GLSDataCenter, JoinWorldQueue,
                                    World, WorldQueueConfig,
-                                   checkForCertificates, check_if_valid_game_folder)
+                                   checkForCertificates)
+from onelauncher.utilities import GetText, check_if_valid_game_folder
 from onelauncher.patch_game_window import PatchWindow
 from onelauncher.settings_window import SettingsWindow
 from onelauncher.start_game_window import StartGame

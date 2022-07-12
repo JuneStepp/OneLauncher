@@ -36,7 +36,7 @@ from onelauncher import settings
 from onelauncher.settings import game_settings
 from onelauncher.config import platform_dirs
 from onelauncher.ui.patching_window_uic import Ui_patchingWindow
-from onelauncher.utilities import QByteArray2str
+from onelauncher.utilities import QByteArray2str, CaseInsensitiveAbsolutePath
 from onelauncher.patching_progress_monitor import ProgressMonitor
 from onelauncher.wine_management import edit_qprocess_to_use_wine
 
@@ -103,7 +103,7 @@ class PatchWindow(QtWidgets.QDialog):
             # rundll32 doesn't provide output on Windows
             log_folder_name = game_settings.current_game.documents_config_dir.name
 
-            game_logs_folder = settings.CaseInsensitiveAbsolutePath(
+            game_logs_folder = CaseInsensitiveAbsolutePath(
                 os.environ.get("APPDATA")).parent / "Local" / log_folder_name
 
             patch_log_path = game_logs_folder / "PatchClient.log"

@@ -39,6 +39,7 @@ from xml.etree import ElementTree
 
 import onelauncher
 from onelauncher.config import platform_dirs
+from onelauncher.utilities import CaseInsensitiveAbsolutePath
 from onelauncher.resources import available_locales, Locale, system_locale
 
 

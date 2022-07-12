@@ -1,9 +1,8 @@
 from typing import List, Tuple
-import pytest
 
 from pathlib import Path
 
-from onelauncher import settings
+from onelauncher import utilities
 
 def test_case_insensitive_path(tmp_path: Path) -> None:
     # These are added to a temp directory. They should not have a root!
@@ -20,4 +19,4 @@ def test_case_insensitive_path(tmp_path: Path) -> None:
         else:
             real_path.mkdir()
 
-        assert settings.CaseInsensitiveAbsolutePath(tmp_path/paths[0]) == real_path
+        assert utilities.CaseInsensitiveAbsolutePath(tmp_path/paths[0]) == real_path

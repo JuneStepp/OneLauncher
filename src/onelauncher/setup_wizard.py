@@ -33,12 +33,11 @@ from bidict import bidict
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-import onelauncher
 from onelauncher import settings, __title__
-from onelauncher.settings import CaseInsensitiveAbsolutePath, game_settings, program_settings
+from onelauncher.settings import game_settings, program_settings
 from onelauncher.resources import available_locales
 from onelauncher.ui_utilities import raise_warning_message
-from onelauncher.utilities import check_if_valid_game_folder
+from onelauncher.utilities import check_if_valid_game_folder, CaseInsensitiveAbsolutePath
 from onelauncher.ui.setup_wizard_uic import Ui_Wizard
 
 

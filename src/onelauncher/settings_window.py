@@ -40,7 +40,7 @@ from onelauncher.ui.settings_uic import Ui_dlgSettings
 from onelauncher.start_ui import run_setup_wizard_with_main_window
 from onelauncher.resources import available_locales
 from onelauncher.ui_utilities import raise_warning_message
-from onelauncher.utilities import check_if_valid_game_folder
+from onelauncher.utilities import check_if_valid_game_folder, CaseInsensitiveAbsolutePath
 from onelauncher.wine_management import edit_qprocess_to_use_wine
 
 
@@ -184,7 +184,7 @@ class SettingsWindow(QtWidgets.QDialog):
         )
 
         if filename != "":
-            folder = settings.CaseInsensitiveAbsolutePath(filename)
+            folder = CaseInsensitiveAbsolutePath(filename)
             if check_if_valid_game_folder(folder,
                                           game_type=game_settings.current_game.game_type):
                 self.ui.gameDirLineEdit.setText(str(folder))
@@ -221,11 +221,11 @@ class SettingsWindow(QtWidgets.QDialog):
             return
         self.game.name = self.ui.gameNameLineEdit.text()
         self.game.description = self.ui.gameDescriptionLineEdit.text()
-        self.game.newsfeed = self.ui.gameNewsfeedLineEdit.text()
+        self.game.newsfeed = self.ui.gameNewsfeedLineEdit.text() or None
 
         self.game.locale = available_locales_display_names_mapping[self.ui.gameLanguageComboBox.currentText(
         )]
-        self.game.game_directory = settings.CaseInsensitiveAbsolutePath(
+        self.game.game_directory = CaseInsensitiveAbsolutePath(
             self.ui.gameDirLineEdit.text())
         self.game.high_res_enabled = self.ui.highResCheckBox.isChecked()
         self.game.client_type = self.CLIENT_TYPE_MAPPING[self.ui.clientTypeComboBox.currentText(
@@ -234,12 +234,12 @@ class SettingsWindow(QtWidgets.QDialog):
 
         if os.name != "nt":
             self.game.builtin_wine_prefix_enabled = not self.ui.wineFormGroupBox.isChecked()
-            if self.game.builtin_wine_prefix_enabled:
+            if not self.game.builtin_wine_prefix_enabled:
                 self.game.wine_prefix_path = Path(
                     self.ui.prefixLineEdit.text())
                 self.game.wine_path = Path(
                     self.ui.wineExecutableLineEdit.text())
-            self.game.wine_debug_level = self.ui.wineDebugLineEdit.text()
+            self.game.wine_debug_level = self.ui.wineDebugLineEdit.text() or None
 
         program_settings.default_locale = available_locales_display_names_mapping[self.ui.defaultLanguageComboBox.currentText(
         )]
