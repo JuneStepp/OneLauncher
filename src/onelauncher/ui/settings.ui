@@ -601,9 +601,6 @@
        <height>23</height>
       </rect>
      </property>
-     <property name="toolTip">
-      <string>Default language to use for games</string>
-     </property>
      <property name="text">
       <string>Games Sorting Mode</string>
      </property>
@@ -619,9 +616,6 @@
        <width>281</width>
        <height>33</height>
       </rect>
-     </property>
-     <property name="toolTip">
-      <string>Default language to use for games</string>
      </property>
     </widget>
     <widget class="QPushButton" name="gamesManagementButton">

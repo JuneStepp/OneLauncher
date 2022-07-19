@@ -3,15 +3,22 @@
 ################################################################################
 ## Form generated from reading UI file 'settings.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.1.2
+## Created by: Qt User Interface Compiler version 6.2.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import *  # type: ignore
-from PySide6.QtGui import *  # type: ignore
-from PySide6.QtWidgets import *  # type: ignore
-
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QAbstractButton, QApplication, QCheckBox, QComboBox,
+    QDialog, QDialogButtonBox, QFormLayout, QFrame,
+    QGroupBox, QLabel, QLineEdit, QPushButton,
+    QSizePolicy, QTabWidget, QToolButton, QWidget)
 
 class Ui_dlgSettings(object):
     def setupUi(self, dlgSettings):
@@ -323,13 +330,7 @@ class Ui_dlgSettings(object):
         self.defaultLanguageForUILabel.setToolTip(QCoreApplication.translate("dlgSettings", u"Use the default language for OneLauncher even when the current game is set to a different language", None))
 #endif // QT_CONFIG(tooltip)
         self.defaultLanguageForUILabel.setText(QCoreApplication.translate("dlgSettings", u"Always Use Default Language For UI", None))
-#if QT_CONFIG(tooltip)
-        self.gamesSortingModeLabel.setToolTip(QCoreApplication.translate("dlgSettings", u"Default language to use for games", None))
-#endif // QT_CONFIG(tooltip)
         self.gamesSortingModeLabel.setText(QCoreApplication.translate("dlgSettings", u"Games Sorting Mode", None))
-#if QT_CONFIG(tooltip)
-        self.gamesSortingModeComboBox.setToolTip(QCoreApplication.translate("dlgSettings", u"Default language to use for games", None))
-#endif // QT_CONFIG(tooltip)
         self.gamesManagementButton.setText(QCoreApplication.translate("dlgSettings", u"Manage Games", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabProgram), QCoreApplication.translate("dlgSettings", u"OneLauncher", None))
     # retranslateUi
