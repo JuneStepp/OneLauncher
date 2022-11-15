@@ -161,10 +161,10 @@
       <string/>
      </property>
      <property name="clearButtonEnabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
     </widget>
-    <widget class="QPushButton" name="defaultGameLauncherButton">
+    <widget class="QPushButton" name="standardGameLauncherButton">
      <property name="geometry">
       <rect>
        <x>160</x>
@@ -174,7 +174,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>Run Default Game Launcher</string>
+      <string>Run Standard Game Launcher</string>
      </property>
     </widget>
    </widget>
@@ -204,6 +204,9 @@
        <height>23</height>
       </rect>
      </property>
+     <property name="toolTip">
+      <string>Patch client DLL filename</string>
+     </property>
      <property name="text">
       <string>Patch Client DLL</string>
      </property>
@@ -219,6 +222,9 @@
        <width>300</width>
        <height>31</height>
       </rect>
+     </property>
+     <property name="toolTip">
+      <string>Patch client DLL filename</string>
      </property>
     </widget>
     <widget class="QToolButton" name="gameDirButton">
@@ -269,7 +275,7 @@
       <string>Game client version to use. 64-bit is the most modern. It does work with WINE</string>
      </property>
      <property name="text">
-      <string>Game Client</string>
+      <string>Client Type</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -353,6 +359,38 @@
      </property>
      <property name="toolTip">
       <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="standardLauncherLabel">
+     <property name="geometry">
+      <rect>
+       <x>2</x>
+       <y>220</y>
+       <width>141</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Standard launcher filename</string>
+     </property>
+     <property name="text">
+      <string>Standard Launcher</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="standardLauncherLineEdit">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>216</y>
+       <width>300</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Standard launcher filename</string>
      </property>
     </widget>
    </widget>

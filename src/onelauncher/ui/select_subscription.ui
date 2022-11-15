@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>dlgChooseAccount</class>
- <widget class="QDialog" name="dlgChooseAccount">
+ <class>dlgSelectSubscription</class>
+ <widget class="QDialog" name="dlgSelectSubscription">
   <property name="windowModality">
    <enum>Qt::ApplicationModal</enum>
   </property>
@@ -19,12 +19,12 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>Choose Account</string>
+   <string>Select Subscription</string>
   </property>
   <property name="modal">
    <bool>true</bool>
   </property>
-  <widget class="QComboBox" name="accountsComboBox">
+  <widget class="QComboBox" name="subscriptionsComboBox">
    <property name="geometry">
     <rect>
      <x>5</x>
@@ -44,7 +44,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Multiple game accounts found
+    <string>Multiple game sub-accounts found
 
 Please select one</string>
    </property>
@@ -87,7 +87,7 @@ Please select one</string>
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>dlgChooseAccount</receiver>
+   <receiver>dlgSelectSubscription</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -103,7 +103,7 @@ Please select one</string>
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>dlgChooseAccount</receiver>
+   <receiver>dlgSelectSubscription</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

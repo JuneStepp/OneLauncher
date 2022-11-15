@@ -1,6 +1,6 @@
 from PySide6 import QtWidgets, QtCore
 
-def raise_warning_message(message: str, parent):
+def raise_warning_message(message: str, parent: QtCore.QObject):
     messageBox = QtWidgets.QMessageBox(parent)
     messageBox.setWindowFlag(QtCore.Qt.FramelessWindowHint)
     messageBox.setIcon(QtWidgets.QMessageBox.Warning)

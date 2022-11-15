@@ -456,9 +456,9 @@
     <string>Dungeons and Dragons Online</string>
    </property>
   </action>
-  <action name="actionForgetSubaccountSelection">
+  <action name="actionForgetSubscriptionSelection">
    <property name="text">
-    <string>Forget sub-account selection</string>
+    <string>Forget subscription selection</string>
    </property>
   </action>
  </widget>

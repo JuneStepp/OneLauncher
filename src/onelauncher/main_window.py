@@ -26,43 +26,48 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-# For setting global timeout used by urllib
-import socket
-import urllib
-from pathlib import Path
+import contextlib
 import logging
-from typing import Optional
+from pathlib import Path
+from typing import List, Optional
 
-import defusedxml.minidom
-import xml
 import keyring
 from PySide6 import QtCore, QtGui, QtWidgets
+from requests.exceptions import RequestException
+from xmlschema import XMLSchemaValidationError
 
 import onelauncher
 from onelauncher import settings
-from onelauncher.settings import Game, game_settings, program_settings
 from onelauncher.addon_manager import AddonManager
-from onelauncher.game_network_utils import (AuthenticateUser,
-                                   GLSDataCenter, JoinWorldQueue,
-                                   World, WorldQueueConfig,
-                                   checkForCertificates)
-from onelauncher.utilities import GetText, check_if_valid_game_folder
+from onelauncher.network.world_login_queue import (
+    WorldLoginQueue,
+    JoinWorldQueueFailedError,
+    WorldQueueResultXMLParseError)
+from onelauncher.network import login_account
+from onelauncher.network.game_launcher_config import (
+    GameLauncherConfig, GameLauncherConfigParseError)
+from onelauncher.network.game_newsfeed import newsfeed_url_to_html
+from onelauncher.network.game_services_info import GameServicesInfo
+from onelauncher.network.soap import GLSServiceError
+from onelauncher.network.world import World, WorldUnavailableError
 from onelauncher.patch_game_window import PatchWindow
-from onelauncher.settings_window import SettingsWindow
-from onelauncher.start_game_window import StartGame
 from onelauncher.resources import get_resource
-from onelauncher.ui_resources import icon_font
-from onelauncher.ui.main_uic import Ui_winMain
+from onelauncher.settings import Game, game_settings, program_settings
+from onelauncher.settings_window import SettingsWindow
 from onelauncher.ui.about_uic import Ui_dlgAbout
-from onelauncher.ui.select_account_uic import Ui_dlgChooseAccount
+from onelauncher.ui.main_uic import Ui_winMain
+from onelauncher.ui.select_subscription_uic import Ui_dlgSelectSubscription
+from onelauncher.ui.start_game_window import StartGame
+from onelauncher.ui_resources import icon_font
+from onelauncher.utilities import check_if_valid_game_folder
 
 
 class MainWindow(QtWidgets.QMainWindow):
     # Make signals for communicating with MainWindowThread
-    ReturnLog = QtCore.Signal(str)
-    ReturnGLSDataCenter = QtCore.Signal(GLSDataCenter)
-    ReturnWorldQueueConfig = QtCore.Signal(WorldQueueConfig)
-    ReturnNews = QtCore.Signal(str)
+    ReturnLog = QtCore.Signal(str, bool)
+    return_game_services_info = QtCore.Signal(GameServicesInfo)
+    return_game_launcher_config = QtCore.Signal(GameLauncherConfig)
+    return_newsfeed = QtCore.Signal(str)
 
     def __init__(self):
         super(MainWindow, self).__init__(None, QtCore.Qt.FramelessWindowHint)
@@ -92,9 +97,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.connectMainWindowThreadSignals()
 
         self.setupMousePropagation()
-
-        # Set default timeout used by urllib
-        socket.setdefaulttimeout(6)
 
         self.InitialSetup()
 
@@ -172,42 +174,34 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def setup_save_accounts_dropdown(self):
         self.ui.saveSettingsMenu = QtWidgets.QMenu()
-        self.ui.saveSettingsMenu.addAction(self.ui.actionForgetSubaccountSelection)
-        self.ui.actionForgetSubaccountSelection.triggered.connect(self.forget_subaccount_selection)
+        self.ui.saveSettingsMenu.addAction(
+            self.ui.actionForgetSubscriptionSelection)
+        self.ui.actionForgetSubscriptionSelection.triggered.connect(
+            self.forget_subscription_selection)
         self.ui.saveSettingsToolButton.setMenu(self.ui.saveSettingsMenu)
 
-    def forget_subaccount_selection(self):
+    def forget_subscription_selection(self):
         self.ui.saveSettingsToolButton.setVisible(False)
-        self.ui.cboAccount.currentData().save_subaccount_selection = False
+        account: settings.Account = self.ui.cboAccount.currentData()
+        account.save_subscription_selection = False
 
-        try:
+        with contextlib.suppress(keyring.errors.PasswordDeleteError):
             keyring.delete_password(
                 onelauncher.__title__,
-                self.get_current_keyring_subaccount_username(),
+                self.get_current_keyring_subscription_selection_username(),
             )
-        except keyring.errors.PasswordDeleteError:
-            pass
-
 
     def setup_switch_game_button(self):
         """Set icon and dropdown options of switch game button according to current game"""
         if game_settings.current_game.game_type == "DDO":
-            self.ui.btnSwitchGame.setIcon(
-                QtGui.QIcon(
-                    str(get_resource(
-                        Path("images/LOTROSwitchIcon.png"), program_settings.ui_locale))
-                )
-            )
+            self.ui.btnSwitchGame.setIcon(QtGui.QIcon(str(get_resource(
+                Path("images/LOTROSwitchIcon.png"), program_settings.ui_locale))))
 
             games = game_settings.ddo_sorting_modes[program_settings.games_sorting_mode].copy(
             )
         else:
-            self.ui.btnSwitchGame.setIcon(
-                QtGui.QIcon(
-                    str(get_resource(
-                        Path("images/DDOSwitchIcon.png"), program_settings.ui_locale))
-                )
-            )
+            self.ui.btnSwitchGame.setIcon(QtGui.QIcon(str(get_resource(
+                Path("images/DDOSwitchIcon.png"), program_settings.ui_locale))))
 
             games = game_settings.lotro_sorting_modes[program_settings.games_sorting_mode].copy(
             )
@@ -227,10 +221,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def connectMainWindowThreadSignals(self):
         """Connects function signals for communicating with MainWindowThread."""
         self.ReturnLog.connect(self.AddLog)
-        self.ReturnGLSDataCenter.connect(self.GetGLSDataCenter)
-        self.ReturnWorldQueueConfig.connect(self.GetWorldQueueConfig)
-        self.ReturnNews.connect(self.GetNews)
-
+        self.return_game_services_info.connect(self.get_game_services_info)
+        self.return_game_launcher_config.connect(self.get_game_launcher_config)
+        self.return_newsfeed.connect(self.get_newsfeed)
 
     def btnAboutSelected(self):
         dlgAbout = QtWidgets.QDialog(self, QtCore.Qt.Popup)
@@ -250,16 +243,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.resetFocus()
 
     def actionPatchSelected(self):
-        winPatch = PatchWindow(self.dataCenter.patchServer)
+        winPatch = PatchWindow(self.game_services_info.patch_server)
         winPatch.Run()
         self.resetFocus()
 
     def btnOptionsSelected(self):
-        try:
-            winSettings = SettingsWindow(game_settings.current_game,
-                                         self.worldQueueConfig.gameClientFilename)
-        except AttributeError:
-            winSettings = SettingsWindow(game_settings.current_game, None)
+        winSettings = SettingsWindow(game_settings.current_game)
         winSettings.accepted.connect(self.InitialSetup)
         winSettings.open()
 
@@ -291,8 +280,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.AddLog(
                 '<font color="Khaki">Please enter account name and password</font>'
             )
-        else:
-            self.AuthAccount()
+            return
+
+        self.AuthAccount()
 
     def save_settings(self):
         program_settings.save_accounts = self.ui.chkSaveSettings.isChecked()
@@ -324,7 +314,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.cboAccount.addItem(account.name, userData=account)
 
         self.ui.cboAccount.setCurrentText(accounts[-1].name)
-        if self.ui.cboAccount.currentData().save_subaccount_selection:
+        account: settings.Account = self.ui.cboAccount.currentData()
+        if account.save_subscription_selection:
             self.ui.saveSettingsToolButton.setVisible(True)
 
     def setCurrentAccountWorld(self):
@@ -338,8 +329,8 @@ class MainWindow(QtWidgets.QMainWindow):
         return str(game_settings.current_game.uuid) + \
             self.ui.cboAccount.currentText()
 
-    def get_current_keyring_subaccount_username(self) -> str:
-        return "SubaccountSelection" + self.get_current_keyring_username()
+    def get_current_keyring_subscription_selection_username(self) -> str:
+        return f"SubscriptionSelection{self.get_current_keyring_username()}"
 
     def setCurrentAccountPassword(self):
         keyring_username = self.get_current_keyring_username()
@@ -351,42 +342,51 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.txtPassword.setText(keyring.get_password(
             onelauncher.__title__, keyring_username) or "")
 
-    def get_subaccount_number(self, account: settings.Account) -> Optional[str]:
-        if account.save_subaccount_selection:
-            account_number = keyring.get_password(
+    def get_game_subscription_selection(
+            self,
+            subscriptions: List[login_account.GameSubscription],
+            account: settings.Account) -> Optional[login_account.GameSubscription]:
+        if account.save_subscription_selection:
+            if saved_subscription_name := keyring.get_password(
                 onelauncher.__title__,
-                self.get_current_keyring_subaccount_username(),
-            )
-            if account_number:
-                return account_number
+                self.get_current_keyring_subscription_selection_username(),
+            ):
+                for subscription in subscriptions:
+                    if subscription.name == saved_subscription_name:
+                        return subscription
 
-        choose_account_dialog = QtWidgets.QDialog(self, QtCore.Qt.FramelessWindowHint)
-        ui = Ui_dlgChooseAccount()
-        ui.setupUi(choose_account_dialog)
+        select_subscription_dialog = QtWidgets.QDialog(
+            self, QtCore.Qt.FramelessWindowHint)
+        ui = Ui_dlgSelectSubscription()
+        ui.setupUi(select_subscription_dialog)
 
-        for game in self.account.gameList:
-            ui.accountsComboBox.addItem(game.description, game.name)
+        for subscription in subscriptions:
+            ui.subscriptionsComboBox.addItem(
+                subscription.description, subscription.name)
 
-        ui.saveSelectionCheckBox.setChecked(account.save_subaccount_selection)
+        ui.saveSelectionCheckBox.setChecked(
+            account.save_subscription_selection)
 
-        if choose_account_dialog.exec() == QtWidgets.QDialog.Accepted:
-            account_number = ui.accountsComboBox.currentData()
-            account.save_subaccount_selection = ui.saveSelectionCheckBox.isChecked()
-            self.ui.saveSettingsToolButton.setVisible(account.save_subaccount_selection)
-            # The subaccount selection can only be saved if the account is saved
-            if account.save_subaccount_selection:
+        if select_subscription_dialog.exec() == QtWidgets.QDialog.Accepted:
+            saved_subscription_name = ui.subscriptionsComboBox.currentData()
+            account.save_subscription_selection = ui.saveSelectionCheckBox.isChecked()
+            self.ui.saveSettingsToolButton.setVisible(
+                account.save_subscription_selection)
+            # The subscription selection can only be saved if the account is
+            # saved
+            if account.save_subscription_selection:
                 self.ui.chkSaveSettings.setChecked(True)
 
             keyring.set_password(
                 onelauncher.__title__,
-                self.get_current_keyring_subaccount_username(),
-                account_number,
+                self.get_current_keyring_subscription_selection_username(),
+                saved_subscription_name,
             )
             self.resetFocus()
-            return account_number
+            return saved_subscription_name
         else:
             self.resetFocus()
-            self.AddLog("No game selected - aborting")
+            self.AddLog("No sub-account selected - aborting")
             return None
 
     def AuthAccount(self):
@@ -397,151 +397,160 @@ class MainWindow(QtWidgets.QMainWindow):
         for _ in range(4):
             QtCore.QCoreApplication.instance().processEvents()
 
-        self.account = AuthenticateUser(
-            self.dataCenter.authServer,
-            self.ui.cboAccount.currentText(),
-            self.ui.txtPassword.text(),
-            game_settings.current_game.datacenter_game_name,
-        )
+        try:
+            self.login_response = login_account.login_account(
+                self.game_services_info.auth_server,
+                self.ui.cboAccount.currentText(),
+                self.ui.txtPassword.text(),
+            )
+        except login_account.WrongUsernameOrPasswordError:
+            self.AddLog("Username or password is incorrect", True)
+            return
+        except RequestException:
+            logger.exception("")
+            self.AddLog("Network error while authenticating account", True)
+            return
+        except GLSServiceError:
+            logger.exception("")
+            self.AddLog("Non-network error with login service. Please report "
+                        "this issue, if it continues.", True)
+            return
 
         # don't keep password longer in memory than required
         if not self.ui.chkSavePassword.isChecked():
             self.ui.txtPassword.clear()
 
-        if self.account.authSuccess:
-            self.AddLog("Account authenticated")
+        self.AddLog("Account authenticated")
 
-            if type(self.ui.cboAccount.currentData()) == settings.Account:
-                    current_account = self.ui.cboAccount.currentData()
+        if type(self.ui.cboAccount.currentData()) == settings.Account:
+            current_account = self.ui.cboAccount.currentData()
+        else:
+            current_world: World = self.ui.cboWorld.currentData()
+            current_account = settings.Account(
+                self.ui.cboAccount.currentText(),
+                current_world.name)
+            self.ui.cboAccount.setItemData(
+                self.ui.cboAccount.currentIndex(), current_account)
+
+        if self.ui.chkSaveSettings.isChecked():
+            # Account is deleted first, because accounts are in order of
+            # the most recently played at the end.
+            with contextlib.suppress(KeyError):
+                del game_settings.current_game.accounts[current_account.name]
+
+            game_settings.current_game.accounts[current_account.name] = current_account
+
+            current_world: World = self.ui.cboWorld.currentData()
+            current_account.last_used_world_name = current_world.name
+
+            keyring_username = self.get_current_keyring_username()
+            if self.ui.chkSavePassword.isChecked():
+                keyring.set_password(
+                    onelauncher.__title__,
+                    keyring_username,
+                    self.ui.txtPassword.text(),
+                )
             else:
-                current_account = settings.Account(
-                    self.ui.cboAccount.currentText(), self.ui.cboWorld.currentText())
-                self.ui.cboAccount.setItemData(
-                    self.ui.cboAccount.currentIndex(), current_account)
-
-            if self.ui.chkSaveSettings.isChecked():
-                # Account is deleted first, because accounts are in order of
-                # the most recently played at the end.
-                try:
-                    del game_settings.current_game.accounts[current_account.name]
-                except KeyError:
-                    pass
-                game_settings.current_game.accounts[current_account.name] = current_account
-
-                current_account.last_used_world_name = self.ui.cboWorld.currentText()
-
-                keyring_username = self.get_current_keyring_username()
-                if self.ui.chkSavePassword.isChecked():
-                    keyring.set_password(
+                with contextlib.suppress(keyring.errors.PasswordDeleteError):
+                    keyring.delete_password(
                         onelauncher.__title__,
                         keyring_username,
-                        self.ui.txtPassword.text(),
                     )
-                else:
-                    try:
-                        keyring.delete_password(
-                            onelauncher.__title__,
-                            keyring_username,
-                        )
-                    except keyring.errors.PasswordDeleteError:
-                        pass
 
-            # Handle merged accounts. Some people have multiple accounts attached to one login.
-            if len(self.account.gameList) > 1:
-                self.accNumber = self.get_subaccount_number(current_account)
-                if not self.accNumber:
-                    return
-            else:
-                self.accNumber = self.account.gameList[0].name
-
-            self.save_settings()
-
-            tempWorld: World = self.ui.cboWorld.currentData()
-            tempWorld.CheckWorld()
-
-            if tempWorld.worldAvailable:
-                self.urlChatServer = tempWorld.urlChatServer
-                self.urlLoginServer = tempWorld.loginServer
-
-                if tempWorld.queueURL == "":
-                    self.LaunchGame()
-                else:
-                    self.EnterWorldQueue(tempWorld.queueURL)
-            else:
-                self.AddLog(
-                    "[E10] Error getting world status. You may want to check "
-                    "the news feed for a scheduled down time."
-                )
+        game_subscriptions = self.login_response.get_game_subscriptions(
+            game_settings.current_game.datacenter_game_name)
+        if len(game_subscriptions) > 1:
+            subscription = self.get_game_subscription_selection(
+                current_account)
+            if subscription is None:
+                return
         else:
-            self.AddLog(self.account.messError)
+            account_number = game_subscriptions[0].name
 
-    def LaunchGame(self):
+        self.save_settings()
+
+        selected_world: World = self.ui.cboWorld.currentData()
+
+        try:
+            selected_world_status = selected_world.get_status()
+        except RequestException:
+            logger.exception(
+                "Network error while downloading world status xml")
+            self.AddLog(
+                "Network error while fetching world status",
+                is_error=True)
+            return
+        except WorldUnavailableError:
+            logger.exception("Login world unavailable")
+            self.AddLog(
+                "Error fetching world status. You may want to check "
+                "the news feed for a scheduled down time.",
+                is_error=True
+            )
+            return
+        except XMLSchemaValidationError:
+            logger.exception("World status XML doesn't match schema")
+            self.AddLog(
+                "World status info has incompatible format. Please report "
+                "this issue if using a supported game server",
+                is_error=True)  # TODO: Easy report
+            return
+
+        if selected_world_status.queue_url == "":
+            self.start_game(account_number)
+        else:
+            self.EnterWorldQueue(
+                selected_world_status.queue_url, account_number)
+
+    def start_game(self, account_number: str):
+        world: World = self.ui.cboWorld.currentData()
         game = StartGame(
-            self.worldQueueConfig.gameClientFilename,
             game_settings.current_game,
-            self.worldQueueConfig.gameClientArgTemplate,
-            self.accNumber,
-            self.urlLoginServer,
-            self.account.ticket,
-            self.urlChatServer,
-            self.worldQueueConfig.crashreceiver,
-            self.worldQueueConfig.DefaultUploadThrottleMbps,
-            self.worldQueueConfig.bugurl,
-            self.worldQueueConfig.authserverurl,
-            self.worldQueueConfig.supporturl,
-            self.worldQueueConfig.supportserviceurl,
-            self.worldQueueConfig.glsticketlifetime,
-            self.ui.cboWorld.currentText(),
-            self.ui.cboAccount.currentText(),
+            self.game_launcher_config,
+            world,
+            account_number,
+            self.login_response.session_ticket,
         )
-        game.Run()
+        game.start_game()
 
-    def EnterWorldQueue(self, queueURL):
-        self.worldQueue = JoinWorldQueue(
-            self.worldQueueConfig.worldQueueParam,
-            self.accNumber,
-            self.account.ticket,
-            queueURL,
-            self.worldQueueConfig.worldQueueURL,
-        )
+    def EnterWorldQueue(self, queueURL, account_number):
+        world_login_queue = WorldLoginQueue(
+            self.game_launcher_config.login_queue_url,
+            self.game_launcher_config.login_queue_params_template,
+            account_number,
+            self.login_response.session_ticket,
+            queueURL)
+        while True:
+            try:
+                world_queue_result = world_login_queue.join_queue()
+            except RequestException:
+                self.AddLog(
+                    "Network error while joining world queue",
+                    is_error=True)
+                logger.exception("")
+                return
+            except (JoinWorldQueueFailedError, WorldQueueResultXMLParseError):
+                self.AddLog(
+                    "Non-network error joining world queue. "
+                    "Please report this error if it continues")  # TODO Easy report
+                logger.exception("")
+                return
+            self.AddLog(
+                f"Position in queue: {world_queue_result.queue_number}")
+            if (world_queue_result.queue_number <=
+                    world_queue_result.now_serving_number):
+                break
 
-        if self.worldQueue.joinSuccess:
-            self.AddLog("Joined world queue")
-
-            displayQueueing = True
-
-            while (
-                self.worldQueue.number > self.worldQueue.serving
-                and self.worldQueue.joinSuccess
-            ):
-                if displayQueueing:
-                    self.AddLog("Currently queueing, please wait...")
-                    displayQueueing = False
-
-                self.worldQueue = JoinWorldQueue(
-                    self.worldQueueConfig.worldQueueParam,
-                    self.accNumber,
-                    self.account.ticket,
-                    queueURL,
-                    self.worldQueueConfig.worldQueueURL,
-                )
-
-                if not self.worldQueue.joinSuccess:
-                    self.AddLog("[E10] Error getting world status.")
-
-        if self.worldQueue.joinSuccess:
-            self.LaunchGame()
-        else:
-            self.AddLog("[E11] Error joining world queue.")
+        self.start_game(account_number)
 
     def set_banner_image(self):
         game_dir_banner_override_path = game_settings.current_game.game_directory / \
-            program_settings.ui_locale.lang_tag.split("-")[0]/"banner.png"
+            program_settings.ui_locale.lang_tag.split("-")[0] / "banner.png"
         if game_dir_banner_override_path.exists():
             banner_pixmap = QtGui.QPixmap(str(game_dir_banner_override_path))
         else:
-            banner_pixmap = QtGui.QPixmap(str(get_resource(
-                Path(f"images/{game_settings.current_game.game_type}_banner.png"), program_settings.ui_locale)))
+            banner_pixmap = QtGui.QPixmap(str(get_resource(Path(
+                f"images/{game_settings.current_game.game_type}_banner.png"), program_settings.ui_locale)))
 
         banner_pixmap = banner_pixmap.scaledToHeight(self.ui.imgMain.height())
         self.ui.imgMain.setPixmap(banner_pixmap)
@@ -551,17 +560,21 @@ class MainWindow(QtWidgets.QMainWindow):
             self.AddLog("[E13] Game directory not found")
             return False
 
-        if not check_if_valid_game_folder(game_settings.current_game.game_directory, game_settings.current_game.game_type):
+        if not check_if_valid_game_folder(
+                game_settings.current_game.game_directory,
+                game_settings.current_game.game_type):
             self.AddLog("The game directory is not valid.", is_error=True)
             return False
 
-        if not (game_settings.current_game.game_directory /
+        if not (
+                game_settings.current_game.game_directory /
                 f"client_local_{game_settings.current_game.locale.game_language_name}.dat").exists():
-            self.AddLog("[E20] There is no game language data for "
-                        f"{game_settings.current_game.locale.display_name} installed "
-                        f"You may have to select {game_settings.current_game.locale.display_name}"
-                        " in the normal game launcher and wait for the data to download."
-                        " The normal game launcher can be opened from the settings menu.")
+            self.AddLog(
+                "[E20] There is no game language data for "
+                f"{game_settings.current_game.locale.display_name} installed "
+                f"You may have to select {game_settings.current_game.locale.display_name}"
+                " in the normal game launcher and wait for the data to download."
+                " The normal game launcher can be opened from the settings menu.")
             return False
 
         return True
@@ -586,8 +599,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.cboWorld.clear()
         self.ClearLog()
         self.ClearNews()
-
-        sslContext = checkForCertificates()
 
         # Set news feed to say "Loading ..." until it is replaced by the news.
         self.ui.txtFeed.setHtml(
@@ -614,23 +625,23 @@ class MainWindow(QtWidgets.QMainWindow):
         self.configThread = MainWindowThread()
         self.configThread.SetUp(
             self.ReturnLog,
-            self.ReturnGLSDataCenter,
-            self.ReturnWorldQueueConfig,
-            self.ReturnNews,
-            sslContext,
+            self.return_game_services_info,
+            self.return_game_launcher_config,
+            self.return_newsfeed
         )
         self.configThread.start()
 
-    def GetGLSDataCenter(self, dataCenter: GLSDataCenter):
-        self.dataCenter = dataCenter
+    def get_game_services_info(self, game_services_info: GameServicesInfo):
+        self.game_services_info = game_services_info
 
-        for world in self.dataCenter.worldList:
+        for world in self.game_services_info.worlds:
             self.ui.cboWorld.addItem(world.name, userData=world)
 
         self.setCurrentAccountWorld()
 
-    def GetWorldQueueConfig(self, worldQueueConfig: WorldQueueConfig):
-        self.worldQueueConfig = worldQueueConfig
+    def get_game_launcher_config(
+            self, game_launcher_config: GameLauncherConfig):
+        self.game_launcher_config = game_launcher_config
 
         self.ui.actionPatch.setEnabled(True)
         self.ui.actionPatch.setVisible(True)
@@ -640,8 +651,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.cboAccount.setEnabled(True)
         self.ui.txtPassword.setEnabled(True)
 
-    def GetNews(self, news: str):
-        self.ui.txtFeed.setHtml(news)
+    def get_newsfeed(self, newsfeed: str):
+        self.ui.txtFeed.setHtml(newsfeed)
 
         self.configThreadFinished()
 
@@ -659,7 +670,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
                 line = '<font color="red">' + message + "</font>"
 
-                # Enable buttons that won't normally get re-enabled if MainWindowThread gets frozen.
+                # Enable buttons that won't normally get re-enabled if
+                # MainWindowThread gets frozen.
                 self.ui.btnOptions.setEnabled(True)
                 self.ui.btnSwitchGame.setEnabled(True)
             else:
@@ -675,150 +687,83 @@ class MainWindow(QtWidgets.QMainWindow):
 class MainWindowThread(QtCore.QThread):
     def SetUp(
         self,
-        ReturnLog,
-        ReturnGLSDataCenter,
-        ReturnWorldQueueConfig,
-        ReturnNews,
-        sslContext,
+        ReturnLog: QtCore.Signal,
+        return_game_services_info: QtCore.Signal,
+        return_game_launcher_config: QtCore.Signal,
+        return_newsfeed: QtCore.Signal,
     ):
+        # First argument is string. Second is bool representing if message is
+        # error or not
         self.ReturnLog = ReturnLog
-        self.ReturnGLSDataCenter = ReturnGLSDataCenter
-        self.ReturnWorldQueueConfig = ReturnWorldQueueConfig
-        self.ReturnNews = ReturnNews
-        self.sslContext = sslContext
+        self.return_game_services_info = return_game_services_info
+        self.return_game_launcher_config = return_game_launcher_config
+        self.return_newsfeed = return_newsfeed
 
     def run(self):
-        self.AccessGLSDataCenter(game_settings.current_game)
+        self.access_game_services_info(game_settings.current_game)
 
-    def AccessGLSDataCenter(self, game: Game):
-        self.dataCenter = GLSDataCenter(
-            game.gls_datacenter_service, game.datacenter_game_name)
-
-        if self.dataCenter.loadSuccess:
-            self.ReturnLog.emit("Fetched details from GLS data center.")
-            self.ReturnGLSDataCenter.emit(self.dataCenter)
-            self.ReturnLog.emit("World list obtained.")
-
-            self.GetWorldQueueConfig(self.dataCenter.launchConfigServer)
-        else:
-            self.ReturnLog.emit("[E04] Error accessing GLS data center.")
-
-    def GetWorldQueueConfig(self, urlWorldQueueServer: str):
-        self.worldQueueConfig = WorldQueueConfig(
-            urlWorldQueueServer, game_settings.current_game
-        )
-        if self.worldQueueConfig.loadSuccess:
-            self.ReturnLog.emit("World queue configuration read.")
-            self.ReturnWorldQueueConfig.emit(self.worldQueueConfig)
-
-            self.GetNews()
-        else:
-            self.ReturnLog.emit(
-                "[E05] Error getting world queue configuration.")
-
-    def GetNews(self):
-        with urllib.request.urlopen(self.worldQueueConfig.newsStyleSheetURL, context=self.sslContext) as xml_feed:
-            doc = defusedxml.minidom.parseString(
-                xml_feed.read(), forbid_entities=False)
-
-        nodes = doc.getElementsByTagName("div")
-        for node in nodes:
-            if node.nodeType == node.ELEMENT_NODE and (
-                node.attributes.item(0).firstChild.nodeValue
-                == "launcherNewsItemDate"
-            ):
-                timeCode = GetText(node.childNodes).strip()
-                timeCode = (
-                    timeCode.replace("\t", "").replace(
-                        ",", "").replace("-", "")
-                )
-                if len(timeCode) > 0:
-                    timeCode = " %s" % (timeCode)
-
-        links = doc.getElementsByTagName("link")
-        for link in links:
-            if link.nodeType == link.ELEMENT_NODE:
-                href = link.attributes["href"]
-
-        # Ignore broken href (as of 3/30/16) in the style sheet and use Launcher.
-        # NewsFeedCSSUrl defined in launcher.config
-        href.value = self.worldQueueConfig.newsFeedCSSURL
-
-        HTMLTEMPLATE = '<html><head><link rel="stylesheet" type="text/css" href="'
-        HTMLTEMPLATE += href.value
-        HTMLTEMPLATE += (
-            '"/><base target="_blank"/></head><body><div '
-            'class="launcherNewsItemsContainer" style="width:auto">'
-        )
-
-        if game_settings.current_game.newsfeed:
-            urlNewsFeed = game_settings.current_game.newsfeed
-        else:
-            urlNewsFeed = self.worldQueueConfig.newsFeedURL.replace(
-                "{lang}", program_settings.ui_locale.lang_tag.split("-")[0]
-            )
-
-        result = HTMLTEMPLATE
-
+    def access_game_services_info(self, game: Game):
         try:
-            with urllib.request.urlopen(urlNewsFeed, context=self.sslContext) as xml_feed:
-                try:
-                    doc = defusedxml.minidom.parseString(xml_feed.read())
-                except xml.parsers.expat.ExpatError:
-                    message = "The news feed is invalid. This is normal for the DDO preview client."
-                    logger.warning(message)
-                    self.ReturnNews.emit(
-                        f"<html><body><center>{message}</center></body></html>")
-                    return
-        except (urllib.error.URLError, urllib.error.HTTPError):
-            message = "There was an error downloading the news feed. You may want to check your network connection."
-            logger.warning(message)
-            self.ReturnNews.emit(
-                f"<html><body><center>{message}</center></body></html>")
+            self.game_services_info = GameServicesInfo.from_url(
+                game.gls_datacenter_service, game.datacenter_game_name)
+        except RequestException:
+            logger.exception("")
+            # TODO: load anything else that can be, provide option to retry, and
+            # don't lock up the whole UI
+            self.ReturnLog.emit(
+                "Network error while fetching game services info.", True)
+            return
+        except GLSServiceError:
+            logger.exception("")
+            # TODO Specify how they they can report or even have the report
+            # text be something they can click to report the issue.
+            self.ReturnLog.emit(
+                "Non-network error with GLS datacenter service. Please report "
+                "this issue, if it continues.", True)
             return
 
-        items = doc.getElementsByTagName("item")
-        for item in items:
-            title = ""
-            description = ""
-            date = ""
+        self.ReturnLog.emit("Fetched game services info.", False)
+        self.return_game_services_info.emit(self.game_services_info)
+        self.ReturnLog.emit("World list obtained.", False)
 
-            for node in item.childNodes:
-                if node.nodeType == node.ELEMENT_NODE:
-                    if node.nodeName == "title":
-                        title = (
-                            '<font color="gold"><div class="launcherNewsItemTitle">%s</div></font>'
-                            % (GetText(node.childNodes))
-                        )
-                    elif node.nodeName == "description":
-                        description = (
-                            '<div class="launcherNewsItemDescription">%s</div>'
-                            % (GetText(node.childNodes))
-                        )
-                    elif node.nodeName == "pubDate":
-                        tempDate = GetText(node.childNodes)
-                        displayDate = "%s %s %s %s%s" % (
-                            tempDate[8:11],
-                            tempDate[5:7],
-                            tempDate[12:16],
-                            tempDate[17:22],
-                            timeCode,
-                        )
-                        date = (
-                            '<small><i><div align="right"class="launcherNewsItemDate">%s</div></i></small>'
-                            % (displayDate)
-                        )
+        self.get_game_launcher_config(
+            self.game_services_info.launcher_config_url)
 
-            result += '<div class="launcherNewsItemContainer">%s%s%s%s</div>' % (
-                title,
-                date,
-                description,
-                "<hr>",
-            )
+    def get_game_launcher_config(self, game_launcher_config_url: str):
+        try:
+            self.game_launcher_config = GameLauncherConfig.from_url(
+                game_launcher_config_url)
+        except RequestException:
+            logger.exception("")
+            self.ReturnLog.emit(
+                "Network error while retrieving game launcher config.", True)
+            return
+        except GameLauncherConfigParseError:
+            logger.exception("")
+            self.ReturnLog.emit(
+                "Game launcher config has incompatible format. Please report "
+                "this issue if using a supported game server", True
+            )  # TODO: Easy report
+            return
 
-        result += "</div></body></html>"
+        self.ReturnLog.emit("Game launcher configuration read", False)
+        self.return_game_launcher_config.emit(self.game_launcher_config)
 
-        self.ReturnNews.emit(result)
+        self.get_newsfeed()
+
+    def get_newsfeed(self):
+        newsfeed_url = (game_settings.current_game.newsfeed or
+                        self.game_launcher_config.get_newfeed_url(
+                            program_settings.ui_locale))
+        try:
+            self.return_newsfeed.emit(
+                newsfeed_url_to_html(
+                    newsfeed_url,
+                    program_settings.ui_locale.babel_locale))
+        except RequestException:
+            self.ReturnLog.emit(
+                "Network error while downloading newsfeed", True)
+            logger.exception("Network error while downloading newsfeed.")
 
 
 logger = logging.getLogger("main")

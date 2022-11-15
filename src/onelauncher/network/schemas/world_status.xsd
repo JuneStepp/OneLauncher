@@ -1,0 +1,29 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="Status">
+        <xs:complexType>
+            <xs:all>
+                <xs:element type="xs:string" name="name" minOccurs="1" />
+                <xs:element type="xs:string" name="logintiers" />
+                <xs:element type="xs:string" name="world_full" />
+                <xs:element type="xs:string" name="we_server_legendary_active" minOccurs="0" />
+                <xs:element type="xs:string" name="we_perma_death" minOccurs="0" />
+                <xs:element type="xs:string" name="world_requiresubscription" minOccurs="0"/>
+                <xs:element type="xs:string" name="loginservers" minOccurs="1" />
+                <xs:element type="xs:string" name="logintierlastnumbers" />
+                <xs:element type="xs:string" name="logintiermultipliers" />
+                <xs:element type="xs:string" name="queuenames" />
+                <xs:element type="xs:anyURI" name="queueurls" minOccurs="1" />
+                <xs:element type="xs:string" name="nowservingqueuenumber" minOccurs="1" />
+                <xs:element type="xs:string" name="lastassignedqueuenumber" />
+                <xs:element type="xs:string" name="allow_billing_role" />
+                <xs:element type="xs:string" name="deny_billing_role" />
+                <xs:element type="xs:string" name="allow_admin_role" />
+                <xs:element type="xs:string" name="deny_admin_role" />
+                <xs:element type="xs:string" name="we_pvp_war_event_control" minOccurs="0" />
+                <xs:element type="xs:string" name="world_pvppermission" minOccurs="0" />
+                <xs:element type="xs:int" name="farmid" />
+                <xs:element type="xs:float" name="wait_hint" />
+            </xs:all>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

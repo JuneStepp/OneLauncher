@@ -27,55 +27,56 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import os
-from pathlib import Path
-from typing import Final, Optional
-from bidict import bidict
 import re
+from pathlib import Path
+from typing import Final
 
+from bidict import bidict
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from onelauncher import settings
-from onelauncher.settings import program_settings, game_settings
-from onelauncher.ui.settings_uic import Ui_dlgSettings
-from onelauncher.start_ui import run_setup_wizard_with_main_window
+from onelauncher.network.game_launcher_config import GameLauncherConfig
 from onelauncher.resources import available_locales
+from onelauncher.settings import ClientType, game_settings, program_settings
+from onelauncher.standard_game_launcher import get_standard_game_launcher_path
+from onelauncher.start_ui import run_setup_wizard_with_main_window
+from onelauncher.ui.settings_uic import Ui_dlgSettings
 from onelauncher.ui_utilities import raise_warning_message
-from onelauncher.utilities import check_if_valid_game_folder, CaseInsensitiveAbsolutePath
+from onelauncher.utilities import (CaseInsensitiveAbsolutePath,
+                                   check_if_valid_game_folder)
 from onelauncher.wine_management import edit_qprocess_to_use_wine
 
 
 class SettingsWindow(QtWidgets.QDialog):
-    CLIENT_TYPE_MAPPING: Final = bidict({
-        "64-bit": "WIN64", "32-bit": "WIN32", "32-bit Legacy": "WIN32Legacy"})
     GAMES_SORTING_MODES_MAPPING: Final = bidict({
         "Priority": "priority", "Alphabetical": "alphabetical", "Last Used": "last_used"})
 
-    def __init__(self, game: settings.Game, game_client_filename: Optional[str]):
-        super(SettingsWindow, self).__init__(
-            QtCore.QCoreApplication.instance().activeWindow(), QtCore.Qt.FramelessWindowHint)
+    def __init__(
+            self,
+            game: settings.Game):
+        super(
+            SettingsWindow,
+            self).__init__(
+            QtCore.QCoreApplication.instance().activeWindow(),
+            QtCore.Qt.FramelessWindowHint)
         self.game = game
 
         self.ui = Ui_dlgSettings()
         self.ui.setupUi(self)
 
-        if game_client_filename:
-            self.game_client_filename = game_client_filename
-        else:
-            self.ui.defaultGameLauncherButton.setDisabled(True)
-
         self.toggle_advanced_settings()
 
         self.ui.gameNameLineEdit.setText(self.game.name)
-        escaped_other_game_names = [re.escape(
-            game.name) for game in game_settings.games.values() if game != self.game]
-        self.ui.gameNameLineEdit.setValidator(QtGui.QRegularExpressionValidator(QtCore.QRegularExpression(
-            f"^(?!^({'|'.join(escaped_other_game_names)})$).+$")))
+        escaped_other_game_names = [
+            re.escape(
+                game.name) for game in game_settings.games.values() if game != self.game]
+        self.ui.gameNameLineEdit.setValidator(QtGui.QRegularExpressionValidator(
+            QtCore.QRegularExpression(f"^(?!^({'|'.join(escaped_other_game_names)})$).+$")))
         self.ui.gameDescriptionLineEdit.setText(
             self.game.description)
-        self.ui.gameNewsfeedLineEdit.setText(
-            self.game.newsfeed)
-        self.ui.defaultGameLauncherButton.clicked.connect(
-            self.run_default_game_launcher)
+        self.setup_newsfeed_option()
+        self.ui.standardGameLauncherButton.clicked.connect(
+            self.run_standard_game_launcher)
 
         if os.name != "nt":
             if self.game.builtin_wine_prefix_enabled:
@@ -89,14 +90,15 @@ class SettingsWindow(QtWidgets.QDialog):
 
             self.ui.wineDebugLineEdit.setText(self.game.wine_debug_level or "")
         else:
+            # WINE isn't used on Windows
             self.ui.tabWidget.removeTab(1)
 
         self.ui.gameDirLineEdit.setText(
             str(self.game.game_directory))
-        self.ui.clientTypeComboBox.addItems(self.CLIENT_TYPE_MAPPING.keys())
-        self.ui.clientTypeComboBox.setCurrentText(
-            self.CLIENT_TYPE_MAPPING.inverse[self.game.client_type])
+        self.setup_client_type_combo_box()
 
+        self.ui.standardLauncherLineEdit.setText(
+            self.game.standard_game_launcher_filename or "")
         self.ui.patchClientLineEdit.setText(
             self.game.patch_client_filename)
 
@@ -125,6 +127,17 @@ class SettingsWindow(QtWidgets.QDialog):
             self.toggle_advanced_settings)
         self.ui.settingsButtonBox.accepted.connect(self.save_settings)
 
+    def setup_newsfeed_option(self):
+        # Attempt to set placeholder text to default newsfeed URL
+        if self.game.newsfeed is None:
+            game_launcher_config = GameLauncherConfig.from_game(self.game)
+            if game_launcher_config is not None:
+                self.ui.gameNewsfeedLineEdit.setPlaceholderText(
+                    game_launcher_config.get_newfeed_url(program_settings.ui_locale))
+
+        self.ui.gameNewsfeedLineEdit.setText(
+            self.game.newsfeed)
+
     def toggle_advanced_settings(self):
         if os.name != "nt":
             if self.ui.showAdvancedSettingsCheckbox.isChecked():
@@ -136,28 +149,47 @@ class SettingsWindow(QtWidgets.QDialog):
             self.ui.gameNewsfeedLabel.setVisible(True)
             self.ui.gameNewsfeedLineEdit.setVisible(True)
 
-            self.ui.patchClientLineEdit.setVisible(True)
+            self.ui.standardLauncherLabel.setVisible(True)
+            self.ui.standardLauncherLineEdit.setVisible(True)
             self.ui.patchClientLabel.setVisible(True)
+            self.ui.patchClientLineEdit.setVisible(True)
         else:
             self.ui.gameNewsfeedLabel.setVisible(False)
             self.ui.gameNewsfeedLineEdit.setVisible(False)
 
-            self.ui.patchClientLineEdit.setVisible(False)
+            self.ui.standardLauncherLabel.setVisible(False)
+            self.ui.standardLauncherLineEdit.setVisible(False)
             self.ui.patchClientLabel.setVisible(False)
+            self.ui.patchClientLineEdit.setVisible(False)
 
-    def run_default_game_launcher(self):
-        lowercase_launcher_filename = self.game_client_filename.lower().split('client')[
-            0]+"launcher.exe"
-        launcher_path = None
-        for file in self.game.game_directory.iterdir():
-            if file.name.lower() == lowercase_launcher_filename:
-                launcher_path = file
-                break
+    def setup_client_type_combo_box(self):
+        combo_box_item_names = {ClientType.WIN64: "64-bit",
+                                ClientType.WIN32: "32-bit",
+                                ClientType.WIN32_LEGACY: "32-bit Legacy"}
+        game_launcher_config = GameLauncherConfig.from_game(self.game)
+        if game_launcher_config is not None:
+            # Mark all unavailable client types as not found.
+            for client_type, client_filename in (game_launcher_config.
+                                                 client_type_mapping.items()):
+                if client_filename is None:
+                    combo_box_item_names[client_type] += " (Not found)"
+
+        self.ui.clientTypeComboBox.addItem(
+            combo_box_item_names[ClientType.WIN64], userData=ClientType.WIN64)
+        self.ui.clientTypeComboBox.addItem(
+            combo_box_item_names[ClientType.WIN32], userData=ClientType.WIN32)
+        self.ui.clientTypeComboBox.addItem(
+            combo_box_item_names[ClientType.WIN32_LEGACY], userData=ClientType.WIN32_LEGACY)
+        self.ui.clientTypeComboBox.setCurrentIndex(
+            self.ui.clientTypeComboBox.findData(
+                self.game.client_type))
+
+    def run_standard_game_launcher(self):
+        launcher_path = get_standard_game_launcher_path(self.game)
 
         if launcher_path is None:
-            raise ValueError(
-                f"Could not find a game launcher from {lowercase_launcher_filename}"
-                f" in {self.game.game_directory}")
+            raise_warning_message("No valid launcher executable found", self)
+            return
 
         process = QtCore.QProcess()
         process.setWorkingDirectory(str(self.game.game_directory))
@@ -185,14 +217,13 @@ class SettingsWindow(QtWidgets.QDialog):
 
         if filename != "":
             folder = CaseInsensitiveAbsolutePath(filename)
-            if check_if_valid_game_folder(folder,
-                                          game_type=game_settings.current_game.game_type):
+            if check_if_valid_game_folder(
+                    folder, game_type=game_settings.current_game.game_type):
                 self.ui.gameDirLineEdit.setText(str(folder))
             else:
                 raise_warning_message(
                     f"The folder selected isn't a valid installation folder for "
-                    f"{game_settings.current_game.game_type}.", self
-                )
+                    f"{game_settings.current_game.game_type}.", self)
 
     def manage_games(self):
         self.start_setup_wizard(games_managing=True)
@@ -228,8 +259,9 @@ class SettingsWindow(QtWidgets.QDialog):
         self.game.game_directory = CaseInsensitiveAbsolutePath(
             self.ui.gameDirLineEdit.text())
         self.game.high_res_enabled = self.ui.highResCheckBox.isChecked()
-        self.game.client_type = self.CLIENT_TYPE_MAPPING[self.ui.clientTypeComboBox.currentText(
-        )]
+        self.game.client_type = self.ui.clientTypeComboBox.currentData()
+        self.game.standard_game_launcher_filename = (
+            self.ui.standardLauncherLineEdit.text() or None)
         self.game.patch_client_filename = self.ui.patchClientLineEdit.text()
 
         if os.name != "nt":

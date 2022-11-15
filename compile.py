@@ -1,15 +1,16 @@
 import os
 
-nuitka_arguments = ["--standalone",
-                    "--assume-yes-for-downloads",
-                    "--nofollow-import-to=tkinter,unittest,pydoc,pdb",
-                    "--plugin-enable=pyside6",
-                    "--include-package keyring.backends",
-                    "--include-data-dir src/onelauncher/certificates=onelauncher/certificates",
-                    "--include-data-dir src/onelauncher/addons/schemas=onelauncher/addons/schemas",
-                    "--include-data-dir src/onelauncher/images=onelauncher/images",
-                    "--include-data-dir src/onelauncher/locale=onelauncher/locale",
-                    "--include-data-dir src/onelauncher/fonts=onelauncher/fonts",]
+nuitka_arguments = [
+    "--standalone",
+    "--assume-yes-for-downloads",
+    "--nofollow-import-to=tkinter,unittest,pydoc,pdb",
+    "--plugin-enable=pyside6",
+    "--include-package keyring.backends",
+    "--include-data-dir src/onelauncher/network/schemas=onelauncher/network/schemas",
+    "--include-data-dir src/onelauncher/images=onelauncher/images",
+    "--include-data-dir src/onelauncher/locale=onelauncher/locale",
+    "--include-data-dir src/onelauncher/fonts=onelauncher/fonts",
+    ]
 
 def main():
     if os.name == "nt":

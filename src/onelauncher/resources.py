@@ -4,9 +4,10 @@ from pathlib import Path
 from typing import Dict, List, Optional
 import rtoml
 from PySide6.QtCore import QLocale
+import babel
 
 
-class Locale():
+class OneLauncherLocale():
     def __init__(self, lang_tag: str) -> None:
         """
 
@@ -17,9 +18,10 @@ class Locale():
         self.data_dir = self._get_localized_data_dir()
         self._load_language_info()
         self.flag_icon = self._get_flag_icon()
+        self.babel_locale: babel.Locale = babel.Locale.parse(self.lang_tag, sep="-") # type: ignore
 
     def __str__(self) -> str:
-        """What gets shown when the print function is used on the Locale object"""
+        """What gets shown when the print function is used on the OneLauncherLocale object"""
         return self.lang_tag
 
     def _get_localized_data_dir(self):
@@ -66,12 +68,12 @@ def _get_data_dir() -> Path:
         return Path(__file__).parent
 
 
-def get_resource(relative_path: Path, locale: Locale) -> Path:
+def get_resource(relative_path: Path, locale: OneLauncherLocale) -> Path:
     """Returns the localized resource for path
 
     Args:
         relative_path (Path): Relative path from data_dir to resource. Example: "images/LOTRO_banner.png"
-        locale (Locale): the Locale to get the resource from if there is no standard version.
+        locale (OneLauncherLocale): the OneLauncherLocale to get the resource from if there is no standard version.
 
     Returns:
         Path: Full path to resource, localized if a generic version isn't available.
@@ -88,18 +90,18 @@ def get_resource(relative_path: Path, locale: Locale) -> Path:
             f"There is no generic or localized version of {relative_path} for the language {locale}")
 
 
-def _get_available_locales(data_dir: Path) -> Dict[str, Locale]:
-    locales = {}
+def _get_available_locales(data_dir: Path) -> Dict[str, OneLauncherLocale]:
+    locales: dict[str, OneLauncherLocale] = {}
 
     for path in (data_dir/"locale").glob("*/"):
         if path.is_dir():
             lang_tag = path.name
-            locales[lang_tag] = Locale(lang_tag)
+            locales[lang_tag] = OneLauncherLocale(lang_tag)
 
     return locales
 
 
-def _get_system_locale(available_locales: dict[str, Locale]) -> Optional[Locale]:
+def _get_system_locale(available_locales: dict[str, OneLauncherLocale]) -> Optional[OneLauncherLocale]:
     """Returns locale from available_locales that
     matches the system. None will be returned if none match."""
 
@@ -119,8 +121,8 @@ def _get_system_locale(available_locales: dict[str, Locale]) -> Optional[Locale]
         return None
 
 
-def get_game_dir_available_locales(game_dir: Path) -> List[Locale]:
-    available_game_locales = []
+def get_game_dir_available_locales(game_dir: Path) -> List[OneLauncherLocale]:
+    available_game_locales: List[OneLauncherLocale] = []
 
     available_locales_game_names = {
         locale.game_language_name: locale for locale in available_locales.values()}

@@ -1,0 +1,61 @@
+# -*- coding: utf-8 -*-
+
+################################################################################
+## Form generated from reading UI file 'select_subscription.ui'
+##
+## Created by: Qt User Interface Compiler version 6.2.1
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
+################################################################################
+
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QAbstractButton, QApplication, QCheckBox, QComboBox,
+    QDialog, QDialogButtonBox, QLabel, QSizePolicy)
+
+class Ui_dlgSelectSubscription(object):
+    def setupUi(self, dlgSelectSubscription):
+        if not dlgSelectSubscription.objectName():
+            dlgSelectSubscription.setObjectName(u"dlgSelectSubscription")
+        dlgSelectSubscription.setWindowModality(Qt.ApplicationModal)
+        dlgSelectSubscription.resize(320, 169)
+        font = QFont()
+        font.setPointSize(12)
+        dlgSelectSubscription.setFont(font)
+        dlgSelectSubscription.setModal(True)
+        self.subscriptionsComboBox = QComboBox(dlgSelectSubscription)
+        self.subscriptionsComboBox.setObjectName(u"subscriptionsComboBox")
+        self.subscriptionsComboBox.setGeometry(QRect(5, 90, 310, 33))
+        self.label = QLabel(dlgSelectSubscription)
+        self.label.setObjectName(u"label")
+        self.label.setGeometry(QRect(-5, 8, 331, 71))
+        self.label.setAlignment(Qt.AlignCenter)
+        self.buttonBox = QDialogButtonBox(dlgSelectSubscription)
+        self.buttonBox.setObjectName(u"buttonBox")
+        self.buttonBox.setGeometry(QRect(145, 135, 166, 27))
+        self.buttonBox.setOrientation(Qt.Horizontal)
+        self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
+        self.saveSelectionCheckBox = QCheckBox(dlgSelectSubscription)
+        self.saveSelectionCheckBox.setObjectName(u"saveSelectionCheckBox")
+        self.saveSelectionCheckBox.setGeometry(QRect(4, 138, 141, 21))
+
+        self.retranslateUi(dlgSelectSubscription)
+        self.buttonBox.accepted.connect(dlgSelectSubscription.accept)
+        self.buttonBox.rejected.connect(dlgSelectSubscription.reject)
+
+        QMetaObject.connectSlotsByName(dlgSelectSubscription)
+    # setupUi
+
+    def retranslateUi(self, dlgSelectSubscription):
+        dlgSelectSubscription.setWindowTitle(QCoreApplication.translate("dlgSelectSubscription", u"Select Subscription", None))
+        self.label.setText(QCoreApplication.translate("dlgSelectSubscription", u"Multiple game sub-accounts found\n"
+"\n"
+"Please select one", None))
+        self.saveSelectionCheckBox.setText(QCoreApplication.translate("dlgSelectSubscription", u"Save Selection", None))
+    # retranslateUi
+

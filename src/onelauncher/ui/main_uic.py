@@ -3,15 +3,22 @@
 ################################################################################
 ## Form generated from reading UI file 'main.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.1.3
+## Created by: Qt User Interface Compiler version 6.2.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import *  # type: ignore
-from PySide6.QtGui import *  # type: ignore
-from PySide6.QtWidgets import *  # type: ignore
-
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
+    QCursor, QFont, QFontDatabase, QGradient,
+    QIcon, QImage, QKeySequence, QLinearGradient,
+    QPainter, QPalette, QPixmap, QRadialGradient,
+    QTransform)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QLabel,
+    QLineEdit, QMainWindow, QSizePolicy, QTextBrowser,
+    QToolButton, QWidget)
 
 class Ui_winMain(object):
     def setupUi(self, winMain):
@@ -29,8 +36,8 @@ class Ui_winMain(object):
         self.actionLOTRO.setObjectName(u"actionLOTRO")
         self.actionDDO = QAction(winMain)
         self.actionDDO.setObjectName(u"actionDDO")
-        self.actionForgetSubaccountSelection = QAction(winMain)
-        self.actionForgetSubaccountSelection.setObjectName(u"actionForgetSubaccountSelection")
+        self.actionForgetSubscriptionSelection = QAction(winMain)
+        self.actionForgetSubscriptionSelection.setObjectName(u"actionForgetSubscriptionSelection")
         self.centralwidget = QWidget(winMain)
         self.centralwidget.setObjectName(u"centralwidget")
         self.lblWorld = QLabel(self.centralwidget)
@@ -178,7 +185,7 @@ class Ui_winMain(object):
 #endif // QT_CONFIG(tooltip)
         self.actionLOTRO.setText(QCoreApplication.translate("winMain", u"Lord of the Rings Online", None))
         self.actionDDO.setText(QCoreApplication.translate("winMain", u"Dungeons and Dragons Online", None))
-        self.actionForgetSubaccountSelection.setText(QCoreApplication.translate("winMain", u"Forget sub-account selection", None))
+        self.actionForgetSubscriptionSelection.setText(QCoreApplication.translate("winMain", u"Forget subscription selection", None))
 #if QT_CONFIG(tooltip)
         self.lblWorld.setToolTip(QCoreApplication.translate("winMain", u"<html><head/><body><p>Game server</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)

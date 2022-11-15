@@ -18,7 +18,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.11"
+python = ">=3.10,<3.11"
 PySide6 = "^6.0.2,!=6.2.0"
 keyring = "^23.0.1"
 cryptography = "^3.4.7"
@@ -29,6 +29,12 @@ vkbeautify = "^0.3.0"
 rtoml = "^0.7.0"
 platformdirs = "^2.2.0"
 bidict = "^0.21.2"
+xmlschema = "^2.0.2"
+requests = "^2.27.1"
+feedparser = "^6.0.10"
+Babel = "^2.10.3"
+zeep = "^4.1.0"
+cachetools = "^5.2.0"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"
@@ -37,6 +43,8 @@ autopep8 = "^1.5.7"
 pytest = "^6.2.4"
 isort = "^5.9.3"
 mypy = "^0.910"
+types-requests = "^2.27.27"
+types-cachetools = "^5.2.1"
 
 [tool.poetry.scripts]
 onelauncher = "onelauncher.start_ui:main"
@@ -47,3 +55,17 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.autopep8]
 aggressive = 3
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
+
+
+[[tool.mypy.overrides]]
+module = [
+    "feedparser" # TODO Future version will have typing, 
+                 # once https://github.com/kurtmckee/feedparser/blob/develop/changelog.d/20210801_133300_palfrey_typing.rst
+                 # makes it to a release
+]
+ignore_missing_imports = true

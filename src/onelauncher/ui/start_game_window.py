@@ -26,39 +26,35 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from pathlib import Path
-import os
 import logging
+from typing import Optional
 
 from PySide6 import QtCore, QtWidgets
 
 from onelauncher import settings
 from onelauncher.config import platform_dirs
+from onelauncher.network.game_launcher_config import GameLauncherConfig
+from onelauncher.start_game import MissingLaunchArgumentError, get_qprocess
+from onelauncher.network.world import World
 from onelauncher.utilities import QByteArray2str
-from onelauncher.wine_management import edit_qprocess_to_use_wine
 from onelauncher.ui.start_game_uic import Ui_startGameDialog
 
 
 class StartGame(QtWidgets.QDialog):
     def __init__(
         self,
-        client_filename: str,
         game: settings.Game,
-        argTemplate,
-        account,
-        server,
+        game_launcher_config: GameLauncherConfig,
+        world: World,
+        account_number: str,
         ticket,
-        chatServer,
-        crashreceiver,
-        DefaultUploadThrottleMbps,
-        bugurl,
-        authserverurl,
-        supporturl,
-        supportserviceurl,
-        glsticketlifetime,
-        worldName,
-        accountText,
     ):
+        self.game = game
+        self.game_launcher_config = game_launcher_config
+        self.world = world
+        self.account_number = account_number
+        self.ticket = ticket
+
         super(
             StartGame,
             self).__init__(
@@ -67,16 +63,6 @@ class StartGame(QtWidgets.QDialog):
 
         self.ui = Ui_startGameDialog()
         self.ui.setupUi(self)
-
-        # Fixes binary path for 64-bit client
-        if game.client_type == "WIN64":
-            client_relative_path = Path("x64") / client_filename
-        else:
-            client_relative_path = Path(client_filename)
-
-        self.worldName = worldName
-        self.accountText = accountText
-        self.game = game
 
         self.ui.btnStart.setText("Back")
         self.ui.btnStart.setEnabled(False)
@@ -90,64 +76,53 @@ class StartGame(QtWidgets.QDialog):
         self.aborted = False
         self.finished = False
 
-        gameParams = (
-            argTemplate.replace("{SUBSCRIPTION}", account)
-            .replace("{LOGIN}", server)
-            .replace("{GLS}", ticket)
-            .replace("{CHAT}", chatServer)
-            .replace("{LANG}", game.locale.game_language_name)
-            .replace("{CRASHRECEIVER}", crashreceiver)
-            .replace("{UPLOADTHROTTLE}", DefaultUploadThrottleMbps)
-            .replace("{BUGURL}", bugurl)
-            .replace("{AUTHSERVERURL}", authserverurl)
-            .replace("{GLSTICKETLIFETIME}", glsticketlifetime)
-            .replace("{SUPPORTURL}", supporturl)
-            .replace("{SUPPORTSERVICEURL}", supportserviceurl)
-        )
-
-        if not game.high_res_enabled:
-            gameParams += " --HighResOutOfDate"
-
-        self.process = QtCore.QProcess()
-        self.process.readyReadStandardOutput.connect(self.readOutput)
-        self.process.readyReadStandardError.connect(self.readErrors)
-        self.process.finished.connect(self.resetButtons)
-
-        self.process.setProgram(str(client_relative_path))
-        self.process.setArguments([arg for arg in gameParams.split(" ")])
-        if os.name != "nt":
-            edit_qprocess_to_use_wine(self.process)
-
-        self.process.setWorkingDirectory(str(game.game_directory))
-
-        self.ui.txtLog.append("Connecting to server: " + worldName)
-        self.ui.txtLog.append("Account: " + accountText)
-        self.ui.txtLog.append("Game Directory: " + str(game.game_directory))
-        self.ui.txtLog.append("Game Client: " + str(client_relative_path))
-
         self.show()
 
-        self.runStatupScripts()
+    def get_qprocess(self) -> Optional[QtCore.QProcess]:
+        """Return setup qprocess with connected signals"""
+        try:
+            process = get_qprocess(
+                self.game_launcher_config,
+                self.game,
+                self.world,
+                self.account_number,
+                self.ticket)
+        except MissingLaunchArgumentError:
+            # TODO: Easy bug report
+            self.ui.txtLog.append(
+                "<font color=\"red\">Game launch argument missing. "
+                "Please report this error if using a supported server.< /font >")
+            logger.exception("Launch argument missing.")
+            self.reset_buttons()
+            return None
+
+        process.readyReadStandardOutput.connect(self.readOutput)
+        process.readyReadStandardError.connect(self.readErrors)
+        process.finished.connect(self.process_finished)
+        return process
 
     def readOutput(self):
         text = QByteArray2str(self.process.readAllStandardOutput())
         self.ui.txtLog.append(text)
-        logger.debug("Game: " + text)
+        logger.debug(f"Game: {text}")
 
     def readErrors(self):
         text = QByteArray2str(self.process.readAllStandardError())
         self.ui.txtLog.append(text)
-        logger.debug("Game: " + text)
+        logger.debug(f"Game: {text}")
 
-    def resetButtons(self, exitCode, exitStatus):
-        self.finished = True
-        self.ui.btnStop.setText("Exit")
-        self.ui.btnSave.setEnabled(True)
-        self.ui.btnStart.setEnabled(True)
+    def process_finished(self, exit_code, exit_status):
+        self.reset_buttons()
         if self.aborted:
             self.ui.txtLog.append("<b>***  Aborted  ***</b>")
         else:
             self.ui.txtLog.append("<b>***  Finished  ***</b>")
+
+    def reset_buttons(self):
+        self.finished = True
+        self.ui.btnStop.setText("Exit")
+        self.ui.btnSave.setEnabled(True)
+        self.ui.btnStart.setEnabled(True)
 
     def btnStartClicked(self):
         if self.finished:
@@ -195,13 +170,19 @@ class StartGame(QtWidgets.QDialog):
                 self.ui.txtLog.append(
                     f"'{script}' startup script does not exist")
 
-    def Run(self):
-        self.finished = False
+    def start_game(self):
+        self.process = self.get_qprocess()
+        if self.process is None:
+            return
 
+        self.finished = False
         self.ui.btnStop.setText("Abort")
+        self.runStatupScripts()
         self.process.start()
-        logger.info("Game started with: " +
-                    str([self.process.program(), self.process.arguments()]))
+        logger.info(
+            f"Game started with: {self.process.program(), self.process.arguments()}")
+        self.ui.txtLog.append(f"Connecting to world: {self.world.name}")
+        
 
         self.exec()
 

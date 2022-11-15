@@ -27,11 +27,12 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
+import contextlib
+from enum import Enum
 import os
 import logging
 from pathlib import Path
-import pathlib
-from typing import Any, Callable, Dict, Final, List, Optional
+from typing import Any, Callable, Dict, Final, List, Optional, Set
 from uuid import UUID, uuid4
 
 import rtoml
@@ -40,7 +41,7 @@ from xml.etree import ElementTree
 import onelauncher
 from onelauncher.config import platform_dirs
 from onelauncher.utilities import CaseInsensitiveAbsolutePath
-from onelauncher.resources import available_locales, Locale, system_locale
+from onelauncher.resources import OneLauncherLocale, available_locales, system_locale
 
 
 class ProgramSettings():
@@ -53,7 +54,7 @@ class ProgramSettings():
 
         self.load()
 
-        self.ui_locale = self.default_locale
+        self.ui_locale: OneLauncherLocale = self.default_locale
 
     @property
     def games_sorting_mode(self) -> str:
@@ -75,12 +76,12 @@ class ProgramSettings():
         self._games_sorting_mode = new_value
 
     @property
-    def default_locale(self) -> Locale:
+    def default_locale(self) -> OneLauncherLocale:
         """Locale for OneLauncher UI. This is changed by __init__.py"""
         return self._default_locale
 
     @default_locale.setter
-    def default_locale(self, new_value: Locale):
+    def default_locale(self, new_value: OneLauncherLocale):
         self._default_locale = new_value
 
         set_ui_locale()
@@ -132,10 +133,10 @@ class ProgramSettings():
 
 class Account():
     def __init__(self, name: str, last_used_world_name: str,
-                 save_subaccount_selection: bool = False) -> None:
+                 save_subscription_selection: bool = False) -> None:
         self._name: Final = name
         self.last_used_world_name = last_used_world_name
-        self.save_subaccount_selection = save_subaccount_selection
+        self.save_subscription_selection = save_subscription_selection
 
     @property
     def name(self) -> str:
@@ -143,73 +144,17 @@ class Account():
         return self._name
 
 
-class CaseInsensitiveAbsolutePath(Path):
-    _flavour = pathlib._windows_flavour if os.name == 'nt' else pathlib._posix_flavour  # type: ignore
-
-    def __new__(cls, *pathsegments, **kwargs):
-        normal_path = Path(*pathsegments, **kwargs)
-        if not normal_path.is_absolute():
-            raise ValueError("Path is not absolute.")
-        path = cls._get_real_path_from_fully_case_insensitive_path(normal_path)
-        return super().__new__(cls, path, **kwargs)
-
-    @classmethod
-    def _get_real_path_from_fully_case_insensitive_path(
-            cls, base_path: Path) -> Path:
-        """Return any found path that matches base_path when ignoring case"""
-        # Base version already exists
-        if base_path.exists():
-            return base_path
-
-        parts = list(base_path.parts)
-        if not Path(parts[0]).exists():
-            # If root doesn't exist, nothing else can be checked
-            return base_path
-
-        # Range starts at 1 to ingore root which has already been checked
-        for i in range(1, len(parts)):
-            current_path = Path(
-                *(parts if i == len(parts) - 1 else parts[:i + 1]))
-            real_path = cls._get_real_path_from_name_case_insensitive_path(
-                current_path)
-            # Second check is for if there is a file or broken symlink before
-            # the end of the path. Without the check it would raise and
-            # exception in cls._get_real_path_from_name_case_insensitive_path
-            if real_path is None or (
-                    i < len(parts) - 1 and not real_path.is_dir()):
-                # No version exists, so the original is just returned
-                return base_path
-
-            parts[i] = real_path.name
-
-        return Path(*parts)
-
-    @staticmethod
-    def _get_real_path_from_name_case_insensitive_path(
-            base_path: Path) -> Optional[Path]:
-        """
-        Return any found path where path.name == base_path.name ignoring case.
-        base_path.parent has to exist. Use _get_case_sensitive_full_path if
-        this is not the case.
-        """
-        if not base_path.parent.exists():
-            raise FileNotFoundError(
-                f"`{base_path.parent}` parent path does not exist")
-
-        if base_path.exists():
-            return base_path
-
-        for path in base_path.parent.iterdir():
-            if path.name.lower() == base_path.name.lower():
-                return path
-
-        return None
-
-    def _make_child(self, args) -> Path:
-        _, _, parts = super()._parse_args(args)  # type: ignore
-        joined_path = super()._make_child((Path(*parts),))  # type: ignore
-        return self._get_real_path_from_fully_case_insensitive_path(
-            joined_path)
+# TODO: Change to StrEnum once on Python 3.11. Can then also change the
+# places using the enum value to just the enum. ex. ClientType.WIN64.value
+# to get "WIN64" can isntead just be ClientType.WIN64. Think this would be
+# helpful, as it makes it where the enum can just be used everywhere
+# rather than having to know about the difference between the enum and
+# game client values.
+class ClientType(Enum):
+    WIN64 = "WIN64"
+    WIN32 = "WIN32"
+    WIN32_LEGACY = "WIN32Legacy"
+    WIN32Legacy = "WIN32Legacy"
 
 
 class Game():
@@ -217,14 +162,15 @@ class Game():
                  uuid: UUID,
                  game_type: str,
                  game_directory: CaseInsensitiveAbsolutePath,
-                 locale: Locale,
-                 client_type: str,
+                 locale: OneLauncherLocale,
+                 client_type: ClientType,
                  high_res_enabled: bool,
                  patch_client_filename: str,
                  startup_scripts: List[Path],
                  name: str,
                  description: str,
                  newsfeed: Optional[str] = None,
+                 standard_game_launcher_filename: Optional[str] = None,
                  wine_path: Optional[Path] = None,
                  builtin_wine_prefix_enabled: Optional[bool] = None,
                  wine_prefix_path: Optional[Path] = None,
@@ -243,6 +189,7 @@ class Game():
         self._name = name
         self.description = description
         self.newsfeed = newsfeed
+        self.standard_game_launcher_filename = standard_game_launcher_filename
         self.wine_path = wine_path
         self.builtin_wine_prefix_enabled = builtin_wine_prefix_enabled
         self.wine_prefix_path = wine_prefix_path
@@ -277,26 +224,12 @@ class Game():
         self._game_type = new_value
 
     @property
-    def client_type(self) -> str:
-        return self._client_type
-
-    @client_type.setter
-    def client_type(self, new_value: str) -> None:
-        """WIN32, WIN32Legacy, or WIN64"""
-        valid_client_types = ["WIN32", "WIN32Legacy", "WIN64"]
-        if new_value not in valid_client_types:
-            raise ValueError(
-                f"{new_value} is not a valid client type. Valid types are {valid_client_types}.")
-
-        self._client_type = new_value
-
-    @property
-    def locale(self) -> Locale:
+    def locale(self) -> OneLauncherLocale:
         return self._locale
 
     @locale.setter
-    def locale(self, new_value: Locale):
-        self._locale = new_value
+    def locale(self, new_val: OneLauncherLocale):
+        self._locale = new_val
 
         set_ui_locale()
 
@@ -500,38 +433,37 @@ class GamesSettings():
         if "prefix_path" in game_dict["wine"]:
             prefix_path = Path(game_dict["wine"]["prefix_path"])
 
-
-        self.games[uuid] = Game(
-            uuid,
-            game_dict["game_type"],
-            game_directory,
-            available_locales[
-                game_dict.get(
-                    "language", str(
-                        program_settings.default_locale)
-                )
-            ],
-            game_dict.get("client_type", "WIN64"),
-            game_dict.get("high_res_enabled", True),
-            game_dict.get("patch_client_filename", "patchclient.dll"),
-            [Path(script) for script in game_dict.get("startup_scripts", [])],
-            game_dict["info"].get(
-                "name", self.get_game_name(game_directory, uuid)),
-            game_dict["info"].get("description", ""),
-            game_dict["info"].get("newsfeed", None),
-            wine_path,
-            game_dict["wine"].get("builtin_prefix_enabled", True),
-            prefix_path,
-            game_dict["wine"].get("debug_level", None),
-            {
-                account["account_name"]: Account(
-                    account["account_name"], account["last_used_world_name"],
-                    account["save_subaccount_selection"]
-                )
-                for account in game_dict["accounts"]
-            },
-            on_name_change_function=self.sort_alphabetical_sorting_lists,
-        )
+        self.games[uuid] = Game(uuid,
+                                game_dict["game_type"],
+                                game_directory,
+                                available_locales[game_dict.get("language",
+                                                                str(program_settings.default_locale))],
+                                ClientType(game_dict.get("client_type",
+                                                         "WIN64")),
+                                game_dict.get("high_res_enabled",
+                                              True),
+                                game_dict.get("patch_client_filename",
+                                              "patchclient.dll"),
+                                [Path(script) for script in game_dict.get("startup_scripts", [])],
+                                game_dict["info"].get("name",
+                                                      self.get_game_name(game_directory,
+                                                                         uuid)),
+                                game_dict["info"].get("description",
+                                                      ""),
+                                game_dict["info"].get("newsfeed",
+                                                      None),
+                                game_dict.get("standard_game_launcher_filename", None),
+                                wine_path,
+                                game_dict["wine"].get("builtin_prefix_enabled",
+                                                      True),
+                                prefix_path,
+                                game_dict["wine"].get("debug_level",
+                                                      None),
+                                {account["account_name"]: Account(account["account_name"],
+                                                                  account["last_used_world_name"],
+                                                                  account.get("save_subscription_selection", False)) for account in game_dict["accounts"]},
+                                on_name_change_function=self.sort_alphabetical_sorting_lists,
+                                )
 
     def sort_alphabetical_sorting_lists(self) -> None:
         self.lotro_games_alphabetical_sorted.sort(key=lambda game: game.name)
@@ -539,7 +471,7 @@ class GamesSettings():
 
     def save(self):
         settings_dict: Dict[str, Any] = {}
-        try:
+        with contextlib.suppress(AttributeError):
             if self.current_game.uuid in self.games:
                 if self.current_game.game_type == "LOTRO":
                     last_used_sorted = self.lotro_games_last_used_sorted
@@ -556,9 +488,6 @@ class GamesSettings():
 
                 settings_dict["last_used_game_uuid"] = str(
                     self.current_game.uuid)
-        except AttributeError:
-            pass
-
         settings_dict["lotro_games_priority_sorted"] = [
             str(game.uuid) for game in self.lotro_games_priority_sorted]
         settings_dict["lotro_games_last_used_sorted"] = [
@@ -571,49 +500,55 @@ class GamesSettings():
         games_list: List[Dict[str, Any]] = []
         settings_dict["games"] = games_list
         for game in self.games.values():
-            if os.name == "nt":
-                wine_settings_dict = {}
-            else:
-                wine_settings_dict = {
-                    "wine_path": str(game.wine_path),
-                    "builtin_prefix_enabled": game.builtin_wine_prefix_enabled,
-                    "prefix_path": str(game.wine_prefix_path),
-                    "debug_level": game.wine_debug_level,
-                }
-
-            info_settings_dict = {
-                "name": game.name,
-                "description": game.description,
-                "newsfeed": game.newsfeed,
-            }
-
-            if game.accounts:
-                accounts_settings_list = [
-                    {"account_name": account.name,
-                        "last_used_world_name": account.last_used_world_name,
-                        "save_subaccount_selection": account.save_subaccount_selection}
-                    for account in game.accounts.values()]
-            else:
-                accounts_settings_list = []
-
-            game_dict = {
+            game_dict: Dict[str, Any] = {
                 "uuid": str(
                     game.uuid),
                 "game_type": game.game_type,
                 "game_directory": str(
                     game.game_directory),
                 "language": game.locale.lang_tag,
-                "client_type": game.client_type,
+                "client_type": game.client_type.value,
                 "high_res_enabled": game.high_res_enabled,
                 "patch_client_filename": game.patch_client_filename,
-                "startup_scripts": [
-                    str(script) for script in game.startup_scripts],
-                "wine": wine_settings_dict,
-                "info": info_settings_dict,
-                "accounts": accounts_settings_list,
             }
-            game_dict = self._remove_empty_values_from_dict(
-                game_dict, recursive=True)
+            if game.standard_game_launcher_filename:
+                game_dict["standard_game_launcher_filename"] = game.standard_game_launcher_filename
+
+            if game.startup_scripts:
+                game_dict["startup_scripts"] = [
+                    str(script) for script in game.startup_scripts]
+
+            if os.name != "nt":  # WINE is not needed on Windows
+                wine_settings_dict = {}
+                if game.builtin_wine_prefix_enabled is not None:
+                    wine_settings_dict["builtin_prefix_enabled"] = game.builtin_wine_prefix_enabled
+
+                if game.wine_path is not None:
+                    wine_settings_dict["wine_path"] = str(game.wine_path)
+
+                if game.wine_prefix_path is not None:
+                    wine_settings_dict["prefix_path"] = str(
+                        game.wine_prefix_path)
+
+                if game.wine_debug_level is not None:
+                    wine_settings_dict["debug_level"] = game.wine_debug_level
+
+                game_dict["wine"] = wine_settings_dict
+
+            info_settings_dict = {
+                "name": game.name,
+                "description": game.description}
+            if game.newsfeed is not None:
+                info_settings_dict["newsfeed"] = game.newsfeed
+            game_dict["info"] = info_settings_dict
+
+            if game.accounts:
+                game_dict["accounts"] = [
+                    {"account_name": account.name,
+                        "last_used_world_name": account.last_used_world_name,
+                        "save_subscription_selection": account.save_subscription_selection}
+                    for account in game.accounts.values()]
+
             games_list.append(game_dict)
 
         rtoml.dump(settings_dict, self.config_path, pretty=True)
@@ -627,25 +562,6 @@ class GamesSettings():
         self._current_game = new_value
 
         set_ui_locale()
-
-    def _remove_empty_values_from_dict(
-            self,
-            input_dict: dict[Any,Any],
-            recursive: bool = True) -> dict[Any,Any]:
-        input_dict = {
-            key: input_dict[key] for key in input_dict if input_dict[key] and input_dict[key] not in [
-                "None", "."]}
-
-        if recursive:
-            new_dict = {
-                key: self._remove_empty_values_from_dict(value, recursive=True)
-                if isinstance(value, dict)
-                else value
-                for key, value in input_dict.items()
-            }
-            input_dict = new_dict
-
-        return input_dict
 
     def get_new_uuid(self) -> UUID:
         """Return UUID that doesn't already exist in the games config"""

@@ -175,7 +175,7 @@ def check_for_update():
     )
 
     try:
-        with urllib.request.urlopen(latest_release_url, timeout=2) as response:
+        with urllib.request.urlopen(latest_release_url, timeout=4) as response:
             release_dictionary = jsonLoads(response.read())
     except (urllib.error.URLError, urllib.error.HTTPError) as error:
         logger.error(error.reason, exc_info=True)
