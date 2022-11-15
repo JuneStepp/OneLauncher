@@ -22,7 +22,7 @@ def get_mock_game_launcher_config_partial() -> partial[GameLauncherConfig]:
         high_res_patch_arg=None,
         patching_product_code="LOTRO",
         login_queue_url="https://gls.lotro.com/GLS.AuthServer/LoginQueue.aspx",
-        join_login_queue_params_template="command=TakeANumber&amp;subscription={0}&amp;ticket={1}&amp;ticket_type=GLS&amp;queue_url={2}",
+        login_queue_params_template="command=TakeANumber&amp;subscription={0}&amp;ticket={1}&amp;ticket_type=GLS&amp;queue_url={2}",
         newsfeed_url_template="https://forums.lotro.com/{lang}/launcher-feed.xml")
 
 
