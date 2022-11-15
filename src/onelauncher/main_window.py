@@ -535,11 +535,12 @@ class MainWindow(QtWidgets.QMainWindow):
                     "Please report this error if it continues")  # TODO Easy report
                 logger.exception("")
                 return
-            self.AddLog(
-                f"Position in queue: {world_queue_result.queue_number}")
             if (world_queue_result.queue_number <=
                     world_queue_result.now_serving_number):
                 break
+            people_ahead_in_queue = world_queue_result.queue_number - \
+                world_queue_result.now_serving_number
+            self.AddLog(f"Position in queue: {people_ahead_in_queue}")
 
         self.start_game(account_number)
 
