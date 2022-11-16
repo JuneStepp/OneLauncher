@@ -7,15 +7,15 @@ class GameSubscription(NamedTuple):
     datacenter_game_name: str
     name: str
     description: str
-    product_tokens: List[str]
-    customer_service_tokens: List[str]
+    product_tokens: Optional[List[str]]
+    customer_service_tokens: Optional[List[str]]
     expiration_date: Optional[str]
     status: Optional[str]
     next_billing_date: Optional[str]
     pending_cancel_date: Optional[str]
     auto_renew: Optional[str]
     billing_system_time: Optional[str]
-    aditional_info: Optional[str]
+    additional_info: Optional[str]
 
     @classmethod
     def from_dict(cls, subscription_dict: dict):
@@ -38,8 +38,8 @@ class GameSubscription(NamedTuple):
                 subscription_dict["Game"],
                 subscription_dict["Name"],
                 subscription_dict["Description"],
-                product_tokens,
-                customer_service_tokens,
+                product_tokens or None,
+                customer_service_tokens or None,
                 subscription_dict["ExpirationDate"],
                 subscription_dict["Status"],
                 subscription_dict["NextBillingDate"],
