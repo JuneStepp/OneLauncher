@@ -44,11 +44,11 @@ from PySide6.QtUiTools import QUiLoader
 from vkbeautify import xml as prettify_xml
 
 import onelauncher
-from onelauncher import settings, resources, logger, game_settings
-from onelauncher.settings import CaseInsensitiveAbsolutePath
-from onelauncher.utilities import GetText
-from onelauncher.ui_resources import icon_font
+from onelauncher.config import platform_dirs
+from onelauncher.settings import CaseInsensitiveAbsolutePath, game_settings
 from onelauncher.ui.addon_manager_uic import Ui_winAddonManager
+from onelauncher.ui_resources import icon_font
+from onelauncher.utilities import GetText
 
 
 class AddonManager(QtWidgets.QDialog):
@@ -86,7 +86,6 @@ class AddonManager(QtWidgets.QDialog):
 
     def __init__(
         self,
-        gameDocumentsDir: CaseInsensitiveAbsolutePath,
     ):
         super(
             AddonManager,
@@ -223,7 +222,7 @@ class AddonManager(QtWidgets.QDialog):
 
         self.openDB()
 
-        self.data_folder = gameDocumentsDir
+        self.data_folder = game_settings.current_game.documents_config_dir
         if game_settings.current_game.game_type == "DDO":
             self.data_folder_skins = self.data_folder / "ui/skins"
 
@@ -504,7 +503,7 @@ class AddonManager(QtWidgets.QDialog):
         Opens addons_cache database and creates new database if
         one doesn't exist or the current one has an outdated structure
         """
-        addons_cache_db_path = settings.platform_dirs.user_cache_path / "addons_cache.sqlite"
+        addons_cache_db_path = platform_dirs.user_cache_path / "addons_cache.sqlite"
         if addons_cache_db_path.exists():
             # Connects to addons_cache database
             self.conn = sqlite3.connect(str(addons_cache_db_path))
@@ -566,7 +565,7 @@ class AddonManager(QtWidgets.QDialog):
     def createDB(self):
         """Creates ans sets up addons_cache database"""
         self.conn = sqlite3.connect(
-            str(settings.platform_dirs.user_cache_path / "addons_cache.sqlite")
+            str(platform_dirs.user_cache_path / "addons_cache.sqlite")
         )
         self.c = self.conn.cursor()
 
@@ -2298,3 +2297,6 @@ class AddonManager(QtWidgets.QDialog):
                     relative_to_game_documents_dir_script)
 
             script_path.unlink(missing_ok=True)
+
+
+logger = logging.getLogger("main")
