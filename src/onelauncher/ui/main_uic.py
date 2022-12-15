@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'main.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.2.1
+## Created by: Qt User Interface Compiler version 6.3.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -121,6 +121,7 @@ class Ui_winMain(object):
         self.cboAccount.setObjectName(u"cboAccount")
         self.cboAccount.setGeometry(QRect(525, 95, 260, 32))
         self.cboAccount.setEditable(True)
+        self.cboAccount.setInsertPolicy(QComboBox.NoInsert)
         self.saveSettingsToolButton = QToolButton(self.centralwidget)
         self.saveSettingsToolButton.setObjectName(u"saveSettingsToolButton")
         self.saveSettingsToolButton.setGeometry(QRect(736, 175, 16, 26))

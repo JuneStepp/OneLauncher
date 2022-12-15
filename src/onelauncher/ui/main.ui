@@ -384,6 +384,9 @@
     <property name="editable">
      <bool>true</bool>
     </property>
+    <property name="insertPolicy">
+     <enum>QComboBox::NoInsert</enum>
+    </property>
    </widget>
    <widget class="QToolButton" name="saveSettingsToolButton">
     <property name="geometry">

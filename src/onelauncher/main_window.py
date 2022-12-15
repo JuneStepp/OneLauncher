@@ -88,8 +88,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setup_save_accounts_dropdown()
         self.ui.btnSwitchGame.clicked.connect(self.btnSwitchGameClicked)
 
+        self.ui.cboAccount.lineEdit().setClearButtonEnabled(True)
         # Accounts combo box item selection signal
-        self.ui.cboAccount.textActivated.connect(self.cboAccountChanged)
+        self.ui.cboAccount.currentIndexChanged.connect(
+            self.accounts_index_changed)
+        self.ui.cboAccount.lineEdit().textEdited.connect(self.user_edited_account_name)
 
         # Pressing enter in password box acts like pressing login button
         self.ui.txtPassword.returnPressed.connect(self.btnLoginClicked)
@@ -106,7 +109,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def resetFocus(self):
         if self.ui.cboAccount.currentText() == "":
             self.ui.cboAccount.setFocus()
-        elif self.ui.txtPassword.text() == "":
+        elif (self.ui.txtPassword.text() == "" and
+              self.ui.txtPassword.placeholderText() == ""):
             self.ui.txtPassword.setFocus()
 
     def mousePressEvent(self, event):
@@ -275,7 +279,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def btnLoginClicked(self):
         if (
             self.ui.cboAccount.currentText() == ""
-            or self.ui.txtPassword.text() == ""
+            or (self.ui.txtPassword.text() == "" and
+                self.ui.txtPassword.placeholderText() == "")
         ):
             self.AddLog(
                 '<font color="Khaki">Please enter account name and password</font>'
@@ -291,13 +296,34 @@ class MainWindow(QtWidgets.QMainWindow):
         program_settings.save()
         game_settings.save()
 
-    def cboAccountChanged(self):
+    def accounts_index_changed(self, new_index):
         """Sets saved information for selected account."""
+        # No selection
+        if new_index == -1:
+            return
+
+        self.ui.txtPassword.clear()
         self.setCurrentAccountWorld()
-        self.setCurrentAccountPassword()
-        self.ui.txtPassword.setFocus()
+        self.set_current_account_placeholder_password()
+        self.resetFocus()
+
+    def user_edited_account_name(self, new_text: str):
+        # No saved account is selected
+        if self.ui.cboAccount.currentIndex() == -1:
+            return
+
+        # Unselect any saved accounts once user manually edits account name.
+        self.ui.cboAccount.setCurrentIndex(-1)
+        # Make sure text doesn't get reset when index is changed
+        self.ui.cboAccount.setEditText(new_text)
+        # Remove any placeholder text for saved password of previously selected
+        # account.
+        self.ui.txtPassword.setPlaceholderText("")
 
     def loadAllSavedAccounts(self):
+        self.ui.cboAccount.clear()
+        self.ui.cboAccount.setCurrentText("")
+        
         self.ui.saveSettingsToolButton.setVisible(False)
 
         if program_settings.save_accounts is False:
@@ -312,8 +338,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # are in order of most recentally played
         for account in accounts[::-1]:
             self.ui.cboAccount.addItem(account.name, userData=account)
+        self.ui.cboAccount.setCurrentIndex(0)
 
-        self.ui.cboAccount.setCurrentText(accounts[-1].name)
         account: settings.Account = self.ui.cboAccount.currentData()
         if account.save_subscription_selection:
             self.ui.saveSettingsToolButton.setVisible(True)
@@ -332,15 +358,19 @@ class MainWindow(QtWidgets.QMainWindow):
     def get_current_keyring_subscription_selection_username(self) -> str:
         return f"SubscriptionSelection{self.get_current_keyring_username()}"
 
-    def setCurrentAccountPassword(self):
+    def set_current_account_placeholder_password(self):
         keyring_username = self.get_current_keyring_username()
 
         if not program_settings.save_accounts_passwords:
             self.ui.txtPassword.setFocus()
             return
 
-        self.ui.txtPassword.setText(keyring.get_password(
-            onelauncher.__title__, keyring_username) or "")
+        password = keyring.get_password(
+            onelauncher.__title__, keyring_username)
+        if password is None:
+            return
+        self.ui.txtPassword.setPlaceholderText("*" * len(password))
+        del password
 
     def get_game_subscription_selection(
             self,
@@ -401,7 +431,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.login_response = login_account.login_account(
                 self.game_services_info.auth_server,
                 self.ui.cboAccount.currentText(),
-                self.ui.txtPassword.text(),
+                self.ui.txtPassword.text() or keyring.get_password(
+                    onelauncher.__title__,
+                    self.get_current_keyring_username()),
             )
         except login_account.WrongUsernameOrPasswordError:
             self.AddLog("Username or password is incorrect", True)
@@ -445,17 +477,20 @@ class MainWindow(QtWidgets.QMainWindow):
 
             keyring_username = self.get_current_keyring_username()
             if self.ui.chkSavePassword.isChecked():
-                keyring.set_password(
-                    onelauncher.__title__,
-                    keyring_username,
-                    self.ui.txtPassword.text(),
-                )
+                if self.ui.txtPassword.text():
+                    keyring.set_password(
+                        onelauncher.__title__,
+                        keyring_username,
+                        self.ui.txtPassword.text(),
+                    )
             else:
                 with contextlib.suppress(keyring.errors.PasswordDeleteError):
                     keyring.delete_password(
                         onelauncher.__title__,
                         keyring_username,
                     )
+
+            self.loadAllSavedAccounts()
 
         game_subscriptions = self.login_response.get_game_subscriptions(
             game_settings.current_game.datacenter_game_name)
@@ -594,9 +629,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.chkSavePassword.setChecked(
             program_settings.save_accounts_passwords)
 
-        self.ui.cboAccount.clear()
-        self.ui.cboAccount.setCurrentText("")
         self.ui.txtPassword.setText("")
+        self.ui.txtPassword.setPlaceholderText("")
         self.ui.cboWorld.clear()
         self.ClearLog()
         self.ClearNews()
@@ -609,7 +643,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.AddLog("Initializing, please wait...")
 
         self.loadAllSavedAccounts()
-        self.setCurrentAccountPassword()
+        self.set_current_account_placeholder_password()
 
         self.set_banner_image()
         self.setWindowTitle(
