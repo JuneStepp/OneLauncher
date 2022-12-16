@@ -31,18 +31,13 @@ import logging
 from pathlib import Path
 from typing import List, Optional
 
-import keyring
 from PySide6 import QtCore, QtGui, QtWidgets
 from requests.exceptions import RequestException
 from xmlschema import XMLSchemaValidationError
 
 import onelauncher
-from onelauncher import settings
 from onelauncher.addon_manager import AddonManager
-from onelauncher.network.world_login_queue import (
-    WorldLoginQueue,
-    JoinWorldQueueFailedError,
-    WorldQueueResultXMLParseError)
+from onelauncher.game_accounts import GameAccount
 from onelauncher.network import login_account
 from onelauncher.network.game_launcher_config import (
     GameLauncherConfig, GameLauncherConfigParseError)
@@ -50,6 +45,8 @@ from onelauncher.network.game_newsfeed import newsfeed_url_to_html
 from onelauncher.network.game_services_info import GameServicesInfo
 from onelauncher.network.soap import GLSServiceError
 from onelauncher.network.world import World, WorldUnavailableError
+from onelauncher.network.world_login_queue import (
+    JoinWorldQueueFailedError, WorldLoginQueue, WorldQueueResultXMLParseError)
 from onelauncher.patch_game_window import PatchWindow
 from onelauncher.resources import get_resource
 from onelauncher.settings import Game, game_settings, program_settings
@@ -85,7 +82,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setupBtnOptions()
         self.setupBtnAddonManager()
         self.setupBtnLoginMenu()
-        self.setup_save_accounts_dropdown()
         self.ui.btnSwitchGame.clicked.connect(self.btnSwitchGameClicked)
 
         self.ui.cboAccount.lineEdit().setClearButtonEnabled(True)
@@ -175,25 +171,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btnLoginMenu.addAction(self.ui.actionPatch)
         self.ui.actionPatch.triggered.connect(self.actionPatchSelected)
         self.ui.btnLogin.setMenu(self.ui.btnLoginMenu)
-
-    def setup_save_accounts_dropdown(self):
-        self.ui.saveSettingsMenu = QtWidgets.QMenu()
-        self.ui.saveSettingsMenu.addAction(
-            self.ui.actionForgetSubscriptionSelection)
-        self.ui.actionForgetSubscriptionSelection.triggered.connect(
-            self.forget_subscription_selection)
-        self.ui.saveSettingsToolButton.setMenu(self.ui.saveSettingsMenu)
-
-    def forget_subscription_selection(self):
-        self.ui.saveSettingsToolButton.setVisible(False)
-        account: settings.Account = self.ui.cboAccount.currentData()
-        account.save_subscription_selection = False
-
-        with contextlib.suppress(keyring.errors.PasswordDeleteError):
-            keyring.delete_password(
-                onelauncher.__title__,
-                self.get_current_keyring_subscription_selection_username(),
-            )
 
     def setup_switch_game_button(self):
         """Set icon and dropdown options of switch game button according to current game"""
@@ -323,8 +300,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def loadAllSavedAccounts(self):
         self.ui.cboAccount.clear()
         self.ui.cboAccount.setCurrentText("")
-        
-        self.ui.saveSettingsToolButton.setVisible(False)
 
         if program_settings.save_accounts is False:
             game_settings.current_game.accounts = {}
@@ -337,36 +312,34 @@ class MainWindow(QtWidgets.QMainWindow):
         # Accounts are read backwards, so they
         # are in order of most recentally played
         for account in accounts[::-1]:
-            self.ui.cboAccount.addItem(account.name, userData=account)
+            self.ui.cboAccount.addItem(account.username, userData=account)
         self.ui.cboAccount.setCurrentIndex(0)
 
-        account: settings.Account = self.ui.cboAccount.currentData()
-        if account.save_subscription_selection:
-            self.ui.saveSettingsToolButton.setVisible(True)
+    def get_current_game_account(self) -> GameAccount:
+        if type(self.ui.cboAccount.currentData()) == GameAccount:
+            return self.ui.cboAccount.currentData()
+
+        current_world: World = self.ui.cboWorld.currentData()
+        current_account = GameAccount(
+            self.ui.cboAccount.currentText(),
+            game_settings.current_game.uuid,
+            current_world.name)
+        self.ui.cboAccount.setItemData(
+            self.ui.cboAccount.currentIndex(), current_account)
+
+        return current_account
 
     def setCurrentAccountWorld(self):
-        account: settings.Account = self.ui.cboAccount.currentData()
-        if type(account) != settings.Account:
-            return
-
+        account = self.get_current_game_account()
         self.ui.cboWorld.setCurrentText(account.last_used_world_name)
 
-    def get_current_keyring_username(self) -> str:
-        return str(game_settings.current_game.uuid) + \
-            self.ui.cboAccount.currentText()
-
-    def get_current_keyring_subscription_selection_username(self) -> str:
-        return f"SubscriptionSelection{self.get_current_keyring_username()}"
-
     def set_current_account_placeholder_password(self):
-        keyring_username = self.get_current_keyring_username()
-
         if not program_settings.save_accounts_passwords:
             self.ui.txtPassword.setFocus()
             return
 
-        password = keyring.get_password(
-            onelauncher.__title__, keyring_username)
+        account = self.get_current_game_account()
+        password = account.password
         if password is None:
             return
         self.ui.txtPassword.setPlaceholderText("*" * len(password))
@@ -375,15 +348,16 @@ class MainWindow(QtWidgets.QMainWindow):
     def get_game_subscription_selection(
             self,
             subscriptions: List[login_account.GameSubscription],
-            account: settings.Account) -> Optional[login_account.GameSubscription]:
-        if account.save_subscription_selection:
-            if saved_subscription_name := keyring.get_password(
-                onelauncher.__title__,
-                self.get_current_keyring_subscription_selection_username(),
-            ):
-                for subscription in subscriptions:
-                    if subscription.name == saved_subscription_name:
-                        return subscription
+            account: GameAccount) -> Optional[login_account.GameSubscription]:
+        if last_used_subscription_name := account.last_used_subscription_name:
+            for subscription in subscriptions:
+                if subscription.name == last_used_subscription_name:
+                    del last_used_subscription_name
+                    return subscription
+
+            del last_used_subscription_name
+            logger.warning(
+                "last_used_subscription_name does not match any subscriptions.")
 
         select_subscription_dialog = QtWidgets.QDialog(
             self, QtCore.Qt.FramelessWindowHint)
@@ -394,26 +368,10 @@ class MainWindow(QtWidgets.QMainWindow):
             ui.subscriptionsComboBox.addItem(
                 subscription.description, subscription.name)
 
-        ui.saveSelectionCheckBox.setChecked(
-            account.save_subscription_selection)
-
         if select_subscription_dialog.exec() == QtWidgets.QDialog.Accepted:
-            saved_subscription_name = ui.subscriptionsComboBox.currentData()
-            account.save_subscription_selection = ui.saveSelectionCheckBox.isChecked()
-            self.ui.saveSettingsToolButton.setVisible(
-                account.save_subscription_selection)
-            # The subscription selection can only be saved if the account is
-            # saved
-            if account.save_subscription_selection:
-                self.ui.chkSaveSettings.setChecked(True)
-
-            keyring.set_password(
-                onelauncher.__title__,
-                self.get_current_keyring_subscription_selection_username(),
-                saved_subscription_name,
-            )
+            selected_subscription_name: str = ui.subscriptionsComboBox.currentData()
             self.resetFocus()
-            return saved_subscription_name
+            return selected_subscription_name
         else:
             self.resetFocus()
             self.AddLog("No sub-account selected - aborting")
@@ -427,13 +385,13 @@ class MainWindow(QtWidgets.QMainWindow):
         for _ in range(4):
             QtCore.QCoreApplication.instance().processEvents()
 
+        current_account = self.get_current_game_account()
+
         try:
             self.login_response = login_account.login_account(
                 self.game_services_info.auth_server,
                 self.ui.cboAccount.currentText(),
-                self.ui.txtPassword.text() or keyring.get_password(
-                    onelauncher.__title__,
-                    self.get_current_keyring_username()),
+                self.ui.txtPassword.text() or current_account.password,
             )
         except login_account.WrongUsernameOrPasswordError:
             self.AddLog("Username or password is incorrect", True)
@@ -454,41 +412,22 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.AddLog("Account authenticated")
 
-        if type(self.ui.cboAccount.currentData()) == settings.Account:
-            current_account = self.ui.cboAccount.currentData()
-        else:
-            current_world: World = self.ui.cboWorld.currentData()
-            current_account = settings.Account(
-                self.ui.cboAccount.currentText(),
-                current_world.name)
-            self.ui.cboAccount.setItemData(
-                self.ui.cboAccount.currentIndex(), current_account)
-
         if self.ui.chkSaveSettings.isChecked():
             # Account is deleted first, because accounts are in order of
             # the most recently played at the end.
             with contextlib.suppress(KeyError):
-                del game_settings.current_game.accounts[current_account.name]
+                del game_settings.current_game.accounts[current_account.username]
 
-            game_settings.current_game.accounts[current_account.name] = current_account
+            game_settings.current_game.accounts[current_account.username] = current_account
 
             current_world: World = self.ui.cboWorld.currentData()
             current_account.last_used_world_name = current_world.name
 
-            keyring_username = self.get_current_keyring_username()
             if self.ui.chkSavePassword.isChecked():
                 if self.ui.txtPassword.text():
-                    keyring.set_password(
-                        onelauncher.__title__,
-                        keyring_username,
-                        self.ui.txtPassword.text(),
-                    )
+                    current_account.password = self.ui.txtPassword.text()
             else:
-                with contextlib.suppress(keyring.errors.PasswordDeleteError):
-                    keyring.delete_password(
-                        onelauncher.__title__,
-                        keyring_username,
-                    )
+                current_account.delete_password()
 
             self.loadAllSavedAccounts()
 
@@ -500,7 +439,9 @@ class MainWindow(QtWidgets.QMainWindow):
             if subscription is None:
                 return
         else:
-            account_number = game_subscriptions[0].name
+            subscription = game_subscriptions[0]
+            account_number = subscription.name
+        current_account.last_used_subscription_name = subscription.name
 
         self.save_settings()
 

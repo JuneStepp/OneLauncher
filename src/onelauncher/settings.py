@@ -28,20 +28,22 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import contextlib
-from enum import Enum
-import os
 import logging
+import os
+from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, Final, List, Optional, Set
+from typing import Any, Callable, Dict, List, Optional, Set
 from uuid import UUID, uuid4
+from xml.etree import ElementTree
 
 import rtoml
-from xml.etree import ElementTree
 
 import onelauncher
 from onelauncher.config import platform_dirs
+from onelauncher.game_accounts import GameAccount
+from onelauncher.resources import (OneLauncherLocale, available_locales,
+                                   system_locale)
 from onelauncher.utilities import CaseInsensitiveAbsolutePath
-from onelauncher.resources import OneLauncherLocale, available_locales, system_locale
 
 
 class ProgramSettings():
@@ -131,22 +133,9 @@ class ProgramSettings():
         rtoml.dump(settings_dict, self.config_path, pretty=True)
 
 
-class Account():
-    def __init__(self, name: str, last_used_world_name: str,
-                 save_subscription_selection: bool = False) -> None:
-        self._name: Final = name
-        self.last_used_world_name = last_used_world_name
-        self.save_subscription_selection = save_subscription_selection
-
-    @property
-    def name(self) -> str:
-        """Account name. This is immutable."""
-        return self._name
-
-
 # TODO: Change to StrEnum once on Python 3.11. Can then also change the
 # places using the enum value to just the enum. ex. ClientType.WIN64.value
-# to get "WIN64" can isntead just be ClientType.WIN64. Think this would be
+# to get "WIN64" can instead just be ClientType.WIN64. Think this would be
 # helpful, as it makes it where the enum can just be used everywhere
 # rather than having to know about the difference between the enum and
 # game client values.
@@ -175,7 +164,7 @@ class Game():
                  builtin_wine_prefix_enabled: Optional[bool] = None,
                  wine_prefix_path: Optional[Path] = None,
                  wine_debug_level: Optional[str] = None,
-                 accounts: Optional[Dict[str, Account]] = None,
+                 accounts: Optional[Dict[str, GameAccount]] = None,
                  on_name_change_function: Optional[Callable[[], None]] = None,
                  ) -> None:
         self.uuid = uuid
@@ -459,9 +448,10 @@ class GamesSettings():
                                 prefix_path,
                                 game_dict["wine"].get("debug_level",
                                                       None),
-                                {account["account_name"]: Account(account["account_name"],
-                                                                  account["last_used_world_name"],
-                                                                  account.get("save_subscription_selection", False)) for account in game_dict["accounts"]},
+                                {account["account_name"]: GameAccount(account["account_name"],
+                                                                      uuid,
+                                                                      account["last_used_world_name"])
+                                    for account in game_dict["accounts"]},
                                 on_name_change_function=self.sort_alphabetical_sorting_lists,
                                 )
 
@@ -544,9 +534,8 @@ class GamesSettings():
 
             if game.accounts:
                 game_dict["accounts"] = [
-                    {"account_name": account.name,
-                        "last_used_world_name": account.last_used_world_name,
-                        "save_subscription_selection": account.save_subscription_selection}
+                    {"account_name": account.username,
+                     "last_used_world_name": account.last_used_world_name}
                     for account in game.accounts.values()]
 
             games_list.append(game_dict)

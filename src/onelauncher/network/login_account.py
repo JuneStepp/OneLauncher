@@ -66,7 +66,7 @@ class AccountLoginResponse():
            for logging into the game. There can also be subscriptions for
            multiple game types on a single account.
 
-           Using `get_game_subscriptions` is recommended for mmost use cases."""
+           Using `get_game_subscriptions` is recommended for most use cases."""
         return self._subscriptions
 
     def get_game_subscriptions(

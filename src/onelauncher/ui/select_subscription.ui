@@ -68,19 +68,6 @@ Please select one</string>
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
   </widget>
-  <widget class="QCheckBox" name="saveSelectionCheckBox">
-   <property name="geometry">
-    <rect>
-     <x>4</x>
-     <y>138</y>
-     <width>141</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Save Selection</string>
-   </property>
-  </widget>
  </widget>
  <resources/>
  <connections>

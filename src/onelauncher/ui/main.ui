@@ -388,31 +388,6 @@
      <enum>QComboBox::NoInsert</enum>
     </property>
    </widget>
-   <widget class="QToolButton" name="saveSettingsToolButton">
-    <property name="geometry">
-     <rect>
-      <x>736</x>
-      <y>175</y>
-      <width>16</width>
-      <height>26</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QToolButton::menu-indicator { image: none; }</string>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="popupMode">
-     <enum>QToolButton::InstantPopup</enum>
-    </property>
-    <property name="toolButtonStyle">
-     <enum>Qt::ToolButtonIconOnly</enum>
-    </property>
-    <property name="arrowType">
-     <enum>Qt::DownArrow</enum>
-    </property>
-   </widget>
    <zorder>lblWorld</zorder>
    <zorder>lblAccount</zorder>
    <zorder>lblPassword</zorder>
@@ -431,7 +406,6 @@
    <zorder>btnAddonManager</zorder>
    <zorder>cboAccount</zorder>
    <zorder>btnOptions</zorder>
-   <zorder>saveSettingsToolButton</zorder>
   </widget>
   <action name="actionPatch">
    <property name="text">
@@ -457,11 +431,6 @@
   <action name="actionDDO">
    <property name="text">
     <string>Dungeons and Dragons Online</string>
-   </property>
-  </action>
-  <action name="actionForgetSubscriptionSelection">
-   <property name="text">
-    <string>Forget subscription selection</string>
    </property>
   </action>
  </widget>
