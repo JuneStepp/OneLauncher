@@ -340,10 +340,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         account = self.get_current_game_account()
         password = account.password
-        if password is None:
-            return
-        self.ui.txtPassword.setPlaceholderText("*" * len(password))
+        password_length = 0 if password is None else len(password)
         del password
+
+        self.ui.txtPassword.setPlaceholderText("*" * password_length)
 
     def get_game_subscription_selection(
             self,
