@@ -37,6 +37,7 @@ from xmlschema import XMLSchemaValidationError
 
 import onelauncher
 from onelauncher.addon_manager import AddonManager
+from onelauncher.game import Game
 from onelauncher.game_accounts import GameAccount
 from onelauncher.network import login_account
 from onelauncher.network.game_launcher_config import (
@@ -49,7 +50,7 @@ from onelauncher.network.world_login_queue import (
     JoinWorldQueueFailedError, WorldLoginQueue, WorldQueueResultXMLParseError)
 from onelauncher.patch_game_window import PatchWindow
 from onelauncher.resources import get_resource
-from onelauncher.settings import Game, game_settings, program_settings
+from onelauncher.settings import game_settings, program_settings
 from onelauncher.settings_window import SettingsWindow
 from onelauncher.ui.about_uic import Ui_dlgAbout
 from onelauncher.ui.main_uic import Ui_winMain
@@ -175,14 +176,24 @@ class MainWindow(QtWidgets.QMainWindow):
     def setup_switch_game_button(self):
         """Set icon and dropdown options of switch game button according to current game"""
         if game_settings.current_game.game_type == "DDO":
-            self.ui.btnSwitchGame.setIcon(QtGui.QIcon(str(get_resource(
-                Path("images/LOTROSwitchIcon.png"), program_settings.ui_locale))))
+            self.ui.btnSwitchGame.setIcon(
+                QtGui.QIcon(
+                    str(
+                        get_resource(
+                            Path("images/LOTROSwitchIcon.png"),
+                            program_settings.get_ui_locale(
+                                game_settings.current_game)))))
 
             games = game_settings.ddo_sorting_modes[program_settings.games_sorting_mode].copy(
             )
         else:
-            self.ui.btnSwitchGame.setIcon(QtGui.QIcon(str(get_resource(
-                Path("images/DDOSwitchIcon.png"), program_settings.ui_locale))))
+            self.ui.btnSwitchGame.setIcon(
+                QtGui.QIcon(
+                    str(
+                        get_resource(
+                            Path("images/DDOSwitchIcon.png"),
+                            program_settings.get_ui_locale(
+                                game_settings.current_game)))))
 
             games = game_settings.lotro_sorting_modes[program_settings.games_sorting_mode].copy(
             )
@@ -521,13 +532,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.start_game(account_number)
 
     def set_banner_image(self):
+        ui_locale = program_settings.get_ui_locale(game_settings.current_game)
         game_dir_banner_override_path = game_settings.current_game.game_directory / \
-            program_settings.ui_locale.lang_tag.split("-")[0] / "banner.png"
+            ui_locale.lang_tag.split("-")[0] / "banner.png"
         if game_dir_banner_override_path.exists():
             banner_pixmap = QtGui.QPixmap(str(game_dir_banner_override_path))
         else:
             banner_pixmap = QtGui.QPixmap(str(get_resource(Path(
-                f"images/{game_settings.current_game.game_type}_banner.png"), program_settings.ui_locale)))
+                f"images/{game_settings.current_game.game_type}_banner.png"), ui_locale)))
 
         banner_pixmap = banner_pixmap.scaledToHeight(self.ui.imgMain.height())
         self.ui.imgMain.setPixmap(banner_pixmap)
@@ -728,14 +740,15 @@ class MainWindowThread(QtCore.QThread):
         self.get_newsfeed()
 
     def get_newsfeed(self):
+        ui_locale = program_settings.get_ui_locale(game_settings.current_game)
         newsfeed_url = (game_settings.current_game.newsfeed or
                         self.game_launcher_config.get_newfeed_url(
-                            program_settings.ui_locale))
+                            ui_locale))
         try:
             self.return_newsfeed.emit(
                 newsfeed_url_to_html(
                     newsfeed_url,
-                    program_settings.ui_locale.babel_locale))
+                    ui_locale.babel_locale))
         except RequestException:
             self.ReturnLog.emit(
                 "Network error while downloading newsfeed", True)

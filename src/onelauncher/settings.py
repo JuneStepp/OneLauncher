@@ -30,16 +30,15 @@
 import contextlib
 import logging
 import os
-from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
-from xml.etree import ElementTree
 
 import rtoml
 
 import onelauncher
 from onelauncher.config import platform_dirs
+from onelauncher.game import ClientType, Game
 from onelauncher.game_accounts import GameAccount
 from onelauncher.resources import (OneLauncherLocale, available_locales,
                                    system_locale)
@@ -55,8 +54,6 @@ class ProgramSettings():
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
 
         self.load()
-
-        self.ui_locale: OneLauncherLocale = self.default_locale
 
     @property
     def games_sorting_mode(self) -> str:
@@ -77,26 +74,11 @@ class ProgramSettings():
 
         self._games_sorting_mode = new_value
 
-    @property
-    def default_locale(self) -> OneLauncherLocale:
-        """Locale for OneLauncher UI. This is changed by __init__.py"""
-        return self._default_locale
+    def get_ui_locale(self, game: Optional[Game]) -> OneLauncherLocale:
+        if game is None or self.always_use_default_language_for_ui:
+            return self.default_locale
 
-    @default_locale.setter
-    def default_locale(self, new_value: OneLauncherLocale):
-        self._default_locale = new_value
-
-        set_ui_locale()
-
-    @property
-    def always_use_default_language_for_ui(self) -> bool:
-        return self._always_use_default_language_for_ui
-
-    @always_use_default_language_for_ui.setter
-    def always_use_default_language_for_ui(self, new_value: bool):
-        self._always_use_default_language_for_ui = new_value
-
-        set_ui_locale()
+        return game.locale
 
     def load(self):
         # Defaults will be used if the settings file doesn't exist
@@ -106,13 +88,13 @@ class ProgramSettings():
             settings_dict = {}
 
         if "default_language" in settings_dict:
-            self._default_locale = available_locales[settings_dict["default_language"]]
+            self.default_locale = available_locales[settings_dict["default_language"]]
         elif system_locale:
-            self._default_locale = system_locale
+            self.default_locale = system_locale
         else:
-            self._default_locale = available_locales["en-US"]
+            self.default_locale = available_locales["en-US"]
 
-        self._always_use_default_language_for_ui: bool = settings_dict.get(
+        self.always_use_default_language_for_ui: bool = settings_dict.get(
             "always_use_default_language_for_ui", False)
         self.save_accounts = settings_dict.get("save_accounts", False)
         self.save_accounts_passwords = settings_dict.get(
@@ -131,185 +113,6 @@ class ProgramSettings():
         }
 
         rtoml.dump(settings_dict, self.config_path, pretty=True)
-
-
-# TODO: Change to StrEnum once on Python 3.11. Can then also change the
-# places using the enum value to just the enum. ex. ClientType.WIN64.value
-# to get "WIN64" can instead just be ClientType.WIN64. Think this would be
-# helpful, as it makes it where the enum can just be used everywhere
-# rather than having to know about the difference between the enum and
-# game client values.
-class ClientType(Enum):
-    WIN64 = "WIN64"
-    WIN32 = "WIN32"
-    WIN32_LEGACY = "WIN32Legacy"
-    WIN32Legacy = "WIN32Legacy"
-
-
-class Game():
-    def __init__(self,
-                 uuid: UUID,
-                 game_type: str,
-                 game_directory: CaseInsensitiveAbsolutePath,
-                 locale: OneLauncherLocale,
-                 client_type: ClientType,
-                 high_res_enabled: bool,
-                 patch_client_filename: str,
-                 startup_scripts: List[Path],
-                 name: str,
-                 description: str,
-                 newsfeed: Optional[str] = None,
-                 standard_game_launcher_filename: Optional[str] = None,
-                 wine_path: Optional[Path] = None,
-                 builtin_wine_prefix_enabled: Optional[bool] = None,
-                 wine_prefix_path: Optional[Path] = None,
-                 wine_debug_level: Optional[str] = None,
-                 accounts: Optional[Dict[str, GameAccount]] = None,
-                 on_name_change_function: Optional[Callable[[], None]] = None,
-                 ) -> None:
-        self.uuid = uuid
-        self.game_type = game_type
-        self.game_directory = game_directory
-        self._locale = locale
-        self.client_type = client_type
-        self.high_res_enabled = high_res_enabled
-        self.patch_client_filename = patch_client_filename
-        self.startup_scripts = startup_scripts
-        self._name = name
-        self.description = description
-        self.newsfeed = newsfeed
-        self.standard_game_launcher_filename = standard_game_launcher_filename
-        self.wine_path = wine_path
-        self.builtin_wine_prefix_enabled = builtin_wine_prefix_enabled
-        self.wine_prefix_path = wine_prefix_path
-        self.wine_debug_level = wine_debug_level
-        self.accounts = accounts
-        self.on_name_change_function = on_name_change_function
-        self.load_launcher_config()
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @name.setter
-    def name(self, new_value: str):
-        self._name = new_value
-
-        if self.on_name_change_function:
-            self.on_name_change_function()
-
-    @property
-    def game_type(self) -> str:
-        return self._game_type
-
-    @game_type.setter
-    def game_type(self, new_value: str) -> None:
-        """LOTRO or DDO"""
-        valid_game_types = ["LOTRO", "DDO"]
-        if new_value not in valid_game_types:
-            raise ValueError(
-                f"{new_value} is not a valid game type. Valid types are {valid_game_types}.")
-
-        self._game_type = new_value
-
-    @property
-    def locale(self) -> OneLauncherLocale:
-        return self._locale
-
-    @locale.setter
-    def locale(self, new_val: OneLauncherLocale):
-        self._locale = new_val
-
-        set_ui_locale()
-
-    def load_launcher_config(self):
-        """
-        Load launcher config data from game_directory.
-        This includes game documents settings dir and data that is used during login.
-        This function should be re-run if something in the launcher config has changed.
-        """
-        old_config_file = self.game_directory / "TurbineLauncher.exe.config"
-        config_file = self.game_directory / \
-            f"{self.game_type.lower()}.launcherconfig"
-        if config_file.exists():
-            self.load_launcher_config_file(config_file)
-        elif old_config_file.exists():
-            self.load_launcher_config_file(old_config_file)
-        else:
-            raise FileNotFoundError(
-                f"`{self.game_directory}` has no launcher config file")
-
-    def _get_launcher_config_value(
-            self,
-            key: str,
-            app_settings_element: ElementTree.Element,
-            config_file_path: CaseInsensitiveAbsolutePath) -> str:
-        element = app_settings_element.find(
-            f"./add[@key='{key}']")
-        if element is None:
-            raise KeyError(
-                f"`{config_file_path}` launcher config file doesn't have `{key}` key.")
-
-        if value := element.get("value"):
-            return value
-        else:
-            raise KeyError(
-                f"`{config_file_path}` launcher config file doesn't have `{key}` value.")
-
-    def load_launcher_config_file(
-            self,
-            config_file: CaseInsensitiveAbsolutePath,) -> None:
-        config = ElementTree.parse(config_file)
-        app_settings = config.find("appSettings")
-        if app_settings is None:
-            raise KeyError(
-                f"`{config_file}` launcher config file doesn't have `appSettings` element.")
-
-        self._gls_datacenter_service = self._get_launcher_config_value(
-            "Launcher.DataCenterService.GLS", app_settings, config_file)
-        self._datacenter_game_name = self._get_launcher_config_value(
-            "DataCenter.GameName", app_settings, config_file)
-        self._documents_config_dir = CaseInsensitiveAbsolutePath(
-            platform_dirs.user_documents_path /
-            self._get_launcher_config_value(
-                "Product.DocumentFolder",
-                app_settings,
-                config_file))
-
-    @property
-    def gls_datacenter_service(self) -> str:
-        return self._gls_datacenter_service
-
-    @property
-    def datacenter_game_name(self) -> str:
-        return self._datacenter_game_name
-
-    @property
-    def documents_config_dir(self) -> CaseInsensitiveAbsolutePath:
-        """
-        The folder in the user documents dir that the game stores information in.
-        This includes addons, screenshots, user config files, ect
-        """
-        return self._documents_config_dir
-
-    @property
-    def plugins_dir(self) -> CaseInsensitiveAbsolutePath:
-        return self.documents_config_dir / "Plugins"
-
-    @property
-    def skins_dir(self) -> CaseInsensitiveAbsolutePath:
-        return self.documents_config_dir / "ui" / "skins"
-
-    @property
-    def music_dir(self) -> CaseInsensitiveAbsolutePath:
-        return self.documents_config_dir / "Music"
-
-    def get_addons_dir(self, addon_type: str) -> CaseInsensitiveAbsolutePath:
-        return {
-            "Plugin": self.plugins_dir,
-            "Skin": self.skins_dir,
-            "Music": self.music_dir}[addon_type]
-
 
 class GamesSettings():
     def __init__(self, config_path: Optional[Path] = None) -> None:
@@ -390,18 +193,18 @@ class GamesSettings():
 
         if ("last_used_game_uuid" in settings_dict and
                 UUID(settings_dict["last_used_game_uuid"]) in self.games):
-            self._current_game = self.games[UUID(
+            self.current_game = self.games[UUID(
                 settings_dict["last_used_game_uuid"])]
         elif self.lotro_games_priority_sorted:
-            self._current_game = self.lotro_games_priority_sorted[0]
+            self.current_game = self.lotro_games_priority_sorted[0]
         elif self.ddo_games_priority_sorted:
-            self._current_game = self.ddo_games_priority_sorted[0]
+            self.current_game = self.ddo_games_priority_sorted[0]
         elif self.lotro_games_last_used_sorted:
-            self._current_game = self.lotro_games_last_used_sorted[0]
+            self.current_game = self.lotro_games_last_used_sorted[0]
         elif self.ddo_games_last_used_sorted:
-            self._current_game = self.ddo_games_last_used_sorted[0]
+            self.current_game = self.ddo_games_last_used_sorted[0]
         else:
-            self._current_game = list(self.games.values())[0]
+            self.current_game = list(self.games.values())[0]
 
     def load_game(self, game_dict: dict[str, Any]):
         uuid = UUID(game_dict["uuid"])
@@ -542,16 +345,6 @@ class GamesSettings():
 
         rtoml.dump(settings_dict, self.config_path, pretty=True)
 
-    @property
-    def current_game(self) -> Game:
-        return self._current_game
-
-    @current_game.setter
-    def current_game(self, new_value: Game):
-        self._current_game = new_value
-
-        set_ui_locale()
-
     def get_new_uuid(self) -> UUID:
         """Return UUID that doesn't already exist in the games config"""
         current_uuids = list(self.games)
@@ -561,17 +354,6 @@ class GamesSettings():
             uuid = uuid4()
 
         return uuid
-
-
-def set_ui_locale():
-    """Set locale for OneLauncher UI"""
-    if (
-        not program_settings.always_use_default_language_for_ui
-        and game_settings.games
-    ):
-        program_settings.ui_locale = game_settings.current_game.locale
-    else:
-        program_settings.ui_locale = program_settings.default_locale
 
 
 logger = logging.getLogger("main")

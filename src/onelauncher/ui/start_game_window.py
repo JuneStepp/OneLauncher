@@ -31,19 +31,19 @@ from typing import Optional
 
 from PySide6 import QtCore, QtWidgets
 
-from onelauncher import settings
 from onelauncher.config import platform_dirs
+from onelauncher.game import Game
 from onelauncher.network.game_launcher_config import GameLauncherConfig
-from onelauncher.start_game import MissingLaunchArgumentError, get_qprocess
 from onelauncher.network.world import World
-from onelauncher.utilities import QByteArray2str
+from onelauncher.start_game import MissingLaunchArgumentError, get_qprocess
 from onelauncher.ui.start_game_uic import Ui_startGameDialog
+from onelauncher.utilities import QByteArray2str
 
 
 class StartGame(QtWidgets.QDialog):
     def __init__(
         self,
-        game: settings.Game,
+        game: Game,
         game_launcher_config: GameLauncherConfig,
         world: World,
         account_number: str,

@@ -2,7 +2,7 @@ from functools import partial
 from multiprocessing.connection import Client
 import pytest
 from onelauncher.network.game_launcher_config import GameLauncherConfig
-from onelauncher.settings import ClientType
+from onelauncher.game import ClientType
 
 
 def get_mock_game_launcher_config_partial() -> partial[GameLauncherConfig]:

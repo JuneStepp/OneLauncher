@@ -34,10 +34,10 @@ from typing import Final
 from bidict import bidict
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from onelauncher import settings
+from onelauncher.game import ClientType, Game
 from onelauncher.network.game_launcher_config import GameLauncherConfig
 from onelauncher.resources import available_locales
-from onelauncher.settings import ClientType, game_settings, program_settings
+from onelauncher.settings import game_settings, program_settings
 from onelauncher.standard_game_launcher import get_standard_game_launcher_path
 from onelauncher.start_ui import run_setup_wizard_with_main_window
 from onelauncher.ui.settings_uic import Ui_dlgSettings
@@ -53,7 +53,7 @@ class SettingsWindow(QtWidgets.QDialog):
 
     def __init__(
             self,
-            game: settings.Game):
+            game: Game):
         super(
             SettingsWindow,
             self).__init__(
@@ -133,7 +133,9 @@ class SettingsWindow(QtWidgets.QDialog):
             game_launcher_config = GameLauncherConfig.from_game(self.game)
             if game_launcher_config is not None:
                 self.ui.gameNewsfeedLineEdit.setPlaceholderText(
-                    game_launcher_config.get_newfeed_url(program_settings.ui_locale))
+    game_launcher_config.get_newfeed_url(
+        program_settings.get_ui_locale(
+            game_settings.current_game)))
 
         self.ui.gameNewsfeedLineEdit.setText(
             self.game.newsfeed)

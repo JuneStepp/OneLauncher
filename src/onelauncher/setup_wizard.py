@@ -29,17 +29,18 @@
 import os
 from pathlib import Path
 from typing import List
-from bidict import bidict
 
+from bidict import bidict
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from onelauncher import __title__
-from onelauncher import settings
-from onelauncher.settings import game_settings, program_settings
+from onelauncher.game import Game
 from onelauncher.resources import available_locales
-from onelauncher.ui_utilities import raise_warning_message
-from onelauncher.utilities import check_if_valid_game_folder, CaseInsensitiveAbsolutePath
+from onelauncher.settings import game_settings, program_settings
 from onelauncher.ui.setup_wizard_uic import Ui_Wizard
+from onelauncher.ui_utilities import raise_warning_message
+from onelauncher.utilities import (CaseInsensitiveAbsolutePath,
+                                   check_if_valid_game_folder)
 
 
 class SetupWizard(QtWidgets.QWizard):
@@ -130,7 +131,7 @@ class SetupWizard(QtWidgets.QWizard):
         self.add_games_from_list(
             game_settings.ddo_games_priority_sorted)
 
-    def add_games_from_list(self, games: List[settings.Game]) -> None:
+    def add_games_from_list(self, games: List[Game]) -> None:
         """Add games from list to game finding UI. All games in list
         must be of the same type. Ex. LOTRO"""
         ui_list = self.game_type_to_ui_list[games[0].game_type]
@@ -270,7 +271,7 @@ class SetupWizard(QtWidgets.QWizard):
             for game_item in selected_items:
                 if self.game_selection_only:
                     game = game_item.data(QtCore.Qt.UserRole)
-                    if isinstance(game, settings.Game):
+                    if isinstance(game, Game):
                         games_priority_sorted.append(game)
                         continue
 

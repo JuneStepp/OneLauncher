@@ -3,7 +3,7 @@ from typing import List
 import sys
 from uuid import UUID
 
-from onelauncher.settings import game_settings, program_settings, set_ui_locale
+from onelauncher.settings import game_settings, program_settings
 from onelauncher import resources
 
 def get_launch_argument(key: str, accepted_values: List[str]):
@@ -53,5 +53,3 @@ def process_launch_arguments():
         "--language", list(resources.available_locales))
     if language:
         game_settings.current_game.locale = resources.available_locales[language]
-
-    set_ui_locale()

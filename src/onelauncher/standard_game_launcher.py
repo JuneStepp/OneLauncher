@@ -1,10 +1,10 @@
-import onelauncher.settings
+from onelauncher.game import Game
 from onelauncher.network.game_launcher_config import GameLauncherConfig
 from onelauncher.utilities import CaseInsensitiveAbsolutePath
 
 
 def _get_launcher_path_based_on_client_filename(
-        game: onelauncher.settings.Game) -> CaseInsensitiveAbsolutePath | None:
+        game: Game) -> CaseInsensitiveAbsolutePath | None:
     game_launcher_config = GameLauncherConfig.from_game(game)
     if game_launcher_config is None:
         return None
@@ -17,7 +17,7 @@ def _get_launcher_path_based_on_client_filename(
 
 
 def _get_launcher_path_with_hardcoded_filenames(
-        game: onelauncher.settings.Game) -> CaseInsensitiveAbsolutePath | None:
+        game: Game) -> CaseInsensitiveAbsolutePath | None:
     match game.game_type:
         case "LOTRO":
             filenames = {"LotroLauncher.exe"}
@@ -42,7 +42,7 @@ def _get_launcher_path_with_search(
 
 
 def _get_launcher_path_from_config(
-        game: onelauncher.settings.Game) -> CaseInsensitiveAbsolutePath | None:
+        game: Game) -> CaseInsensitiveAbsolutePath | None:
     if game.standard_game_launcher_filename:
         launcher_path = game.game_directory / game.standard_game_launcher_filename
         if launcher_path.exists():
@@ -52,7 +52,7 @@ def _get_launcher_path_from_config(
 
 
 def get_standard_game_launcher_path(
-        game: onelauncher.settings.Game) -> CaseInsensitiveAbsolutePath | None:
+        game: Game) -> CaseInsensitiveAbsolutePath | None:
     launcher_path = _get_launcher_path_from_config(game)
     if launcher_path is not None:
         return launcher_path

@@ -3,7 +3,7 @@ from pathlib import Path
 
 from PySide6 import QtCore
 
-from onelauncher import settings
+from onelauncher.game import ClientType, Game
 from onelauncher.network.game_launcher_config import GameLauncherConfig
 from onelauncher.network.world import World
 from onelauncher.wine_management import edit_qprocess_to_use_wine
@@ -15,7 +15,7 @@ class MissingLaunchArgumentError(Exception):
 
 def get_launch_args(
         game_launcher_config: GameLauncherConfig,
-        game: settings.Game,
+        game: Game,
         world: World,
         account_number: str,
         ticket: str) -> str:
@@ -67,7 +67,7 @@ def get_launch_args(
 
 def get_qprocess(
         game_launcher_config: GameLauncherConfig,
-        game: settings.Game,
+        game: Game,
         world: World,
         account_number: str,
         ticket: str) -> QtCore.QProcess:
@@ -79,7 +79,7 @@ def get_qprocess(
     client_filename, client_type = game_launcher_config.get_client_filename(
         game.client_type)
     # Fixes binary path for 64-bit client
-    if client_type == settings.ClientType.WIN64:
+    if client_type == ClientType.WIN64:
         client_relative_path = Path("x64") / client_filename
     else:
         client_relative_path = Path(client_filename)

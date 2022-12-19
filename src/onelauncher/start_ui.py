@@ -56,7 +56,7 @@ def main():
     application.setApplicationDisplayName(__title__)
     application.setApplicationVersion(__version__)
     application.setWindowIcon(QtGui.QIcon(
-        str(get_resource(Path("images/OneLauncherIcon.png"), program_settings.ui_locale))))
+        str(get_resource(Path("images/OneLauncherIcon.png"), program_settings.get_ui_locale(None)))))
 
     # Set font size explicitly to stop OS text size options from
     # breaking the UI.
