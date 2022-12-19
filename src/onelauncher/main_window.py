@@ -39,7 +39,7 @@ import onelauncher
 from onelauncher.addon_manager import AddonManager
 from onelauncher.config.program_config import program_config
 from onelauncher.game import Game
-from onelauncher.game_accounts import GameAccount
+from onelauncher.game_account import GameAccount
 from onelauncher.network import login_account
 from onelauncher.network.game_launcher_config import (
     GameLauncherConfig, GameLauncherConfigParseError)

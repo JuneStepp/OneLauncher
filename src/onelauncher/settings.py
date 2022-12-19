@@ -40,7 +40,7 @@ import onelauncher
 from onelauncher.config import platform_dirs
 from onelauncher.config.program_config import program_config
 from onelauncher.game import ClientType, Game
-from onelauncher.game_accounts import GameAccount
+from onelauncher.game_account import GameAccount
 from onelauncher.resources import available_locales
 from onelauncher.utilities import CaseInsensitiveAbsolutePath
 

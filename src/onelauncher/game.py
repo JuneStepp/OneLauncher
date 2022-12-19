@@ -6,7 +6,7 @@ from uuid import UUID
 from xml.etree import ElementTree
 
 from onelauncher.config import platform_dirs
-from onelauncher.game_accounts import GameAccount
+from onelauncher.game_account import GameAccount
 from onelauncher.resources import OneLauncherLocale
 from onelauncher.utilities import CaseInsensitiveAbsolutePath
 
