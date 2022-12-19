@@ -37,6 +37,7 @@ from xmlschema import XMLSchemaValidationError
 
 import onelauncher
 from onelauncher.addon_manager import AddonManager
+from onelauncher.config.program_config import program_config
 from onelauncher.game import Game
 from onelauncher.game_accounts import GameAccount
 from onelauncher.network import login_account
@@ -50,7 +51,7 @@ from onelauncher.network.world_login_queue import (
     JoinWorldQueueFailedError, WorldLoginQueue, WorldQueueResultXMLParseError)
 from onelauncher.patch_game_window import PatchWindow
 from onelauncher.resources import get_resource
-from onelauncher.settings import game_settings, program_settings
+from onelauncher.settings import game_settings
 from onelauncher.settings_window import SettingsWindow
 from onelauncher.ui.about_uic import Ui_dlgAbout
 from onelauncher.ui.main_uic import Ui_winMain
@@ -181,10 +182,10 @@ class MainWindow(QtWidgets.QMainWindow):
                     str(
                         get_resource(
                             Path("images/LOTROSwitchIcon.png"),
-                            program_settings.get_ui_locale(
+                            program_config.get_ui_locale(
                                 game_settings.current_game)))))
 
-            games = game_settings.ddo_sorting_modes[program_settings.games_sorting_mode].copy(
+            games = game_settings.ddo_sorting_modes[program_config.games_sorting_mode].copy(
             )
         else:
             self.ui.btnSwitchGame.setIcon(
@@ -192,10 +193,10 @@ class MainWindow(QtWidgets.QMainWindow):
                     str(
                         get_resource(
                             Path("images/DDOSwitchIcon.png"),
-                            program_settings.get_ui_locale(
+                            program_config.get_ui_locale(
                                 game_settings.current_game)))))
 
-            games = game_settings.lotro_sorting_modes[program_settings.games_sorting_mode].copy(
+            games = game_settings.lotro_sorting_modes[program_config.games_sorting_mode].copy(
             )
         # There is no need to show an action for the currently active game
         games.remove(game_settings.current_game)
@@ -254,10 +255,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def btnSwitchGameClicked(self):
         if game_settings.current_game.game_type == "DDO":
             game_settings.current_game = game_settings.lotro_sorting_modes[
-                program_settings.games_sorting_mode][0]
+                program_config.games_sorting_mode][0]
         else:
             game_settings.current_game = game_settings.ddo_sorting_modes[
-                program_settings.games_sorting_mode][0]
+                program_config.games_sorting_mode][0]
         self.InitialSetup()
 
     def game_switch_action_triggered(self, action: QtGui.QAction):
@@ -278,10 +279,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.AuthAccount()
 
     def save_settings(self):
-        program_settings.save_accounts = self.ui.chkSaveSettings.isChecked()
-        program_settings.save_accounts_passwords = self.ui.chkSavePassword.isChecked()
+        program_config.save_accounts = self.ui.chkSaveSettings.isChecked()
+        program_config.save_accounts_passwords = self.ui.chkSavePassword.isChecked()
 
-        program_settings.save()
+        program_config.save()
         game_settings.save()
 
     def accounts_index_changed(self, new_index):
@@ -312,7 +313,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.cboAccount.clear()
         self.ui.cboAccount.setCurrentText("")
 
-        if program_settings.save_accounts is False:
+        if program_config.save_accounts is False:
             game_settings.current_game.accounts = {}
             return
 
@@ -345,7 +346,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.cboWorld.setCurrentText(account.last_used_world_name)
 
     def set_current_account_placeholder_password(self):
-        if not program_settings.save_accounts_passwords:
+        if not program_config.save_accounts_passwords:
             self.ui.txtPassword.setFocus()
             return
 
@@ -532,7 +533,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.start_game(account_number)
 
     def set_banner_image(self):
-        ui_locale = program_settings.get_ui_locale(game_settings.current_game)
+        ui_locale = program_config.get_ui_locale(game_settings.current_game)
         game_dir_banner_override_path = game_settings.current_game.game_directory / \
             ui_locale.lang_tag.split("-")[0] / "banner.png"
         if game_dir_banner_override_path.exists():
@@ -578,9 +579,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btnOptions.setEnabled(False)
         self.ui.btnSwitchGame.setEnabled(False)
 
-        self.ui.chkSaveSettings.setChecked(program_settings.save_accounts)
+        self.ui.chkSaveSettings.setChecked(program_config.save_accounts)
         self.ui.chkSavePassword.setChecked(
-            program_settings.save_accounts_passwords)
+            program_config.save_accounts_passwords)
 
         self.ui.txtPassword.setText("")
         self.ui.txtPassword.setPlaceholderText("")
@@ -740,7 +741,7 @@ class MainWindowThread(QtCore.QThread):
         self.get_newsfeed()
 
     def get_newsfeed(self):
-        ui_locale = program_settings.get_ui_locale(game_settings.current_game)
+        ui_locale = program_config.get_ui_locale(game_settings.current_game)
         newsfeed_url = (game_settings.current_game.newsfeed or
                         self.game_launcher_config.get_newfeed_url(
                             ui_locale))

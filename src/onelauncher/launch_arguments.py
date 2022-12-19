@@ -1,10 +1,11 @@
-from typing import List
-
 import sys
+from typing import List
 from uuid import UUID
 
-from onelauncher.settings import game_settings, program_settings
 from onelauncher import resources
+from onelauncher.config.program_config import program_config
+from onelauncher.settings import game_settings
+
 
 def get_launch_argument(key: str, accepted_values: List[str]):
     launch_arguments = sys.argv
@@ -42,7 +43,7 @@ def process_game_launch_argument():
     else:
         return
 
-    game_settings.current_game = sorting_modes[program_settings.games_sorting_mode][0]
+    game_settings.current_game = sorting_modes[program_config.games_sorting_mode][0]
 
 
 def process_launch_arguments():

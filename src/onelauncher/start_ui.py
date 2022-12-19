@@ -27,20 +27,23 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import logging
-import sys
 import os
-from pathlib import Path
-from pkg_resources import parse_version
+import sys
+import urllib.error
+import urllib.request
 from json import loads as jsonLoads
-import urllib.request, urllib.error
+from pathlib import Path
 
+from pkg_resources import parse_version
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from onelauncher import __title__, __version__, __project_url__, launch_arguments
-from onelauncher.settings import program_settings, game_settings
-from onelauncher.resources import get_resource
-from onelauncher.ui_utilities import show_message_box_details_as_markdown
 import onelauncher.logs
+from onelauncher import (__project_url__, __title__, __version__,
+                         launch_arguments)
+from onelauncher.config.program_config import program_config
+from onelauncher.resources import get_resource
+from onelauncher.settings import game_settings
+from onelauncher.ui_utilities import show_message_box_details_as_markdown
 
 
 def main():
@@ -56,7 +59,7 @@ def main():
     application.setApplicationDisplayName(__title__)
     application.setApplicationVersion(__version__)
     application.setWindowIcon(QtGui.QIcon(
-        str(get_resource(Path("images/OneLauncherIcon.png"), program_settings.get_ui_locale(None)))))
+        str(get_resource(Path("images/OneLauncherIcon.png"), program_config.get_ui_locale(None)))))
 
     # Set font size explicitly to stop OS text size options from
     # breaking the UI.

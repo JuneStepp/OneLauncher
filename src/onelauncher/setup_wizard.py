@@ -34,9 +34,10 @@ from bidict import bidict
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from onelauncher import __title__
+from onelauncher.config.program_config import program_config
 from onelauncher.game import Game
 from onelauncher.resources import available_locales
-from onelauncher.settings import game_settings, program_settings
+from onelauncher.settings import game_settings
 from onelauncher.ui.setup_wizard_uic import Ui_Wizard
 from onelauncher.ui_utilities import raise_warning_message
 from onelauncher.utilities import (CaseInsensitiveAbsolutePath,
@@ -83,7 +84,7 @@ class SetupWizard(QtWidgets.QWizard):
             self.ui.languagesListWidget.addItem(item)
 
             # Default locale should be selected in the list by default.
-            if locale == program_settings.default_locale:
+            if locale == program_config.default_locale:
                 self.ui.languagesListWidget.setCurrentItem(item)
 
     def current_id_changed(self, new_id):
@@ -227,27 +228,27 @@ class SetupWizard(QtWidgets.QWizard):
     def save_settings(self):
         if not self.game_selection_only:
             # Reset settings
-            program_settings.config_path.unlink(missing_ok=True)
+            program_config.config_path.unlink(missing_ok=True)
             game_settings.config_path.unlink(missing_ok=True)
-            program_settings.__init__(
-                program_settings.config_path)
+            program_config.__init__(
+                program_config.config_path)
             game_settings.__init__(
                 game_settings.config_path)
 
             selected_locale_display_name = self.ui.languagesListWidget.currentItem().text()
-            program_settings.default_locale = [locale for locale in available_locales.values(
+            program_config.default_locale = [locale for locale in available_locales.values(
             ) if locale.display_name == selected_locale_display_name][0]
 
-            program_settings.always_use_default_language_for_ui = self.ui.alwaysUseDefaultLangForUICheckBox.isChecked()
+            program_config.always_use_default_language_for_ui = self.ui.alwaysUseDefaultLangForUICheckBox.isChecked()
 
-            program_settings.games_sorting_mode = "priority"
+            program_config.games_sorting_mode = "priority"
 
         self.add_games_to_settings()
 
-        program_settings.save()
+        program_config.save()
         game_settings.save()
-        program_settings.__init__(
-            program_settings.config_path)
+        program_config.__init__(
+            program_config.config_path)
         game_settings.__init__(
             game_settings.config_path)
 

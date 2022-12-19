@@ -34,10 +34,11 @@ from typing import Final
 from bidict import bidict
 from PySide6 import QtCore, QtGui, QtWidgets
 
+from onelauncher.config.program_config import program_config
 from onelauncher.game import ClientType, Game
 from onelauncher.network.game_launcher_config import GameLauncherConfig
 from onelauncher.resources import available_locales
-from onelauncher.settings import game_settings, program_settings
+from onelauncher.settings import game_settings
 from onelauncher.standard_game_launcher import get_standard_game_launcher_path
 from onelauncher.start_ui import run_setup_wizard_with_main_window
 from onelauncher.ui.settings_uic import Ui_dlgSettings
@@ -110,13 +111,13 @@ class SettingsWindow(QtWidgets.QDialog):
             self.game.locale.display_name)
         self.add_languages_to_combobox(self.ui.defaultLanguageComboBox)
         self.ui.defaultLanguageComboBox.setCurrentText(
-            program_settings.default_locale.display_name)
+            program_config.default_locale.display_name)
         self.ui.defaultLanguageForUICheckBox.setChecked(
-            program_settings.always_use_default_language_for_ui)
+            program_config.always_use_default_language_for_ui)
         self.ui.gamesSortingModeComboBox.addItems(
             self.GAMES_SORTING_MODES_MAPPING.keys())
         self.ui.gamesSortingModeComboBox.setCurrentText(
-            self.GAMES_SORTING_MODES_MAPPING.inverse[program_settings.games_sorting_mode])
+            self.GAMES_SORTING_MODES_MAPPING.inverse[program_config.games_sorting_mode])
 
         self.ui.setupWizardButton.clicked.connect(
             self.start_setup_wizard)
@@ -134,7 +135,7 @@ class SettingsWindow(QtWidgets.QDialog):
             if game_launcher_config is not None:
                 self.ui.gameNewsfeedLineEdit.setPlaceholderText(
     game_launcher_config.get_newfeed_url(
-        program_settings.get_ui_locale(
+        program_config.get_ui_locale(
             game_settings.current_game)))
 
         self.ui.gameNewsfeedLineEdit.setText(
@@ -275,13 +276,13 @@ class SettingsWindow(QtWidgets.QDialog):
                     self.ui.wineExecutableLineEdit.text())
             self.game.wine_debug_level = self.ui.wineDebugLineEdit.text() or None
 
-        program_settings.default_locale = available_locales_display_names_mapping[self.ui.defaultLanguageComboBox.currentText(
+        program_config.default_locale = available_locales_display_names_mapping[self.ui.defaultLanguageComboBox.currentText(
         )]
-        program_settings.always_use_default_language_for_ui = self.ui.defaultLanguageForUICheckBox.isChecked()
-        program_settings.games_sorting_mode = self.GAMES_SORTING_MODES_MAPPING[self.ui.gamesSortingModeComboBox.currentText(
+        program_config.always_use_default_language_for_ui = self.ui.defaultLanguageForUICheckBox.isChecked()
+        program_config.games_sorting_mode = self.GAMES_SORTING_MODES_MAPPING[self.ui.gamesSortingModeComboBox.currentText(
         )]
 
         game_settings.save()
-        program_settings.save()
+        program_config.save()
 
         self.accept()
