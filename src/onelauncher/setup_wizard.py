@@ -33,7 +33,8 @@ from bidict import bidict
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from onelauncher import settings, __title__
+from onelauncher import __title__
+from onelauncher import settings
 from onelauncher.settings import game_settings, program_settings
 from onelauncher.resources import available_locales
 from onelauncher.ui_utilities import raise_warning_message
