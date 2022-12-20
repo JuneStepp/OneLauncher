@@ -4,7 +4,7 @@ from uuid import UUID
 
 from onelauncher import resources
 from onelauncher.config.program_config import program_config
-from onelauncher.settings import game_settings
+from onelauncher.config.games_config import games_config
 
 
 def get_launch_argument(key: str, accepted_values: List[str]):
@@ -27,23 +27,23 @@ def process_game_launch_argument():
     """Launch into specific game type or game if specified in launch argument"""
     # Game types and game UUIDs are accepted values
     game = get_launch_argument(
-        "--game", ["LOTRO", "DDO"] + [str(uuid) for uuid in game_settings.games])
+        "--game", ["LOTRO", "DDO"] + [str(uuid) for uuid in games_config.games])
     if (not game or
-        game == game_settings.current_game.game_type or
-            game == str(game_settings.current_game.uuid)):
+        game == games_config.current_game.game_type or
+            game == str(games_config.current_game.uuid)):
         return
 
     if game == "LOTRO":
-        sorting_modes = game_settings.lotro_sorting_modes
+        sorting_modes = games_config.lotro_sorting_modes
     elif game == "DDO":
-        sorting_modes = game_settings.ddo_sorting_modes
-    elif UUID(game) in game_settings.games:
-        game_settings.current_game = game_settings.games[UUID(game)]
+        sorting_modes = games_config.ddo_sorting_modes
+    elif UUID(game) in games_config.games:
+        games_config.current_game = games_config.games[UUID(game)]
         return
     else:
         return
 
-    game_settings.current_game = sorting_modes[program_config.games_sorting_mode][0]
+    games_config.current_game = sorting_modes[program_config.games_sorting_mode][0]
 
 
 def process_launch_arguments():
@@ -53,4 +53,4 @@ def process_launch_arguments():
     language = get_launch_argument(
         "--language", list(resources.available_locales))
     if language:
-        game_settings.current_game.locale = resources.available_locales[language]
+        games_config.current_game.locale = resources.available_locales[language]

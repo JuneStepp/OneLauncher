@@ -38,7 +38,7 @@ from onelauncher.config.program_config import program_config
 from onelauncher.game import ClientType, Game
 from onelauncher.network.game_launcher_config import GameLauncherConfig
 from onelauncher.resources import available_locales
-from onelauncher.settings import game_settings
+from onelauncher.config.games_config import games_config
 from onelauncher.standard_game_launcher import get_standard_game_launcher_path
 from onelauncher.start_ui import run_setup_wizard_with_main_window
 from onelauncher.ui.settings_uic import Ui_dlgSettings
@@ -70,7 +70,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.ui.gameNameLineEdit.setText(self.game.name)
         escaped_other_game_names = [
             re.escape(
-                game.name) for game in game_settings.games.values() if game != self.game]
+                game.name) for game in games_config.games.values() if game != self.game]
         self.ui.gameNameLineEdit.setValidator(QtGui.QRegularExpressionValidator(
             QtCore.QRegularExpression(f"^(?!^({'|'.join(escaped_other_game_names)})$).+$")))
         self.ui.gameDescriptionLineEdit.setText(
@@ -134,9 +134,9 @@ class SettingsWindow(QtWidgets.QDialog):
             game_launcher_config = GameLauncherConfig.from_game(self.game)
             if game_launcher_config is not None:
                 self.ui.gameNewsfeedLineEdit.setPlaceholderText(
-    game_launcher_config.get_newfeed_url(
-        program_config.get_ui_locale(
-            game_settings.current_game)))
+                    game_launcher_config.get_newfeed_url(
+                        program_config.get_ui_locale(
+                            games_config.current_game)))
 
         self.ui.gameNewsfeedLineEdit.setText(
             self.game.newsfeed)
@@ -221,12 +221,12 @@ class SettingsWindow(QtWidgets.QDialog):
         if filename != "":
             folder = CaseInsensitiveAbsolutePath(filename)
             if check_if_valid_game_folder(
-                    folder, game_type=game_settings.current_game.game_type):
+                    folder, game_type=games_config.current_game.game_type):
                 self.ui.gameDirLineEdit.setText(str(folder))
             else:
                 raise_warning_message(
                     f"The folder selected isn't a valid installation folder for "
-                    f"{game_settings.current_game.game_type}.", self)
+                    f"{games_config.current_game.game_type}.", self)
 
     def manage_games(self):
         self.start_setup_wizard(games_managing=True)
@@ -282,7 +282,7 @@ class SettingsWindow(QtWidgets.QDialog):
         program_config.games_sorting_mode = self.GAMES_SORTING_MODES_MAPPING[self.ui.gamesSortingModeComboBox.currentText(
         )]
 
-        game_settings.save()
+        games_config.save()
         program_config.save()
 
         self.accept()

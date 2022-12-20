@@ -42,7 +42,7 @@ from onelauncher import (__project_url__, __title__, __version__,
                          launch_arguments)
 from onelauncher.config.program_config import program_config
 from onelauncher.resources import get_resource
-from onelauncher.settings import game_settings
+from onelauncher.config.games_config import games_config
 from onelauncher.ui_utilities import show_message_box_details_as_markdown
 
 
@@ -52,14 +52,14 @@ def main():
     logger = logging.getLogger("main")
 
     launch_arguments.process_launch_arguments()
-    
+
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
     application = QtWidgets.QApplication(sys.argv)
     application.setApplicationName(__title__)
     application.setApplicationDisplayName(__title__)
     application.setApplicationVersion(__version__)
-    application.setWindowIcon(QtGui.QIcon(
-        str(get_resource(Path("images/OneLauncherIcon.png"), program_config.get_ui_locale(None)))))
+    application.setWindowIcon(QtGui.QIcon(str(get_resource(
+        Path("images/OneLauncherIcon.png"), program_config.get_ui_locale(None)))))
 
     # Set font size explicitly to stop OS text size options from
     # breaking the UI.
@@ -81,12 +81,12 @@ def main():
 def handle_program_start_setup_wizard():
     """Run setup wizard if there are no settings"""
     # If game settings haven't been generated
-    if not game_settings.games:
+    if not games_config.games:
         start_setup_wizard()
 
     # Close program if the user left the setup wizard
     # without generating the game settings
-    if not game_settings.games:
+    if not games_config.games:
         sys.exit()
 
 
@@ -103,8 +103,9 @@ def handle_windows_dark_theme():
     if os.name != "nt":
         return
 
-    qsettings = QtCore.QSettings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
-                                 QtCore.QSettings.NativeFormat)
+    qsettings = QtCore.QSettings(
+        "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+        QtCore.QSettings.NativeFormat)
     # If user has dark theme activated
     if not qsettings.value("AppsUseLightTheme"):
         # Use QPalette to set custom dark theme for Windows.
@@ -156,6 +157,7 @@ def run_setup_wizard_with_main_window(**kwargs):
     """Run setup wizard and re-do main window initial setup"""
     start_setup_wizard(**kwargs)
     main_window.InitialSetup()
+
 
 def check_for_update():
     """Notifies user if their copy of OneLauncher is out of date"""

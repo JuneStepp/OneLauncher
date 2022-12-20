@@ -36,7 +36,6 @@ from uuid import UUID, uuid4
 
 import rtoml
 
-import onelauncher
 from onelauncher.config import platform_dirs
 from onelauncher.config.program_config import program_config
 from onelauncher.game import ClientType, Game
@@ -45,7 +44,7 @@ from onelauncher.resources import available_locales
 from onelauncher.utilities import CaseInsensitiveAbsolutePath
 
 
-class GamesSettings():
+class GamesConfig():
     def __init__(self, config_path: Optional[Path] = None) -> None:
         if not config_path:
             config_path = platform_dirs.user_config_path / \
@@ -288,4 +287,4 @@ class GamesSettings():
 
 
 logger = logging.getLogger("main")
-game_settings = GamesSettings()
+games_config = GamesConfig()

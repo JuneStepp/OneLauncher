@@ -37,7 +37,7 @@ from onelauncher import __title__
 from onelauncher.config.program_config import program_config
 from onelauncher.game import Game
 from onelauncher.resources import available_locales
-from onelauncher.settings import game_settings
+from onelauncher.config.games_config import games_config
 from onelauncher.ui.setup_wizard_uic import Ui_Wizard
 from onelauncher.ui_utilities import raise_warning_message
 from onelauncher.utilities import (CaseInsensitiveAbsolutePath,
@@ -128,9 +128,9 @@ class SetupWizard(QtWidgets.QWizard):
 
     def add_existing_games(self):
         self.add_games_from_list(
-            game_settings.lotro_games_priority_sorted)
+            games_config.lotro_games_priority_sorted)
         self.add_games_from_list(
-            game_settings.ddo_games_priority_sorted)
+            games_config.ddo_games_priority_sorted)
 
     def add_games_from_list(self, games: List[Game]) -> None:
         """Add games from list to game finding UI. All games in list
@@ -229,11 +229,11 @@ class SetupWizard(QtWidgets.QWizard):
         if not self.game_selection_only:
             # Reset settings
             program_config.config_path.unlink(missing_ok=True)
-            game_settings.config_path.unlink(missing_ok=True)
+            games_config.config_path.unlink(missing_ok=True)
             program_config.__init__(
                 program_config.config_path)
-            game_settings.__init__(
-                game_settings.config_path)
+            games_config.__init__(
+                games_config.config_path)
 
             selected_locale_display_name = self.ui.languagesListWidget.currentItem().text()
             program_config.default_locale = [locale for locale in available_locales.values(
@@ -246,21 +246,21 @@ class SetupWizard(QtWidgets.QWizard):
         self.add_games_to_settings()
 
         program_config.save()
-        game_settings.save()
+        games_config.save()
         program_config.__init__(
             program_config.config_path)
-        game_settings.__init__(
-            game_settings.config_path)
+        games_config.__init__(
+            games_config.config_path)
 
     def add_games_to_settings(self):
         """Add games to settings. This has to be done after language settings are set."""
         for game_type in self.game_type_to_ui_list:
             if game_type == "LOTRO":
-                games_priority_sorted = game_settings.lotro_games_priority_sorted
-                games_last_used_sorted = game_settings.lotro_games_last_used_sorted
+                games_priority_sorted = games_config.lotro_games_priority_sorted
+                games_last_used_sorted = games_config.lotro_games_last_used_sorted
             elif game_type == "DDO":
-                games_priority_sorted = game_settings.ddo_games_priority_sorted
-                games_last_used_sorted = game_settings.ddo_games_last_used_sorted
+                games_priority_sorted = games_config.ddo_games_priority_sorted
+                games_last_used_sorted = games_config.ddo_games_last_used_sorted
             else:
                 raise ValueError(
                     f"{game_type} isn't recognized as a game type in self.add_games_to_settings")
@@ -276,21 +276,21 @@ class SetupWizard(QtWidgets.QWizard):
                         games_priority_sorted.append(game)
                         continue
 
-                uuid = game_settings.get_new_uuid()
-                game_settings.load_game({"uuid": str(uuid),
-                                         "game_type": game_type,
-                                         "game_directory": game_item.text()})
-                game = game_settings.games[uuid]
+                uuid = games_config.get_new_uuid()
+                games_config.load_game({"uuid": str(uuid),
+                                        "game_type": game_type,
+                                        "game_directory": game_item.text()})
+                game = games_config.games[uuid]
                 games_priority_sorted.append(game)
                 games_last_used_sorted.append(game)
 
             # Remove any games that were not selected by the user.
-            for game in list(game_settings.games.values()):
+            for game in list(games_config.games.values()):
                 if game.game_type != game_type:
                     continue
 
                 if game not in games_priority_sorted:
-                    del game_settings.games[game.uuid]
+                    del games_config.games[game.uuid]
                     try:
                         games_last_used_sorted.remove(game)
                     except ValueError:

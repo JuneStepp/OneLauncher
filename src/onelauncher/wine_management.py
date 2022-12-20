@@ -39,7 +39,7 @@ from shutil import move, rmtree
 
 from PySide6 import QtCore, QtWidgets
 
-from onelauncher.settings import game_settings
+from onelauncher.config.games_config import games_config
 from onelauncher.config import platform_dirs
 
 # To use Proton, replace link with Proton build and uncomment
@@ -287,7 +287,7 @@ def edit_qprocess_to_use_wine(qprocess: QtCore.QProcess) -> None:
     """Reconfigures QProcess to use WINE. The program and arguments must be pre-set!"""
     processEnvironment = QtCore.QProcessEnvironment.systemEnvironment()
 
-    if game_settings.current_game.builtin_wine_prefix_enabled:
+    if games_config.current_game.builtin_wine_prefix_enabled:
         if not wine_management.is_setup:
             wine_management.setup_files()
 
@@ -310,14 +310,14 @@ def edit_qprocess_to_use_wine(qprocess: QtCore.QProcess) -> None:
         processEnvironment.insert(
             "WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10=n")
     else:
-        prefix_path = game_settings.current_game.wine_prefix_path
-        wine_path = game_settings.current_game.wine_path
+        prefix_path = games_config.current_game.wine_prefix_path
+        wine_path = games_config.current_game.wine_path
 
     processEnvironment.insert("WINEPREFIX", str(prefix_path))
 
-    if game_settings.current_game.wine_debug_level:
+    if games_config.current_game.wine_debug_level:
         processEnvironment.insert(
-            "WINEDEBUG", game_settings.current_game.wine_debug_level)
+            "WINEDEBUG", games_config.current_game.wine_debug_level)
 
     # Move current program to arguments and replace it with WINE.
     qprocess.setArguments([qprocess.program()] + qprocess.arguments())
