@@ -42,7 +42,7 @@ from onelauncher import (__project_url__, __title__, __version__,
                          launch_arguments)
 from onelauncher.config.program_config import program_config
 from onelauncher.resources import get_resource
-from onelauncher.config.games_config import games_config
+from onelauncher import games_sorted
 from onelauncher.ui_utilities import show_message_box_details_as_markdown
 
 
@@ -81,12 +81,12 @@ def main():
 def handle_program_start_setup_wizard():
     """Run setup wizard if there are no settings"""
     # If game settings haven't been generated
-    if not games_config.games:
+    if not games_sorted.games:
         start_setup_wizard()
 
     # Close program if the user left the setup wizard
     # without generating the game settings
-    if not games_config.games:
+    if not games_sorted.games:
         sys.exit()
 
 

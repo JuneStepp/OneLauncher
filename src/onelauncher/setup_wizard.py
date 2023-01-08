@@ -33,11 +33,13 @@ from typing import List
 from bidict import bidict
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from onelauncher import __title__
+from onelauncher import __title__, games_sorted
+from onelauncher.config.games import games_config
+from onelauncher.config.games.game import get_game_from_config, save_game
+from onelauncher.config.games.games_sorted import get_games_sorted
 from onelauncher.config.program_config import program_config
-from onelauncher.game import Game
+from onelauncher.games import Game, GamesSortingMode
 from onelauncher.resources import available_locales
-from onelauncher.config.games_config import games_config
 from onelauncher.ui.setup_wizard_uic import Ui_Wizard
 from onelauncher.ui_utilities import raise_warning_message
 from onelauncher.utilities import (CaseInsensitiveAbsolutePath,
@@ -128,9 +130,9 @@ class SetupWizard(QtWidgets.QWizard):
 
     def add_existing_games(self):
         self.add_games_from_list(
-            games_config.lotro_games_priority_sorted)
+            games_sorted.get_games_by_game_type("LOTRO"))
         self.add_games_from_list(
-            games_config.ddo_games_priority_sorted)
+            games_sorted.get_games_by_game_type("DDO"))
 
     def add_games_from_list(self, games: List[Game]) -> None:
         """Add games from list to game finding UI. All games in list
@@ -232,8 +234,7 @@ class SetupWizard(QtWidgets.QWizard):
             games_config.config_path.unlink(missing_ok=True)
             program_config.__init__(
                 program_config.config_path)
-            games_config.__init__(
-                games_config.config_path)
+            games_sorted.__init__(get_games_sorted().games.values())
 
             selected_locale_display_name = self.ui.languagesListWidget.currentItem().text()
             program_config.default_locale = [locale for locale in available_locales.values(
@@ -241,57 +242,44 @@ class SetupWizard(QtWidgets.QWizard):
 
             program_config.always_use_default_language_for_ui = self.ui.alwaysUseDefaultLangForUICheckBox.isChecked()
 
-            program_config.games_sorting_mode = "priority"
+            program_config.games_sorting_mode = GamesSortingMode.PRIORITY
 
         self.add_games_to_settings()
 
         program_config.save()
-        games_config.save()
         program_config.__init__(
             program_config.config_path)
-        games_config.__init__(
-            games_config.config_path)
 
     def add_games_to_settings(self):
         """Add games to settings. This has to be done after language settings are set."""
         for game_type in self.game_type_to_ui_list:
-            if game_type == "LOTRO":
-                games_priority_sorted = games_config.lotro_games_priority_sorted
-                games_last_used_sorted = games_config.lotro_games_last_used_sorted
-            elif game_type == "DDO":
-                games_priority_sorted = games_config.ddo_games_priority_sorted
-                games_last_used_sorted = games_config.ddo_games_last_used_sorted
-            else:
-                raise ValueError(
-                    f"{game_type} isn't recognized as a game type in self.add_games_to_settings")
-
-            games_priority_sorted.clear()
-
             selected_items = self.sort_list_widget_items(
                 self.game_type_to_ui_list[game_type].selectedItems())
-            for game_item in selected_items:
+            selected_games: List[Game] = []
+            for i, game_item in enumerate(selected_items):
                 if self.game_selection_only:
                     game = game_item.data(QtCore.Qt.UserRole)
                     if isinstance(game, Game):
-                        games_priority_sorted.append(game)
+                        game.sorting_priority = i
+                        selected_games.append(game)
                         continue
 
-                uuid = games_config.get_new_uuid()
-                games_config.load_game({"uuid": str(uuid),
-                                        "game_type": game_type,
-                                        "game_directory": game_item.text()})
-                game = games_config.games[uuid]
-                games_priority_sorted.append(game)
-                games_last_used_sorted.append(game)
+                uuid = games_sorted.get_new_uuid()
+                game = get_game_from_config({"uuid": str(uuid),
+                                             "sorting_priority": i,
+                                             "game_type": game_type,
+                                             "game_directory": game_item.text()})
+                games_sorted.games[game.uuid] = game
+                selected_games.append(game)
 
             # Remove any games that were not selected by the user.
-            for game in list(games_config.games.values()):
+            for game in list(games_sorted.games.values()):
                 if game.game_type != game_type:
                     continue
 
-                if game not in games_priority_sorted:
-                    del games_config.games[game.uuid]
-                    try:
-                        games_last_used_sorted.remove(game)
-                    except ValueError:
-                        pass
+                if game not in selected_games:
+                    del games_sorted.games[game.uuid]
+
+            # Save games
+            for game in selected_games:
+                save_game(game)

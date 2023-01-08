@@ -36,10 +36,12 @@ from requests.exceptions import RequestException
 from xmlschema import XMLSchemaValidationError
 
 import onelauncher
-from onelauncher.addon_manager import AddonManager
+from onelauncher import games_sorted
+from onelauncher.addon_manager import AddonManagerWindow
+from onelauncher.config.games.game import save_game
 from onelauncher.config.program_config import program_config
-from onelauncher.game import Game
 from onelauncher.game_account import GameAccount
+from onelauncher.games import Game
 from onelauncher.network import login_account
 from onelauncher.network.game_launcher_config import (
     GameLauncherConfig, GameLauncherConfigParseError)
@@ -51,7 +53,6 @@ from onelauncher.network.world_login_queue import (
     JoinWorldQueueFailedError, WorldLoginQueue, WorldQueueResultXMLParseError)
 from onelauncher.patch_game_window import PatchWindow
 from onelauncher.resources import get_resource
-from onelauncher.config.games_config import games_config
 from onelauncher.settings_window import SettingsWindow
 from onelauncher.ui.about_uic import Ui_dlgAbout
 from onelauncher.ui.main_uic import Ui_winMain
@@ -176,17 +177,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def setup_switch_game_button(self):
         """Set icon and dropdown options of switch game button according to current game"""
-        if games_config.current_game.game_type == "DDO":
+        if games_sorted.current_game.game_type == "DDO":
             self.ui.btnSwitchGame.setIcon(
                 QtGui.QIcon(
                     str(
                         get_resource(
                             Path("images/LOTROSwitchIcon.png"),
                             program_config.get_ui_locale(
-                                games_config.current_game)))))
-
-            games = games_config.ddo_sorting_modes[program_config.games_sorting_mode].copy(
-            )
+                                games_sorted.current_game)))))
         else:
             self.ui.btnSwitchGame.setIcon(
                 QtGui.QIcon(
@@ -194,12 +192,13 @@ class MainWindow(QtWidgets.QMainWindow):
                         get_resource(
                             Path("images/DDOSwitchIcon.png"),
                             program_config.get_ui_locale(
-                                games_config.current_game)))))
+                                games_sorted.current_game)))))
 
-            games = games_config.lotro_sorting_modes[program_config.games_sorting_mode].copy(
-            )
+        games = games_sorted.get_sorted_games_list(
+            games_sorted.current_game.game_type,
+            program_config.games_sorting_mode)
         # There is no need to show an action for the currently active game
-        games.remove(games_config.current_game)
+        games.remove(games_sorted.current_game)
 
         menu = QtWidgets.QMenu()
         menu.triggered.connect(self.game_switch_action_triggered)
@@ -241,28 +240,26 @@ class MainWindow(QtWidgets.QMainWindow):
         self.resetFocus()
 
     def btnOptionsSelected(self):
-        winSettings = SettingsWindow(games_config.current_game)
+        winSettings = SettingsWindow(games_sorted.current_game)
         winSettings.accepted.connect(self.InitialSetup)
         winSettings.open()
 
     def btnAddonManagerSelected(self):
-        winAddonManager = AddonManager()
+        winAddonManager = AddonManagerWindow()
         winAddonManager.Run()
-        games_config.save()
+        save_game(games_sorted.current_game)
 
         self.resetFocus()
 
     def btnSwitchGameClicked(self):
-        if games_config.current_game.game_type == "DDO":
-            games_config.current_game = games_config.lotro_sorting_modes[
-                program_config.games_sorting_mode][0]
-        else:
-            games_config.current_game = games_config.ddo_sorting_modes[
-                program_config.games_sorting_mode][0]
+        new_current_game_type = (
+            "LOTRO" if games_sorted.current_game.game_type == "DDO" else "DDO")
+        games_sorted.current_game = games_sorted.get_sorted_games_list(
+            new_current_game_type, program_config.games_sorting_mode)[0]
         self.InitialSetup()
 
     def game_switch_action_triggered(self, action: QtGui.QAction):
-        games_config.current_game = action.data()
+        games_sorted.current_game = action.data()
         self.InitialSetup()
 
     def btnLoginClicked(self):
@@ -283,7 +280,7 @@ class MainWindow(QtWidgets.QMainWindow):
         program_config.save_accounts_passwords = self.ui.chkSavePassword.isChecked()
 
         program_config.save()
-        games_config.save()
+        save_game(games_sorted.current_game)
 
     def accounts_index_changed(self, new_index):
         """Sets saved information for selected account."""
@@ -314,10 +311,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.cboAccount.setCurrentText("")
 
         if program_config.save_accounts is False:
-            games_config.current_game.accounts = {}
+            games_sorted.current_game.accounts = {}
             return
 
-        accounts = list(games_config.current_game.accounts.values())
+        accounts = list(games_sorted.current_game.accounts.values())
         if not accounts:
             return
 
@@ -334,7 +331,7 @@ class MainWindow(QtWidgets.QMainWindow):
         current_world: World = self.ui.cboWorld.currentData()
         current_account = GameAccount(
             self.ui.cboAccount.currentText(),
-            games_config.current_game.uuid,
+            games_sorted.current_game.uuid,
             current_world.name)
         self.ui.cboAccount.setItemData(
             self.ui.cboAccount.currentIndex(), current_account)
@@ -428,9 +425,9 @@ class MainWindow(QtWidgets.QMainWindow):
             # Account is deleted first, because accounts are in order of
             # the most recently played at the end.
             with contextlib.suppress(KeyError):
-                del games_config.current_game.accounts[current_account.username]
+                del games_sorted.current_game.accounts[current_account.username]
 
-            games_config.current_game.accounts[current_account.username] = current_account
+            games_sorted.current_game.accounts[current_account.username] = current_account
 
             current_world: World = self.ui.cboWorld.currentData()
             current_account.last_used_world_name = current_world.name
@@ -444,7 +441,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.loadAllSavedAccounts()
 
         game_subscriptions = self.login_response.get_game_subscriptions(
-            games_config.current_game.datacenter_game_name)
+            games_sorted.current_game.datacenter_game_name)
         if len(game_subscriptions) > 1:
             subscription = self.get_game_subscription_selection(
                 current_account)
@@ -493,7 +490,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def start_game(self, account_number: str):
         world: World = self.ui.cboWorld.currentData()
         game = StartGame(
-            games_config.current_game,
+            games_sorted.current_game,
             self.game_launcher_config,
             world,
             account_number,
@@ -533,36 +530,36 @@ class MainWindow(QtWidgets.QMainWindow):
         self.start_game(account_number)
 
     def set_banner_image(self):
-        ui_locale = program_config.get_ui_locale(games_config.current_game)
-        game_dir_banner_override_path = games_config.current_game.game_directory / \
+        ui_locale = program_config.get_ui_locale(games_sorted.current_game)
+        game_dir_banner_override_path = games_sorted.current_game.game_directory / \
             ui_locale.lang_tag.split("-")[0] / "banner.png"
         if game_dir_banner_override_path.exists():
             banner_pixmap = QtGui.QPixmap(str(game_dir_banner_override_path))
         else:
             banner_pixmap = QtGui.QPixmap(str(get_resource(Path(
-                f"images/{games_config.current_game.game_type}_banner.png"), ui_locale)))
+                f"images/{games_sorted.current_game.game_type}_banner.png"), ui_locale)))
 
         banner_pixmap = banner_pixmap.scaledToHeight(self.ui.imgMain.height())
         self.ui.imgMain.setPixmap(banner_pixmap)
 
     def check_game_dir(self) -> bool:
-        if not games_config.current_game.game_directory.exists():
+        if not games_sorted.current_game.game_directory.exists():
             self.AddLog("[E13] Game directory not found")
             return False
 
         if not check_if_valid_game_folder(
-                games_config.current_game.game_directory,
-                games_config.current_game.game_type):
+                games_sorted.current_game.game_directory,
+                games_sorted.current_game.game_type):
             self.AddLog("The game directory is not valid.", is_error=True)
             return False
 
         if not (
-                games_config.current_game.game_directory /
-                f"client_local_{games_config.current_game.locale.game_language_name}.dat").exists():
+                games_sorted.current_game.game_directory /
+                f"client_local_{games_sorted.current_game.locale.game_language_name}.dat").exists():
             self.AddLog(
                 "[E20] There is no game language data for "
-                f"{games_config.current_game.locale.display_name} installed "
-                f"You may have to select {games_config.current_game.locale.display_name}"
+                f"{games_sorted.current_game.locale.display_name} installed "
+                f"You may have to select {games_sorted.current_game.locale.display_name}"
                 " in the normal game launcher and wait for the data to download."
                 " The normal game launcher can be opened from the settings menu.")
             return False
@@ -601,7 +598,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.set_banner_image()
         self.setWindowTitle(
-            f"{onelauncher.__title__} - {games_config.current_game.name}")
+            f"{onelauncher.__title__} - {games_sorted.current_game.name}")
 
         # Setup btnSwitchGame for current game
         self.setup_switch_game_button()
@@ -689,7 +686,7 @@ class MainWindowThread(QtCore.QThread):
         self.return_newsfeed = return_newsfeed
 
     def run(self):
-        self.access_game_services_info(games_config.current_game)
+        self.access_game_services_info(games_sorted.current_game)
 
     def access_game_services_info(self, game: Game):
         try:
@@ -741,8 +738,8 @@ class MainWindowThread(QtCore.QThread):
         self.get_newsfeed()
 
     def get_newsfeed(self):
-        ui_locale = program_config.get_ui_locale(games_config.current_game)
-        newsfeed_url = (games_config.current_game.newsfeed or
+        ui_locale = program_config.get_ui_locale(games_sorted.current_game)
+        newsfeed_url = (games_sorted.current_game.newsfeed or
                         self.game_launcher_config.get_newfeed_url(
                             ui_locale))
         try:

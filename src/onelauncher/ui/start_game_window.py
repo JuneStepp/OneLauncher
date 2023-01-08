@@ -26,13 +26,16 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
+from datetime import datetime
 import logging
 from typing import Optional
 
 from PySide6 import QtCore, QtWidgets
 
 from onelauncher.config import platform_dirs
-from onelauncher.game import Game
+from onelauncher.config.games.addons import get_addons_manager_from_game
+from onelauncher.config.games.game import save_game
+from onelauncher.games import Game
 from onelauncher.network.game_launcher_config import GameLauncherConfig
 from onelauncher.network.world import World
 from onelauncher.start_game import MissingLaunchArgumentError, get_qprocess
@@ -148,7 +151,8 @@ class StartGame(QtWidgets.QDialog):
 
     def runStatupScripts(self):
         """Runs Python scripts from add-ons with one that is approved by user"""
-        for script in self.game.startup_scripts:
+        addons_manager = get_addons_manager_from_game(self.game)
+        for script in addons_manager.startup_scripts:
             file_path = self.game.documents_config_dir / script
             if file_path.exists():
                 self.ui.txtLog.append(
@@ -171,6 +175,9 @@ class StartGame(QtWidgets.QDialog):
                     f"'{script}' startup script does not exist")
 
     def start_game(self):
+        self.game.last_played = datetime.now()
+        save_game(self.game)
+
         self.process = self.get_qprocess()
         if self.process is None:
             return

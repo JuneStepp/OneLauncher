@@ -7,7 +7,7 @@ from cachetools import TTLCache, cached
 from defusedxml import ElementTree
 from requests import RequestException
 
-from onelauncher.game import ClientType, Game
+from onelauncher.games import ClientType, Game
 from onelauncher.network import session
 from onelauncher.network.game_services_info import GameServicesInfo
 from onelauncher.resources import OneLauncherLocale

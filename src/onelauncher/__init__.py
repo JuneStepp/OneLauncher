@@ -11,3 +11,7 @@ __copyright__ = "(C) 2019-2021 June Stepp"
 __copyright_history__ = ("Based on PyLotRO\n(C) 2009-2010 AJackson\n"
                          "Based on CLI launcher for LOTRO\n(C) 2007-2010 SNy\n"
                          "Based on CLI launcher for LOTRO\n(C) 2007-2010 SNy")
+
+from onelauncher.config.games.games_sorted import get_games_sorted
+
+games_sorted = get_games_sorted()

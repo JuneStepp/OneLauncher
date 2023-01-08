@@ -6,7 +6,7 @@ import rtoml
 
 import onelauncher
 from onelauncher.config import platform_dirs
-from onelauncher.game import Game
+from onelauncher.games import Game, GamesSortingMode
 from onelauncher.resources import (OneLauncherLocale, available_locales,
                                    system_locale)
 
@@ -20,25 +20,6 @@ class ProgramConfig():
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
 
         self.load()
-
-    @property
-    def games_sorting_mode(self) -> str:
-        return self._games_sorting_mode
-
-    @games_sorting_mode.setter
-    def games_sorting_mode(self, new_value: str) -> None:
-        """
-        Games sorting mode.
-
-        priority: The manual order the user set in the setup wizard.
-        alphabetical: Alphabetical order.
-        last_used: Order of the most recently played games.
-        """
-        accepted_values = ["priority", "alphabetical", "last_used"]
-        if new_value not in accepted_values:
-            raise ValueError(f"{new_value} is not a valid games sorting mode.")
-
-        self._games_sorting_mode = new_value
 
     def get_ui_locale(self, game: Optional[Game]) -> OneLauncherLocale:
         if game is None or self.always_use_default_language_for_ui:
@@ -65,8 +46,8 @@ class ProgramConfig():
         self.save_accounts = settings_dict.get("save_accounts", False)
         self.save_accounts_passwords = settings_dict.get(
             "save_accounts_passwords", False)
-        self.games_sorting_mode = settings_dict.get(
-            "games_sorting_mode", "priority")
+        self.games_sorting_mode = GamesSortingMode(settings_dict.get(
+            "games_sorting_mode", "priority"))
 
     def save(self):
         settings_dict = {
@@ -75,7 +56,7 @@ class ProgramConfig():
             "always_use_default_language_for_ui": self.always_use_default_language_for_ui,
             "save_accounts": self.save_accounts,
             "save_accounts_passwords": self.save_accounts_passwords,
-            "games_sorting_mode": self.games_sorting_mode,
+            "games_sorting_mode": self.games_sorting_mode.value,
         }
 
         rtoml.dump(settings_dict, self.config_path, pretty=True)

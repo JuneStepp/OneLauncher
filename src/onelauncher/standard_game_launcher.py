@@ -1,4 +1,4 @@
-from onelauncher.game import Game
+from onelauncher.games import Game
 from onelauncher.network.game_launcher_config import GameLauncherConfig
 from onelauncher.utilities import CaseInsensitiveAbsolutePath
 

@@ -34,23 +34,29 @@ from typing import Final
 from bidict import bidict
 from PySide6 import QtCore, QtGui, QtWidgets
 
+from onelauncher import games_sorted
+from onelauncher.config.games.game import save_game
+from onelauncher.config.games.wine import (get_wine_environment_from_game,
+                                           save_wine_environment)
 from onelauncher.config.program_config import program_config
-from onelauncher.game import ClientType, Game
+from onelauncher.games import ClientType, Game, GamesSortingMode
 from onelauncher.network.game_launcher_config import GameLauncherConfig
 from onelauncher.resources import available_locales
-from onelauncher.config.games_config import games_config
 from onelauncher.standard_game_launcher import get_standard_game_launcher_path
 from onelauncher.start_ui import run_setup_wizard_with_main_window
 from onelauncher.ui.settings_uic import Ui_dlgSettings
 from onelauncher.ui_utilities import raise_warning_message
 from onelauncher.utilities import (CaseInsensitiveAbsolutePath,
                                    check_if_valid_game_folder)
-from onelauncher.wine_management import edit_qprocess_to_use_wine
+from onelauncher.wine_environment import edit_qprocess_to_use_wine
 
 
 class SettingsWindow(QtWidgets.QDialog):
-    GAMES_SORTING_MODES_MAPPING: Final = bidict({
-        "Priority": "priority", "Alphabetical": "alphabetical", "Last Used": "last_used"})
+    GAMES_SORTING_MODES_MAPPING: Final = bidict(
+        {
+            "Priority": GamesSortingMode.PRIORITY,
+            "Alphabetical": GamesSortingMode.ALPHABETICAL,
+            "Last Used": GamesSortingMode.LAST_USED})
 
     def __init__(
             self,
@@ -70,7 +76,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.ui.gameNameLineEdit.setText(self.game.name)
         escaped_other_game_names = [
             re.escape(
-                game.name) for game in games_config.games.values() if game != self.game]
+                game.name) for game in games_sorted.games.values() if game != self.game]
         self.ui.gameNameLineEdit.setValidator(QtGui.QRegularExpressionValidator(
             QtCore.QRegularExpression(f"^(?!^({'|'.join(escaped_other_game_names)})$).+$")))
         self.ui.gameDescriptionLineEdit.setText(
@@ -80,16 +86,18 @@ class SettingsWindow(QtWidgets.QDialog):
             self.run_standard_game_launcher)
 
         if os.name != "nt":
-            if self.game.builtin_wine_prefix_enabled:
+            self.wine_env = get_wine_environment_from_game(self.game)
+            if self.wine_env.builtin_prefix_enabled:
                 self.ui.wineFormGroupBox.setChecked(False)
             else:
                 self.ui.wineFormGroupBox.setCheckable(True)
                 self.ui.prefixLineEdit.setText(
-                    str(self.game.wine_prefix_path))
+                    str(self.wine_env.user_prefix_path))
                 self.ui.wineExecutableLineEdit.setText(
-                    str(self.game.wine_path))
+                    str(self.wine_env.user_wine_executable_path))
 
-            self.ui.wineDebugLineEdit.setText(self.game.wine_debug_level or "")
+            self.ui.wineDebugLineEdit.setText(
+                self.wine_env.debug_level or "")
         else:
             # WINE isn't used on Windows
             self.ui.tabWidget.removeTab(1)
@@ -136,7 +144,7 @@ class SettingsWindow(QtWidgets.QDialog):
                 self.ui.gameNewsfeedLineEdit.setPlaceholderText(
                     game_launcher_config.get_newfeed_url(
                         program_config.get_ui_locale(
-                            games_config.current_game)))
+                            games_sorted.current_game)))
 
         self.ui.gameNewsfeedLineEdit.setText(
             self.game.newsfeed)
@@ -197,7 +205,9 @@ class SettingsWindow(QtWidgets.QDialog):
         process = QtCore.QProcess()
         process.setWorkingDirectory(str(self.game.game_directory))
         process.setProgram(str(launcher_path))
-        edit_qprocess_to_use_wine(process)
+        edit_qprocess_to_use_wine(
+            process, get_wine_environment_from_game(
+                self.game))
         process.startDetached()
 
     def choose_game_dir(self):
@@ -221,12 +231,12 @@ class SettingsWindow(QtWidgets.QDialog):
         if filename != "":
             folder = CaseInsensitiveAbsolutePath(filename)
             if check_if_valid_game_folder(
-                    folder, game_type=games_config.current_game.game_type):
+                    folder, game_type=games_sorted.current_game.game_type):
                 self.ui.gameDirLineEdit.setText(str(folder))
             else:
                 raise_warning_message(
                     f"The folder selected isn't a valid installation folder for "
-                    f"{games_config.current_game.game_type}.", self)
+                    f"{games_sorted.current_game.game_type}.", self)
 
     def manage_games(self):
         self.start_setup_wizard(games_managing=True)
@@ -268,13 +278,14 @@ class SettingsWindow(QtWidgets.QDialog):
         self.game.patch_client_filename = self.ui.patchClientLineEdit.text()
 
         if os.name != "nt":
-            self.game.builtin_wine_prefix_enabled = not self.ui.wineFormGroupBox.isChecked()
-            if not self.game.builtin_wine_prefix_enabled:
-                self.game.wine_prefix_path = Path(
+            self.wine_env.builtin_prefix_enabled = not self.ui.wineFormGroupBox.isChecked()
+            if not self.wine_env.builtin_prefix_enabled:
+                self.wine_env.user_prefix_path = Path(
                     self.ui.prefixLineEdit.text())
-                self.game.wine_path = Path(
+                self.wine_env.user_wine_executable_path = Path(
                     self.ui.wineExecutableLineEdit.text())
-            self.game.wine_debug_level = self.ui.wineDebugLineEdit.text() or None
+            self.wine_env.debug_level = self.ui.wineDebugLineEdit.text() or None
+            save_wine_environment(self.game, self.wine_env)
 
         program_config.default_locale = available_locales_display_names_mapping[self.ui.defaultLanguageComboBox.currentText(
         )]
@@ -282,7 +293,7 @@ class SettingsWindow(QtWidgets.QDialog):
         program_config.games_sorting_mode = self.GAMES_SORTING_MODES_MAPPING[self.ui.gamesSortingModeComboBox.currentText(
         )]
 
-        games_config.save()
+        save_game(self.game)
         program_config.save()
 
         self.accept()

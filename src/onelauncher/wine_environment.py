@@ -1,6 +1,7 @@
 # coding=utf-8
 ###########################################################################
-# Main window for OneLauncher.
+# Code for managing WINE. This code should not be called on Windows, as
+# WINE is neither supported or needed there.
 #
 # Based on PyLotRO
 # (C) 2009 AJackson <ajackson@bcs.org.uk>
@@ -26,21 +27,22 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-# Imports for extracting function
-from onelauncher.ui_utilities import raise_warning_message
 import logging
 import lzma
+import os
 import tarfile
-from typing import Optional
-from urllib.error import URLError, HTTPError
-from urllib import request
 from pathlib import Path
 from shutil import move, rmtree
+from typing import NamedTuple, Optional
+from urllib import request
+from urllib.error import HTTPError, URLError
 
 from PySide6 import QtCore, QtWidgets
 
-from onelauncher.config.games_config import games_config
 from onelauncher.config import platform_dirs
+from onelauncher import games_sorted
+from onelauncher.games import Game
+from onelauncher.ui_utilities import raise_warning_message
 
 # To use Proton, replace link with Proton build and uncomment
 # `self.proton_documents_symlinker()` in wine_setup in wine_management
@@ -48,6 +50,18 @@ WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/6.7/wine-6.
 DXVK_URL = (
     "https://github.com/doitsujin/dxvk/releases/download/v1.8.1/dxvk-1.8.1.tar.gz"
 )
+
+
+class WineEnvironment():
+    def __init__(self,
+                 builtin_prefix_enabled: bool,
+                 user_wine_executable_path: Optional[Path] = None,
+                 user_prefix_path: Optional[Path] = None,
+                 debug_level: Optional[str] = None) -> None:
+        self.builtin_prefix_enabled = builtin_prefix_enabled
+        self.user_wine_executable_path = user_wine_executable_path
+        self.user_prefix_path = user_prefix_path
+        self.debug_level = debug_level
 
 
 class WineManagement:
@@ -283,11 +297,13 @@ class WineManagement:
         self.is_setup = True
 
 
-def edit_qprocess_to_use_wine(qprocess: QtCore.QProcess) -> None:
+def edit_qprocess_to_use_wine(
+        qprocess: QtCore.QProcess,
+        wine_env: WineEnvironment) -> None:
     """Reconfigures QProcess to use WINE. The program and arguments must be pre-set!"""
     processEnvironment = QtCore.QProcessEnvironment.systemEnvironment()
 
-    if games_config.current_game.builtin_wine_prefix_enabled:
+    if wine_env.builtin_prefix_enabled:
         if not wine_management.is_setup:
             wine_management.setup_files()
 
@@ -310,14 +326,14 @@ def edit_qprocess_to_use_wine(qprocess: QtCore.QProcess) -> None:
         processEnvironment.insert(
             "WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10=n")
     else:
-        prefix_path = games_config.current_game.wine_prefix_path
-        wine_path = games_config.current_game.wine_path
+        prefix_path = wine_env.user_prefix_path
+        wine_path = wine_env.user_wine_executable_path
 
     processEnvironment.insert("WINEPREFIX", str(prefix_path))
 
-    if games_config.current_game.wine_debug_level:
+    if wine_env.debug_level:
         processEnvironment.insert(
-            "WINEDEBUG", games_config.current_game.wine_debug_level)
+            "WINEDEBUG", wine_env.debug_level)
 
     # Move current program to arguments and replace it with WINE.
     qprocess.setArguments([qprocess.program()] + qprocess.arguments())
