@@ -149,30 +149,20 @@ class StartGame(QtWidgets.QDialog):
             with open(filename, "w") as outfile:
                 outfile.write(self.ui.txtLog.toPlainText())
 
-    def runStatupScripts(self):
+    def run_startup_scripts(self):
         """Runs Python scripts from add-ons with one that is approved by user"""
         addons_manager = get_addons_manager_from_game(self.game)
-        for script in addons_manager.startup_scripts:
-            file_path = self.game.documents_config_dir / script
-            if file_path.exists():
+        for script in addons_manager.enabled_startup_scripts:
+            try:
                 self.ui.txtLog.append(
-                    f"Running '{script}' startup script...")
-
-                with file_path.open() as file:
-                    code = file.read()
-
-                try:
-                    exec(
-                        code, {
-                            "__file__": str(file_path), "__game_dir__": str(
-                                self.game.game_directory), "__game_config_dir__": str(
-                                self.game.documents_config_dir)})
-                except SyntaxError as e:
-                    self.ui.txtLog.append(
-                        f"'{script}' ran into syntax error: {e}")
-            else:
+                    f"Running '{script.relative_path}' startup script...")
+                script.run()
+            except FileNotFoundError:
                 self.ui.txtLog.append(
-                    f"'{script}' startup script does not exist")
+                    f"'{script.relative_path}' startup script does not exist")
+            except SyntaxError as e:
+                self.ui.txtLog.append(
+                    f"'{script.relative_path}' ran into syntax error: {e}")
 
     def start_game(self):
         self.game.last_played = datetime.now()
@@ -184,12 +174,11 @@ class StartGame(QtWidgets.QDialog):
 
         self.finished = False
         self.ui.btnStop.setText("Abort")
-        self.runStatupScripts()
+        self.run_startup_scripts()
         self.process.start()
         logger.info(
             f"Game started with: {self.process.program(), self.process.arguments()}")
         self.ui.txtLog.append(f"Connecting to world: {self.world.name}")
-        
 
         self.exec()
 

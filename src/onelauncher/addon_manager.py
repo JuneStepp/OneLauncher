@@ -43,6 +43,7 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from vkbeautify import xml as prettify_xml
 
 import onelauncher
+from onelauncher.addons.startup_script import StartupScript
 from onelauncher.config import platform_dirs
 from onelauncher import games_sorted
 from onelauncher.config.games.addons import get_addons_manager_from_game, save_addons_manager
@@ -1799,7 +1800,10 @@ class AddonManagerWindow(QtWidgets.QDialog):
                         self.context_menu_selected_table, self.context_menu_selected_interface_ID, )
                     if relative_script_path:
                         # If startup script is enabled
-                        if relative_script_path in self.addons_manager.startup_scripts:
+                        relative_script_paths = [
+                            script.relative_path for script in
+                            self.addons_manager.enabled_startup_scripts]
+                        if relative_script_path in relative_script_paths:
                             menu.addAction(
                                 self.ui.actionDisableStartupScript)
                         else:
@@ -2225,7 +2229,8 @@ class AddonManagerWindow(QtWidgets.QDialog):
             self.context_menu_selected_table, self.context_menu_selected_interface_ID)
         full_script_path = self.data_folder / script
         if full_script_path.exists():
-            self.addons_manager.startup_scripts.append(script)
+            self.addons_manager.enabled_startup_scripts.append(
+                StartupScript(script, games_sorted.current_game))
             save_addons_manager(self.addons_manager)
         else:
             self.addLog(
@@ -2234,9 +2239,12 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
     def actionDisableStartupScriptSelected(self):
         if self.context_menu_selected_interface_ID:
-            script = self.getRelativeStartupScriptFromInterfaceID(
+            relative_script_path = self.getRelativeStartupScriptFromInterfaceID(
                 self.context_menu_selected_table, self.context_menu_selected_interface_ID)
-            self.addons_manager.startup_scripts.remove(script)
+            for startup_script in self.addons_manager.enabled_startup_scripts:
+                if startup_script.relative_path == relative_script_path:
+                    self.addons_manager.enabled_startup_scripts.remove(
+                        startup_script)
             save_addons_manager(self.addons_manager)
 
     def getRelativeStartupScriptFromInterfaceID(
@@ -2287,7 +2295,8 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 " It is highly recommended to review the script's code in the details"
                 " box below to make sure it's safe.", script_contents, )
             if activate_script:
-                self.addons_manager.startup_scripts.append(script)
+                self.addons_manager.enabled_startup_scripts.append(
+                    StartupScript(script, games_sorted.current_game))
                 save_addons_manager(self.addons_manager)
 
     def uninstallStartupScript(self, script: str, addon_data_folder: Path):
@@ -2297,10 +2306,12 @@ class AddonManagerWindow(QtWidgets.QDialog):
             relative_to_game_documents_dir_script = script_path.relative_to(
                 self.data_folder)
 
-            if relative_to_game_documents_dir_script in self.addons_manager.startup_scripts:
-                self.addons_manager.startup_scripts.remove(
-                    relative_to_game_documents_dir_script)
-                save_addons_manager(self.addons_manager)
+            for startup_script in self.addons_manager.enabled_startup_scripts:
+                if (startup_script.relative_path ==
+                        relative_to_game_documents_dir_script):
+                    self.addons_manager.enabled_startup_scripts.remove(
+                        startup_script)
+                    save_addons_manager(self.addons_manager)
 
             script_path.unlink(missing_ok=True)
 
