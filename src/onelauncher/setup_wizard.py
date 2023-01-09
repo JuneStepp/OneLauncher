@@ -28,6 +28,7 @@
 ###########################################################################
 import os
 from pathlib import Path
+from shutil import rmtree
 from typing import List
 
 from bidict import bidict
@@ -231,9 +232,10 @@ class SetupWizard(QtWidgets.QWizard):
         if not self.game_selection_only:
             # Reset settings
             program_config.config_path.unlink(missing_ok=True)
-            games_config.config_path.unlink(missing_ok=True)
+            rmtree(games_config.games_dir)
             program_config.__init__(
                 program_config.config_path)
+            games_config.__init__(games_config.games_dir)
             games_sorted.__init__(get_games_sorted().games.values())
 
             selected_locale_display_name = self.ui.languagesListWidget.currentItem().text()
@@ -250,7 +252,7 @@ class SetupWizard(QtWidgets.QWizard):
         program_config.__init__(
             program_config.config_path)
 
-    def add_games_to_settings(self):
+    def add_games_to_settings(self) -> None:
         """Add games to settings. This has to be done after language settings are set."""
         for game_type in self.game_type_to_ui_list:
             selected_items = self.sort_list_widget_items(

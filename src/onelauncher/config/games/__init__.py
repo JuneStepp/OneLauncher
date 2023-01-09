@@ -36,24 +36,21 @@ import rtoml
 
 from onelauncher.config import platform_dirs
 
-CONFIG_PATH: Final = platform_dirs.user_config_path / \
-    "games.toml"
+GAMES_DIR: Final = platform_dirs.user_data_path / "games"
+
+
+class InvalidGameUUIDError(ValueError):
+    """No game config for the given game UUID exists"""
+
+
+class MismatchedGameUUIDsError(Exception):
+    """Game config file UUID doesn't match folder UUID"""
 
 
 class GamesConfig():
-    def __init__(self, config_path: Path = CONFIG_PATH) -> None:
-        self.config_path = config_path
-
-    def _get_root_config(self) -> Dict[str, Any]:
-        self.config_path.parent.mkdir(parents=True, exist_ok=True)
-        root_config = rtoml.load(
-            self.config_path) if self.config_path.exists() else {}
-
-        # Ensure that there is a list for games
-        if "games" not in root_config:
-            root_config["games"] = []
-
-        return root_config
+    def __init__(self, games_dir: Path = GAMES_DIR) -> None:
+        self.games_dir = games_dir
+        self.games_dir.mkdir(parents=True, exist_ok=True)
 
     def _get_game_config_without_sections(
             self, game_config: Dict[str, Any]) -> Dict[str, Any]:
@@ -67,33 +64,45 @@ class GamesConfig():
                 val,
                 dict)}
 
-    def _get_all_full_game_configs(self) -> List[Dict[str, Any]]:
-        root_config = self._get_root_config()
-        return root_config["games"]
-
-    def get_all_game_configs(self) -> List[Dict[str, Any]]:
-        return [self._get_game_config_without_sections(
-            game_config) for game_config in self._get_all_full_game_configs()]
-
-    def _get_game_config_from_list(
-            self,
-            game_uuid: UUID,
-            game_configs: List[Dict[str, Any]]) -> Dict[str, Any]:
-        for game_config in game_configs:
-            if game_config.get("uuid") == str(game_uuid):
-                return game_config
-
-        raise ValueError(f"Game UUID: {game_uuid} not found in config")
+    def get_game_config_path(self, game_uuid: UUID) -> Path:
+        config_dir = self.games_dir / str(game_uuid)
+        return config_dir / "config.toml"
 
     def _get_full_game_config(self,
                               game_uuid: UUID) -> Dict[str, Any]:
-        game_configs = self._get_all_full_game_configs()
-        return self._get_game_config_from_list(game_uuid, game_configs)
+        """
+        Raises: InvalidGameUUIDError: No game config exists for game_uuid
+        """
+        config_file = self.get_game_config_path(game_uuid)
+        if not config_file.exists():
+            raise InvalidGameUUIDError(game_uuid)
+
+        config = rtoml.load(config_file)
+        if config.get("uuid") != str(game_uuid):
+            raise MismatchedGameUUIDsError(
+                f"{game_uuid} != {config.get('uuid')}")
+
+        return config
 
     def get_game_config(self,
                         game_uuid: UUID) -> Dict[str, Any]:
-        game_configs = self.get_all_game_configs()
-        return self._get_game_config_from_list(game_uuid, game_configs)
+        """
+        Raises: InvalidGameUUIDError: No game config exists for game_uuid
+        """
+        return self._get_game_config_without_sections(
+            self._get_full_game_config(game_uuid))
+
+    def get_all_game_configs(self) -> List[Dict[str, Any]]:
+        game_configs = []
+        for dir in self.games_dir.glob("*"):
+            try:
+                uuid = UUID(dir.name)
+            except ValueError:
+                continue
+
+            game_configs.append(self.get_game_config(uuid))
+
+        return game_configs
 
     def get_game_config_section(self,
                                 game_uuid: UUID,
@@ -108,42 +117,45 @@ class GamesConfig():
     def _save_full_game_config(self, game_uuid: UUID,
                                game_config: dict[str, Any]) -> None:
         """Save a full game config including all sub-sections."""
-        root_config = self._get_root_config()
-
-        # Remove any existing config for this game
-        for full_game_config in root_config["games"]:
-            if full_game_config.get("uuid") == str(game_uuid):
-                root_config["games"].remove(full_game_config)
-
-        root_config["games"].append(game_config)
-        rtoml.dump(root_config, self.config_path, pretty=True)
+        config_path = self.get_game_config_path(game_uuid)
+        config_path.parent.mkdir(exist_ok=True)
+        config_path.touch(exist_ok=True)
+        rtoml.dump(
+            game_config,
+            config_path,
+            pretty=True)
 
     def save_game_config(self, game_uuid: UUID,
-                         game_config: dict[str, Any]) -> None:
+                         new_game_config: dict[str, Any]) -> None:
         """
         Save game config. This will not save any changes to game config
         sections. See `self.save_game_config_section` for that
         """
-        game_config = self._get_game_config_without_sections(game_config)
-        root_config = self._get_root_config()
+        new_game_config = self._get_game_config_without_sections(
+            new_game_config)
+        try:
+            existing_config = self._get_full_game_config(game_uuid)
+        except InvalidGameUUIDError:
+            # Just save new config as it is, since there is no existing config
+            self._save_full_game_config(game_uuid, new_game_config)
+            return
 
-        for full_game_config in root_config["games"]:
-            if full_game_config.get("uuid") == str(game_uuid):
-                # Replace all values in full_game_config with new ones to
-                # be saved. This is done one by one, to not interfere with
-                # sections within the full_game_config.
-                for key, val in game_config.items():
-                    full_game_config[key] = val
+        # Replace all values in existing config with new ones to
+        # be saved. This is done one by one, to not interfere with
+        # sections within the existing config.
+        for key, val in new_game_config.items():
+            existing_config[key] = val
 
-                game_config = full_game_config
-
-        self._save_full_game_config(game_uuid, game_config)
+        self._save_full_game_config(game_uuid, existing_config)
 
     def save_game_config_section(self,
                                  game_uuid: UUID,
                                  config_section_name: str,
                                  config_section: Dict[str,
                                                       Any]) -> None:
+        """
+        Raises: InvalidGameUUIDError: No game config exists for game_uuid
+        """
         game_config = self._get_full_game_config(game_uuid)
         game_config[config_section_name] = config_section
 
