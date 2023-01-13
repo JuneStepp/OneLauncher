@@ -100,7 +100,7 @@ class SettingsWindow(QtWidgets.QDialog):
                 self.wine_env.debug_level or "")
         else:
             # WINE isn't used on Windows
-            self.ui.tabWidget.removeTab(1)
+            self.ui.tabWidget.removeTab(2)
 
         self.ui.gameDirLineEdit.setText(
             str(self.game.game_directory))
