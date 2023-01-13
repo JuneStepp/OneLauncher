@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Any, Dict
 from uuid import UUID
 
-from onelauncher.addons.feed import LotroInterfaceFeed
 from onelauncher.config.games import games_config
 from onelauncher.config.program_config import program_config
 from onelauncher.game_account import GameAccount
