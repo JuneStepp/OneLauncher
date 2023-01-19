@@ -228,15 +228,24 @@ class SetupWizard(QtWidgets.QWizard):
         items_dict = {item.listWidget().row(item): item for item in items}
         return [items_dict[key] for key in sorted(items_dict)]
 
+    def reset_config(self) -> None:
+        # Delete all information stored with keyring
+        for game in games_sorted.games.values():
+            if game.accounts is None:
+                continue
+            for account in game.accounts.values():
+                account.delete_account_keyring_info()
+        
+        program_config.config_path.unlink(missing_ok=True)
+        rmtree(games_config.games_dir)
+        program_config.__init__(
+            program_config.config_path)
+        games_config.__init__(games_config.games_dir)
+        games_sorted.__init__([])
+
     def save_settings(self):
         if not self.game_selection_only:
-            # Reset settings
-            program_config.config_path.unlink(missing_ok=True)
-            rmtree(games_config.games_dir)
-            program_config.__init__(
-                program_config.config_path)
-            games_config.__init__(games_config.games_dir)
-            games_sorted.__init__(get_games_sorted().games.values())
+            self.reset_config()
 
             selected_locale_display_name = self.ui.languagesListWidget.currentItem().text()
             program_config.default_locale = [locale for locale in available_locales.values(
