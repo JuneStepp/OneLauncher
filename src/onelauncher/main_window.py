@@ -306,12 +306,13 @@ class MainWindow(QtWidgets.QMainWindow):
         # account.
         self.ui.txtPassword.setPlaceholderText("")
 
-    def loadAllSavedAccounts(self):
+    def loadAllSavedAccounts(self) -> None:
         self.ui.cboAccount.clear()
         self.ui.cboAccount.setCurrentText("")
 
-        if program_config.save_accounts is False:
-            games_sorted.current_game.accounts = {}
+        if (program_config.save_accounts is False or
+                games_sorted.current_game.accounts is None):
+            games_sorted.current_game.accounts = None
             return
 
         accounts = list(games_sorted.current_game.accounts.values())
@@ -324,22 +325,16 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.cboAccount.addItem(account.username, userData=account)
         self.ui.cboAccount.setCurrentIndex(0)
 
-    def get_current_game_account(self) -> GameAccount:
+    def get_current_game_account(self) -> GameAccount | None:
         if type(self.ui.cboAccount.currentData()) == GameAccount:
             return self.ui.cboAccount.currentData()
-
-        current_world: World = self.ui.cboWorld.currentData()
-        current_account = GameAccount(
-            self.ui.cboAccount.currentText(),
-            games_sorted.current_game.uuid,
-            current_world.name)
-        self.ui.cboAccount.setItemData(
-            self.ui.cboAccount.currentIndex(), current_account)
-
-        return current_account
+        else:
+            return None
 
     def setCurrentAccountWorld(self):
         account = self.get_current_game_account()
+        if account is None:
+            return
         self.ui.cboWorld.setCurrentText(account.last_used_world_name)
 
     def set_current_account_placeholder_password(self):
@@ -348,6 +343,8 @@ class MainWindow(QtWidgets.QMainWindow):
             return
 
         account = self.get_current_game_account()
+        if account is None:
+            return
         password = account.password
         password_length = 0 if password is None else len(password)
         del password
@@ -386,21 +383,29 @@ class MainWindow(QtWidgets.QMainWindow):
             self.AddLog("No sub-account selected - aborting")
             return None
 
-    def AuthAccount(self):
+    def AuthAccount(self) -> None:
         self.AddLog("Checking account details...")
 
         # Force a small display to ensure message above is displayed
         # as program can look like it is not responding while validating
         for _ in range(4):
-            QtCore.QCoreApplication.instance().processEvents()
+            QtCore.QCoreApplication.instance().processEvents()  # type: ignore
 
         current_account = self.get_current_game_account()
+        current_world: World = self.ui.cboWorld.currentData()
+        if current_account is None:
+            current_account = GameAccount(
+                self.ui.cboAccount.currentText(),
+                games_sorted.current_game.uuid,
+                current_world.name)
+            self.ui.cboAccount.setItemData(
+                self.ui.cboAccount.currentIndex(), current_account)
 
         try:
             self.login_response = login_account.login_account(
                 self.game_services_info.auth_server,
                 self.ui.cboAccount.currentText(),
-                self.ui.txtPassword.text() or current_account.password,
+                self.ui.txtPassword.text() or current_account.password or "",
             )
         except login_account.WrongUsernameOrPasswordError:
             self.AddLog("Username or password is incorrect", True)
@@ -422,6 +427,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.AddLog("Account authenticated")
 
         if self.ui.chkSaveSettings.isChecked():
+            if games_sorted.current_game.accounts is None:
+                games_sorted.current_game.accounts = {}
+
             # Account is deleted first, because accounts are in order of
             # the most recently played at the end.
             with contextlib.suppress(KeyError):
@@ -429,7 +437,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
             games_sorted.current_game.accounts[current_account.username] = current_account
 
-            current_world: World = self.ui.cboWorld.currentData()
             current_account.last_used_world_name = current_world.name
 
             if self.ui.chkSavePassword.isChecked():
@@ -444,7 +451,7 @@ class MainWindow(QtWidgets.QMainWindow):
             games_sorted.current_game.datacenter_game_name)
         if len(game_subscriptions) > 1:
             subscription = self.get_game_subscription_selection(
-                current_account)
+                game_subscriptions, current_account)
             if subscription is None:
                 return
         else:
