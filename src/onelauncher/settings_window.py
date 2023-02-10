@@ -45,7 +45,7 @@ from onelauncher.resources import available_locales
 from onelauncher.standard_game_launcher import get_standard_game_launcher_path
 from onelauncher.start_ui import run_setup_wizard_with_main_window
 from onelauncher.ui.settings_uic import Ui_dlgSettings
-from onelauncher.ui_utilities import raise_warning_message
+from onelauncher.ui_utilities import show_warning_message
 from onelauncher.utilities import (CaseInsensitiveAbsolutePath,
                                    check_if_valid_game_folder)
 from onelauncher.wine_environment import edit_qprocess_to_use_wine
@@ -199,7 +199,7 @@ class SettingsWindow(QtWidgets.QDialog):
         launcher_path = get_standard_game_launcher_path(self.game)
 
         if launcher_path is None:
-            raise_warning_message("No valid launcher executable found", self)
+            show_warning_message("No valid launcher executable found", self)
             return
 
         process = QtCore.QProcess()
@@ -234,7 +234,7 @@ class SettingsWindow(QtWidgets.QDialog):
                     folder, game_type=games_sorted.current_game.game_type):
                 self.ui.gameDirLineEdit.setText(str(folder))
             else:
-                raise_warning_message(
+                show_warning_message(
                     f"The folder selected isn't a valid installation folder for "
                     f"{games_sorted.current_game.game_type}.", self)
 
@@ -260,7 +260,7 @@ class SettingsWindow(QtWidgets.QDialog):
             locale.display_name: locale for locale in available_locales.values()}
 
         if not self.ui.gameNameLineEdit.hasAcceptableInput():
-            raise_warning_message(
+            show_warning_message(
                 "The game name you've chosen is already in use by another game.", self)
             return
         self.game.name = self.ui.gameNameLineEdit.text()

@@ -42,7 +42,7 @@ from PySide6 import QtCore, QtWidgets
 from onelauncher.config import platform_dirs
 from onelauncher import games_sorted
 from onelauncher.games import Game
-from onelauncher.ui_utilities import raise_warning_message
+from onelauncher.ui_utilities import show_warning_message
 
 # To use Proton, replace link with Proton build and uncomment
 # `self.proton_documents_symlinker()` in wine_setup in wine_management
@@ -171,7 +171,7 @@ class WineManagement:
             return True
         except (URLError, HTTPError) as error:
             logger.error(error.reason, exc_info=True)
-            raise_warning_message(
+            show_warning_message(
                 f"There was an error downloading '{url}'. "
                 "You may want to check your network connection.", self)
             return False

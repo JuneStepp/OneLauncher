@@ -42,7 +42,7 @@ from onelauncher.config.program_config import program_config
 from onelauncher.games import Game, GamesSortingMode
 from onelauncher.resources import available_locales
 from onelauncher.ui.setup_wizard_uic import Ui_Wizard
-from onelauncher.ui_utilities import raise_warning_message
+from onelauncher.ui_utilities import show_warning_message
 from onelauncher.utilities import (CaseInsensitiveAbsolutePath,
                                    check_if_valid_game_folder)
 
@@ -195,7 +195,7 @@ class SetupWizard(QtWidgets.QWizard):
             # Select the added item
             output_list.setCurrentRow(0)
         else:
-            raise_warning_message(
+            show_warning_message(
                 f"The folder selected isn't a valid installation folder for {game_type}.", self)
 
     def is_any_game_folder_selected(self) -> bool:
@@ -207,7 +207,7 @@ class SetupWizard(QtWidgets.QWizard):
             if list.selectedItems():
                 return True
 
-        raise_warning_message(
+        show_warning_message(
             "There are no game folders selected. "
             "Please select at least one game folder to continue.", self
         )
@@ -229,13 +229,13 @@ class SetupWizard(QtWidgets.QWizard):
         return [items_dict[key] for key in sorted(items_dict)]
 
     def reset_config(self) -> None:
-        # Delete all information stored with keyring
+        # Delete all accounts information stored with keyring
         for game in games_sorted.games.values():
             if game.accounts is None:
                 continue
             for account in game.accounts.values():
                 account.delete_account_keyring_info()
-        
+
         program_config.config_path.unlink(missing_ok=True)
         rmtree(games_config.games_dir)
         program_config.__init__(
@@ -243,8 +243,35 @@ class SetupWizard(QtWidgets.QWizard):
         games_config.__init__(games_config.games_dir)
         games_sorted.__init__([])
 
+    def get_games_config_reset_confirmation(self) -> bool:
+        """
+        Ask user if they want to reset existing games config/data.
+        Will do nothing and return True if there is no existing data.
+
+        Returns:
+            bool: If the user wants settings to be reset.
+        """
+        # Return True if there is no existing games data.
+        if not (
+            games_config.games_dir.exists() and any(
+                games_config.games_dir.iterdir())):
+            return True
+
+        message_box = QtWidgets.QMessageBox(self)
+        message_box.setWindowFlag(QtCore.Qt.FramelessWindowHint)
+        message_box.setIcon(QtWidgets.QMessageBox.Warning)
+        message_box.setStandardButtons(message_box.Cancel | message_box.Yes)
+        message_box.setDefaultButton(message_box.Cancel)
+        message_box.setInformativeText(
+            "Existing game data will be deleted. (settings, saved "
+            "accounts, ect). Do you wish to continue?")
+
+        return message_box.exec() == message_box.Yes
+
     def save_settings(self):
         if not self.game_selection_only:
+            if self.get_games_config_reset_confirmation() is False:
+                return
             self.reset_config()
 
             selected_locale_display_name = self.ui.languagesListWidget.currentItem().text()
