@@ -62,7 +62,7 @@ class StartGame(QtWidgets.QDialog):
             StartGame,
             self).__init__(
             QtCore.QCoreApplication.instance().activeWindow(),
-            QtCore.Qt.FramelessWindowHint)
+            QtCore.Qt.WindowType.FramelessWindowHint)
 
         self.ui = Ui_startGameDialog()
         self.ui.setupUi(self)

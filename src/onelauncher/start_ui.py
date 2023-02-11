@@ -105,7 +105,7 @@ def handle_windows_dark_theme():
 
     qsettings = QtCore.QSettings(
         "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
-        QtCore.QSettings.NativeFormat)
+        QtCore.QSettings.Format.NativeFormat)
     # If user has dark theme activated
     if not qsettings.value("AppsUseLightTheme"):
         # Use QPalette to set custom dark theme for Windows.
@@ -194,9 +194,9 @@ def check_for_update():
         description = release_dictionary["body"]
 
         messageBox = QtWidgets.QMessageBox()
-        messageBox.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        messageBox.setIcon(QtWidgets.QMessageBox.Information)
-        messageBox.setStandardButtons(messageBox.Ok)
+        messageBox.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
+        messageBox.setIcon(QtWidgets.QMessageBox.Icon.Information)
+        messageBox.setStandardButtons(messageBox.StandardButton.Ok)
 
         centered_href = (
             f'<html><head/><body><p align="center"><a href="{url}">'

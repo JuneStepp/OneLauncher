@@ -19,7 +19,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
-PySide6 = "^6.0.2,!=6.2.0,<6.4.0"
+PySide6-Essentials = "^6.4.0"
 
 # Keyring packages
 keyring = "^23.0.1"

@@ -2,9 +2,9 @@ from PySide6 import QtWidgets, QtCore
 
 def show_warning_message(message: str, parent: QtWidgets.QWidget):
     messageBox = QtWidgets.QMessageBox(parent)
-    messageBox.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-    messageBox.setIcon(QtWidgets.QMessageBox.Warning)
-    messageBox.setStandardButtons(messageBox.Ok)
+    messageBox.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
+    messageBox.setIcon(QtWidgets.QMessageBox.Icon.Warning)
+    messageBox.setStandardButtons(messageBox.StandardButton.Ok)
     messageBox.setInformativeText(message)
 
     messageBox.exec()
@@ -17,7 +17,7 @@ def show_message_box_details_as_markdown(messageBox: QtWidgets.QMessageBox):
     for button in button_box.buttons():
         if (
             messageBox.buttonRole(
-                button) == QtWidgets.QMessageBox.ActionRole
+                button) == QtWidgets.QMessageBox.ButtonRole.ActionRole
             and button.text() == "Show Details..."
         ):
             button.click()

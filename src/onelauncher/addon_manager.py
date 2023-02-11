@@ -92,7 +92,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             AddonManagerWindow,
             self).__init__(
             QtCore.QCoreApplication.instance().activeWindow(),
-            QtCore.Qt.FramelessWindowHint)
+            QtCore.Qt.WindowType.FramelessWindowHint)
 
         self.addons_manager = get_addons_manager_from_game(
             games_sorted.current_game)
@@ -113,7 +113,8 @@ class AddonManagerWindow(QtWidgets.QDialog):
         self.installed_addons_color = QtGui.QColor()
         self.installed_addons_color.setRgb(63, 73, 83)
 
-        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.setContextMenuPolicy(
+            QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(
             self.contextMenuRequested
         )
@@ -1165,7 +1166,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
                     # Detects duplicates from multi-word search
                     duplicate = False
                     for item in table.findItems(
-                            row[1], QtCore.Qt.MatchExactly):
+                            row[1], QtCore.Qt.MatchFlag.MatchExactly):
                         if int((table.item(item.row(), 0)).text()) == row[0]:
                             duplicate = True
                             break
@@ -1258,7 +1259,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
         if disable_row:
             for i in range(table.columnCount()):
-                table.item(rows, i).setFlags(QtCore.Qt.ItemIsEnabled)
+                table.item(rows, i).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
                 table.item(rows, i).setBackground(self.installed_addons_color)
 
         table.setSortingEnabled(True)
@@ -1556,9 +1557,10 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
     def confirmationPrompt(self, text, details):
         messageBox = QtWidgets.QMessageBox(self)
-        messageBox.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        messageBox.setIcon(QtWidgets.QMessageBox.Question)
-        messageBox.setStandardButtons(messageBox.Apply | messageBox.Cancel)
+        messageBox.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
+        messageBox.setIcon(QtWidgets.QMessageBox.Icon.Question)
+        messageBox.setStandardButtons(
+            messageBox.StandardButton.Apply | messageBox.StandardButton.Cancel)
 
         messageBox.setInformativeText(text)
         messageBox.setDetailedText(details)

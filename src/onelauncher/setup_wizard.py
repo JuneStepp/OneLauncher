@@ -159,7 +159,9 @@ class SetupWizard(QtWidgets.QWizard):
         if game_type:
             list_widget = self.game_type_to_ui_list[game_type]
             # Only add the game folder to the list if it isn't already there
-            if list_widget.findItems(str(search_dir), QtCore.Qt.MatchExactly):
+            if list_widget.findItems(
+                    str(search_dir),
+                    QtCore.Qt.MatchFlag.MatchExactly):
                 list_widget.insertItem(0, str(search_dir))
             return
 
@@ -184,7 +186,7 @@ class SetupWizard(QtWidgets.QWizard):
             return
 
         # Detect if folder is already in list
-        if output_list.findItems(folder_str, QtCore.Qt.MatchExactly):
+        if output_list.findItems(folder_str, QtCore.Qt.MatchFlag.MatchExactly):
             return
 
         game_type = self.game_type_to_ui_list.inverse[output_list]
@@ -258,15 +260,16 @@ class SetupWizard(QtWidgets.QWizard):
             return True
 
         message_box = QtWidgets.QMessageBox(self)
-        message_box.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        message_box.setIcon(QtWidgets.QMessageBox.Warning)
-        message_box.setStandardButtons(message_box.Cancel | message_box.Yes)
-        message_box.setDefaultButton(message_box.Cancel)
+        message_box.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
+        message_box.setIcon(QtWidgets.QMessageBox.Icon.Warning)
+        message_box.setStandardButtons(
+            message_box.StandardButton.Cancel | message_box.StandardButton.Yes)
+        message_box.setDefaultButton(message_box.StandardButton.Cancel)
         message_box.setInformativeText(
             "Existing game data will be deleted. (settings, saved "
             "accounts, ect). Do you wish to continue?")
 
-        return message_box.exec() == message_box.Yes
+        return message_box.exec() == message_box.StandardButton.Yes
 
     def save_settings(self):
         if not self.game_selection_only:
@@ -296,7 +299,7 @@ class SetupWizard(QtWidgets.QWizard):
             selected_games: List[Game] = []
             for i, game_item in enumerate(selected_items):
                 if self.game_selection_only:
-                    game = game_item.data(QtCore.Qt.UserRole)
+                    game = game_item.data(QtCore.Qt.ItemDataRole.UserRole)
                     if isinstance(game, Game):
                         game.sorting_priority = i
                         selected_games.append(game)

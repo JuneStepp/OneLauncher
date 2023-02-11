@@ -98,7 +98,7 @@ class WineManagement:
             QtCore.QCoreApplication.instance().activeWindow(),
             QtCore.Qt.FramelessWindowHint,
         )
-        dialog.setWindowModality(QtCore.Qt.WindowModal)
+        dialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
         dialog.setAutoClose(False)
         dialog.setCancelButton(None)
         self.dlgDownloader = dialog

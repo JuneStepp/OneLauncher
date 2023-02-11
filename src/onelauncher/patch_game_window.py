@@ -50,7 +50,7 @@ class PatchWindow(QtWidgets.QDialog):
             PatchWindow,
             self).__init__(
             QtCore.QCoreApplication.instance().activeWindow(),
-            QtCore.Qt.FramelessWindowHint)
+            QtCore.Qt.WindowType.FramelessWindowHint)
 
         self.ui = Ui_patchingWindow()
         self.ui.setupUi(self)

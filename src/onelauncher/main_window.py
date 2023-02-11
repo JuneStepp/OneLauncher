@@ -70,7 +70,11 @@ class MainWindow(QtWidgets.QMainWindow):
     return_newsfeed = QtCore.Signal(str)
 
     def __init__(self):
-        super(MainWindow, self).__init__(None, QtCore.Qt.FramelessWindowHint)
+        super(
+            MainWindow,
+            self).__init__(
+            None,
+            QtCore.Qt.WindowType.FramelessWindowHint)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose, on=True)
 
         self.ui = Ui_winMain()
@@ -218,7 +222,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.return_newsfeed.connect(self.get_newsfeed)
 
     def btnAboutSelected(self):
-        dlgAbout = QtWidgets.QDialog(self, QtCore.Qt.Popup)
+        dlgAbout = QtWidgets.QDialog(self, QtCore.Qt.WindowType.Popup)
 
         ui = Ui_dlgAbout()
         ui.setupUi(dlgAbout)
@@ -366,7 +370,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 "last_used_subscription_name does not match any subscriptions.")
 
         select_subscription_dialog = QtWidgets.QDialog(
-            self, QtCore.Qt.FramelessWindowHint)
+            self, QtCore.Qt.WindowType.FramelessWindowHint)
         ui = Ui_dlgSelectSubscription()
         ui.setupUi(select_subscription_dialog)
 
