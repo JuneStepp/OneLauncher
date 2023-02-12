@@ -81,7 +81,7 @@
     <widget class="QLineEdit" name="gameNameLineEdit">
      <property name="geometry">
       <rect>
-       <x>150</x>
+       <x>151</x>
        <y>12</y>
        <width>300</width>
        <height>31</height>
@@ -116,8 +116,8 @@
     <widget class="QLineEdit" name="gameDescriptionLineEdit">
      <property name="geometry">
       <rect>
-       <x>150</x>
-       <y>52</y>
+       <x>151</x>
+       <y>54</y>
        <width>300</width>
        <height>31</height>
       </rect>
@@ -164,19 +164,6 @@
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QPushButton" name="standardGameLauncherButton">
-     <property name="geometry">
-      <rect>
-       <x>160</x>
-       <y>110</y>
-       <width>281</width>
-       <height>25</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Run Standard Game Launcher</string>
-     </property>
-    </widget>
    </widget>
    <widget class="QWidget" name="tabGame">
     <attribute name="title">
@@ -186,7 +173,7 @@
      <property name="geometry">
       <rect>
        <x>151</x>
-       <y>136</y>
+       <y>134</y>
        <width>300</width>
        <height>33</height>
       </rect>
@@ -266,7 +253,7 @@
      <property name="geometry">
       <rect>
        <x>13</x>
-       <y>141</y>
+       <y>139</y>
        <width>131</width>
        <height>23</height>
       </rect>
@@ -391,6 +378,19 @@
      </property>
      <property name="toolTip">
       <string>Standard launcher filename</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="standardGameLauncherButton">
+     <property name="geometry">
+      <rect>
+       <x>161</x>
+       <y>180</y>
+       <width>281</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Run Standard Game Launcher</string>
      </property>
     </widget>
    </widget>

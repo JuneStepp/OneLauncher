@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'settings.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.2.1
+## Created by: Qt User Interface Compiler version 6.4.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -45,7 +45,7 @@ class Ui_dlgSettings(object):
         self.gameNameLabel.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
         self.gameNameLineEdit = QLineEdit(self.tab)
         self.gameNameLineEdit.setObjectName(u"gameNameLineEdit")
-        self.gameNameLineEdit.setGeometry(QRect(150, 12, 300, 31))
+        self.gameNameLineEdit.setGeometry(QRect(151, 12, 300, 31))
         self.gameNameLineEdit.setClearButtonEnabled(True)
         self.gameDescriptionLabel = QLabel(self.tab)
         self.gameDescriptionLabel.setObjectName(u"gameDescriptionLabel")
@@ -53,7 +53,7 @@ class Ui_dlgSettings(object):
         self.gameDescriptionLabel.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
         self.gameDescriptionLineEdit = QLineEdit(self.tab)
         self.gameDescriptionLineEdit.setObjectName(u"gameDescriptionLineEdit")
-        self.gameDescriptionLineEdit.setGeometry(QRect(150, 52, 300, 31))
+        self.gameDescriptionLineEdit.setGeometry(QRect(151, 54, 300, 31))
         self.gameDescriptionLineEdit.setClearButtonEnabled(True)
         self.gameNewsfeedLabel = QLabel(self.tab)
         self.gameNewsfeedLabel.setObjectName(u"gameNewsfeedLabel")
@@ -63,15 +63,12 @@ class Ui_dlgSettings(object):
         self.gameNewsfeedLineEdit.setObjectName(u"gameNewsfeedLineEdit")
         self.gameNewsfeedLineEdit.setGeometry(QRect(150, 257, 300, 31))
         self.gameNewsfeedLineEdit.setClearButtonEnabled(True)
-        self.standardGameLauncherButton = QPushButton(self.tab)
-        self.standardGameLauncherButton.setObjectName(u"standardGameLauncherButton")
-        self.standardGameLauncherButton.setGeometry(QRect(160, 110, 281, 25))
         self.tabWidget.addTab(self.tab, "")
         self.tabGame = QWidget()
         self.tabGame.setObjectName(u"tabGame")
         self.clientTypeComboBox = QComboBox(self.tabGame)
         self.clientTypeComboBox.setObjectName(u"clientTypeComboBox")
-        self.clientTypeComboBox.setGeometry(QRect(151, 136, 300, 33))
+        self.clientTypeComboBox.setGeometry(QRect(151, 134, 300, 33))
         self.patchClientLabel = QLabel(self.tabGame)
         self.patchClientLabel.setObjectName(u"patchClientLabel")
         self.patchClientLabel.setGeometry(QRect(12, 261, 131, 23))
@@ -88,7 +85,7 @@ class Ui_dlgSettings(object):
         self.highResLabel.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
         self.clientLabel = QLabel(self.tabGame)
         self.clientLabel.setObjectName(u"clientLabel")
-        self.clientLabel.setGeometry(QRect(13, 141, 131, 23))
+        self.clientLabel.setGeometry(QRect(13, 139, 131, 23))
         self.clientLabel.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
         self.gameDirLabel = QLabel(self.tabGame)
         self.gameDirLabel.setObjectName(u"gameDirLabel")
@@ -114,6 +111,9 @@ class Ui_dlgSettings(object):
         self.standardLauncherLineEdit = QLineEdit(self.tabGame)
         self.standardLauncherLineEdit.setObjectName(u"standardLauncherLineEdit")
         self.standardLauncherLineEdit.setGeometry(QRect(150, 216, 300, 31))
+        self.standardGameLauncherButton = QPushButton(self.tabGame)
+        self.standardGameLauncherButton.setObjectName(u"standardGameLauncherButton")
+        self.standardGameLauncherButton.setGeometry(QRect(161, 180, 281, 25))
         self.tabWidget.addTab(self.tabGame, "")
         self.tabWine = QWidget()
         self.tabWine.setObjectName(u"tabWine")
@@ -258,7 +258,6 @@ class Ui_dlgSettings(object):
 #if QT_CONFIG(tooltip)
         self.gameNewsfeedLineEdit.setToolTip("")
 #endif // QT_CONFIG(tooltip)
-        self.standardGameLauncherButton.setText(QCoreApplication.translate("dlgSettings", u"Run Standard Game Launcher", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("dlgSettings", u"Game Info", None))
 #if QT_CONFIG(tooltip)
         self.clientTypeComboBox.setToolTip(QCoreApplication.translate("dlgSettings", u"Game client version to use. 64-bit is the most modern. It does work with WINE", None))
@@ -307,6 +306,7 @@ class Ui_dlgSettings(object):
 #if QT_CONFIG(tooltip)
         self.standardLauncherLineEdit.setToolTip(QCoreApplication.translate("dlgSettings", u"Standard launcher filename", None))
 #endif // QT_CONFIG(tooltip)
+        self.standardGameLauncherButton.setText(QCoreApplication.translate("dlgSettings", u"Run Standard Game Launcher", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabGame), QCoreApplication.translate("dlgSettings", u"Game", None))
 #if QT_CONFIG(tooltip)
         self.wineFormGroupBox.setToolTip(QCoreApplication.translate("dlgSettings", u"Enable manual WINE configuration. Otherwise, WINE and DXVK all get downloaded and managed automatically", None))
