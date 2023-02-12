@@ -99,6 +99,40 @@
       <item row="2" column="1">
        <widget class="QLineEdit" name="gameNewsfeedLineEdit"/>
       </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="gameDirLabel">
+        <property name="toolTip">
+         <string>Game install directory. There should be a file called patchclient.dll here</string>
+        </property>
+        <property name="text">
+         <string>Install Directory</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <layout class="QHBoxLayout" name="gameDirLayout">
+        <item>
+         <widget class="QLineEdit" name="gameDirLineEdit">
+          <property name="toolTip">
+           <string>Game install directory. There should be a file called patchclient.dll here</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="gameDirButton">
+          <property name="toolTip">
+           <string>Select game directory from file system</string>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
      </layout>
     </widget>
    </widget>
@@ -136,54 +170,7 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="gameDirLabel">
-        <property name="toolTip">
-         <string>Game install directory. There should be a file called patchclient.dll here</string>
-        </property>
-        <property name="text">
-         <string>Game Directory</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="1">
-       <layout class="QHBoxLayout" name="gameDirLayout">
-        <item>
-         <widget class="QLineEdit" name="gameDirLineEdit">
-          <property name="toolTip">
-           <string>Game install directory. There should be a file called patchclient.dll here</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="gameDirButton">
-          <property name="toolTip">
-           <string>Select game directory from file system</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="highResLabel">
-        <property name="toolTip">
-         <string>Enable high resolution game files. You may need to patch the game after enabling this</string>
-        </property>
-        <property name="text">
-         <string>Hi-Res Graphics</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
        <widget class="QCheckBox" name="highResCheckBox">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
@@ -199,7 +186,7 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
+      <item row="2" column="0">
        <widget class="QLabel" name="clientLabel">
         <property name="toolTip">
          <string>Game client version to use. 64-bit is the most modern. It does work with WINE</string>
@@ -212,14 +199,14 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
+      <item row="2" column="1">
        <widget class="QComboBox" name="clientTypeComboBox">
         <property name="toolTip">
          <string>Game client version to use. 64-bit is the most modern. It does work with WINE</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="0">
+      <item row="3" column="0">
        <widget class="QLabel" name="standardLauncherLabel">
         <property name="toolTip">
          <string>Standard launcher filename</string>
@@ -232,14 +219,27 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
+      <item row="3" column="1">
        <widget class="QLineEdit" name="standardLauncherLineEdit">
         <property name="toolTip">
          <string>Standard launcher filename</string>
         </property>
        </widget>
       </item>
-      <item row="6" column="0">
+      <item row="4" column="1">
+       <widget class="QPushButton" name="standardGameLauncherButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Run Standard Game Launcher</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
        <widget class="QLabel" name="patchClientLabel">
         <property name="toolTip">
          <string>Patch client DLL filename</string>
@@ -252,23 +252,23 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="1">
+      <item row="5" column="1">
        <widget class="QLineEdit" name="patchClientLineEdit">
         <property name="toolTip">
          <string>Patch client DLL filename</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
-       <widget class="QPushButton" name="standardGameLauncherButton">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+      <item row="1" column="0">
+       <widget class="QLabel" name="highResLabel">
+        <property name="toolTip">
+         <string>Enable high resolution game files. You may need to patch the game after enabling this</string>
         </property>
         <property name="text">
-         <string>Run Standard Game Launcher</string>
+         <string>Hi-Res Graphics</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>

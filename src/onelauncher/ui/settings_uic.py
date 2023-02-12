@@ -75,6 +75,27 @@ class Ui_dlgSettings(object):
 
         self.gameInfoFormLayout.setWidget(2, QFormLayout.FieldRole, self.gameNewsfeedLineEdit)
 
+        self.gameDirLabel = QLabel(self.formLayoutWidget)
+        self.gameDirLabel.setObjectName(u"gameDirLabel")
+        self.gameDirLabel.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.gameInfoFormLayout.setWidget(3, QFormLayout.LabelRole, self.gameDirLabel)
+
+        self.gameDirLayout = QHBoxLayout()
+        self.gameDirLayout.setObjectName(u"gameDirLayout")
+        self.gameDirLineEdit = QLineEdit(self.formLayoutWidget)
+        self.gameDirLineEdit.setObjectName(u"gameDirLineEdit")
+
+        self.gameDirLayout.addWidget(self.gameDirLineEdit)
+
+        self.gameDirButton = QToolButton(self.formLayoutWidget)
+        self.gameDirButton.setObjectName(u"gameDirButton")
+
+        self.gameDirLayout.addWidget(self.gameDirButton)
+
+
+        self.gameInfoFormLayout.setLayout(3, QFormLayout.FieldRole, self.gameDirLayout)
+
         self.tabWidget.addTab(self.gameInfoPage, "")
         self.gamePage = QWidget()
         self.gamePage.setObjectName(u"gamePage")
@@ -95,33 +116,6 @@ class Ui_dlgSettings(object):
 
         self.gameFormLayout.setWidget(0, QFormLayout.FieldRole, self.gameLanguageComboBox)
 
-        self.gameDirLabel = QLabel(self.formLayoutWidget_3)
-        self.gameDirLabel.setObjectName(u"gameDirLabel")
-        self.gameDirLabel.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-
-        self.gameFormLayout.setWidget(1, QFormLayout.LabelRole, self.gameDirLabel)
-
-        self.gameDirLayout = QHBoxLayout()
-        self.gameDirLayout.setObjectName(u"gameDirLayout")
-        self.gameDirLineEdit = QLineEdit(self.formLayoutWidget_3)
-        self.gameDirLineEdit.setObjectName(u"gameDirLineEdit")
-
-        self.gameDirLayout.addWidget(self.gameDirLineEdit)
-
-        self.gameDirButton = QToolButton(self.formLayoutWidget_3)
-        self.gameDirButton.setObjectName(u"gameDirButton")
-
-        self.gameDirLayout.addWidget(self.gameDirButton)
-
-
-        self.gameFormLayout.setLayout(1, QFormLayout.FieldRole, self.gameDirLayout)
-
-        self.highResLabel = QLabel(self.formLayoutWidget_3)
-        self.highResLabel.setObjectName(u"highResLabel")
-        self.highResLabel.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-
-        self.gameFormLayout.setWidget(2, QFormLayout.LabelRole, self.highResLabel)
-
         self.highResCheckBox = QCheckBox(self.formLayoutWidget_3)
         self.highResCheckBox.setObjectName(u"highResCheckBox")
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
@@ -130,40 +124,29 @@ class Ui_dlgSettings(object):
         sizePolicy.setHeightForWidth(self.highResCheckBox.sizePolicy().hasHeightForWidth())
         self.highResCheckBox.setSizePolicy(sizePolicy)
 
-        self.gameFormLayout.setWidget(2, QFormLayout.FieldRole, self.highResCheckBox)
+        self.gameFormLayout.setWidget(1, QFormLayout.FieldRole, self.highResCheckBox)
 
         self.clientLabel = QLabel(self.formLayoutWidget_3)
         self.clientLabel.setObjectName(u"clientLabel")
         self.clientLabel.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
-        self.gameFormLayout.setWidget(3, QFormLayout.LabelRole, self.clientLabel)
+        self.gameFormLayout.setWidget(2, QFormLayout.LabelRole, self.clientLabel)
 
         self.clientTypeComboBox = QComboBox(self.formLayoutWidget_3)
         self.clientTypeComboBox.setObjectName(u"clientTypeComboBox")
 
-        self.gameFormLayout.setWidget(3, QFormLayout.FieldRole, self.clientTypeComboBox)
+        self.gameFormLayout.setWidget(2, QFormLayout.FieldRole, self.clientTypeComboBox)
 
         self.standardLauncherLabel = QLabel(self.formLayoutWidget_3)
         self.standardLauncherLabel.setObjectName(u"standardLauncherLabel")
         self.standardLauncherLabel.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
-        self.gameFormLayout.setWidget(4, QFormLayout.LabelRole, self.standardLauncherLabel)
+        self.gameFormLayout.setWidget(3, QFormLayout.LabelRole, self.standardLauncherLabel)
 
         self.standardLauncherLineEdit = QLineEdit(self.formLayoutWidget_3)
         self.standardLauncherLineEdit.setObjectName(u"standardLauncherLineEdit")
 
-        self.gameFormLayout.setWidget(4, QFormLayout.FieldRole, self.standardLauncherLineEdit)
-
-        self.patchClientLabel = QLabel(self.formLayoutWidget_3)
-        self.patchClientLabel.setObjectName(u"patchClientLabel")
-        self.patchClientLabel.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-
-        self.gameFormLayout.setWidget(6, QFormLayout.LabelRole, self.patchClientLabel)
-
-        self.patchClientLineEdit = QLineEdit(self.formLayoutWidget_3)
-        self.patchClientLineEdit.setObjectName(u"patchClientLineEdit")
-
-        self.gameFormLayout.setWidget(6, QFormLayout.FieldRole, self.patchClientLineEdit)
+        self.gameFormLayout.setWidget(3, QFormLayout.FieldRole, self.standardLauncherLineEdit)
 
         self.standardGameLauncherButton = QPushButton(self.formLayoutWidget_3)
         self.standardGameLauncherButton.setObjectName(u"standardGameLauncherButton")
@@ -173,7 +156,24 @@ class Ui_dlgSettings(object):
         sizePolicy1.setHeightForWidth(self.standardGameLauncherButton.sizePolicy().hasHeightForWidth())
         self.standardGameLauncherButton.setSizePolicy(sizePolicy1)
 
-        self.gameFormLayout.setWidget(5, QFormLayout.FieldRole, self.standardGameLauncherButton)
+        self.gameFormLayout.setWidget(4, QFormLayout.FieldRole, self.standardGameLauncherButton)
+
+        self.patchClientLabel = QLabel(self.formLayoutWidget_3)
+        self.patchClientLabel.setObjectName(u"patchClientLabel")
+        self.patchClientLabel.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.gameFormLayout.setWidget(5, QFormLayout.LabelRole, self.patchClientLabel)
+
+        self.patchClientLineEdit = QLineEdit(self.formLayoutWidget_3)
+        self.patchClientLineEdit.setObjectName(u"patchClientLineEdit")
+
+        self.gameFormLayout.setWidget(5, QFormLayout.FieldRole, self.patchClientLineEdit)
+
+        self.highResLabel = QLabel(self.formLayoutWidget_3)
+        self.highResLabel.setObjectName(u"highResLabel")
+        self.highResLabel.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.gameFormLayout.setWidget(1, QFormLayout.LabelRole, self.highResLabel)
 
         self.tabWidget.addTab(self.gamePage, "")
         self.winePage = QWidget()
@@ -321,6 +321,17 @@ class Ui_dlgSettings(object):
         self.gameNameLabel.setText(QCoreApplication.translate("dlgSettings", u"Name", None))
         self.gameDescriptionLabel.setText(QCoreApplication.translate("dlgSettings", u"Description", None))
         self.gameNewsfeedLabel.setText(QCoreApplication.translate("dlgSettings", u"Newsfeed URL", None))
+#if QT_CONFIG(tooltip)
+        self.gameDirLabel.setToolTip(QCoreApplication.translate("dlgSettings", u"Game install directory. There should be a file called patchclient.dll here", None))
+#endif // QT_CONFIG(tooltip)
+        self.gameDirLabel.setText(QCoreApplication.translate("dlgSettings", u"Install Directory", None))
+#if QT_CONFIG(tooltip)
+        self.gameDirLineEdit.setToolTip(QCoreApplication.translate("dlgSettings", u"Game install directory. There should be a file called patchclient.dll here", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.gameDirButton.setToolTip(QCoreApplication.translate("dlgSettings", u"Select game directory from file system", None))
+#endif // QT_CONFIG(tooltip)
+        self.gameDirButton.setText(QCoreApplication.translate("dlgSettings", u"...", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.gameInfoPage), QCoreApplication.translate("dlgSettings", u"Game Info", None))
 #if QT_CONFIG(tooltip)
         self.gameLanguageLabel.setToolTip("")
@@ -329,21 +340,6 @@ class Ui_dlgSettings(object):
 #if QT_CONFIG(tooltip)
         self.gameLanguageComboBox.setToolTip("")
 #endif // QT_CONFIG(tooltip)
-#if QT_CONFIG(tooltip)
-        self.gameDirLabel.setToolTip(QCoreApplication.translate("dlgSettings", u"Game install directory. There should be a file called patchclient.dll here", None))
-#endif // QT_CONFIG(tooltip)
-        self.gameDirLabel.setText(QCoreApplication.translate("dlgSettings", u"Game Directory", None))
-#if QT_CONFIG(tooltip)
-        self.gameDirLineEdit.setToolTip(QCoreApplication.translate("dlgSettings", u"Game install directory. There should be a file called patchclient.dll here", None))
-#endif // QT_CONFIG(tooltip)
-#if QT_CONFIG(tooltip)
-        self.gameDirButton.setToolTip(QCoreApplication.translate("dlgSettings", u"Select game directory from file system", None))
-#endif // QT_CONFIG(tooltip)
-        self.gameDirButton.setText(QCoreApplication.translate("dlgSettings", u"...", None))
-#if QT_CONFIG(tooltip)
-        self.highResLabel.setToolTip(QCoreApplication.translate("dlgSettings", u"Enable high resolution game files. You may need to patch the game after enabling this", None))
-#endif // QT_CONFIG(tooltip)
-        self.highResLabel.setText(QCoreApplication.translate("dlgSettings", u"Hi-Res Graphics", None))
 #if QT_CONFIG(tooltip)
         self.highResCheckBox.setToolTip(QCoreApplication.translate("dlgSettings", u"Enable high resolution game files. You may need to patch the game after enabling this", None))
 #endif // QT_CONFIG(tooltip)
@@ -362,6 +358,7 @@ class Ui_dlgSettings(object):
 #if QT_CONFIG(tooltip)
         self.standardLauncherLineEdit.setToolTip(QCoreApplication.translate("dlgSettings", u"Standard launcher filename", None))
 #endif // QT_CONFIG(tooltip)
+        self.standardGameLauncherButton.setText(QCoreApplication.translate("dlgSettings", u"Run Standard Game Launcher", None))
 #if QT_CONFIG(tooltip)
         self.patchClientLabel.setToolTip(QCoreApplication.translate("dlgSettings", u"Patch client DLL filename", None))
 #endif // QT_CONFIG(tooltip)
@@ -369,7 +366,10 @@ class Ui_dlgSettings(object):
 #if QT_CONFIG(tooltip)
         self.patchClientLineEdit.setToolTip(QCoreApplication.translate("dlgSettings", u"Patch client DLL filename", None))
 #endif // QT_CONFIG(tooltip)
-        self.standardGameLauncherButton.setText(QCoreApplication.translate("dlgSettings", u"Run Standard Game Launcher", None))
+#if QT_CONFIG(tooltip)
+        self.highResLabel.setToolTip(QCoreApplication.translate("dlgSettings", u"Enable high resolution game files. You may need to patch the game after enabling this", None))
+#endif // QT_CONFIG(tooltip)
+        self.highResLabel.setText(QCoreApplication.translate("dlgSettings", u"Hi-Res Graphics", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.gamePage), QCoreApplication.translate("dlgSettings", u"Game", None))
         self.autoManageWineLabel.setText(QCoreApplication.translate("dlgSettings", u"Auto Manage Wine", None))
 #if QT_CONFIG(tooltip)
