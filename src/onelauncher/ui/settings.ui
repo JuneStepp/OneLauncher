@@ -52,7 +52,7 @@
    <property name="currentIndex">
     <number>0</number>
    </property>
-   <widget class="QWidget" name="tab">
+   <widget class="QWidget" name="gameInfoPage">
     <attribute name="title">
      <string>Game Info</string>
     </attribute>
@@ -99,7 +99,7 @@
      </layout>
     </widget>
    </widget>
-   <widget class="QWidget" name="tabGame">
+   <widget class="QWidget" name="gamePage">
     <attribute name="title">
      <string>Game</string>
     </attribute>
@@ -272,7 +272,7 @@
      </layout>
     </widget>
    </widget>
-   <widget class="QWidget" name="tabWine">
+   <widget class="QWidget" name="winePage">
     <attribute name="title">
      <string>Wine</string>
     </attribute>
@@ -363,7 +363,7 @@
      </layout>
     </widget>
    </widget>
-   <widget class="QWidget" name="tabProgram">
+   <widget class="QWidget" name="programPage">
     <attribute name="title">
      <string>OneLauncher</string>
     </attribute>

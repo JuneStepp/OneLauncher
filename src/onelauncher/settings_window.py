@@ -99,7 +99,9 @@ class SettingsWindow(QtWidgets.QDialog):
                 self.wine_env.debug_level or "")
         else:
             # WINE isn't used on Windows
-            self.ui.tabWidget.removeTab(2)
+            self.ui.tabWidget.setTabVisible(
+                self.ui.tabWidget.indexOf(
+                    self.ui.winePage), False)
 
         self.ui.gameDirLineEdit.setText(
             str(self.game.game_directory))
@@ -156,12 +158,10 @@ class SettingsWindow(QtWidgets.QDialog):
 
     def toggle_advanced_settings(self):
         if os.name != "nt":
-            if self.ui.showAdvancedSettingsCheckbox.isChecked():
-                self.ui.wineDebugLabel.show()
-                self.ui.wineDebugLineEdit.show()
-            else:
-                self.ui.wineDebugLabel.hide()
-                self.ui.wineDebugLineEdit.hide()
+            self.ui.tabWidget.setTabVisible(
+                self.ui.tabWidget.indexOf(
+                    self.ui.winePage),
+                self.ui.showAdvancedSettingsCheckbox.isChecked())
 
         if self.ui.showAdvancedSettingsCheckbox.isChecked():
             self.ui.gameNewsfeedLabel.setVisible(True)
