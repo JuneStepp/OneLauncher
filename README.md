@@ -35,7 +35,7 @@ installs are met.
 
 ### Launch Arguments
 
-- `--game`: Specifies starting game or game type. Accepted values are `LOTRO`, `DDO`, or the UUID of a game. You can find the UUIDs of your games in the games.toml configuration file.
+- `--game`: Specifies starting game or game type. Accepted values are `LOTRO`, `DDO`, or the UUID of a game. You can find the UUID of a game by showing advanced options in the settings window.
 - `--language`: Specifies game client language. Accepted values are IETF language tags such as `de`, `en-US`, or `fr`.
 
 ### Separate Settings Folders for Default and Preview Game Versions
