@@ -79,27 +79,27 @@
       <item row="0" column="1">
        <widget class="QLineEdit" name="gameNameLineEdit"/>
       </item>
-      <item row="1" column="0">
+      <item row="2" column="0">
        <widget class="QLabel" name="gameDescriptionLabel">
         <property name="text">
          <string>Description</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
+      <item row="2" column="1">
        <widget class="QLineEdit" name="gameDescriptionLineEdit"/>
       </item>
-      <item row="2" column="0">
+      <item row="3" column="0">
        <widget class="QLabel" name="gameNewsfeedLabel">
         <property name="text">
          <string>Newsfeed URL</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
+      <item row="3" column="1">
        <widget class="QLineEdit" name="gameNewsfeedLineEdit"/>
       </item>
-      <item row="3" column="0">
+      <item row="4" column="0">
        <widget class="QLabel" name="gameDirLabel">
         <property name="toolTip">
          <string>Game install directory. There should be a file called patchclient.dll here</string>
@@ -112,7 +112,7 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
+      <item row="4" column="1">
        <layout class="QHBoxLayout" name="gameDirLayout">
         <item>
          <widget class="QLineEdit" name="gameDirLineEdit">
@@ -133,7 +133,7 @@
         </item>
        </layout>
       </item>
-      <item row="4" column="1">
+      <item row="5" column="1">
        <widget class="QPushButton" name="browseGameConfigDirButton">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -146,6 +146,20 @@
         </property>
         <property name="text">
          <string>Browse Config Directory</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="gameUUIDLabel">
+        <property name="text">
+         <string>UUID</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="gameUUIDLineEdit">
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
        </widget>
       </item>

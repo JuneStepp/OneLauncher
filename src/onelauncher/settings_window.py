@@ -82,6 +82,7 @@ class SettingsWindow(QtWidgets.QDialog):
                 game.name) for game in games_sorted.games.values() if game != self.game]
         self.ui.gameNameLineEdit.setValidator(QtGui.QRegularExpressionValidator(
             QtCore.QRegularExpression(f"^(?!^({'|'.join(escaped_other_game_names)})$).+$")))
+        self.ui.gameUUIDLineEdit.setText(str(self.game.uuid))
         self.ui.gameDescriptionLineEdit.setText(
             self.game.description)
         self.setup_newsfeed_option()
@@ -164,7 +165,9 @@ class SettingsWindow(QtWidgets.QDialog):
         self.ui.wineExecutableLineEdit.setEnabled(not is_checked)
 
     def toggle_advanced_settings(self, is_checked: bool):
-        advanced_widgets = [self.ui.gameNewsfeedLabel,
+        advanced_widgets = [self.ui.gameUUIDLabel,
+                            self.ui.gameUUIDLineEdit,
+                            self.ui.gameNewsfeedLabel,
                             self.ui.gameNewsfeedLineEdit,
                             self.ui.browseGameConfigDirButton,
                             self.ui.standardLauncherLabel,

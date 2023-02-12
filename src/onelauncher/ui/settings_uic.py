@@ -58,28 +58,28 @@ class Ui_dlgSettings(object):
         self.gameDescriptionLabel = QLabel(self.formLayoutWidget)
         self.gameDescriptionLabel.setObjectName(u"gameDescriptionLabel")
 
-        self.gameInfoFormLayout.setWidget(1, QFormLayout.LabelRole, self.gameDescriptionLabel)
+        self.gameInfoFormLayout.setWidget(2, QFormLayout.LabelRole, self.gameDescriptionLabel)
 
         self.gameDescriptionLineEdit = QLineEdit(self.formLayoutWidget)
         self.gameDescriptionLineEdit.setObjectName(u"gameDescriptionLineEdit")
 
-        self.gameInfoFormLayout.setWidget(1, QFormLayout.FieldRole, self.gameDescriptionLineEdit)
+        self.gameInfoFormLayout.setWidget(2, QFormLayout.FieldRole, self.gameDescriptionLineEdit)
 
         self.gameNewsfeedLabel = QLabel(self.formLayoutWidget)
         self.gameNewsfeedLabel.setObjectName(u"gameNewsfeedLabel")
 
-        self.gameInfoFormLayout.setWidget(2, QFormLayout.LabelRole, self.gameNewsfeedLabel)
+        self.gameInfoFormLayout.setWidget(3, QFormLayout.LabelRole, self.gameNewsfeedLabel)
 
         self.gameNewsfeedLineEdit = QLineEdit(self.formLayoutWidget)
         self.gameNewsfeedLineEdit.setObjectName(u"gameNewsfeedLineEdit")
 
-        self.gameInfoFormLayout.setWidget(2, QFormLayout.FieldRole, self.gameNewsfeedLineEdit)
+        self.gameInfoFormLayout.setWidget(3, QFormLayout.FieldRole, self.gameNewsfeedLineEdit)
 
         self.gameDirLabel = QLabel(self.formLayoutWidget)
         self.gameDirLabel.setObjectName(u"gameDirLabel")
         self.gameDirLabel.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
-        self.gameInfoFormLayout.setWidget(3, QFormLayout.LabelRole, self.gameDirLabel)
+        self.gameInfoFormLayout.setWidget(4, QFormLayout.LabelRole, self.gameDirLabel)
 
         self.gameDirLayout = QHBoxLayout()
         self.gameDirLayout.setObjectName(u"gameDirLayout")
@@ -94,7 +94,7 @@ class Ui_dlgSettings(object):
         self.gameDirLayout.addWidget(self.gameDirButton)
 
 
-        self.gameInfoFormLayout.setLayout(3, QFormLayout.FieldRole, self.gameDirLayout)
+        self.gameInfoFormLayout.setLayout(4, QFormLayout.FieldRole, self.gameDirLayout)
 
         self.browseGameConfigDirButton = QPushButton(self.formLayoutWidget)
         self.browseGameConfigDirButton.setObjectName(u"browseGameConfigDirButton")
@@ -104,7 +104,18 @@ class Ui_dlgSettings(object):
         sizePolicy.setHeightForWidth(self.browseGameConfigDirButton.sizePolicy().hasHeightForWidth())
         self.browseGameConfigDirButton.setSizePolicy(sizePolicy)
 
-        self.gameInfoFormLayout.setWidget(4, QFormLayout.FieldRole, self.browseGameConfigDirButton)
+        self.gameInfoFormLayout.setWidget(5, QFormLayout.FieldRole, self.browseGameConfigDirButton)
+
+        self.gameUUIDLabel = QLabel(self.formLayoutWidget)
+        self.gameUUIDLabel.setObjectName(u"gameUUIDLabel")
+
+        self.gameInfoFormLayout.setWidget(1, QFormLayout.LabelRole, self.gameUUIDLabel)
+
+        self.gameUUIDLineEdit = QLineEdit(self.formLayoutWidget)
+        self.gameUUIDLineEdit.setObjectName(u"gameUUIDLineEdit")
+        self.gameUUIDLineEdit.setReadOnly(True)
+
+        self.gameInfoFormLayout.setWidget(1, QFormLayout.FieldRole, self.gameUUIDLineEdit)
 
         self.tabWidget.addTab(self.gameInfoPage, "")
         self.gamePage = QWidget()
@@ -343,6 +354,7 @@ class Ui_dlgSettings(object):
         self.browseGameConfigDirButton.setToolTip(QCoreApplication.translate("dlgSettings", u"Browse OneLauncher config/data directory for this game", None))
 #endif // QT_CONFIG(tooltip)
         self.browseGameConfigDirButton.setText(QCoreApplication.translate("dlgSettings", u"Browse Config Directory", None))
+        self.gameUUIDLabel.setText(QCoreApplication.translate("dlgSettings", u"UUID", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.gameInfoPage), QCoreApplication.translate("dlgSettings", u"Game Info", None))
 #if QT_CONFIG(tooltip)
         self.gameLanguageLabel.setToolTip("")
