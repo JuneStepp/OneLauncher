@@ -87,15 +87,14 @@ class SettingsWindow(QtWidgets.QDialog):
 
         if os.name != "nt":
             self.wine_env = get_wine_environment_from_game(self.game)
-            if self.wine_env.builtin_prefix_enabled:
-                self.ui.wineFormGroupBox.setChecked(False)
-            else:
-                self.ui.wineFormGroupBox.setCheckable(True)
-                self.ui.prefixLineEdit.setText(
-                    str(self.wine_env.user_prefix_path))
-                self.ui.wineExecutableLineEdit.setText(
-                    str(self.wine_env.user_wine_executable_path))
-
+            self.ui.autoManageWineCheckBox.toggled.connect(
+                self.auto_manage_wine_checkbox_toggled)
+            self.ui.autoManageWineCheckBox.setChecked(
+                self.wine_env.builtin_prefix_enabled)
+            self.ui.winePrefixLineEdit.setText(
+                str(self.wine_env.user_prefix_path or ""))
+            self.ui.wineExecutableLineEdit.setText(
+                str(self.wine_env.user_wine_executable_path or ""))
             self.ui.wineDebugLineEdit.setText(
                 self.wine_env.debug_level or "")
         else:
@@ -134,7 +133,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.ui.gameDirButton.clicked.connect(self.choose_game_dir)
         self.ui.showAdvancedSettingsCheckbox.clicked.connect(
             self.toggle_advanced_settings)
-        self.ui.settingsButtonBox.accepted.connect(self.save_settings)
+        self.ui.settingsButtonBox.accepted.connect(self.save_config)
 
     def setup_newsfeed_option(self):
         # Attempt to set placeholder text to default newsfeed URL
@@ -149,12 +148,20 @@ class SettingsWindow(QtWidgets.QDialog):
         self.ui.gameNewsfeedLineEdit.setText(
             self.game.newsfeed)
 
+    def auto_manage_wine_checkbox_toggled(self, is_checked: bool) -> None:
+        self.ui.winePrefixLabel.setEnabled(not is_checked)
+        self.ui.winePrefixLineEdit.setEnabled(not is_checked)
+        self.ui.wineExecutableLabel.setEnabled(not is_checked)
+        self.ui.wineExecutableLineEdit.setEnabled(not is_checked)
+
     def toggle_advanced_settings(self):
         if os.name != "nt":
             if self.ui.showAdvancedSettingsCheckbox.isChecked():
-                self.ui.wineAdvancedFrame.show()
+                self.ui.wineDebugLabel.show()
+                self.ui.wineDebugLineEdit.show()
             else:
-                self.ui.wineAdvancedFrame.hide()
+                self.ui.wineDebugLabel.hide()
+                self.ui.wineDebugLineEdit.hide()
 
         if self.ui.showAdvancedSettingsCheckbox.isChecked():
             self.ui.gameNewsfeedLabel.setVisible(True)
@@ -255,7 +262,19 @@ class SettingsWindow(QtWidgets.QDialog):
                 str(locale.flag_icon)), locale.display_name)
             combobox.model().sort(0)
 
-    def save_settings(self):
+    def save_wine_config(self) -> None:
+        self.wine_env.builtin_prefix_enabled = (
+            self.ui.autoManageWineCheckBox.isChecked())
+        self.wine_env.user_prefix_path = (Path(self.ui.winePrefixLineEdit.text())
+                                          if self.ui.winePrefixLineEdit.text()
+                                          else None)
+        self.wine_env.user_wine_executable_path = (Path(
+            self.ui.wineExecutableLineEdit.text())
+            if self.ui.wineExecutableLineEdit.text() else None)
+        self.wine_env.debug_level = self.ui.wineDebugLineEdit.text() or None
+        save_wine_environment(self.game, self.wine_env)
+
+    def save_config(self):
         available_locales_display_names_mapping = {
             locale.display_name: locale for locale in available_locales.values()}
 
@@ -278,14 +297,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.game.patch_client_filename = self.ui.patchClientLineEdit.text()
 
         if os.name != "nt":
-            self.wine_env.builtin_prefix_enabled = not self.ui.wineFormGroupBox.isChecked()
-            if not self.wine_env.builtin_prefix_enabled:
-                self.wine_env.user_prefix_path = Path(
-                    self.ui.prefixLineEdit.text())
-                self.wine_env.user_wine_executable_path = Path(
-                    self.ui.wineExecutableLineEdit.text())
-            self.wine_env.debug_level = self.ui.wineDebugLineEdit.text() or None
-            save_wine_environment(self.game, self.wine_env)
+            self.save_wine_config()
 
         program_config.default_locale = available_locales_display_names_mapping[self.ui.defaultLanguageComboBox.currentText(
         )]
