@@ -64,9 +64,11 @@ class GamesConfig():
                 val,
                 dict)}
 
+    def get_game_config_dir(self, game_uuid: UUID) -> Path:
+        return self.games_dir / str(game_uuid)
+
     def get_game_config_path(self, game_uuid: UUID) -> Path:
-        config_dir = self.games_dir / str(game_uuid)
-        return config_dir / "config.toml"
+        return self.get_game_config_dir(game_uuid) / "config.toml"
 
     def _get_full_game_config(self,
                               game_uuid: UUID) -> Dict[str, Any]:

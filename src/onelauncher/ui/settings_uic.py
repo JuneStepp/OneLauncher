@@ -96,6 +96,16 @@ class Ui_dlgSettings(object):
 
         self.gameInfoFormLayout.setLayout(3, QFormLayout.FieldRole, self.gameDirLayout)
 
+        self.browseGameConfigDirButton = QPushButton(self.formLayoutWidget)
+        self.browseGameConfigDirButton.setObjectName(u"browseGameConfigDirButton")
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.browseGameConfigDirButton.sizePolicy().hasHeightForWidth())
+        self.browseGameConfigDirButton.setSizePolicy(sizePolicy)
+
+        self.gameInfoFormLayout.setWidget(4, QFormLayout.FieldRole, self.browseGameConfigDirButton)
+
         self.tabWidget.addTab(self.gameInfoPage, "")
         self.gamePage = QWidget()
         self.gamePage.setObjectName(u"gamePage")
@@ -118,11 +128,11 @@ class Ui_dlgSettings(object):
 
         self.highResCheckBox = QCheckBox(self.formLayoutWidget_3)
         self.highResCheckBox.setObjectName(u"highResCheckBox")
-        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.highResCheckBox.sizePolicy().hasHeightForWidth())
-        self.highResCheckBox.setSizePolicy(sizePolicy)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.highResCheckBox.sizePolicy().hasHeightForWidth())
+        self.highResCheckBox.setSizePolicy(sizePolicy1)
 
         self.gameFormLayout.setWidget(1, QFormLayout.FieldRole, self.highResCheckBox)
 
@@ -150,11 +160,8 @@ class Ui_dlgSettings(object):
 
         self.standardGameLauncherButton = QPushButton(self.formLayoutWidget_3)
         self.standardGameLauncherButton.setObjectName(u"standardGameLauncherButton")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.standardGameLauncherButton.sizePolicy().hasHeightForWidth())
-        self.standardGameLauncherButton.setSizePolicy(sizePolicy1)
+        sizePolicy.setHeightForWidth(self.standardGameLauncherButton.sizePolicy().hasHeightForWidth())
+        self.standardGameLauncherButton.setSizePolicy(sizePolicy)
 
         self.gameFormLayout.setWidget(4, QFormLayout.FieldRole, self.standardGameLauncherButton)
 
@@ -191,8 +198,8 @@ class Ui_dlgSettings(object):
 
         self.autoManageWineCheckBox = QCheckBox(self.formLayoutWidget_5)
         self.autoManageWineCheckBox.setObjectName(u"autoManageWineCheckBox")
-        sizePolicy.setHeightForWidth(self.autoManageWineCheckBox.sizePolicy().hasHeightForWidth())
-        self.autoManageWineCheckBox.setSizePolicy(sizePolicy)
+        sizePolicy1.setHeightForWidth(self.autoManageWineCheckBox.sizePolicy().hasHeightForWidth())
+        self.autoManageWineCheckBox.setSizePolicy(sizePolicy1)
 
         self.wineFormLayout.setWidget(0, QFormLayout.FieldRole, self.autoManageWineCheckBox)
 
@@ -246,8 +253,8 @@ class Ui_dlgSettings(object):
 
         self.defaultLanguageComboBox = QComboBox(self.formLayoutWidget_4)
         self.defaultLanguageComboBox.setObjectName(u"defaultLanguageComboBox")
-        sizePolicy1.setHeightForWidth(self.defaultLanguageComboBox.sizePolicy().hasHeightForWidth())
-        self.defaultLanguageComboBox.setSizePolicy(sizePolicy1)
+        sizePolicy.setHeightForWidth(self.defaultLanguageComboBox.sizePolicy().hasHeightForWidth())
+        self.defaultLanguageComboBox.setSizePolicy(sizePolicy)
 
         self.programFormLayout.setWidget(0, QFormLayout.FieldRole, self.defaultLanguageComboBox)
 
@@ -261,8 +268,8 @@ class Ui_dlgSettings(object):
 
         self.defaultLanguageForUICheckBox = QCheckBox(self.formLayoutWidget_4)
         self.defaultLanguageForUICheckBox.setObjectName(u"defaultLanguageForUICheckBox")
-        sizePolicy.setHeightForWidth(self.defaultLanguageForUICheckBox.sizePolicy().hasHeightForWidth())
-        self.defaultLanguageForUICheckBox.setSizePolicy(sizePolicy)
+        sizePolicy1.setHeightForWidth(self.defaultLanguageForUICheckBox.sizePolicy().hasHeightForWidth())
+        self.defaultLanguageForUICheckBox.setSizePolicy(sizePolicy1)
 
         self.programFormLayout.setWidget(1, QFormLayout.FieldRole, self.defaultLanguageForUICheckBox)
 
@@ -274,22 +281,22 @@ class Ui_dlgSettings(object):
 
         self.gamesSortingModeComboBox = QComboBox(self.formLayoutWidget_4)
         self.gamesSortingModeComboBox.setObjectName(u"gamesSortingModeComboBox")
-        sizePolicy1.setHeightForWidth(self.gamesSortingModeComboBox.sizePolicy().hasHeightForWidth())
-        self.gamesSortingModeComboBox.setSizePolicy(sizePolicy1)
+        sizePolicy.setHeightForWidth(self.gamesSortingModeComboBox.sizePolicy().hasHeightForWidth())
+        self.gamesSortingModeComboBox.setSizePolicy(sizePolicy)
 
         self.programFormLayout.setWidget(2, QFormLayout.FieldRole, self.gamesSortingModeComboBox)
 
         self.gamesManagementButton = QPushButton(self.formLayoutWidget_4)
         self.gamesManagementButton.setObjectName(u"gamesManagementButton")
-        sizePolicy1.setHeightForWidth(self.gamesManagementButton.sizePolicy().hasHeightForWidth())
-        self.gamesManagementButton.setSizePolicy(sizePolicy1)
+        sizePolicy.setHeightForWidth(self.gamesManagementButton.sizePolicy().hasHeightForWidth())
+        self.gamesManagementButton.setSizePolicy(sizePolicy)
 
         self.programFormLayout.setWidget(3, QFormLayout.FieldRole, self.gamesManagementButton)
 
         self.setupWizardButton = QPushButton(self.formLayoutWidget_4)
         self.setupWizardButton.setObjectName(u"setupWizardButton")
-        sizePolicy1.setHeightForWidth(self.setupWizardButton.sizePolicy().hasHeightForWidth())
-        self.setupWizardButton.setSizePolicy(sizePolicy1)
+        sizePolicy.setHeightForWidth(self.setupWizardButton.sizePolicy().hasHeightForWidth())
+        self.setupWizardButton.setSizePolicy(sizePolicy)
 
         self.programFormLayout.setWidget(4, QFormLayout.FieldRole, self.setupWizardButton)
 
@@ -332,6 +339,10 @@ class Ui_dlgSettings(object):
         self.gameDirButton.setToolTip(QCoreApplication.translate("dlgSettings", u"Select game directory from file system", None))
 #endif // QT_CONFIG(tooltip)
         self.gameDirButton.setText(QCoreApplication.translate("dlgSettings", u"...", None))
+#if QT_CONFIG(tooltip)
+        self.browseGameConfigDirButton.setToolTip(QCoreApplication.translate("dlgSettings", u"Browse OneLauncher config/data directory for this game", None))
+#endif // QT_CONFIG(tooltip)
+        self.browseGameConfigDirButton.setText(QCoreApplication.translate("dlgSettings", u"Browse Config Directory", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.gameInfoPage), QCoreApplication.translate("dlgSettings", u"Game Info", None))
 #if QT_CONFIG(tooltip)
         self.gameLanguageLabel.setToolTip("")

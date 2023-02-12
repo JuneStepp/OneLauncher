@@ -35,6 +35,7 @@ from bidict import bidict
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from onelauncher import games_sorted
+from onelauncher.config.games import games_config
 from onelauncher.config.games.game import save_game
 from onelauncher.config.games.wine import (get_wine_environment_from_game,
                                            save_wine_environment)
@@ -84,6 +85,10 @@ class SettingsWindow(QtWidgets.QDialog):
         self.ui.gameDescriptionLineEdit.setText(
             self.game.description)
         self.setup_newsfeed_option()
+        self.ui.browseGameConfigDirButton.clicked.connect(
+            lambda: QtGui.QDesktopServices.openUrl(
+                QtCore.QUrl.fromLocalFile(
+                    games_config.get_game_config_dir(self.game.uuid))))
         self.ui.standardGameLauncherButton.clicked.connect(
             self.run_standard_game_launcher)
 
@@ -161,18 +166,19 @@ class SettingsWindow(QtWidgets.QDialog):
     def toggle_advanced_settings(self, is_checked: bool):
         advanced_widgets = [self.ui.gameNewsfeedLabel,
                             self.ui.gameNewsfeedLineEdit,
+                            self.ui.browseGameConfigDirButton,
                             self.ui.standardLauncherLabel,
                             self.ui.standardLauncherLineEdit,
                             self.ui.patchClientLabel,
                             self.ui.patchClientLineEdit]
         for widget in advanced_widgets:
-           widget.setVisible(is_checked)
+            widget.setVisible(is_checked)
 
         if os.name != "nt":
             self.ui.tabWidget.setTabVisible(
                 self.ui.tabWidget.indexOf(
                     self.ui.winePage),
-               is_checked)
+                is_checked)
 
     def setup_client_type_combo_box(self):
         combo_box_item_names = {ClientType.WIN64: "64-bit",
