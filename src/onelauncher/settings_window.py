@@ -71,7 +71,9 @@ class SettingsWindow(QtWidgets.QDialog):
         self.ui = Ui_dlgSettings()
         self.ui.setupUi(self)
 
-        self.toggle_advanced_settings()
+        self.ui.showAdvancedSettingsCheckbox.toggled.connect(
+            self.toggle_advanced_settings)
+        self.ui.showAdvancedSettingsCheckbox.setChecked(False)
 
         self.ui.gameNameLineEdit.setText(self.game.name)
         escaped_other_game_names = [
@@ -156,29 +158,21 @@ class SettingsWindow(QtWidgets.QDialog):
         self.ui.wineExecutableLabel.setEnabled(not is_checked)
         self.ui.wineExecutableLineEdit.setEnabled(not is_checked)
 
-    def toggle_advanced_settings(self):
+    def toggle_advanced_settings(self, is_checked: bool):
+        advanced_widgets = [self.ui.gameNewsfeedLabel,
+                            self.ui.gameNewsfeedLineEdit,
+                            self.ui.standardLauncherLabel,
+                            self.ui.standardLauncherLineEdit,
+                            self.ui.patchClientLabel,
+                            self.ui.patchClientLineEdit]
+        for widget in advanced_widgets:
+           widget.setVisible(is_checked)
+
         if os.name != "nt":
             self.ui.tabWidget.setTabVisible(
                 self.ui.tabWidget.indexOf(
                     self.ui.winePage),
-                self.ui.showAdvancedSettingsCheckbox.isChecked())
-
-        if self.ui.showAdvancedSettingsCheckbox.isChecked():
-            self.ui.gameNewsfeedLabel.setVisible(True)
-            self.ui.gameNewsfeedLineEdit.setVisible(True)
-
-            self.ui.standardLauncherLabel.setVisible(True)
-            self.ui.standardLauncherLineEdit.setVisible(True)
-            self.ui.patchClientLabel.setVisible(True)
-            self.ui.patchClientLineEdit.setVisible(True)
-        else:
-            self.ui.gameNewsfeedLabel.setVisible(False)
-            self.ui.gameNewsfeedLineEdit.setVisible(False)
-
-            self.ui.standardLauncherLabel.setVisible(False)
-            self.ui.standardLauncherLineEdit.setVisible(False)
-            self.ui.patchClientLabel.setVisible(False)
-            self.ui.patchClientLineEdit.setVisible(False)
+               is_checked)
 
     def setup_client_type_combo_box(self):
         combo_box_item_names = {ClientType.WIN64: "64-bit",

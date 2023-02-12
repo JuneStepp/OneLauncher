@@ -33,6 +33,7 @@ class Ui_dlgSettings(object):
         self.showAdvancedSettingsCheckbox = QCheckBox(dlgSettings)
         self.showAdvancedSettingsCheckbox.setObjectName(u"showAdvancedSettingsCheckbox")
         self.showAdvancedSettingsCheckbox.setGeometry(QRect(20, 332, 211, 28))
+        self.showAdvancedSettingsCheckbox.setChecked(True)
         self.tabWidget = QTabWidget(dlgSettings)
         self.tabWidget.setObjectName(u"tabWidget")
         self.tabWidget.setGeometry(QRect(0, 0, 471, 371))

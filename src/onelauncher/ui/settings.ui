@@ -39,6 +39,9 @@
    <property name="text">
     <string>Advanced Options</string>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QTabWidget" name="tabWidget">
    <property name="geometry">
