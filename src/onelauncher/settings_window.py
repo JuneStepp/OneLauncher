@@ -40,15 +40,15 @@ from onelauncher.config.games.game import save_game
 from onelauncher.config.games.wine import (get_wine_environment_from_game,
                                            save_wine_environment)
 from onelauncher.config.program_config import program_config
-from onelauncher.games import ClientType, Game, GamesSortingMode
+from onelauncher.games import (ClientType, Game, GamesSortingMode,
+                               check_if_valid_game_folder)
 from onelauncher.network.game_launcher_config import GameLauncherConfig
 from onelauncher.resources import available_locales
 from onelauncher.standard_game_launcher import get_standard_game_launcher_path
 from onelauncher.start_ui import run_setup_wizard_with_main_window
 from onelauncher.ui.settings_uic import Ui_dlgSettings
 from onelauncher.ui_utilities import show_warning_message
-from onelauncher.utilities import (CaseInsensitiveAbsolutePath,
-                                   check_if_valid_game_folder)
+from onelauncher.utilities import CaseInsensitiveAbsolutePath
 from onelauncher.wine_environment import edit_qprocess_to_use_wine
 
 

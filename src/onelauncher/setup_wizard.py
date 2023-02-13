@@ -37,14 +37,13 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from onelauncher import __title__, games_sorted
 from onelauncher.config.games import games_config
 from onelauncher.config.games.game import get_game_from_config, save_game
-from onelauncher.config.games.games_sorted import get_games_sorted
 from onelauncher.config.program_config import program_config
-from onelauncher.games import Game, GamesSortingMode
+from onelauncher.games import (Game, GamesSortingMode, GameType,
+                               check_if_valid_game_folder)
 from onelauncher.resources import available_locales
 from onelauncher.ui.setup_wizard_uic import Ui_Wizard
 from onelauncher.ui_utilities import show_warning_message
-from onelauncher.utilities import (CaseInsensitiveAbsolutePath,
-                                   check_if_valid_game_folder)
+from onelauncher.utilities import CaseInsensitiveAbsolutePath
 
 
 class SetupWizard(QtWidgets.QWizard):
@@ -64,7 +63,8 @@ class SetupWizard(QtWidgets.QWizard):
 
         self.games_found = False
         self.game_type_to_ui_list = bidict({
-            "LOTRO": self.ui.lotroListWidget, "DDO": self.ui.ddoListWidget})
+            GameType.LOTRO: self.ui.lotroListWidget,
+            GameType.DDO: self.ui.ddoListWidget})
         self.currentIdChanged.connect(self.current_id_changed)
         self.ui.lotroListWidget.itemDoubleClicked.connect(
             self.game_item_double_clicked)

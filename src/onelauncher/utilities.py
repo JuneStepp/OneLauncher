@@ -31,7 +31,6 @@ import os
 import pathlib
 from pathlib import Path
 from typing import Optional
-from bidict import bidict
 
 
 class CaseInsensitiveAbsolutePath(Path):
@@ -100,30 +99,6 @@ class CaseInsensitiveAbsolutePath(Path):
             joined_path)
 
 
-# Files that can be used to check if a folder is the installation
-# direcotry of a game. These files should be in the root installation
-# folder. Not for example, the 64-bit client folder within the root folder.
-GAME_FOLDER_VERIFICATION_FILES = bidict({
-    "LOTRO": Path("lotroclient.exe"), "DDO": Path("dndclient.exe")})
-
-
-def check_if_valid_game_folder(
-        folder: CaseInsensitiveAbsolutePath,
-        game_type: str = None) -> Optional[str]:
-    """
-    Checks for the game's verification file to validate that the
-    folder is a valid game folder.
-    """
-    if game_type:
-        verifying_files = [GAME_FOLDER_VERIFICATION_FILES[game_type]]
-    else:
-        verifying_files = GAME_FOLDER_VERIFICATION_FILES.values()
-
-    for verifying_file in verifying_files:
-        if (folder / verifying_file).exists():
-            return GAME_FOLDER_VERIFICATION_FILES.inverse[verifying_file]
-
-
 def string_encode(s):
     return s.encode()
 
@@ -135,11 +110,13 @@ def string_decode(s):
 def QByteArray2str(s):
     return str(s, encoding="utf8", errors="replace")
 
+
 def GetText(nodelist):
     return "".join(
         node.data
         for node in nodelist
         if node.nodeType in [node.TEXT_NODE, node.CDATA_SECTION_NODE]
     )
+
 
 logger = logging.getLogger("main")

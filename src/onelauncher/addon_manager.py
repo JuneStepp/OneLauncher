@@ -47,6 +47,7 @@ from onelauncher.addons.startup_script import StartupScript
 from onelauncher.config import platform_dirs
 from onelauncher import games_sorted
 from onelauncher.config.games.addons import get_addons_manager_from_game, save_addons_manager
+from onelauncher.games import GameType
 from onelauncher.ui.addon_manager_uic import Ui_winAddonManager
 from onelauncher.ui_resources import icon_font
 from onelauncher.utilities import CaseInsensitiveAbsolutePath, GetText
@@ -99,7 +100,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         self.ui = Ui_winAddonManager()
         self.ui.setupUi(self)
 
-        if games_sorted.current_game.game_type == "DDO":
+        if games_sorted.current_game.game_type == GameType.DDO:
             # Removes plugin and music tabs when using DDO.
             # This has to be done before the tab switching signals are
             # connected.
@@ -227,7 +228,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         self.openDB()
 
         self.data_folder = games_sorted.current_game.documents_config_dir
-        if games_sorted.current_game.game_type == "DDO":
+        if games_sorted.current_game.game_type == GameType.DDO:
             self.data_folder_skins = self.data_folder / "ui/skins"
 
             self.ui.tableSkinsInstalled.setObjectName(
@@ -595,7 +596,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
     def actionAddonImportSelected(self):
         # DDO doesn't support playing music from .abc files
-        if games_sorted.current_game.game_type == "DDO":
+        if games_sorted.current_game.game_type == GameType.DDO:
             addon_formats = "*.zip *.rar"
         else:
             addon_formats = "*.zip *.rar *.abc"
@@ -626,7 +627,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             self.installZipAddon(addon_path, interface_id)
 
     def installAbcFile(self, addon_path: Path):
-        if games_sorted.current_game.game_type == "DDO":
+        if games_sorted.current_game.game_type == GameType.DDO:
             self.addLog("DDO does not support .abc/music files")
             return
 
@@ -672,7 +673,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
     def install_plugin(self, tmp_dir: Path, interface_id: str) -> None:
         """Install plugin from temporary directory"""
-        if games_sorted.current_game.game_type == "DDO":
+        if games_sorted.current_game.game_type == GameType.DDO:
             self.addLog("DDO does not support plugins")
             return
 
@@ -798,7 +799,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             return existing_compendium_files[0]
 
     def install_music(self, tmp_dir: Path, interface_id: str, addon_name: str):
-        if games_sorted.current_game.game_type == "DDO":
+        if games_sorted.current_game.game_type == GameType.DDO:
             self.addLog("DDO does not support .abc/music files")
             return
 
@@ -1112,7 +1113,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         return download_url.replace("/downloads/download", "/downloads/info")
 
     def txtSearchBarTextChanged(self, text):
-        if games_sorted.current_game.game_type == "LOTRO":
+        if games_sorted.current_game.game_type == GameType.LOTRO:
             # If in Installed tab
             if self.ui.tabWidget.currentIndex() == 0:
                 index_installed = self.ui.tabWidgetInstalled.currentIndex()
@@ -1338,7 +1339,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
     def getCurrentTable(self):
         """Return the table that the user currently sees based on what tabs they are in"""
         if self.ui.tabWidget.currentIndex() == 0:
-            if games_sorted.current_game.game_type == "LOTRO":
+            if games_sorted.current_game.game_type == GameType.LOTRO:
                 index_installed = self.ui.tabWidgetInstalled.currentIndex()
 
                 if index_installed == 0:
@@ -1350,7 +1351,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             else:
                 table = self.ui.tableSkinsInstalled
         elif self.ui.tabWidget.currentIndex() == 1:
-            if games_sorted.current_game.game_type == "DDO":
+            if games_sorted.current_game.game_type == GameType.LOTRO:
                 table = self.ui.tableSkins
             else:
                 index_remote = self.ui.tabWidgetRemote.currentIndex()
@@ -1625,7 +1626,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         self.searchSearchBarContents()
 
     def loadRemoteAddons(self):
-        if games_sorted.current_game.game_type == "LOTRO":
+        if games_sorted.current_game.game_type == GameType.LOTRO:
             # Only keep loading remote add-ons if the first load doesn't run
             # into issues
             if self.getRemoteAddons(
@@ -2021,7 +2022,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         Makes action for opening addon folder associated with
         current tab the only addon folder opening action visible.
         """
-        if games_sorted.current_game.game_type == "DDO" or index == 1:
+        if games_sorted.current_game.game_type == GameType.DDO or index == 1:
             self.ui.actionShowPluginsFolderInFileManager.setVisible(
                 False)
             self.ui.actionShowSkinsFolderInFileManager.setVisible(
@@ -2057,11 +2058,11 @@ class AddonManagerWindow(QtWidgets.QDialog):
         if not self.loadRemoteDataIfNotDone():
             return
 
-        if games_sorted.current_game.game_type != "DDO":
+        if games_sorted.current_game.game_type != GameType.DDO:
             self.loadSkinsIfNotDone()
             self.loadMusicIfNotDone()
 
-        if games_sorted.current_game.game_type == "LOTRO":
+        if games_sorted.current_game.game_type == GameType.LOTRO:
             tables = self.TABLE_LIST[:3]
         else:
             tables = ["tableSkinsInstalled"]
@@ -2136,7 +2137,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         if not self.loadRemoteDataIfNotDone():
             return
 
-        if games_sorted.current_game.game_type == "LOTRO":
+        if games_sorted.current_game.game_type == GameType.LOTRO:
             tables = self.TABLE_LIST[:3]
         else:
             tables = ["tableSkinsInstalled"]

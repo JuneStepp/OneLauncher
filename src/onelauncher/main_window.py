@@ -41,7 +41,7 @@ from onelauncher.addon_manager import AddonManagerWindow
 from onelauncher.config.games.game import save_game
 from onelauncher.config.program_config import program_config
 from onelauncher.game_account import GameAccount
-from onelauncher.games import Game
+from onelauncher.games import Game, GameType, check_if_valid_game_folder
 from onelauncher.network import login_account
 from onelauncher.network.game_launcher_config import (
     GameLauncherConfig, GameLauncherConfigParseError)
@@ -59,7 +59,6 @@ from onelauncher.ui.main_uic import Ui_winMain
 from onelauncher.ui.select_subscription_uic import Ui_dlgSelectSubscription
 from onelauncher.ui.start_game_window import StartGame
 from onelauncher.ui_resources import icon_font
-from onelauncher.utilities import check_if_valid_game_folder
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -181,7 +180,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def setup_switch_game_button(self):
         """Set icon and dropdown options of switch game button according to current game"""
-        if games_sorted.current_game.game_type == "DDO":
+        if games_sorted.current_game.game_type == GameType.DDO:
             self.ui.btnSwitchGame.setIcon(
                 QtGui.QIcon(
                     str(
@@ -257,7 +256,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def btnSwitchGameClicked(self):
         new_current_game_type = (
-            "LOTRO" if games_sorted.current_game.game_type == "DDO" else "DDO")
+            GameType.LOTRO if
+            games_sorted.current_game.game_type == GameType.DDO
+            else GameType.DDO)
         games_sorted.current_game = games_sorted.get_sorted_games_list(
             new_current_game_type, program_config.games_sorting_mode)[0]
         self.InitialSetup()

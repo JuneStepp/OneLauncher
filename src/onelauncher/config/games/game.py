@@ -16,13 +16,13 @@ def get_config_from_game(game: Game) -> dict[str, Any]:
         "uuid": str(
             game.uuid),
         "sorting_priority": game.sorting_priority,
-        "game_type": game.game_type,
+        "game_type": str(game.game_type),
         "name": game.name,
         "description": game.description,
         "game_directory": str(
             game.game_directory),
         "language": game.locale.lang_tag,
-        "client_type": game.client_type,
+        "client_type": str(game.client_type),
         "high_res_enabled": game.high_res_enabled,
         "patch_client_filename": game.patch_client_filename,
     }

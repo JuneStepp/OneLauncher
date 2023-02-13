@@ -1,4 +1,4 @@
-from onelauncher.games import Game
+from onelauncher.games import Game, GameType
 from onelauncher.network.game_launcher_config import GameLauncherConfig
 from onelauncher.utilities import CaseInsensitiveAbsolutePath
 
@@ -19,9 +19,9 @@ def _get_launcher_path_based_on_client_filename(
 def _get_launcher_path_with_hardcoded_filenames(
         game: Game) -> CaseInsensitiveAbsolutePath | None:
     match game.game_type:
-        case "LOTRO":
+        case GameType.LOTRO:
             filenames = {"LotroLauncher.exe"}
-        case "DDO":
+        case GameType.DDO:
             filenames = {"DNDLauncher.exe"}
         case _:
             raise ValueError("Unexpeced game type")

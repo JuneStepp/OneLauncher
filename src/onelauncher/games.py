@@ -1,9 +1,12 @@
 
 from datetime import datetime
 from enum import Enum, StrEnum
+from pathlib import Path
 from typing import Dict, List, Optional
 from uuid import UUID, uuid4
 from xml.etree import ElementTree
+
+from bidict import bidict
 
 from onelauncher.config import platform_dirs
 from onelauncher.game_account import GameAccount
@@ -18,11 +21,16 @@ class ClientType(StrEnum):
     WIN32Legacy = "WIN32Legacy"
 
 
+class GameType(StrEnum):
+    LOTRO = "LOTRO"
+    DDO = "DDO"
+
+
 class Game():
     def __init__(self,
                  uuid: UUID,
                  sorting_priority: int,
-                 game_type: str,
+                 game_type: GameType,
                  game_directory: CaseInsensitiveAbsolutePath,
                  locale: OneLauncherLocale,
                  client_type: ClientType,
@@ -50,20 +58,6 @@ class Game():
         self.standard_game_launcher_filename = standard_game_launcher_filename
         self.accounts = accounts
         self.load_launcher_config()
-
-    @property
-    def game_type(self) -> str:
-        return self._game_type
-
-    @game_type.setter
-    def game_type(self, new_value: str) -> None:
-        """LOTRO or DDO"""
-        valid_game_types = ["LOTRO", "DDO"]
-        if new_value not in valid_game_types:
-            raise ValueError(
-                f"{new_value} is not a valid game type. Valid types are {valid_game_types}.")
-
-        self._game_type = new_value
 
     def load_launcher_config(self):
         """
@@ -168,14 +162,14 @@ class GamesSorted():
 
     @current_game.setter
     def current_game(self, game: Game) -> None:
-        self._current_game = game # type: ignore
+        self._current_game = game  # type: ignore
 
-    def get_games_by_game_type(self, game_type: str) -> List[Game]:
+    def get_games_by_game_type(self, game_type: GameType) -> List[Game]:
         return [game for game in self.games.values() if game.game_type ==
                 game_type]
 
     def get_games_sorted_by_priority(
-            self, game_type: str) -> List[Game]:
+            self, game_type: GameType) -> List[Game]:
         games = self.get_games_by_game_type(
             game_type)
         # Sort games by sorting_priority. Games with sorting_priority of -1 are
@@ -187,7 +181,7 @@ class GamesSorted():
                 game.sorting_priority))
 
     def get_games_sorted_by_last_played(
-            self, game_type: str | None = None) -> List[Game]:
+            self, game_type: GameType | None = None) -> List[Game]:
         games = set(
             self.get_games_by_game_type(game_type)) if game_type else set(
             self.games.values())
@@ -204,7 +198,7 @@ class GamesSorted():
 
     def get_sorted_games_list(
             self,
-            game_type: str,
+            game_type: GameType,
             sorting_mode: GamesSortingMode) -> List[Game]:
         match sorting_mode:
             case GamesSortingMode.PRIORITY:
@@ -215,7 +209,7 @@ class GamesSorted():
                 return self.get_games_sorted_alphabetically(game_type)
 
     def get_games_sorted_alphabetically(
-            self, game_type: str) -> List[Game]:
+            self, game_type: GameType) -> List[Game]:
         return sorted(
             self.get_games_by_game_type(game_type),
             key=lambda game: game.name)
@@ -229,3 +223,32 @@ class GamesSorted():
             uuid = uuid4()
 
         return uuid
+
+
+# Files that can be used to check if a folder is the installation
+# direcotry of a game. These files should be in the root installation
+# folder. Not for example, the 64-bit client folder within the root folder.
+GAME_FOLDER_VERIFICATION_FILES = bidict({GameType.LOTRO: Path(
+    "lotroclient.exe"), GameType.DDO: Path("dndclient.exe")})
+
+
+def check_if_valid_game_folder(
+        folder: CaseInsensitiveAbsolutePath,
+        game_type: GameType | None = None) -> Optional[GameType]:
+    """
+    Checks for the game's verification file to validate that the
+    folder is a valid game folder.
+    """
+    if game_type:
+        verifying_files = [GAME_FOLDER_VERIFICATION_FILES[game_type]]
+    else:
+        verifying_files = list(GAME_FOLDER_VERIFICATION_FILES.values())
+
+    return next(
+        (
+            GAME_FOLDER_VERIFICATION_FILES.inverse[verifying_file]
+            for verifying_file in verifying_files
+            if (folder / verifying_file).exists()
+        ),
+        None,
+    )
