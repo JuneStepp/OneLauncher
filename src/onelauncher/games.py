@@ -1,6 +1,6 @@
 
 from datetime import datetime
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Dict, List, Optional
 from uuid import UUID, uuid4
 from xml.etree import ElementTree
@@ -11,13 +11,7 @@ from onelauncher.resources import OneLauncherLocale
 from onelauncher.utilities import CaseInsensitiveAbsolutePath
 
 
-# TODO: Change to StrEnum once on Python 3.11. Can then also change the
-# places using the enum value to just the enum. ex. ClientType.WIN64.value
-# to get "WIN64" can instead just be ClientType.WIN64. Think this would be
-# helpful, as it makes it where the enum can just be used everywhere
-# rather than having to know about the difference between the enum and
-# game client values.
-class ClientType(Enum):
+class ClientType(StrEnum):
     WIN64 = "WIN64"
     WIN32 = "WIN32"
     WIN32_LEGACY = "WIN32Legacy"
