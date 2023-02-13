@@ -11,10 +11,11 @@
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
     QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-    QFont, QFontDatabase, QGradient, QIcon,
-    QImage, QKeySequence, QLinearGradient, QPainter,
-    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
+    QCursor, QFont, QFontDatabase, QGradient,
+    QIcon, QImage, QKeySequence, QLinearGradient,
+    QPainter, QPalette, QPixmap, QRadialGradient,
+    QTransform)
 from PySide6.QtWidgets import (QAbstractButton, QApplication, QCheckBox, QComboBox,
     QDialog, QDialogButtonBox, QFormLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QSizePolicy,
@@ -30,6 +31,8 @@ class Ui_dlgSettings(object):
         font.setPointSize(12)
         dlgSettings.setFont(font)
         dlgSettings.setModal(True)
+        self.actionRunStandardGameLauncherWithPatchingDisabled = QAction(dlgSettings)
+        self.actionRunStandardGameLauncherWithPatchingDisabled.setObjectName(u"actionRunStandardGameLauncherWithPatchingDisabled")
         self.showAdvancedSettingsCheckbox = QCheckBox(dlgSettings)
         self.showAdvancedSettingsCheckbox.setObjectName(u"showAdvancedSettingsCheckbox")
         self.showAdvancedSettingsCheckbox.setGeometry(QRect(20, 332, 211, 28))
@@ -169,13 +172,6 @@ class Ui_dlgSettings(object):
 
         self.gameFormLayout.setWidget(3, QFormLayout.FieldRole, self.standardLauncherLineEdit)
 
-        self.standardGameLauncherButton = QPushButton(self.formLayoutWidget_3)
-        self.standardGameLauncherButton.setObjectName(u"standardGameLauncherButton")
-        sizePolicy.setHeightForWidth(self.standardGameLauncherButton.sizePolicy().hasHeightForWidth())
-        self.standardGameLauncherButton.setSizePolicy(sizePolicy)
-
-        self.gameFormLayout.setWidget(4, QFormLayout.FieldRole, self.standardGameLauncherButton)
-
         self.patchClientLabel = QLabel(self.formLayoutWidget_3)
         self.patchClientLabel.setObjectName(u"patchClientLabel")
         self.patchClientLabel.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
@@ -192,6 +188,14 @@ class Ui_dlgSettings(object):
         self.highResLabel.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
         self.gameFormLayout.setWidget(1, QFormLayout.LabelRole, self.highResLabel)
+
+        self.standardGameLauncherButton = QToolButton(self.formLayoutWidget_3)
+        self.standardGameLauncherButton.setObjectName(u"standardGameLauncherButton")
+        sizePolicy.setHeightForWidth(self.standardGameLauncherButton.sizePolicy().hasHeightForWidth())
+        self.standardGameLauncherButton.setSizePolicy(sizePolicy)
+        self.standardGameLauncherButton.setPopupMode(QToolButton.MenuButtonPopup)
+
+        self.gameFormLayout.setWidget(4, QFormLayout.FieldRole, self.standardGameLauncherButton)
 
         self.tabWidget.addTab(self.gamePage, "")
         self.winePage = QWidget()
@@ -332,6 +336,10 @@ class Ui_dlgSettings(object):
 
     def retranslateUi(self, dlgSettings):
         dlgSettings.setWindowTitle(QCoreApplication.translate("dlgSettings", u"Settings", None))
+        self.actionRunStandardGameLauncherWithPatchingDisabled.setText(QCoreApplication.translate("dlgSettings", u"Run with patching disabled", None))
+#if QT_CONFIG(tooltip)
+        self.actionRunStandardGameLauncherWithPatchingDisabled.setToolTip(QCoreApplication.translate("dlgSettings", u"Run launcher using \"-skiprawdownload\" and \"-disablepatch\" arguments", None))
+#endif // QT_CONFIG(tooltip)
 #if QT_CONFIG(tooltip)
         self.showAdvancedSettingsCheckbox.setToolTip(QCoreApplication.translate("dlgSettings", u"<html><head/><body><p>Enable advanced options</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
@@ -381,7 +389,6 @@ class Ui_dlgSettings(object):
 #if QT_CONFIG(tooltip)
         self.standardLauncherLineEdit.setToolTip(QCoreApplication.translate("dlgSettings", u"Standard launcher filename", None))
 #endif // QT_CONFIG(tooltip)
-        self.standardGameLauncherButton.setText(QCoreApplication.translate("dlgSettings", u"Run Standard Game Launcher", None))
 #if QT_CONFIG(tooltip)
         self.patchClientLabel.setToolTip(QCoreApplication.translate("dlgSettings", u"Patch client DLL filename", None))
 #endif // QT_CONFIG(tooltip)
@@ -393,6 +400,7 @@ class Ui_dlgSettings(object):
         self.highResLabel.setToolTip(QCoreApplication.translate("dlgSettings", u"Enable high resolution game files. You may need to patch the game after enabling this", None))
 #endif // QT_CONFIG(tooltip)
         self.highResLabel.setText(QCoreApplication.translate("dlgSettings", u"Hi-Res Graphics", None))
+        self.standardGameLauncherButton.setText(QCoreApplication.translate("dlgSettings", u"Run Standard Game Launcher", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.gamePage), QCoreApplication.translate("dlgSettings", u"Game", None))
         self.autoManageWineLabel.setText(QCoreApplication.translate("dlgSettings", u"Auto Manage Wine", None))
 #if QT_CONFIG(tooltip)

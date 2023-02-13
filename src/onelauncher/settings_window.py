@@ -86,12 +86,12 @@ class SettingsWindow(QtWidgets.QDialog):
         self.ui.gameDescriptionLineEdit.setText(
             self.game.description)
         self.setup_newsfeed_option()
+        self.ui.gameDirLineEdit.setText(
+            str(self.game.game_directory))
         self.ui.browseGameConfigDirButton.clicked.connect(
             lambda: QtGui.QDesktopServices.openUrl(
                 QtCore.QUrl.fromLocalFile(
                     games_config.get_game_config_dir(self.game.uuid))))
-        self.ui.standardGameLauncherButton.clicked.connect(
-            self.run_standard_game_launcher)
 
         if os.name != "nt":
             self.wine_env = get_wine_environment_from_game(self.game)
@@ -111,14 +111,17 @@ class SettingsWindow(QtWidgets.QDialog):
                 self.ui.tabWidget.indexOf(
                     self.ui.winePage), False)
 
-        self.ui.gameDirLineEdit.setText(
-            str(self.game.game_directory))
         self.setup_client_type_combo_box()
-
         self.ui.standardLauncherLineEdit.setText(
             self.game.standard_game_launcher_filename or "")
         self.ui.patchClientLineEdit.setText(
             self.game.patch_client_filename)
+        self.ui.standardGameLauncherButton.clicked.connect(
+            self.run_standard_game_launcher)
+        self.ui.actionRunStandardGameLauncherWithPatchingDisabled.triggered.connect(
+            lambda: self.run_standard_game_launcher(disable_patching=True))
+        self.ui.standardGameLauncherButton.addAction(
+            self.ui.actionRunStandardGameLauncherWithPatchingDisabled)
 
         self.ui.highResCheckBox.setChecked(
             self.game.high_res_enabled)
@@ -205,7 +208,7 @@ class SettingsWindow(QtWidgets.QDialog):
             self.ui.clientTypeComboBox.findData(
                 self.game.client_type))
 
-    def run_standard_game_launcher(self):
+    def run_standard_game_launcher(self, disable_patching=False):
         launcher_path = get_standard_game_launcher_path(self.game)
 
         if launcher_path is None:
@@ -215,6 +218,8 @@ class SettingsWindow(QtWidgets.QDialog):
         process = QtCore.QProcess()
         process.setWorkingDirectory(str(self.game.game_directory))
         process.setProgram(str(launcher_path))
+        if disable_patching:
+            process.setArguments(["-skiprawdownload", "-disablepatch"])
         edit_qprocess_to_use_wine(
             process, get_wine_environment_from_game(
                 self.game))

@@ -256,19 +256,6 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
-       <widget class="QPushButton" name="standardGameLauncherButton">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Run Standard Game Launcher</string>
-        </property>
-       </widget>
-      </item>
       <item row="5" column="0">
        <widget class="QLabel" name="patchClientLabel">
         <property name="toolTip">
@@ -299,6 +286,22 @@
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QToolButton" name="standardGameLauncherButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Run Standard Game Launcher</string>
+        </property>
+        <property name="popupMode">
+         <enum>QToolButton::MenuButtonPopup</enum>
         </property>
        </widget>
       </item>
@@ -543,6 +546,14 @@
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Save</set>
    </property>
   </widget>
+  <action name="actionRunStandardGameLauncherWithPatchingDisabled">
+   <property name="text">
+    <string>Run with patching disabled</string>
+   </property>
+   <property name="toolTip">
+    <string>Run launcher using &quot;-skiprawdownload&quot; and &quot;-disablepatch&quot; arguments</string>
+   </property>
+  </action>
   <zorder>tabWidget</zorder>
   <zorder>settingsButtonBox</zorder>
   <zorder>showAdvancedSettingsCheckbox</zorder>
