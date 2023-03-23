@@ -15,7 +15,7 @@ class ProgramConfig():
     def __init__(self, config_path: Optional[Path] = None) -> None:
         if not config_path:
             config_path = platform_dirs.user_config_path / \
-                f"{onelauncher.__title__}.toml"
+                f"{onelauncher.__title__.lower()}.toml"
         self.config_path = config_path
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
 
