@@ -30,7 +30,7 @@ import logging
 import os
 import pathlib
 from pathlib import Path
-from typing import Optional
+from typing import Generator, Optional, Self
 from xml.etree.ElementTree import Element
 
 from defusedxml import ElementTree
@@ -100,6 +100,19 @@ class CaseInsensitiveAbsolutePath(Path):
         joined_path = super()._make_child((Path(*parts),))  # type: ignore
         return self._get_real_path_from_fully_case_insensitive_path(
             joined_path)
+
+    def _get_case_insensitive_glob_pattern(self, pattern: str) -> str:
+        return ''.join([
+            f"[{c.lower()}{c.upper()}]"
+            if c.isalpha() else c
+            for c in pattern
+        ])
+
+    def glob(self, pattern: str) -> Generator[Self, None, None]:
+        return super().glob(self._get_case_insensitive_glob_pattern(pattern))
+
+    def rglob(self, pattern: str) -> Generator[Self, None, None]:
+        return super().rglob(self._get_case_insensitive_glob_pattern(pattern))
 
 
 class AppSettingsParseError(KeyError):
