@@ -1,20 +1,14 @@
 import logging
-from multiprocessing.sharedctypes import Value
-from typing import Dict, Optional, Tuple
-from xml.etree.ElementTree import Element
+from typing import Optional, Tuple
 
 from cachetools import TTLCache, cached
-from defusedxml import ElementTree
 from requests import RequestException
 
 from onelauncher.games import ClientType, Game
 from onelauncher.network import session
 from onelauncher.network.game_services_info import GameServicesInfo
 from onelauncher.resources import OneLauncherLocale
-
-
-class AppSettingsParseError(KeyError):
-    """Config doesn't follow the appSettings format"""
+from onelauncher.utilities import AppSettingsParseError, parse_app_settings_config
 
 
 class GameLauncherConfigParseError(KeyError):
@@ -93,7 +87,7 @@ class GameLauncherConfig:
 
         """
         try:
-            config_dict = cls._parse_app_settings_config(
+            config_dict = parse_app_settings_config(
                 appsettings_config_xml)
 
             client_win64_filename = config_dict.get(
@@ -102,7 +96,7 @@ class GameLauncherConfig:
                 "GameClient.WIN32.Filename")
             client_win32_legacy_filename = config_dict.get(
                 "GameClient.WIN32Legacy.Filename")
-            if not(
+            if not (
                     client_win64_filename or client_win32_filename or
                     client_win32_legacy_filename):
                 # In past game versions, there was only one client. It was
@@ -138,10 +132,10 @@ class GameLauncherConfig:
                 "Config XML doesn't follow the appSettings format") from e
         except KeyError as e:
             raise GameLauncherConfigParseError(
-                "Config doesn't inlclude a required value") from e
+                "Config doesn't include a required value") from e
         except NoGameClientFilenameError as e:
             raise GameLauncherConfigParseError(
-                "Config doesn't inlclude any client filenames of a "
+                "Config doesn't include any client filenames of a "
                 "suppored client type") from e
 
     @classmethod
@@ -182,28 +176,6 @@ class GameLauncherConfig:
 
         response.encoding = response.apparent_encoding
         return response.text
-
-    @staticmethod
-    def _parse_app_settings_config(config_text: str) -> Dict[str, str]:
-        """Parse the key, value pairs from config_text into a dictionary.
-
-        Args:
-            config_text (str): Text from appSettings style xml config file.
-            See https://docs.microsoft.com/en-us/dotnet/framework/configure-apps/file-schema/appsettings/
-
-        Raises:
-            AppSettingsParseError: config_text doesn't follow the appSettings format.
-        """
-        root: Element = ElementTree.fromstring(config_text)
-        config_dict = {}
-        try:
-            for element in root.iter("add"):
-                attribs_dict = element.attrib
-                config_dict[attribs_dict["key"]] = attribs_dict["value"]
-        except KeyError as e:
-            raise AppSettingsParseError(
-                "config_text doesn't follow the appSettings format") from e
-        return config_dict
 
     def get_specific_client_filename(
             self, client_type: ClientType) -> str | None:

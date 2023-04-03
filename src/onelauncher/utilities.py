@@ -31,6 +31,9 @@ import os
 import pathlib
 from pathlib import Path
 from typing import Optional
+from xml.etree.ElementTree import Element
+
+from defusedxml import ElementTree
 
 
 class CaseInsensitiveAbsolutePath(Path):
@@ -97,6 +100,56 @@ class CaseInsensitiveAbsolutePath(Path):
         joined_path = super()._make_child((Path(*parts),))  # type: ignore
         return self._get_real_path_from_fully_case_insensitive_path(
             joined_path)
+
+
+class AppSettingsParseError(KeyError):
+    """Config doesn't follow the appSettings format"""
+
+
+def verify_app_settings_config(config_text: str) -> None:
+    """Verify that config_text is following the appSettings format.
+       Exceptions will be raised, if there is an issue.
+
+    Args:
+        config_text (str): Text from appSettings style xml config file.
+        See https://docs.microsoft.com/en-us/dotnet/framework/configure-apps/file-schema/appsettings/
+
+    Raises:
+        AppSettingsParseError: config_text doesn't follow the appSettings format.
+    """
+    root: Element = ElementTree.fromstring(config_text)
+    # Verify basic document structure
+    if root.tag != "configuration":
+        raise AppSettingsParseError("Root element is not 'configuration'")
+    app_settings = root.find("./appSettings")
+    if app_settings is None:
+        raise AppSettingsParseError("No appSettings element found")
+
+    # Verify 'add' elements
+    for element in app_settings.iterfind("./add"):
+        keys = element.keys()
+        if "key" not in keys or "value" not in keys:
+            raise AppSettingsParseError(
+                "'add' element doesn't have all required keys")
+
+
+def parse_app_settings_config(config_text: str) -> dict[str, str]:
+    """Parse the key, value pairs from config_text into a dictionary.
+
+    Args:
+        config_text (str): Text from appSettings style xml config file.
+        See https://docs.microsoft.com/en-us/dotnet/framework/configure-apps/file-schema/appsettings/
+
+    Raises:
+        AppSettingsParseError: config_text doesn't follow the appSettings format.
+    """
+    verify_app_settings_config(config_text)
+    root: Element = ElementTree.fromstring(config_text)
+    config_dict = {}
+    for element in root.iterfind(".appSettings/add"):
+        attribs_dict = element.attrib
+        config_dict[attribs_dict["key"]] = attribs_dict["value"]
+    return config_dict
 
 
 def string_encode(s):

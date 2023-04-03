@@ -105,7 +105,7 @@ def login_account(
     """Login to game account using SOAP API
 
     Args:
-        auth_server (str): Authentification server. Normally found in `GameServicesInfo`
+        auth_server (str): Authentication server. Normally found in `GameServicesInfo`
         username (str): Account username
         password (str): Account password
 
