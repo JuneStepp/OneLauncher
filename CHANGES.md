@@ -5,6 +5,10 @@ Launcher for Linux, Windows, and Mac OS X
 
 # Changes
 
+1.2.9
+
+    Update game server certificates.
+
 1.2.8
 
     Just a quick fix for the in-game store with the 64-bit client on Windows.
