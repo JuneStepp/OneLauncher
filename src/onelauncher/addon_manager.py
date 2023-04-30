@@ -47,7 +47,7 @@ from onelauncher.addons.startup_script import StartupScript
 from onelauncher.config import platform_dirs
 from onelauncher import games_sorted
 from onelauncher.config.games.addons import get_addons_manager_from_game, save_addons_manager
-from onelauncher.games import GameType
+from onelauncher.game import GameType
 from onelauncher.ui.addon_manager_uic import Ui_winAddonManager
 from onelauncher.ui_resources import icon_font
 from onelauncher.utilities import CaseInsensitiveAbsolutePath, GetText

@@ -29,19 +29,17 @@
 ###########################################################################
 import logging
 import lzma
-import os
 import tarfile
 from pathlib import Path
 from shutil import move, rmtree
-from typing import NamedTuple, Optional
+from typing import Optional
 from urllib import request
 from urllib.error import HTTPError, URLError
 
 from PySide6 import QtCore, QtWidgets
 
 from onelauncher.config import platform_dirs
-from onelauncher import games_sorted
-from onelauncher.games import Game
+from onelauncher.game import Game
 from onelauncher.ui_utilities import show_warning_message
 
 # To use Proton, replace link with Proton build and uncomment

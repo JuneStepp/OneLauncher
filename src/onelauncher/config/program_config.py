@@ -6,7 +6,8 @@ import rtoml
 
 import onelauncher
 from onelauncher.config import platform_dirs
-from onelauncher.games import Game, GamesSortingMode
+from onelauncher.game import Game
+from onelauncher.game_utilities import GamesSortingMode
 from onelauncher.resources import (OneLauncherLocale, available_locales,
                                    system_locale)
 

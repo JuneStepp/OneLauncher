@@ -4,7 +4,7 @@ from typing import Optional, Tuple
 from cachetools import TTLCache, cached
 from requests import RequestException
 
-from onelauncher.games import ClientType, Game
+from onelauncher.game import ClientType, Game
 from onelauncher.network import session
 from onelauncher.network.game_services_info import GameServicesInfo
 from onelauncher.resources import OneLauncherLocale

@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Any, Dict, Final
 
 from onelauncher.config.games import games_config
-from onelauncher.games import Game
+from onelauncher.game import Game
 from onelauncher.wine_environment import WineEnvironment
 
 CONFIG_SECTION_NAME: Final = "wine"

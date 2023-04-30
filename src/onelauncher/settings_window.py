@@ -40,8 +40,8 @@ from onelauncher.config.games.game import save_game
 from onelauncher.config.games.wine import (get_wine_environment_from_game,
                                            save_wine_environment)
 from onelauncher.config.program_config import program_config
-from onelauncher.games import (ClientType, Game, GamesSortingMode,
-                               check_if_valid_game_folder)
+from onelauncher.game import ClientType, Game
+from onelauncher.game_utilities import GamesSortingMode, find_game_dir_game_type
 from onelauncher.network.game_launcher_config import GameLauncherConfig
 from onelauncher.resources import available_locales
 from onelauncher.standard_game_launcher import get_standard_game_launcher_path
@@ -245,8 +245,8 @@ class SettingsWindow(QtWidgets.QDialog):
 
         if filename != "":
             folder = CaseInsensitiveAbsolutePath(filename)
-            if check_if_valid_game_folder(
-                    folder, game_type=games_sorted.current_game.game_type):
+            if find_game_dir_game_type(
+                    folder) == games_sorted.current_game.game_type:
                 self.ui.gameDirLineEdit.setText(str(folder))
             else:
                 show_warning_message(

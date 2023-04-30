@@ -38,8 +38,9 @@ from onelauncher import __title__, games_sorted
 from onelauncher.config.games import games_config
 from onelauncher.config.games.game import get_game_from_config, save_game
 from onelauncher.config.program_config import program_config
-from onelauncher.games import (Game, GamesSortingMode, GameType,
-                               check_if_valid_game_folder)
+from onelauncher.game import Game, GameType
+from onelauncher.game_utilities import (GamesSortingMode,
+                                        find_game_dir_game_type)
 from onelauncher.resources import available_locales
 from onelauncher.ui.setup_wizard_uic import Ui_Wizard
 from onelauncher.ui_utilities import show_warning_message
@@ -155,8 +156,7 @@ class SetupWizard(QtWidgets.QWizard):
         if search_depth <= 0:
             return
 
-        game_type = check_if_valid_game_folder(search_dir)
-        if game_type:
+        if game_type := find_game_dir_game_type(search_dir):
             list_widget = self.game_type_to_ui_list[game_type]
             # Only add the game folder to the list if it isn't already there
             if list_widget.findItems(
@@ -190,8 +190,8 @@ class SetupWizard(QtWidgets.QWizard):
             return
 
         game_type = self.game_type_to_ui_list.inverse[output_list]
-        if check_if_valid_game_folder(CaseInsensitiveAbsolutePath(folder_str),
-                                      game_type=game_type):
+        if find_game_dir_game_type(
+                CaseInsensitiveAbsolutePath(folder_str)) == game_type:
             output_list.insertItem(0, folder_str)
 
             # Select the added item

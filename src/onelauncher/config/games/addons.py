@@ -5,7 +5,7 @@ from typing import Any, Dict, Final
 from onelauncher.addons.manager import AddonsManager
 from onelauncher.addons.startup_script import StartupScript
 from onelauncher.config.games import games_config
-from onelauncher.games import Game
+from onelauncher.game import Game
 
 CONFIG_SECTION_NAME: Final = "addons"
 

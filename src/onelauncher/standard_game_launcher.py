@@ -4,7 +4,7 @@ from xml.etree.ElementTree import Element
 import vkbeautify
 from defusedxml import ElementTree
 
-from onelauncher.games import Game, GameType
+from onelauncher.game import Game, GameType
 from onelauncher.network.game_launcher_config import GameLauncherConfig
 from onelauncher.utilities import (AppSettingsParseError,
                                    CaseInsensitiveAbsolutePath,

@@ -6,7 +6,7 @@ from uuid import UUID
 from onelauncher.config.games import games_config
 from onelauncher.config.program_config import program_config
 from onelauncher.game_account import GameAccount
-from onelauncher.games import ClientType, Game
+from onelauncher.game import ClientType, Game
 from onelauncher.resources import available_locales
 from onelauncher.utilities import CaseInsensitiveAbsolutePath
 

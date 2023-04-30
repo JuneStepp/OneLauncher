@@ -35,7 +35,7 @@ from PySide6 import QtCore, QtWidgets
 from onelauncher.config import platform_dirs
 from onelauncher.config.games.addons import get_addons_manager_from_game
 from onelauncher.config.games.game import save_game
-from onelauncher.games import Game
+from onelauncher.game import Game
 from onelauncher.network.game_launcher_config import GameLauncherConfig
 from onelauncher.network.world import World
 from onelauncher.start_game import MissingLaunchArgumentError, get_qprocess

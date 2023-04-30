@@ -41,7 +41,8 @@ from onelauncher.addon_manager import AddonManagerWindow
 from onelauncher.config.games.game import save_game
 from onelauncher.config.program_config import program_config
 from onelauncher.game_account import GameAccount
-from onelauncher.games import Game, GameType, check_if_valid_game_folder
+from onelauncher.game import Game, GameType
+from onelauncher.game_utilities import find_game_dir_game_type
 from onelauncher.network import login_account
 from onelauncher.network.game_launcher_config import (
     GameLauncherConfig, GameLauncherConfigParseError)
@@ -559,9 +560,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.AddLog("[E13] Game directory not found")
             return False
 
-        if not check_if_valid_game_folder(
-                games_sorted.current_game.game_directory,
-                games_sorted.current_game.game_type):
+        if (find_game_dir_game_type(games_sorted.current_game.game_directory)
+                != games_sorted.current_game.game_type):
             self.AddLog("The game directory is not valid.", is_error=True)
             return False
 
