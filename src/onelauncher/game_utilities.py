@@ -3,7 +3,7 @@ from enum import Enum
 from uuid import UUID, uuid4
 
 from onelauncher.game import Game, GameType
-from onelauncher.standard_game_launcher import (GameLauncherLocalConfig,
+from onelauncher.standard_game_launcher import (GameLauncherLocalConfig, GameLauncherLocalConfigParseError,
                                                 get_launcher_config_paths)
 from onelauncher.utilities import CaseInsensitiveAbsolutePath
 
@@ -124,9 +124,9 @@ def find_game_dir_game_type(
         return GameType(launcher_config_path.stem.upper())
 
     # Try determing game type from datacenter game name
-    launcher_config = GameLauncherLocalConfig.from_config_xml(
-        launcher_config_path.read_text())
     try:
+        launcher_config = GameLauncherLocalConfig.from_config_xml(
+            launcher_config_path.read_text())
         return GameType(launcher_config.datacenter_game_name)
-    except ValueError:
+    except (GameLauncherLocalConfigParseError, ValueError):
         return None
