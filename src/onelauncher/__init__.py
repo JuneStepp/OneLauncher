@@ -1,5 +1,5 @@
 __title__ = "OneLauncher"
-__version__ = "1.2.6"
+__version__ = "2.0-dev"
 __description__ = ("Lord of the Rings Online and Dungeons & Dragons"
                    " Online\nLauncher for Linux, Mac, and Windows")
 # Update checks only work with a repository hosted on GitHub.
