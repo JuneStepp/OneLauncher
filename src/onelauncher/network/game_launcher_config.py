@@ -60,7 +60,7 @@ class GameLauncherConfig:
         self._login_queue_params_template = login_queue_params_template
         if newsfeed_url_template == "http://www.ddo.com/index.php?option=com_bca-rss-syndicator&feed_id=3":
             # Fix broken DDO Preview server newsfeed URL
-            self._newsfeed_url_template = "https://forums.ddo.com/forums/external.php?s=dfd0b8e8408bedddc541c045dbbda1fa&type=RSS2&forumids=266"
+            self._newsfeed_url_template = "https://forums.ddo.com/index.php?forums/lamannia-news-and-official-discussions.20/index.rss"
         else:
             self._newsfeed_url_template = newsfeed_url_template
 

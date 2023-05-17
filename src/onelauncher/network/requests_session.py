@@ -18,7 +18,9 @@ _DDO_GLS_PREVIEW_IP: Final = "198.252.160.33"
 _OFFICIAL_CLIENT_URL_PREFIXES_NO_SCHEMA: Final = {
     # Forums where RSS feeds used as newsfeeds are
     "forums.ddo.com/",
+    "forums-old.ddo.com",
     "forums.lotro.com/",
+    "forums-old.lotro.com",
     # GLS Servers
     "gls.ddo.com",
     _DDO_GLS_PREVIEW_DOMAIN,
