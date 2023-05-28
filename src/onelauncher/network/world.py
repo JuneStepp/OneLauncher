@@ -1,11 +1,11 @@
 import logging
-from typing import Any, Final, Optional, Tuple
+from typing import Final, Optional, Tuple
 from urllib.parse import urlparse, urlunparse
 
-import onelauncher.resources
+from ..resources import data_dir
 import xmlschema
 from cachetools import TTLCache, cached
-from onelauncher.network import session
+from . import session
 
 
 class WorldUnavailableError(Exception):
@@ -30,8 +30,7 @@ class WorldStatus:
 
 class World:
     _WORLD_STATUS_SCHEMA: Final = xmlschema.XMLSchema(
-        onelauncher.resources.data_dir /
-        "network" / "schemas" / "world_status.xsd")
+        data_dir / "network" / "schemas" / "world_status.xsd")
 
     def __init__(
             self,

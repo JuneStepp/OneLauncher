@@ -4,19 +4,18 @@ from typing import Optional
 
 import rtoml
 
-import onelauncher
-from onelauncher.config import platform_dirs
-from onelauncher.game import Game
-from onelauncher.game_utilities import GamesSortingMode
-from onelauncher.resources import (OneLauncherLocale, available_locales,
-                                   system_locale)
+from .. import __title__, __version__
+from ..game import Game
+from ..game_utilities import GamesSortingMode
+from ..resources import OneLauncherLocale, available_locales, system_locale
+from . import platform_dirs
 
 
 class ProgramConfig():
     def __init__(self, config_path: Optional[Path] = None) -> None:
         if not config_path:
             config_path = platform_dirs.user_config_path / \
-                f"{onelauncher.__title__.lower()}.toml"
+                f"{__title__.lower()}.toml"
         self.config_path = config_path
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -52,7 +51,7 @@ class ProgramConfig():
 
     def save(self):
         settings_dict = {
-            "onelauncher_version": onelauncher.__version__,
+            "onelauncher_version": __version__,
             "default_language": self.default_locale.lang_tag,
             "always_use_default_language_for_ui": self.always_use_default_language_for_ui,
             "save_accounts": self.save_accounts,

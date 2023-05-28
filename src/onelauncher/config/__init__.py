@@ -1,5 +1,5 @@
 from platformdirs import PlatformDirs
 
-import onelauncher
+from .. import __title__
 
-platform_dirs = PlatformDirs(onelauncher.__title__.lower(), False)
+platform_dirs = PlatformDirs(__title__.lower(), False)

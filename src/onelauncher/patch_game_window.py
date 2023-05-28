@@ -32,13 +32,13 @@ import os
 
 from PySide6 import QtCore, QtWidgets
 
-from onelauncher.config import platform_dirs
-from onelauncher import games_sorted
-from onelauncher.config.games.wine import get_wine_environment_from_game
-from onelauncher.patching_progress_monitor import ProgressMonitor
-from onelauncher.ui.patching_window_uic import Ui_patchingWindow
-from onelauncher.utilities import CaseInsensitiveAbsolutePath, QByteArray2str
-from onelauncher.wine_environment import edit_qprocess_to_use_wine
+from .config import platform_dirs
+from . import games_sorted
+from .config.games.wine import get_wine_environment_from_game
+from .patching_progress_monitor import ProgressMonitor
+from .ui.patching_window_uic import Ui_patchingWindow
+from .utilities import CaseInsensitiveAbsolutePath, QByteArray2str
+from .wine_environment import edit_qprocess_to_use_wine
 
 
 class PatchWindow(QtWidgets.QDialog):

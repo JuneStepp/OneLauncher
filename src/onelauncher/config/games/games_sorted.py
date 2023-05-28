@@ -1,8 +1,8 @@
 from typing import List
-from onelauncher.game import Game
-from onelauncher.game_utilities import GamesSorted
-from onelauncher.config.games import games_config
-from onelauncher.config.games.game import get_game_from_config
+from ...game import Game
+from ...game_utilities import GamesSorted
+from . import games_config
+from .game import get_game_from_config
 
 
 def get_games_sorted() -> GamesSorted:

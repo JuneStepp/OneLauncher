@@ -2,12 +2,12 @@ import os
 from pathlib import Path
 
 from PySide6 import QtCore
-from onelauncher.config.games.wine import get_wine_environment_from_game
+from .config.games.wine import get_wine_environment_from_game
 
-from onelauncher.game import ClientType, Game
-from onelauncher.network.game_launcher_config import GameLauncherConfig
-from onelauncher.network.world import World
-from onelauncher.wine_environment import edit_qprocess_to_use_wine
+from .game import ClientType, Game
+from .network.game_launcher_config import GameLauncherConfig
+from .network.world import World
+from .wine_environment import edit_qprocess_to_use_wine
 
 
 class MissingLaunchArgumentError(Exception):

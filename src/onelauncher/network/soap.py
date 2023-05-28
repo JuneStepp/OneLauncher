@@ -3,7 +3,7 @@ import logging
 from urllib.parse import urlparse, urlunparse
 
 import zeep.exceptions
-from onelauncher.network import session
+from . import session
 from zeep import Client
 from zeep.cache import InMemoryCache
 from zeep.transports import Transport

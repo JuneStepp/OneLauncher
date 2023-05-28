@@ -34,17 +34,17 @@ from typing import List
 from bidict import bidict
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from onelauncher import __title__, games_sorted
-from onelauncher.config.games import games_config
-from onelauncher.config.games.game import get_game_from_config, save_game
-from onelauncher.config.program_config import program_config
-from onelauncher.game import Game, GameType
-from onelauncher.game_utilities import (GamesSortingMode,
+from . import __title__, games_sorted
+from .config.games import games_config
+from .config.games.game import get_game_from_config, save_game
+from .config.program_config import program_config
+from .game import Game, GameType
+from .game_utilities import (GamesSortingMode,
                                         find_game_dir_game_type)
-from onelauncher.resources import available_locales
-from onelauncher.ui.setup_wizard_uic import Ui_Wizard
-from onelauncher.ui_utilities import show_warning_message
-from onelauncher.utilities import CaseInsensitiveAbsolutePath
+from .resources import available_locales
+from .ui.setup_wizard_uic import Ui_Wizard
+from .ui_utilities import show_warning_message
+from .utilities import CaseInsensitiveAbsolutePath
 
 
 class SetupWizard(QtWidgets.QWizard):

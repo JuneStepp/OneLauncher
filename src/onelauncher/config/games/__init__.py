@@ -34,7 +34,7 @@ from uuid import UUID
 
 import rtoml
 
-from onelauncher.config import platform_dirs
+from .. import platform_dirs
 
 GAMES_DIR: Final = platform_dirs.user_data_path / "games"
 

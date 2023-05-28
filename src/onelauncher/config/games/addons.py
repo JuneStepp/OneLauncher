@@ -2,10 +2,10 @@
 from pathlib import Path
 from typing import Any, Dict, Final
 
-from onelauncher.addons.manager import AddonsManager
-from onelauncher.addons.startup_script import StartupScript
-from onelauncher.config.games import games_config
-from onelauncher.game import Game
+from ...addons.manager import AddonsManager
+from ...addons.startup_script import StartupScript
+from . import games_config
+from ...game import Game
 
 CONFIG_SECTION_NAME: Final = "addons"
 

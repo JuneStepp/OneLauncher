@@ -2,10 +2,10 @@ import contextlib
 from enum import Enum
 from uuid import UUID, uuid4
 
-from onelauncher.game import Game, GameType
-from onelauncher.standard_game_launcher import (GameLauncherLocalConfig, GameLauncherLocalConfigParseError,
+from .game import Game, GameType
+from .standard_game_launcher import (GameLauncherLocalConfig, GameLauncherLocalConfigParseError,
                                                 get_launcher_config_paths)
-from onelauncher.utilities import CaseInsensitiveAbsolutePath
+from .utilities import CaseInsensitiveAbsolutePath
 
 
 class GamesSortingMode(Enum):

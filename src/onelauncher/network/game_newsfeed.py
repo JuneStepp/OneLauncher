@@ -6,11 +6,10 @@ from io import StringIO
 from typing import Optional
 
 import feedparser
-import requests
 from babel import Locale
 from babel.dates import format_datetime
 
-from onelauncher.network import session
+from . import session
 
 
 def newsfeed_url_to_html(url: str, babel_locale: Locale) -> str:

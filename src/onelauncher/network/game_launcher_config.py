@@ -4,11 +4,11 @@ from typing import Optional, Tuple
 from cachetools import TTLCache, cached
 from requests import RequestException
 
-from onelauncher.game import ClientType, Game
-from onelauncher.network import session
-from onelauncher.network.game_services_info import GameServicesInfo
-from onelauncher.resources import OneLauncherLocale
-from onelauncher.utilities import AppSettingsParseError, parse_app_settings_config
+from ..game import ClientType, Game
+from . import session
+from .game_services_info import GameServicesInfo
+from ..resources import OneLauncherLocale
+from ..utilities import AppSettingsParseError, parse_app_settings_config
 
 
 class GameLauncherConfigParseError(KeyError):

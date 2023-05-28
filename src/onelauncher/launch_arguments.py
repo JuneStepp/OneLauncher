@@ -4,8 +4,8 @@ from contextlib import suppress
 from typing import List
 from uuid import UUID
 
-from onelauncher import games_sorted, resources
-from onelauncher.config.program_config import program_config
+from . import games_sorted, resources
+from .config.program_config import program_config
 
 
 def get_launch_argument(key: str, accepted_values: List[str]):

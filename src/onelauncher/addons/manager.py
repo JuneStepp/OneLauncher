@@ -1,8 +1,8 @@
 from typing import List, Set
 
-from onelauncher.addons.startup_script import StartupScript
-from onelauncher.games import Game
-from onelauncher.utilities import CaseInsensitiveAbsolutePath
+from .startup_script import StartupScript
+from ..game import Game, GameType
+from ..utilities import CaseInsensitiveAbsolutePath
 
 
 class AddonsManager():

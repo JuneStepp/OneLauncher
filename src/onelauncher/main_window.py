@@ -35,31 +35,32 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from requests.exceptions import RequestException
 from xmlschema import XMLSchemaValidationError
 
-import onelauncher
-from onelauncher import games_sorted
-from onelauncher.addon_manager import AddonManagerWindow
-from onelauncher.config.games.game import save_game
-from onelauncher.config.program_config import program_config
-from onelauncher.game_account import GameAccount
-from onelauncher.game import Game, GameType
-from onelauncher.game_utilities import find_game_dir_game_type
-from onelauncher.network import login_account
-from onelauncher.network.game_launcher_config import (
-    GameLauncherConfig, GameLauncherConfigParseError)
-from onelauncher.network.game_newsfeed import newsfeed_url_to_html
-from onelauncher.network.game_services_info import GameServicesInfo
-from onelauncher.network.soap import GLSServiceError
-from onelauncher.network.world import World, WorldUnavailableError
-from onelauncher.network.world_login_queue import (
-    JoinWorldQueueFailedError, WorldLoginQueue, WorldQueueResultXMLParseError)
-from onelauncher.patch_game_window import PatchWindow
-from onelauncher.resources import get_resource
-from onelauncher.settings_window import SettingsWindow
-from onelauncher.ui.about_uic import Ui_dlgAbout
-from onelauncher.ui.main_uic import Ui_winMain
-from onelauncher.ui.select_subscription_uic import Ui_dlgSelectSubscription
-from onelauncher.ui.start_game_window import StartGame
-from onelauncher.ui_resources import icon_font
+from . import (__copyright__, __copyright_history__, __description__,
+               __project_url__, __title__, __version__, games_sorted)
+from .addon_manager import AddonManagerWindow
+from .config.games.game import save_game
+from .config.program_config import program_config
+from .game import Game, GameType
+from .game_account import GameAccount
+from .game_utilities import find_game_dir_game_type
+from .network import login_account
+from .network.game_launcher_config import (GameLauncherConfig,
+                                           GameLauncherConfigParseError)
+from .network.game_newsfeed import newsfeed_url_to_html
+from .network.game_services_info import GameServicesInfo
+from .network.soap import GLSServiceError
+from .network.world import World, WorldUnavailableError
+from .network.world_login_queue import (JoinWorldQueueFailedError,
+                                        WorldLoginQueue,
+                                        WorldQueueResultXMLParseError)
+from .patch_game_window import PatchWindow
+from .resources import get_resource
+from .settings_window import SettingsWindow
+from .ui.about_uic import Ui_dlgAbout
+from .ui.main_uic import Ui_winMain
+from .ui.select_subscription_uic import Ui_dlgSelectSubscription
+from .ui.start_game_window import StartGame
+from .ui_resources import icon_font
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -227,13 +228,12 @@ class MainWindow(QtWidgets.QMainWindow):
         ui = Ui_dlgAbout()
         ui.setupUi(dlgAbout)
 
-        ui.lblDescription.setText(onelauncher.__description__)
-        ui.lblRepoWebsite.setText(f"<a href='{onelauncher.__project_url__}'>"
-                                  f"{onelauncher.__project_url__}</a>")
-        ui.lblCopyright.setText(onelauncher.__copyright__)
-        ui.lblVersion.setText(
-            "<b>Version:</b> " + onelauncher.__version__)
-        ui.lblCopyrightHistory.setText(onelauncher.__copyright_history__)
+        ui.lblDescription.setText(__description__)
+        ui.lblRepoWebsite.setText(f"<a href='{__project_url__}'>"
+                                  f"{__project_url__}</a>")
+        ui.lblCopyright.setText(__copyright__)
+        ui.lblVersion.setText(f"<b>Version:</b> {__version__}")
+        ui.lblCopyrightHistory.setText(__copyright_history__)
 
         dlgAbout.exec()
         self.resetFocus()
@@ -610,7 +610,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.set_banner_image()
         self.setWindowTitle(
-            f"{onelauncher.__title__} - {games_sorted.current_game.name}")
+            f"{__title__} - {games_sorted.current_game.name}")
 
         # Setup btnSwitchGame for current game
         self.setup_switch_game_button()

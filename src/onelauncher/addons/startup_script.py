@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from onelauncher.games import Game
-from onelauncher.utilities import CaseInsensitiveAbsolutePath
+from ..game import Game
+from ..utilities import CaseInsensitiveAbsolutePath
 
 
 class StartupScript():

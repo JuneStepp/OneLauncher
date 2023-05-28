@@ -1,6 +1,6 @@
 from typing import List, NamedTuple, Optional
 import zeep.exceptions
-from onelauncher.network.soap import GLSServiceError, get_soap_client
+from .soap import GLSServiceError, get_soap_client
 
 
 class GameSubscription(NamedTuple):

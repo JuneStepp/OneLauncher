@@ -1,8 +1,8 @@
 from typing import Dict, Final, NamedTuple
 
-import onelauncher.resources
+from ..resources import data_dir
 import xmlschema
-from onelauncher.network import session
+from . import session
 
 
 class JoinWorldQueueResult(NamedTuple):
@@ -20,8 +20,7 @@ class JoinWorldQueueFailedError(Exception):
 
 class WorldLoginQueue():
     _WORLD_QUEUE_RESULT_SCHEMA: Final = xmlschema.XMLSchema(
-        onelauncher.resources.data_dir /
-        "network" / "schemas" / "world_queue_result.xsd")
+        data_dir / "network" / "schemas" / "world_queue_result.xsd")
 
     def __init__(
             self,

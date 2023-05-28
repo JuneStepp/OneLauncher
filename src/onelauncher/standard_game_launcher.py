@@ -4,9 +4,9 @@ from xml.etree.ElementTree import Element
 import vkbeautify
 from defusedxml import ElementTree
 
-from onelauncher.game import Game, GameType
-from onelauncher.network.game_launcher_config import GameLauncherConfig
-from onelauncher.utilities import (AppSettingsParseError,
+from .game import Game, GameType
+from .network.game_launcher_config import GameLauncherConfig
+from .utilities import (AppSettingsParseError,
                                    CaseInsensitiveAbsolutePath,
                                    parse_app_settings_config,
                                    verify_app_settings_config)

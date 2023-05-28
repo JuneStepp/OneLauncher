@@ -1,17 +1,13 @@
-
 from datetime import datetime
 from enum import StrEnum
-from pathlib import Path
 from typing import Dict, Optional
-from uuid import UUID, uuid4
+from uuid import UUID
 from xml.etree import ElementTree
 
-from bidict import bidict
-
-from onelauncher.config import platform_dirs
-from onelauncher.game_account import GameAccount
-from onelauncher.resources import OneLauncherLocale
-from onelauncher.utilities import CaseInsensitiveAbsolutePath
+from .config import platform_dirs
+from .game_account import GameAccount
+from .resources import OneLauncherLocale
+from .utilities import CaseInsensitiveAbsolutePath
 
 
 class ClientType(StrEnum):

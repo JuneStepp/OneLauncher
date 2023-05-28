@@ -4,7 +4,7 @@ from uuid import UUID
 
 import keyring
 
-import onelauncher
+from . import __title__
 
 
 class GameAccount():
@@ -32,14 +32,14 @@ class GameAccount():
         Will return `None` if no saved passwords are found
         """
         return keyring.get_password(
-            onelauncher.__title__,
+            __title__,
             self._account_keyring_username,
         )
 
     @password.setter
     def password(self, password: str):
         keyring.set_password(
-            onelauncher.__title__,
+            __title__,
             self._account_keyring_username,
             password)
 
@@ -47,7 +47,7 @@ class GameAccount():
         """Delete account password from keyring."""
         with contextlib.suppress(keyring.errors.PasswordDeleteError):
             keyring.delete_password(
-                onelauncher.__title__,
+                __title__,
                 self._account_keyring_username,
             )
 
@@ -59,14 +59,14 @@ class GameAccount():
     def last_used_subscription_name(self) -> str | None:
         """Name of the subscription that was last played. See `login_account.py`"""
         return keyring.get_password(
-            onelauncher.__title__,
+            __title__,
             self._last_used_subscription_keyring_username,
         )
 
     @last_used_subscription_name.setter
     def last_used_subscription_name(self, subscription_name: str):
         keyring.set_password(
-            onelauncher.__title__,
+            __title__,
             self._last_used_subscription_keyring_username,
             subscription_name,
         )
@@ -74,7 +74,7 @@ class GameAccount():
     def delete_last_used_subscription_name(self) -> None:
         with contextlib.suppress(keyring.errors.PasswordDeleteError):
             keyring.delete_password(
-                onelauncher.__title__,
+                __title__,
                 self._last_used_subscription_keyring_username,
             )
 

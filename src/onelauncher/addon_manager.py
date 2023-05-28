@@ -42,15 +42,15 @@ import defusedxml.minidom
 from PySide6 import QtCore, QtGui, QtWidgets
 from vkbeautify import xml as prettify_xml
 
-import onelauncher
-from onelauncher.addons.startup_script import StartupScript
-from onelauncher.config import platform_dirs
-from onelauncher import games_sorted
-from onelauncher.config.games.addons import get_addons_manager_from_game, save_addons_manager
-from onelauncher.game import GameType
-from onelauncher.ui.addon_manager_uic import Ui_winAddonManager
-from onelauncher.ui_resources import icon_font
-from onelauncher.utilities import CaseInsensitiveAbsolutePath, GetText
+from . import __title__, games_sorted
+from .addons.startup_script import StartupScript
+from .config import platform_dirs
+from .config.games.addons import (get_addons_manager_from_game,
+                                  save_addons_manager)
+from .game import GameType
+from .ui.addon_manager_uic import Ui_winAddonManager
+from .ui_resources import icon_font
+from .utilities import CaseInsensitiveAbsolutePath, GetText
 
 
 class AddonManagerWindow(QtWidgets.QDialog):
@@ -619,7 +619,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             return
         elif addon_path.suffix == ".rar":
             self.addLog(
-                f"{onelauncher.__title__} does not support .rar archives, because it"
+                f"{__title__} does not support .rar archives, because it"
                 " is a proprietary format that would require and external "
                 "program to extract")
             return

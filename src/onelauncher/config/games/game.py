@@ -3,12 +3,12 @@ from pathlib import Path
 from typing import Any, Dict
 from uuid import UUID
 
-from onelauncher.config.games import games_config
-from onelauncher.config.program_config import program_config
-from onelauncher.game_account import GameAccount
-from onelauncher.game import ClientType, Game
-from onelauncher.resources import available_locales
-from onelauncher.utilities import CaseInsensitiveAbsolutePath
+from . import games_config
+from ..program_config import program_config
+from ...game_account import GameAccount
+from ...game import ClientType, Game
+from ...resources import available_locales
+from ...utilities import CaseInsensitiveAbsolutePath
 
 
 def get_config_from_game(game: Game) -> dict[str, Any]:

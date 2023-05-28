@@ -1,6 +1,6 @@
 from PySide6 import QtGui
 
-from onelauncher.resources import data_dir
+from .resources import data_dir
 
 
 def get_icon_font() -> QtGui.QFont:

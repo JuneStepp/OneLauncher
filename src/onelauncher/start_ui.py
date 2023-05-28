@@ -37,17 +37,16 @@ from pathlib import Path
 from pkg_resources import parse_version
 from PySide6 import QtCore, QtGui, QtWidgets
 
-import onelauncher.logs
-from onelauncher import (__project_url__, __title__, __version__,
-                         launch_arguments)
-from onelauncher.config.program_config import program_config
-from onelauncher.resources import get_resource
-from onelauncher import games_sorted
-from onelauncher.ui_utilities import show_message_box_details_as_markdown
+from . import (__project_url__, __title__, __version__, games_sorted,
+               launch_arguments)
+from .config.program_config import program_config
+from .logs import setup_application_logging
+from .resources import get_resource
+from .ui_utilities import show_message_box_details_as_markdown
 
 
 def main():
-    onelauncher.logs.setup_application_logging()
+    setup_application_logging()
     global logger
     logger = logging.getLogger("main")
 
@@ -93,7 +92,7 @@ def handle_program_start_setup_wizard():
 def start_main_window():
     # Import has to be done here, because some code run by
     # main_window.py imports requires the QApplication to exist.
-    from onelauncher.main_window import MainWindow
+    from .main_window import MainWindow
     global main_window
     main_window = MainWindow()
     main_window.run()
@@ -148,7 +147,7 @@ def handle_windows_dark_theme():
 
 
 def start_setup_wizard(**kwargs):
-    from onelauncher.setup_wizard import SetupWizard
+    from .setup_wizard import SetupWizard
     setup_wizard = SetupWizard(**kwargs)
     setup_wizard.exec()
 

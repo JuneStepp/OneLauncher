@@ -5,9 +5,9 @@ import zeep.exceptions
 from cachetools import TTLCache, cached
 from requests import RequestException
 
-from onelauncher.game import Game
-from onelauncher.network.soap import GLSServiceError, get_soap_client
-from onelauncher.network.world import World
+from ..game import Game
+from .soap import GLSServiceError, get_soap_client
+from.world import World
 
 
 class GameServicesInfo():

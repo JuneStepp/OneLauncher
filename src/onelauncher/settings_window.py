@@ -34,22 +34,22 @@ from typing import Final
 from bidict import bidict
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from onelauncher import games_sorted
-from onelauncher.config.games import games_config
-from onelauncher.config.games.game import save_game
-from onelauncher.config.games.wine import (get_wine_environment_from_game,
+from . import games_sorted
+from .config.games import games_config
+from .config.games.game import save_game
+from .config.games.wine import (get_wine_environment_from_game,
                                            save_wine_environment)
-from onelauncher.config.program_config import program_config
-from onelauncher.game import ClientType, Game
-from onelauncher.game_utilities import GamesSortingMode, find_game_dir_game_type
-from onelauncher.network.game_launcher_config import GameLauncherConfig
-from onelauncher.resources import available_locales
-from onelauncher.standard_game_launcher import get_standard_game_launcher_path
-from onelauncher.start_ui import run_setup_wizard_with_main_window
-from onelauncher.ui.settings_uic import Ui_dlgSettings
-from onelauncher.ui_utilities import show_warning_message
-from onelauncher.utilities import CaseInsensitiveAbsolutePath
-from onelauncher.wine_environment import edit_qprocess_to_use_wine
+from .config.program_config import program_config
+from .game import ClientType, Game
+from .game_utilities import GamesSortingMode, find_game_dir_game_type
+from .network.game_launcher_config import GameLauncherConfig
+from .resources import available_locales
+from .standard_game_launcher import get_standard_game_launcher_path
+from .start_ui import run_setup_wizard_with_main_window
+from .ui.settings_uic import Ui_dlgSettings
+from .ui_utilities import show_warning_message
+from .utilities import CaseInsensitiveAbsolutePath
+from .wine_environment import edit_qprocess_to_use_wine
 
 
 class SettingsWindow(QtWidgets.QDialog):
