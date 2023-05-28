@@ -45,7 +45,7 @@ from .game_utilities import GamesSortingMode, find_game_dir_game_type
 from .network.game_launcher_config import GameLauncherConfig
 from .resources import available_locales
 from .standard_game_launcher import get_standard_game_launcher_path
-from .start_ui import run_setup_wizard_with_main_window
+from .setup_wizard import SetupWizard
 from .ui.settings_uic import Ui_dlgSettings
 from .ui_utilities import show_warning_message
 from .utilities import CaseInsensitiveAbsolutePath
@@ -257,12 +257,15 @@ class SettingsWindow(QtWidgets.QDialog):
         self.start_setup_wizard(games_managing=True)
 
     def start_setup_wizard(self, games_managing=False):
-        self.close()
+        self.hide()
         if games_managing:
-            run_setup_wizard_with_main_window(
-                game_selection_only=True, show_existing_games=True)
+            setup_wizard = SetupWizard(
+                game_selection_only=True,
+                show_existing_games=True)
         else:
-            run_setup_wizard_with_main_window()
+            setup_wizard = SetupWizard()
+        setup_wizard.exec()
+        self.accept()
 
     def add_languages_to_combobox(self, combobox: QtWidgets.QComboBox):
         for locale in available_locales.values():
