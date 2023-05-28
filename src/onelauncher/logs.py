@@ -4,7 +4,9 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from platform import platform
 
-from . import __title__, __version__, config
+from .config import platform_dirs
+
+from.__about__ import __title__, __version__
 
 
 class Logger():
@@ -86,4 +88,4 @@ class Logger():
 
 def setup_application_logging():
     """Create main logger configured for running application"""
-    Logger(config.platform_dirs.user_log_path, "main")
+    Logger(platform_dirs.user_log_path, "main")

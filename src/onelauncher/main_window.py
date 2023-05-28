@@ -35,8 +35,7 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from requests.exceptions import RequestException
 from xmlschema import XMLSchemaValidationError
 
-from . import (__copyright__, __copyright_history__, __description__,
-               __project_url__, __title__, __version__, games_sorted)
+from . import __about__, games_sorted
 from .addon_manager import AddonManagerWindow
 from .config.games.game import save_game
 from .config.program_config import program_config
@@ -228,12 +227,12 @@ class MainWindow(QtWidgets.QMainWindow):
         ui = Ui_dlgAbout()
         ui.setupUi(dlgAbout)
 
-        ui.lblDescription.setText(__description__)
-        ui.lblRepoWebsite.setText(f"<a href='{__project_url__}'>"
-                                  f"{__project_url__}</a>")
-        ui.lblCopyright.setText(__copyright__)
-        ui.lblVersion.setText(f"<b>Version:</b> {__version__}")
-        ui.lblCopyrightHistory.setText(__copyright_history__)
+        ui.lblDescription.setText(__about__.__description__)
+        ui.lblRepoWebsite.setText(f"<a href='{__about__.__project_url__}'>"
+                                  f"{__about__.__project_url__}</a>")
+        ui.lblCopyright.setText(__about__.__copyright__)
+        ui.lblVersion.setText(f"<b>Version:</b> {__about__.__version__}")
+        ui.lblCopyrightHistory.setText(__about__.__copyright_history__)
 
         dlgAbout.exec()
         self.resetFocus()
@@ -610,7 +609,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.set_banner_image()
         self.setWindowTitle(
-            f"{__title__} - {games_sorted.current_game.name}")
+            f"{__about__.__title__} - {games_sorted.current_game.name}")
 
         # Setup btnSwitchGame for current game
         self.setup_switch_game_button()

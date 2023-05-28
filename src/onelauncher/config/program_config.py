@@ -4,7 +4,7 @@ from typing import Optional
 
 import rtoml
 
-from .. import __title__, __version__
+from ..__about__ import __title__, __version__
 from ..game import Game
 from ..game_utilities import GamesSortingMode
 from ..resources import OneLauncherLocale, available_locales, system_locale

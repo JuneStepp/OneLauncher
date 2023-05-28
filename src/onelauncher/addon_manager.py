@@ -42,7 +42,8 @@ import defusedxml.minidom
 from PySide6 import QtCore, QtGui, QtWidgets
 from vkbeautify import xml as prettify_xml
 
-from . import __title__, games_sorted
+from . import games_sorted
+from .__about__ import __title__
 from .addons.startup_script import StartupScript
 from .config import platform_dirs
 from .config.games.addons import (get_addons_manager_from_game,

@@ -10,9 +10,9 @@ from uuid import UUID
 from pkg_resources import parse_version
 from PySide6 import QtCore, QtWidgets
 
-from onelauncher.qtapp import setup_qtapplication
+from .qtapp import setup_qtapplication
 
-from . import __project_url__, __title__, __version__, games_sorted, resources
+from . import __about__, games_sorted, resources
 from .config.program_config import program_config
 from .logs import setup_application_logging
 from .ui_utilities import show_message_box_details_as_markdown
@@ -70,8 +70,8 @@ def process_launch_arguments():
 
 def check_for_update():
     """Notifies user if their copy of OneLauncher is out of date"""
-    current_version = parse_version(__version__)
-    repository_url = __project_url__
+    current_version = parse_version(__about__.__version__)
+    repository_url = __about__.__project_url__
     if "github.com" not in repository_url.lower():
         logger.warning(
             "Repository URL set in Information.py is not "
@@ -112,13 +112,13 @@ def check_for_update():
             f'<span>{name}</span></a></p></body></html>'
         )
         messageBox.setInformativeText(
-            f"There is a new version of {__title__} available! {centered_href}"
+            f"There is a new version of {__about__.__title__} available! {centered_href}"
         )
         messageBox.setDetailedText(description)
         show_message_box_details_as_markdown(messageBox)
         messageBox.exec()
     else:
-        logger.info(f"{__title__} is up to date.")
+        logger.info(f"{__about__.__title__} is up to date.")
 
 
 def start_setup_wizard(**kwargs):

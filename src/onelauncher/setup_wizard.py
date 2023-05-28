@@ -34,13 +34,13 @@ from typing import List
 from bidict import bidict
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from . import __title__, games_sorted
+from . import games_sorted
+from .__about__ import __title__
 from .config.games import games_config
 from .config.games.game import get_game_from_config, save_game
 from .config.program_config import program_config
 from .game import Game, GameType
-from .game_utilities import (GamesSortingMode,
-                                        find_game_dir_game_type)
+from .game_utilities import GamesSortingMode, find_game_dir_game_type
 from .resources import available_locales
 from .ui.setup_wizard_uic import Ui_Wizard
 from .ui_utilities import show_warning_message

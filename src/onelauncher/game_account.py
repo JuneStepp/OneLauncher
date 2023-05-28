@@ -4,7 +4,7 @@ from uuid import UUID
 
 import keyring
 
-from . import __title__
+from .__about__ import __title__
 
 
 class GameAccount():
