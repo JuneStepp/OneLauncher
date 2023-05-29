@@ -14,7 +14,6 @@ from .qtapp import setup_qtapplication
 
 from . import __about__, games_sorted, resources
 from .config.program_config import program_config
-from .logs import setup_application_logging
 from .ui_utilities import show_message_box_details_as_markdown
 
 
@@ -149,9 +148,6 @@ def start_main_window():
 
 
 def main() -> None:
-    setup_application_logging()
-    global logger
-    logger = logging.getLogger("main")
     process_launch_arguments()
     qapp = setup_qtapplication()
     check_for_update()
