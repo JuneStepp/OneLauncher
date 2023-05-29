@@ -32,9 +32,10 @@ import os
 
 from PySide6 import QtCore, QtWidgets
 
-from .config import platform_dirs
 from . import games_sorted
+from .config import platform_dirs
 from .config.games.wine import get_wine_environment_from_game
+from .game import Game
 from .patching_progress_monitor import ProgressMonitor
 from .ui.patching_window_uic import Ui_patchingWindow
 from .utilities import CaseInsensitiveAbsolutePath, QByteArray2str
@@ -44,6 +45,7 @@ from .wine_environment import edit_qprocess_to_use_wine
 class PatchWindow(QtWidgets.QDialog):
     def __init__(
         self,
+        game: Game,
         urlPatchServer: str,
     ):
         super(
@@ -77,8 +79,8 @@ class PatchWindow(QtWidgets.QDialog):
         self.process_status_timer.timeout.connect(
             self.activelyShowProcessStatus)
 
-        patch_client = games_sorted.current_game.game_directory / \
-            games_sorted.current_game.patch_client_filename
+        patch_client = game.game_directory / \
+            game.patch_client_filename
 
         # Make sure patch_client exists
         if not patch_client.exists():
@@ -96,12 +98,12 @@ class PatchWindow(QtWidgets.QDialog):
         self.process.readyReadStandardError.connect(self.readErrors)
         self.process.finished.connect(self.processFinished)
         self.process.setWorkingDirectory(
-            str(games_sorted.current_game.game_directory))
+            str(game.game_directory))
 
         if os.name == "nt":
             # Get log file to read patching details from, since
             # rundll32 doesn't provide output on Windows
-            log_folder_name = games_sorted.current_game.documents_config_dir.name
+            log_folder_name = game.documents_config_dir.name
 
             game_logs_folder = CaseInsensitiveAbsolutePath(
                 os.environ.get("APPDATA")).parent / "Local" / log_folder_name
@@ -117,15 +119,14 @@ class PatchWindow(QtWidgets.QDialog):
             "Patch",
             urlPatchServer,
             "--language",
-            games_sorted.current_game.locale.game_language_name,
+            game.locale.game_language_name,
         ]
 
-        if games_sorted.current_game.high_res_enabled:
+        if game.high_res_enabled:
             arguments.append("--highres")
         self.process.setArguments(arguments)
         edit_qprocess_to_use_wine(
-            self.process, get_wine_environment_from_game(
-                games_sorted.current_game))
+            self.process, get_wine_environment_from_game(game))
 
         # Arguments have to be gotten from self.process, because
         # they mey have been changed by edit_qprocess_to_use_wine().

@@ -156,7 +156,7 @@ class SettingsWindow(QtWidgets.QDialog):
                 self.ui.gameNewsfeedLineEdit.setPlaceholderText(
                     game_launcher_config.get_newfeed_url(
                         program_config.get_ui_locale(
-                            games_sorted.current_game)))
+                            self.game)))
 
         self.ui.gameNewsfeedLineEdit.setText(
             self.game.newsfeed)
@@ -246,12 +246,12 @@ class SettingsWindow(QtWidgets.QDialog):
         if filename != "":
             folder = CaseInsensitiveAbsolutePath(filename)
             if find_game_dir_game_type(
-                    folder) == games_sorted.current_game.game_type:
+                    folder) == self.game.game_type:
                 self.ui.gameDirLineEdit.setText(str(folder))
             else:
                 show_warning_message(
                     f"The folder selected isn't a valid installation folder for "
-                    f"{games_sorted.current_game.game_type}.", self)
+                    f"{self.game.game_type}.", self)
 
     def manage_games(self):
         self.start_setup_wizard(games_managing=True)

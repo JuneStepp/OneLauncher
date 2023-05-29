@@ -1,6 +1,3 @@
-from .ui_utilities import show_message_box_details_as_markdown
-from .qtapp import setup_qtapplication
-from .config.program_config import program_config
 import argparse
 import logging
 import sys
@@ -12,11 +9,12 @@ from uuid import UUID
 from pkg_resources import parse_version
 from PySide6 import QtCore, QtWidgets
 
-from onelauncher.game import GameType
-
 from . import __about__, games_sorted
-
+from .config.program_config import program_config
+from .game import Game, GameType
+from .qtapp import setup_qtapplication
 from .resources import available_locales
+from .ui_utilities import show_message_box_details_as_markdown
 
 
 def setup_arg_parser() -> argparse.ArgumentParser:
@@ -127,29 +125,34 @@ def handle_program_start_setup_wizard():
         sys.exit()
 
 
-def start_main_window():
+def start_main_window(game: Game):
     # Import has to be done here, because some code run when
     # main_window.py imports requires the QApplication to exist.
     from .main_window import MainWindow
-    main_window = MainWindow()
+    main_window = MainWindow(game)
     main_window.run()
 
 
 def main() -> None:
     args = setup_arg_parser().parse_args()
     qapp = setup_qtapplication()
-    handle_program_start_setup_wizard()  
+    handle_program_start_setup_wizard()
 
+    last_played_game = games_sorted.get_games_sorted_by_last_played()[0]
+    game = (
+        last_played_game if last_played_game.last_played is not None
+        else games_sorted.get_games_sorted_by_priority(
+            last_played_game.game_type)[0])
     if args.game in [str(game_type) for game_type in GameType]:
-        games_sorted.current_game = games_sorted.get_sorted_games_list(
+        game = games_sorted.get_sorted_games_list(
             GameType(args.game), program_config.games_sorting_mode)[0]
     elif args.game:
-        games_sorted.current_game = games_sorted.games[UUID(args.game)]
+        game = games_sorted.games[UUID(args.game)]
     if args.language:
-        games_sorted.current_game.locale = available_locales[args.language]
-    
+        game.locale = available_locales[args.language]
+
     check_for_update()
-    start_main_window()
+    start_main_window(game)
     sys.exit(qapp.exec())
 
 

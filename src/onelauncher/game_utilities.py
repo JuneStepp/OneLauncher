@@ -25,22 +25,6 @@ class GamesSorted():
         games: list[Game],
     ) -> None:
         self.games = {game.uuid: game for game in games}
-        self._current_game = None
-
-    @property
-    def current_game(self) -> Game:
-        if self._current_game:
-            return self._current_game
-
-        last_played_game = self.get_games_sorted_by_last_played()[0]
-        return (
-            last_played_game if last_played_game.last_played is not None
-            else self.get_games_sorted_by_priority(
-                last_played_game.game_type)[0])
-
-    @current_game.setter
-    def current_game(self, game: Game) -> None:
-        self._current_game = game  # type: ignore
 
     def get_games_by_game_type(self, game_type: GameType) -> list[Game]:
         return [game for game in self.games.values() if game.game_type ==
