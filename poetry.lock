@@ -1187,6 +1187,17 @@ files = [
 types-urllib3 = "*"
 
 [[package]]
+name = "types-setuptools"
+version = "67.8.0.0"
+description = "Typing stubs for setuptools"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-setuptools-67.8.0.0.tar.gz", hash = "sha256:95c9ed61871d6c0e258433373a4e1753c0a7c3627a46f4d4058c7b5a08ab844f"},
+    {file = "types_setuptools-67.8.0.0-py3-none-any.whl", hash = "sha256:6df73340d96b238a4188b7b7668814b37e8018168aef1eef94a3b1872e3f60ff"},
+]
+
+[[package]]
 name = "types-urllib3"
 version = "1.26.25.13"
 description = "Typing stubs for urllib3"
@@ -1357,4 +1368,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "28c530c591a80cc5a44629fd91282d510fefc7e48a30bc9aab05c3b7eb0ca818"
+content-hash = "fe1546aae773246a752b5a00bf5c1b2eb2df3c0948407b83d91539235072c33a"
