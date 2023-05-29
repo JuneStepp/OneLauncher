@@ -2,9 +2,9 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Dict, Optional
 from uuid import UUID
-from xml.etree import ElementTree
 
-from .config import platform_dirs
+from.config import platform_dirs
+from.game_launcher_local_config import GameLauncherLocalConfig
 from .game_account import GameAccount
 from .resources import OneLauncherLocale
 from .utilities import CaseInsensitiveAbsolutePath
@@ -53,72 +53,15 @@ class Game():
         self.last_played = last_played
         self.standard_game_launcher_filename = standard_game_launcher_filename
         self.accounts = accounts
-        self.load_launcher_config()
-
-    def load_launcher_config(self):
-        """
-        Load launcher config data from game_directory.
-        This includes game documents settings dir and data that is used during login.
-        This function should be re-run if something in the launcher config has changed.
-
-        Raises:
-            FileNotFoundError: No launcher config file found
-        """
-        old_config_file = self.game_directory / "TurbineLauncher.exe.config"
-        config_file = self.game_directory / \
-            f"{self.game_type.lower()}.launcherconfig"
-        if config_file.exists():
-            self.load_launcher_config_file(config_file)
-        elif old_config_file.exists():
-            self.load_launcher_config_file(old_config_file)
-        else:
-            raise FileNotFoundError(
-                f"`{self.game_directory}` has no launcher config file")
-
-    def _get_launcher_config_value(
-            self,
-            key: str,
-            app_settings_element: ElementTree.Element,
-            config_file_path: CaseInsensitiveAbsolutePath) -> str:
-        element = app_settings_element.find(
-            f"./add[@key='{key}']")
-        if element is None:
-            raise KeyError(
-                f"`{config_file_path}` launcher config file doesn't have `{key}` key.")
-
-        if value := element.get("value"):
-            return value
-        else:
-            raise KeyError(
-                f"`{config_file_path}` launcher config file doesn't have `{key}` value.")
-
-    def load_launcher_config_file(
-            self,
-            config_file: CaseInsensitiveAbsolutePath,) -> None:
-        config = ElementTree.parse(config_file)
-        app_settings = config.find("appSettings")
-        if app_settings is None:
-            raise KeyError(
-                f"`{config_file}` launcher config file doesn't have `appSettings` element.")
-
-        self._gls_datacenter_service = self._get_launcher_config_value(
-            "Launcher.DataCenterService.GLS", app_settings, config_file)
-        self._datacenter_game_name = self._get_launcher_config_value(
-            "DataCenter.GameName", app_settings, config_file)
-        self._documents_config_dir = CaseInsensitiveAbsolutePath(
-            platform_dirs.user_documents_path /
-            self._get_launcher_config_value(
-                "Product.DocumentFolder",
-                app_settings,
-                config_file))
+        self.launcher_local_config: GameLauncherLocalConfig
 
     @property
     def gls_datacenter_service(self) -> str:
-        return self._gls_datacenter_service
+        return self.launcher_local_config.gls_datacenter_service
 
     @property
     def datacenter_game_name(self) -> str:
-        return self._datacenter_game_name
+        return self.launcher_local_config.datacenter_game_name
 
     @property
     def documents_config_dir(self) -> CaseInsensitiveAbsolutePath:
@@ -126,5 +69,6 @@ class Game():
         The folder in the user documents dir that the game stores information in.
         This includes addons, screenshots, user config files, ect
         """
-        return self._documents_config_dir
-
+        return CaseInsensitiveAbsolutePath(
+            platform_dirs.user_documents_path /
+            self.launcher_local_config.documents_config_dir_name)

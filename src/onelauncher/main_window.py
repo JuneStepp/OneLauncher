@@ -41,7 +41,8 @@ from .config.games.game import save_game
 from .config.program_config import program_config
 from .game import Game, GameType
 from .game_account import GameAccount
-from .game_utilities import find_game_dir_game_type
+from .game_launcher_local_config import GameLauncherLocalConfig
+from .game_utilities import find_game_dir_game_type, get_launcher_config_paths
 from .network import login_account
 from .network.game_launcher_config import (GameLauncherConfig,
                                            GameLauncherConfigParseError)
@@ -75,7 +76,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self).__init__(
             None,
             QtCore.Qt.WindowType.FramelessWindowHint)
-        self.game = game
+        self.game: Game = game
 
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose, on=True)
 
@@ -560,13 +561,32 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def check_game_dir(self) -> bool:
         if not self.game.game_directory.exists():
-            self.AddLog("[E13] Game directory not found")
+            self.AddLog("[E13] Game directory not found", is_error=True)
             return False
 
         if (find_game_dir_game_type(self.game.game_directory)
                 != self.game.game_type):
-            self.AddLog("The game directory is not valid.", is_error=True)
+            self.AddLog("Game directory is not valid", is_error=True)
             return False
+
+        return True
+
+    def setup_game(self) -> bool:
+        launcher_config_paths = get_launcher_config_paths(
+            self.game.game_directory, self.game.game_type)
+        if not launcher_config_paths:
+            # Should give error associated with there being no launcher configs
+            # found
+            self.check_game_dir()
+            return False
+        try:
+            launcher_config = GameLauncherLocalConfig.from_config_xml(
+                launcher_config_paths[0].read_text())
+        except GameLauncherConfigParseError:
+            self.AddLog("Error parsing local launcher config", is_error=True)
+            logger.exception("")
+            return False
+        self.game.launcher_local_config = launcher_config
 
         if not (
                 self.game.game_directory /
@@ -575,8 +595,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 "[E20] There is no game language data for "
                 f"{self.game.locale.display_name} installed "
                 f"You may have to select {self.game.locale.display_name}"
-                " in the normal game launcher and wait for the data to download."
-                " The normal game launcher can be opened from the settings menu.")
+                " in the standard game launcher and wait for the data to download."
+                " The standard game launcher can be opened from the settings menu.",
+                is_error=True)
             return False
 
         return True
@@ -618,7 +639,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Setup btnSwitchGame for current game
         self.setup_switch_game_button()
 
-        if not self.check_game_dir():
+        if not self.setup_game():
             return
 
         self.resetFocus()
