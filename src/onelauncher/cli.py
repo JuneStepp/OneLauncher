@@ -1,70 +1,63 @@
+from .ui_utilities import show_message_box_details_as_markdown
+from .qtapp import setup_qtapplication
+from .config.program_config import program_config
+import argparse
 import logging
 import sys
 import urllib.error
 import urllib.request
-from contextlib import suppress
 from json import loads as jsonLoads
-from typing import List
 from uuid import UUID
 
 from pkg_resources import parse_version
 from PySide6 import QtCore, QtWidgets
 
-from .qtapp import setup_qtapplication
+from onelauncher.game import GameType
 
-from . import __about__, games_sorted, resources
-from .config.program_config import program_config
-from .ui_utilities import show_message_box_details_as_markdown
+from . import __about__, games_sorted
 
-
-def get_launch_argument(key: str, accepted_values: List[str]):
-    launch_arguments = sys.argv
-    try:
-        modifier_index = launch_arguments.index(key)
-    except ValueError:
-        pass
-    else:
-        try:
-            value = launch_arguments[modifier_index + 1]
-        except IndexError:
-            pass
-        else:
-            if value in accepted_values:
-                return value
+from .resources import available_locales
 
 
-def process_game_launch_argument():
-    """Launch into specific game type or game if specified in launch argument"""
-    # Game types and game UUIDs are accepted values
-    launch_arg_val = get_launch_argument(
-        "--game", ["LOTRO", "DDO"] + [str(uuid) for uuid in games_sorted.games])
-    # Return if current game matches one selected with launch arguments
-    if (not launch_arg_val or
-        launch_arg_val == games_sorted.current_game.game_type or
-            launch_arg_val == str(games_sorted.current_game.uuid)):
-        return
+def setup_arg_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description=__about__.__description__)
+    parser.add_argument(
+        "--version",
+        "-v",
+        action="version",
+        version=f"{__about__.__title__} {__about__.__version__}")
 
-    # Handle game UUIDs
-    with suppress(ValueError):
-        uuid = UUID(launch_arg_val)
-        try:
-            games_sorted.current_game = games_sorted.games[uuid]
-        except KeyError:
-            logger.exception(f"Game UUID: {uuid} does not exist.")
-        return
+    game_type_choices = [str(game_type) for game_type in GameType]
+    game_uuid_choices = [str(uuid) for uuid in games_sorted.games]
 
-    games_sorted.current_game = games_sorted.get_sorted_games_list(
-        launch_arg_val, program_config.games_sorting_mode)[0]
+    def game_arg_type(arg_val: str):
+        if arg_val.upper() in game_type_choices:
+            arg_val = arg_val.upper()
+            games_of_type = games_sorted.get_sorted_games_list(
+                GameType(arg_val), program_config.games_sorting_mode)
+            if not games_of_type:
+                raise argparse.ArgumentTypeError(
+                    f"no {arg_val} games found")
+        return arg_val
+    parser.add_argument(
+        "-g",
+        "--game",
+        action="store",
+        type=game_arg_type,
+        choices=game_type_choices + game_uuid_choices,
+        help=f"game to load ({', '.join(game_type_choices)} or game UUID)",
+        metavar="")
 
-
-def process_launch_arguments():
-    """Configure settings for any valid arguments OneLauncher is started with"""
-    process_game_launch_argument()
-
-    language = get_launch_argument(
-        "--language", list(resources.available_locales))
-    if language:
-        games_sorted.current_game.locale = resources.available_locales[language]
+    language_choices = list(available_locales)
+    parser.add_argument(
+        "-l",
+        "--language",
+        action="store",
+        choices=language_choices,
+        help=f"game language. ({', '.join(language_choices)})",
+        metavar="")
+    return parser
 
 
 def check_for_update():
@@ -120,17 +113,13 @@ def check_for_update():
         logger.info(f"{__about__.__title__} is up to date.")
 
 
-def start_setup_wizard(**kwargs):
-    from .setup_wizard import SetupWizard
-    setup_wizard = SetupWizard(**kwargs)
-    setup_wizard.exec()
-
-
 def handle_program_start_setup_wizard():
     """Run setup wizard if there are no settings"""
     # If game settings haven't been generated
     if not games_sorted.games:
-        start_setup_wizard()
+        from .setup_wizard import SetupWizard
+        setup_wizard = SetupWizard()
+        setup_wizard.exec()
 
     # Close program if the user left the setup wizard
     # without generating the game settings
@@ -142,20 +131,25 @@ def start_main_window():
     # Import has to be done here, because some code run when
     # main_window.py imports requires the QApplication to exist.
     from .main_window import MainWindow
-    global main_window
     main_window = MainWindow()
     main_window.run()
 
 
 def main() -> None:
-    process_launch_arguments()
+    args = setup_arg_parser().parse_args()
     qapp = setup_qtapplication()
+    handle_program_start_setup_wizard()  
+
+    if args.game in [str(game_type) for game_type in GameType]:
+        games_sorted.current_game = games_sorted.get_sorted_games_list(
+            GameType(args.game), program_config.games_sorting_mode)[0]
+    elif args.game:
+        games_sorted.current_game = games_sorted.games[UUID(args.game)]
+    if args.language:
+        games_sorted.current_game.locale = available_locales[args.language]
+    
     check_for_update()
-
-    handle_program_start_setup_wizard()
-
     start_main_window()
-
     sys.exit(qapp.exec())
 
 
