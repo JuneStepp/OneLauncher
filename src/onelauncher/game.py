@@ -1,13 +1,14 @@
+from .official_clients import is_official_game_server, is_gls_url_for_preview_client
+from .utilities import CaseInsensitiveAbsolutePath
+from .resources import OneLauncherLocale
+from .game_account import GameAccount
 from datetime import datetime
 from enum import StrEnum
 from typing import Dict, Optional
 from uuid import UUID
 
-from.config import platform_dirs
-from.game_launcher_local_config import GameLauncherLocalConfig
-from .game_account import GameAccount
-from .resources import OneLauncherLocale
-from .utilities import CaseInsensitiveAbsolutePath
+from .config import platform_dirs
+from .game_launcher_local_config import GameLauncherLocalConfig
 
 
 class ClientType(StrEnum):
@@ -72,3 +73,11 @@ class Game():
         return CaseInsensitiveAbsolutePath(
             platform_dirs.user_documents_path /
             self.launcher_local_config.documents_config_dir_name)
+
+    @property
+    def is_official_client(self) -> bool:
+        return is_official_game_server(self.gls_datacenter_service)
+
+    @property
+    def is_official_preview_client(self) -> bool:
+        return is_gls_url_for_preview_client(self.gls_datacenter_service)

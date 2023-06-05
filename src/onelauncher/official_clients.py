@@ -44,6 +44,15 @@ LOTRO_GLS_DOMAINS: Final = [
 ]
 # Same as main gls domain, but ssl certificate isn't valid for this domain.
 LOTRO_GLS_INVALID_SSL_DOMAIN: Final = "moria.gls.lotro.com"
+
+DDO_GLS_PREVIEW_DOMAIN: Final = "gls-lm.ddo.com"
+DDO_GLS_PREVIEW_IP: Final = "198.252.160.33"
+DDO_GLS_DOMAINS: Final = [
+    "gls.ddo.com",
+    "gls-auth.ddo.com",  # Same as gls.ddo.com
+    DDO_GLS_PREVIEW_DOMAIN,
+]
+
 # Forums where RSS feeds used as newsfeeds are
 LOTRO_FORMS_DOMAINS: Final = [
     "forums.lotro.com",
@@ -57,17 +66,23 @@ DDO_FORMS_DOMAINS: Final = [
 # to fix it.
 DDO_PREVIEW_BROKEN_NEWS_URL_TEMPLATE: Final = "http://www.ddo.com/index.php?option=com_bca-rss-syndicator&feed_id=3"
 DDO_PREVIEW_NEWS_URL_TEMPLATE: Final = "https://forums.ddo.com/index.php?forums/lamannia-news-and-official-discussions.20/index.rss"
-DDO_GLS_PREVIEW_DOMAIN: Final = "gls-lm.ddo.com"
-DDO_GLS_PREVIEW_IP: Final = "198.252.160.33"
-DDO_GLS_DOMAINS: Final = [
-    "gls.ddo.com",
-    "gls-auth.ddo.com",  # Same as gls.ddo.com
-    DDO_GLS_PREVIEW_DOMAIN,
-]
+
 
 # There may be specific better ciphers that can be used instead of just
 # lowering the security level. I'm not knowledgable on this topic though.
 OFFICIAL_CLIENT_CIPHERS: Final = "DEFAULT@SECLEVEL=1"
+
+
+def is_official_game_server(url: str) -> bool:
+    netloc = urlparse(url).netloc.lower()
+    return netloc in LOTRO_GLS_DOMAINS + LOTRO_FORMS_DOMAINS + DDO_GLS_DOMAINS + \
+        DDO_FORMS_DOMAINS + [LOTRO_GLS_INVALID_SSL_DOMAIN, DDO_GLS_PREVIEW_IP]
+
+
+def is_gls_url_for_preview_client(url: str) -> bool:
+    netloc = urlparse(url).netloc.lower()
+    return netloc in [LOTRO_GLS_PREVIEW_DOMAIN, DDO_GLS_PREVIEW_DOMAIN,
+                      DDO_GLS_PREVIEW_IP]
 
 
 class _OfficialClientAdapter(HTTPAdapter):
