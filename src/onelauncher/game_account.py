@@ -11,8 +11,10 @@ class GameAccount():
     def __init__(self,
                  username: str,
                  game_uuid: UUID,
-                 last_used_world_name: str) -> None:
+                 last_used_world_name: str,
+                 display_name: str | None = None) -> None:
         self._username: Final = username
+        self.display_name = display_name or username
         self.game_uuid = game_uuid
         self.last_used_world_name = last_used_world_name
 

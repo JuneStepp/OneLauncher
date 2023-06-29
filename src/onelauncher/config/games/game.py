@@ -30,15 +30,20 @@ def get_config_from_game(game: Game) -> dict[str, Any]:
         game_dict["newsfeed"] = game.newsfeed
     if game.last_played is not None:
         game_dict["last_played"] = game.last_played
-    
+
     if game.standard_game_launcher_filename:
         game_dict["standard_game_launcher_filename"] = game.standard_game_launcher_filename
 
     if game.accounts:
-        game_dict["accounts"] = [
-            {"account_name": account.username,
+        account_dicts = []
+        for account in game.accounts.values():
+            account_dict = {
+                "account_name": account.username,
                 "last_used_world_name": account.last_used_world_name}
-            for account in game.accounts.values()]
+            if account.display_name != account.username:
+                account_dict["display_name"] = account.display_name
+            account_dicts.append(account_dict)
+        game_dict["accounts"] = account_dicts
 
     return game_dict
 
@@ -62,29 +67,28 @@ def get_game_from_config(game_config: dict[str, Any],) -> Game:
                 game_config["game_type"],
                 game_directory,
                 available_locales[game_config.get("language",
-                                                str(program_config.default_locale))],
+                                                  str(program_config.default_locale))],
                 ClientType(game_config.get("client_type",
-                                         "WIN64")),
+                                           "WIN64")),
                 game_config.get("high_res_enabled",
-                              True),
+                                True),
                 game_config.get("patch_client_filename",
-                              "patchclient.dll"),
+                                "patchclient.dll"),
                 game_config.get("name",
-                                      generate_default_game_name(game_directory,
-                                                                 uuid)),
-                game_config.get("description",
-                                      ""),
-                game_config.get("newsfeed",
-                                      None),
-                game_config.get("last_played", None),
-                game_config.get("standard_game_launcher_filename", None),
+                                generate_default_game_name(game_directory,
+                                                           uuid)),
+                game_config.get("description", ""),
+                game_config.get("newsfeed"),
+                game_config.get("last_played"),
+                game_config.get("standard_game_launcher_filename"),
                 {account["account_name"]: GameAccount(account["account_name"],
                                                       uuid,
-                                                      account["last_used_world_name"])
+                                                      account["last_used_world_name"],
+                                                      display_name=account.get("display_name"))
                     for account in game_config["accounts"]},
                 )
+
 
 def save_game(game: Game):
     config = get_config_from_game(game)
     games_config.save_game_config(game.uuid, config)
-    

@@ -332,7 +332,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Accounts are read backwards, so they
         # are in order of most recentally played
         for account in accounts[::-1]:
-            self.ui.cboAccount.addItem(account.username, userData=account)
+            self.ui.cboAccount.addItem(account.display_name, userData=account)
         self.ui.cboAccount.setCurrentIndex(0)
 
     def get_current_game_account(self) -> GameAccount | None:
@@ -414,7 +414,7 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             self.login_response = login_account.login_account(
                 self.game_services_info.auth_server,
-                self.ui.cboAccount.currentText(),
+                current_account.username,
                 self.ui.txtPassword.text() or current_account.password or "",
             )
         except login_account.WrongUsernameOrPasswordError:
