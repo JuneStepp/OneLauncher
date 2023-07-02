@@ -73,7 +73,7 @@ def checkForCertificates(logger):
         certfile = None
 
     global sslContext
-    sslContext = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+    sslContext = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     sslContext.set_ciphers('DEFAULT@SECLEVEL=1')
     if certfile:
         sslContext.verify_mode = ssl.CERT_REQUIRED
