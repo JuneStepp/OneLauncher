@@ -38,9 +38,7 @@ from codecs import open as uopen
 from http.client import HTTPConnection, HTTPSConnection
 from urllib.parse import quote
 
-if os.name == "nt":
-    # Needed for getting Documents folder on Windows
-    import ctypes.wintypes
+from PySide6.QtCore import QStandardPaths
 
 if getattr(sys, 'frozen', False):
     # The application is frozen
@@ -159,9 +157,6 @@ class DetermineOS:
             self.usingMac = True
             self.usingWindows = False
             self.appDir = "Library/Application Support/OneLauncher/"
-            self.documentsDir = os.path.join(
-                os.path.expanduser("~"), "Documents",
-            )
             self.globalDir = "/Application"
             self.settingsCXG = "Library/Application Support/CrossOver Games/Bottles"
             self.settingsCXO = "Library/Application Support/CrossOver/Bottles"
@@ -173,19 +168,10 @@ class DetermineOS:
             if self.macPathCX is None:
                 self.macPathCX = ""
         elif os.name == "nt":
-            # Get documents folder dynamically since it can be changed on Windows
-            CSIDL_PERSONAL = 5       # Value for My Documents
-            SHGFP_TYPE_CURRENT = 0   # Get current, not default value
-
-            buffer= ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
-            ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buffer)
-
-            win_documents_folder = buffer.value
 
             self.usingMac = False
             self.usingWindows = True
             self.appDir = "OneLauncher" + os.sep
-            self.documentsDir = win_documents_folder
             self.globalDir = ""
             self.settingsCXG = ""
             self.settingsCXO = ""
@@ -196,15 +182,14 @@ class DetermineOS:
             self.usingMac = False
             self.usingWindows = False
             self.appDir = ".OneLauncher" + os.sep
-            self.documentsDir = os.path.join(
-                os.path.expanduser("~"), "Documents",
-            )
             self.globalDir = "/opt"
             self.settingsCXG = ".cxgames"
             self.settingsCXO = ".cxoffice"
             self.directoryCXG = "/cxgames/bin/"
             self.directoryCXO = "/cxoffice/bin/"
             self.macPathCX = ""
+
+        self.documentsDir = QStandardPaths.writableLocation(QStandardPaths.DocumentsLocation)
 
 
 class GLSDataCenter:
