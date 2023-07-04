@@ -29,16 +29,14 @@
 import os
 import re
 from pathlib import Path
-from typing import Final
 
-from bidict import bidict
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from . import games_sorted
 from .config.games import games_config
 from .config.games.game import save_game
 from .config.games.wine import (get_wine_environment_from_game,
-                                           save_wine_environment)
+                                save_wine_environment)
 from .config.program_config import program_config
 from .game import ClientType, Game
 from .game_utilities import GamesSortingMode, find_game_dir_game_type
@@ -53,12 +51,6 @@ from .wine_environment import edit_qprocess_to_use_wine
 
 
 class SettingsWindow(QtWidgets.QDialog):
-    GAMES_SORTING_MODES_MAPPING: Final = bidict(
-        {
-            "Priority": GamesSortingMode.PRIORITY,
-            "Alphabetical": GamesSortingMode.ALPHABETICAL,
-            "Last Used": GamesSortingMode.LAST_USED})
-
     def __init__(
             self,
             game: Game):
@@ -134,10 +126,16 @@ class SettingsWindow(QtWidgets.QDialog):
             program_config.default_locale.display_name)
         self.ui.defaultLanguageForUICheckBox.setChecked(
             program_config.always_use_default_language_for_ui)
-        self.ui.gamesSortingModeComboBox.addItems(
-            self.GAMES_SORTING_MODES_MAPPING.keys())
-        self.ui.gamesSortingModeComboBox.setCurrentText(
-            self.GAMES_SORTING_MODES_MAPPING.inverse[program_config.games_sorting_mode])
+
+        self.ui.gamesSortingModeComboBox.addItem(
+            "Priority", userData=GamesSortingMode.PRIORITY)
+        self.ui.gamesSortingModeComboBox.addItem(
+            "Last Used", userData=GamesSortingMode.LAST_USED)
+        self.ui.gamesSortingModeComboBox.addItem(
+            "Alphabetical", userData=GamesSortingMode.ALPHABETICAL)
+        self.ui.gamesSortingModeComboBox.setCurrentIndex(
+            self.ui.gamesSortingModeComboBox.findData(
+                program_config.games_sorting_mode))
 
         self.ui.setupWizardButton.clicked.connect(
             self.start_setup_wizard)
@@ -313,8 +311,7 @@ class SettingsWindow(QtWidgets.QDialog):
         program_config.default_locale = available_locales_display_names_mapping[self.ui.defaultLanguageComboBox.currentText(
         )]
         program_config.always_use_default_language_for_ui = self.ui.defaultLanguageForUICheckBox.isChecked()
-        program_config.games_sorting_mode = self.GAMES_SORTING_MODES_MAPPING[self.ui.gamesSortingModeComboBox.currentText(
-        )]
+        program_config.games_sorting_mode = self.ui.gamesSortingModeComboBox.currentData()
 
         save_game(self.game)
         program_config.save()
