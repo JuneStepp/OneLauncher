@@ -33,7 +33,7 @@ def setup_arg_parser() -> argparse.ArgumentParser:
         if arg_val.upper() in game_type_choices:
             arg_val = arg_val.upper()
             games_of_type = games_sorted.get_sorted_games_list(
-                GameType(arg_val), program_config.games_sorting_mode)
+                program_config.games_sorting_mode, GameType(arg_val))
             if not games_of_type:
                 raise argparse.ArgumentTypeError(
                     f"no {arg_val} games found")
@@ -141,11 +141,10 @@ def main() -> None:
     last_played_game = games_sorted.get_games_sorted_by_last_played()[0]
     game = (
         last_played_game if last_played_game.last_played is not None
-        else games_sorted.get_games_sorted_by_priority(
-            last_played_game.game_type)[0])
+        else games_sorted.get_games_sorted_by_priority()[0])
     if args.game in [str(game_type) for game_type in GameType]:
         game = games_sorted.get_sorted_games_list(
-            GameType(args.game), program_config.games_sorting_mode)[0]
+            program_config.games_sorting_mode, GameType(args.game))[0]
     elif args.game:
         game = games_sorted.games[UUID(args.game)]
     if args.language:

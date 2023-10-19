@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'setup_wizard.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.4.2
+## Created by: Qt User Interface Compiler version 6.5.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -16,9 +16,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox, QFormLayout,
-    QFrame, QLabel, QLayout, QListWidget,
-    QListWidgetItem, QSizePolicy, QVBoxLayout, QWidget,
-    QWizard, QWizardPage)
+    QFrame, QHBoxLayout, QLabel, QLayout,
+    QListWidget, QListWidgetItem, QPushButton, QSizePolicy,
+    QSpacerItem, QVBoxLayout, QWidget, QWizard,
+    QWizardPage)
 
 class Ui_Wizard(object):
     def setupUi(self, Wizard):
@@ -73,52 +74,44 @@ class Ui_Wizard(object):
         self.gamesSelectionWizardPage.setObjectName(u"gamesSelectionWizardPage")
         self.verticalLayoutWidget_2 = QWidget(self.gamesSelectionWizardPage)
         self.verticalLayoutWidget_2.setObjectName(u"verticalLayoutWidget_2")
-        self.verticalLayoutWidget_2.setGeometry(QRect(-20, -3, 631, 292))
+        self.verticalLayoutWidget_2.setGeometry(QRect(-20, -2, 631, 271))
         self.gamesSelectionLayout = QVBoxLayout(self.verticalLayoutWidget_2)
         self.gamesSelectionLayout.setObjectName(u"gamesSelectionLayout")
         self.gamesSelectionLayout.setContentsMargins(35, 10, 35, 10)
-        self.lotroLabel = QLabel(self.verticalLayoutWidget_2)
-        self.lotroLabel.setObjectName(u"lotroLabel")
-        self.lotroLabel.setAlignment(Qt.AlignCenter)
+        self.gamesListWidget = QListWidget(self.verticalLayoutWidget_2)
+        self.gamesListWidget.setObjectName(u"gamesListWidget")
+        self.gamesListWidget.setDragEnabled(True)
+        self.gamesListWidget.setDragDropMode(QAbstractItemView.InternalMove)
+        self.gamesListWidget.setDefaultDropAction(Qt.TargetMoveAction)
+        self.gamesListWidget.setAlternatingRowColors(True)
+        self.gamesListWidget.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.gamesListWidget.setSelectionBehavior(QAbstractItemView.SelectItems)
 
-        self.gamesSelectionLayout.addWidget(self.lotroLabel)
+        self.gamesSelectionLayout.addWidget(self.gamesListWidget)
 
-        self.lotroListWidget = QListWidget(self.verticalLayoutWidget_2)
-        font = QFont()
-        font.setBold(False)
-        font.setItalic(True)
-        __qlistwidgetitem = QListWidgetItem(self.lotroListWidget)
-        __qlistwidgetitem.setTextAlignment(Qt.AlignCenter);
-        __qlistwidgetitem.setFont(font);
-        __qlistwidgetitem.setFlags(Qt.ItemIsUserCheckable|Qt.ItemIsEnabled);
-        self.lotroListWidget.setObjectName(u"lotroListWidget")
-        self.lotroListWidget.setDragEnabled(True)
-        self.lotroListWidget.setDragDropMode(QAbstractItemView.InternalMove)
-        self.lotroListWidget.setDefaultDropAction(Qt.TargetMoveAction)
-        self.lotroListWidget.setAlternatingRowColors(True)
-        self.lotroListWidget.setSelectionMode(QAbstractItemView.MultiSelection)
+        self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.downPriorityButton = QPushButton(self.verticalLayoutWidget_2)
+        self.downPriorityButton.setObjectName(u"downPriorityButton")
 
-        self.gamesSelectionLayout.addWidget(self.lotroListWidget)
+        self.horizontalLayout.addWidget(self.downPriorityButton)
 
-        self.ddoLabel = QLabel(self.verticalLayoutWidget_2)
-        self.ddoLabel.setObjectName(u"ddoLabel")
-        self.ddoLabel.setAlignment(Qt.AlignCenter)
+        self.upPriorityButton = QPushButton(self.verticalLayoutWidget_2)
+        self.upPriorityButton.setObjectName(u"upPriorityButton")
 
-        self.gamesSelectionLayout.addWidget(self.ddoLabel)
+        self.horizontalLayout.addWidget(self.upPriorityButton)
 
-        self.ddoListWidget = QListWidget(self.verticalLayoutWidget_2)
-        __qlistwidgetitem1 = QListWidgetItem(self.ddoListWidget)
-        __qlistwidgetitem1.setTextAlignment(Qt.AlignCenter);
-        __qlistwidgetitem1.setFont(font);
-        __qlistwidgetitem1.setFlags(Qt.ItemIsUserCheckable|Qt.ItemIsEnabled);
-        self.ddoListWidget.setObjectName(u"ddoListWidget")
-        self.ddoListWidget.setDragEnabled(True)
-        self.ddoListWidget.setDragDropMode(QAbstractItemView.InternalMove)
-        self.ddoListWidget.setDefaultDropAction(Qt.TargetMoveAction)
-        self.ddoListWidget.setAlternatingRowColors(True)
-        self.ddoListWidget.setSelectionMode(QAbstractItemView.MultiSelection)
+        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
-        self.gamesSelectionLayout.addWidget(self.ddoListWidget)
+        self.horizontalLayout.addItem(self.verticalSpacer)
+
+        self.addGameButton = QPushButton(self.verticalLayoutWidget_2)
+        self.addGameButton.setObjectName(u"addGameButton")
+
+        self.horizontalLayout.addWidget(self.addGameButton)
+
+
+        self.gamesSelectionLayout.addLayout(self.horizontalLayout)
 
         Wizard.setPage(1, self.gamesSelectionWizardPage)
         self.finishedWizardPage = QWizardPage()
@@ -144,26 +137,19 @@ class Ui_Wizard(object):
 #if QT_CONFIG(tooltip)
         self.alwaysUseDefaultLangForUILabel.setToolTip(QCoreApplication.translate("Wizard", u"Always show OneLauncher interface in default language", None))
 #endif // QT_CONFIG(tooltip)
-        self.alwaysUseDefaultLangForUILabel.setText(QCoreApplication.translate("Wizard", u"Always Keep UI in Default Language", None))
+        self.alwaysUseDefaultLangForUILabel.setText(QCoreApplication.translate("Wizard", u"Always Use Default Language For UI", None))
         self.gamesSelectionWizardPage.setTitle(QCoreApplication.translate("Wizard", u"Games Selection", None))
-        self.gamesSelectionWizardPage.setSubTitle(QCoreApplication.translate("Wizard", u"Please select all the game installations you want to use with OneLauncher. The game paths can be dragged and droped to set their priority. The first item will be the main game instance.", None))
-        self.lotroLabel.setText(QCoreApplication.translate("Wizard", u"Lord of The Rings Online", None))
-
-        __sortingEnabled = self.lotroListWidget.isSortingEnabled()
-        self.lotroListWidget.setSortingEnabled(False)
-        ___qlistwidgetitem = self.lotroListWidget.item(0)
-        ___qlistwidgetitem.setText(QCoreApplication.translate("Wizard", u"Manually add game from filesystem...", None));
-        self.lotroListWidget.setSortingEnabled(__sortingEnabled)
-
-        self.ddoLabel.setText(QCoreApplication.translate("Wizard", u"Dungeons and Dragons Online", None))
-
-        __sortingEnabled1 = self.ddoListWidget.isSortingEnabled()
-        self.ddoListWidget.setSortingEnabled(False)
-        ___qlistwidgetitem1 = self.ddoListWidget.item(0)
-        ___qlistwidgetitem1.setText(QCoreApplication.translate("Wizard", u"Manually add game from filesystem...", None));
-        self.ddoListWidget.setSortingEnabled(__sortingEnabled1)
-
+        self.gamesSelectionWizardPage.setSubTitle(QCoreApplication.translate("Wizard", u"Select your game installations. The first one will be the main game instance.", None))
+#if QT_CONFIG(tooltip)
+        self.downPriorityButton.setToolTip(QCoreApplication.translate("Wizard", u"Decrease priority", None))
+#endif // QT_CONFIG(tooltip)
+        self.downPriorityButton.setText(QCoreApplication.translate("Wizard", u"\u2193", None))
+#if QT_CONFIG(tooltip)
+        self.upPriorityButton.setToolTip(QCoreApplication.translate("Wizard", u"Increase priority", None))
+#endif // QT_CONFIG(tooltip)
+        self.upPriorityButton.setText(QCoreApplication.translate("Wizard", u"\u2191", None))
+        self.addGameButton.setText(QCoreApplication.translate("Wizard", u"Add Game", None))
         self.finishedWizardPage.setTitle(QCoreApplication.translate("Wizard", u"Setup Finished", None))
-        self.finishedWizardPage.setSubTitle(QCoreApplication.translate("Wizard", u"That's it! You can check out the settings menu for lots more to configure and the addon manager for game customizations.", None))
+        self.finishedWizardPage.setSubTitle(QCoreApplication.translate("Wizard", u"That's it! You can always check out the settings menu or addons manager for extra customization.", None))
     # retranslateUi
 

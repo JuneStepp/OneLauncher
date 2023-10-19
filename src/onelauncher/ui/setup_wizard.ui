@@ -98,7 +98,7 @@
         <string>Always show OneLauncher interface in default language</string>
        </property>
        <property name="text">
-        <string>Always Keep UI in Default Language</string>
+        <string>Always Use Default Language For UI</string>
        </property>
       </widget>
      </item>
@@ -113,7 +113,7 @@
     <string>Games Selection</string>
    </property>
    <property name="subTitle">
-    <string>Please select all the game installations you want to use with OneLauncher. The game paths can be dragged and droped to set their priority. The first item will be the main game instance.</string>
+    <string>Select your game installations. The first one will be the main game instance.</string>
    </property>
    <attribute name="pageId">
     <string notr="true">1</string>
@@ -122,9 +122,9 @@
     <property name="geometry">
      <rect>
       <x>-20</x>
-      <y>-3</y>
+      <y>-2</y>
       <width>631</width>
-      <height>292</height>
+      <height>271</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="gamesSelectionLayout">
@@ -141,17 +141,7 @@
       <number>10</number>
      </property>
      <item>
-      <widget class="QLabel" name="lotroLabel">
-       <property name="text">
-        <string>Lord of The Rings Online</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QListWidget" name="lotroListWidget">
+      <widget class="QListWidget" name="gamesListWidget">
        <property name="dragEnabled">
         <bool>true</bool>
        </property>
@@ -165,72 +155,56 @@
         <bool>true</bool>
        </property>
        <property name="selectionMode">
-        <enum>QAbstractItemView::MultiSelection</enum>
+        <enum>QAbstractItemView::SingleSelection</enum>
        </property>
-       <item>
-        <property name="text">
-         <string>Manually add game from filesystem...</string>
-        </property>
-        <property name="font">
-         <font>
-          <italic>true</italic>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="textAlignment">
-         <set>AlignCenter</set>
-        </property>
-        <property name="flags">
-         <set>ItemIsUserCheckable|ItemIsEnabled</set>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="ddoLabel">
-       <property name="text">
-        <string>Dungeons and Dragons Online</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectItems</enum>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QListWidget" name="ddoListWidget">
-       <property name="dragEnabled">
-        <bool>true</bool>
-       </property>
-       <property name="dragDropMode">
-        <enum>QAbstractItemView::InternalMove</enum>
-       </property>
-       <property name="defaultDropAction">
-        <enum>Qt::TargetMoveAction</enum>
-       </property>
-       <property name="alternatingRowColors">
-        <bool>true</bool>
-       </property>
-       <property name="selectionMode">
-        <enum>QAbstractItemView::MultiSelection</enum>
-       </property>
+      <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <property name="text">
-         <string>Manually add game from filesystem...</string>
-        </property>
-        <property name="font">
-         <font>
-          <italic>true</italic>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="textAlignment">
-         <set>AlignCenter</set>
-        </property>
-        <property name="flags">
-         <set>ItemIsUserCheckable|ItemIsEnabled</set>
-        </property>
+        <widget class="QPushButton" name="downPriorityButton">
+         <property name="toolTip">
+          <string>Decrease priority</string>
+         </property>
+         <property name="text">
+          <string>↓</string>
+         </property>
+        </widget>
        </item>
-      </widget>
+       <item>
+        <widget class="QPushButton" name="upPriorityButton">
+         <property name="toolTip">
+          <string>Increase priority</string>
+         </property>
+         <property name="text">
+          <string>↑</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="addGameButton">
+         <property name="text">
+          <string>Add Game</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </widget>
@@ -240,7 +214,7 @@
     <string>Setup Finished</string>
    </property>
    <property name="subTitle">
-    <string>That's it! You can check out the settings menu for lots more to configure and the addon manager for game customizations.</string>
+    <string>That's it! You can always check out the settings menu or addons manager for extra customization.</string>
    </property>
    <attribute name="pageId">
     <string notr="true">3</string>

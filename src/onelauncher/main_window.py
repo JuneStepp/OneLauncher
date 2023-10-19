@@ -202,8 +202,8 @@ class MainWindow(QtWidgets.QMainWindow):
                                 self.game)))))
 
         games = games_sorted.get_sorted_games_list(
-            self.game.game_type,
-            program_config.games_sorting_mode)
+            program_config.games_sorting_mode,
+            self.game.game_type)
         # There is no need to show an action for the currently active game
         games.remove(self.game)
 
@@ -265,7 +265,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.game.game_type == GameType.DDO
             else GameType.DDO)
         self.game = games_sorted.get_sorted_games_list(
-            new_game_type, program_config.games_sorting_mode)[0]
+            program_config.games_sorting_mode, new_game_type)[0]
         self.InitialSetup()
 
     def game_switch_action_triggered(self, action: QtGui.QAction):
@@ -628,6 +628,13 @@ class MainWindow(QtWidgets.QMainWindow):
         )
 
         self.AddLog("Initializing, please wait...")
+
+        # Handle when current game has been removed.
+        if self.game not in games_sorted.get_games_sorted_by_priority():
+            self.game = games_sorted.get_sorted_games_list(
+                program_config.games_sorting_mode)[0]
+            self.InitialSetup()
+            return
 
         self.loadAllSavedAccounts()
         self.set_current_account_placeholder_password()

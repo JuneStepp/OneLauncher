@@ -67,17 +67,6 @@ toml = ["tomli (>=1.1.0)"]
 yaml = ["PyYAML"]
 
 [[package]]
-name = "bidict"
-version = "0.21.4"
-description = "The bidirectional mapping library for Python."
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "bidict-0.21.4-py3-none-any.whl", hash = "sha256:3ac67daa353ecf853a1df9d3e924f005e729227a60a8dbada31a4c31aba7f654"},
-    {file = "bidict-0.21.4.tar.gz", hash = "sha256:42c84ffbe6f8de898af6073b4be9ea7ccedcd78d3474aa844c54e49d5a079f6f"},
-]
-
-[[package]]
 name = "cachetools"
 version = "5.3.1"
 description = "Extensible memoizing collections and decorators"
@@ -1364,4 +1353,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "a3cbfd61530a8c114c30e38472405db316f261fba38d95e4f72d1e932338d2a5"
+content-hash = "fea4642e73cc32c33b00d519c78822790b0a5853ba8b81e41b22d9ba3f0f3d2c"

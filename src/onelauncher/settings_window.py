@@ -259,9 +259,11 @@ class SettingsWindow(QtWidgets.QDialog):
         if games_managing:
             setup_wizard = SetupWizard(
                 game_selection_only=True,
-                show_existing_games=True)
+                show_existing_games=True,
+                select_existing_games=True)
         else:
-            setup_wizard = SetupWizard()
+            setup_wizard = SetupWizard(show_existing_games=True,
+                                       select_existing_games=False)
         setup_wizard.exec()
         self.accept()
 

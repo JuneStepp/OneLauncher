@@ -32,9 +32,9 @@ class GamesSorted():
                 game_type]
 
     def get_games_sorted_by_priority(
-            self, game_type: GameType) -> list[Game]:
+            self, game_type: GameType | None = None) -> list[Game]:
         games = self.get_games_by_game_type(
-            game_type)
+            game_type) if game_type else self.games.values()
         # Sort games by sorting_priority. Games with sorting_priority of -1 are
         # put at end of list
         return sorted(
@@ -61,8 +61,8 @@ class GamesSorted():
 
     def get_sorted_games_list(
             self,
-            game_type: GameType,
-            sorting_mode: GamesSortingMode) -> list[Game]:
+            sorting_mode: GamesSortingMode,
+            game_type: GameType | None = None) -> list[Game]:
         match sorting_mode:
             case GamesSortingMode.PRIORITY:
                 return self.get_games_sorted_by_priority(game_type)
@@ -72,10 +72,10 @@ class GamesSorted():
                 return self.get_games_sorted_alphabetically(game_type)
 
     def get_games_sorted_alphabetically(
-            self, game_type: GameType) -> list[Game]:
-        return sorted(
-            self.get_games_by_game_type(game_type),
-            key=lambda game: game.name)
+            self, game_type: GameType | None) -> list[Game]:
+        games = self.get_games_by_game_type(
+            game_type) if game_type else self.games.values()
+        return sorted(games, key=lambda game: game.name)
 
     def get_new_uuid(self) -> UUID:
         """Return UUID that doesn't already exist in `self.games.values()`"""
