@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'settings.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.4.2
+## Created by: Qt User Interface Compiler version 6.5.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -19,7 +19,7 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
 from PySide6.QtWidgets import (QAbstractButton, QApplication, QCheckBox, QComboBox,
     QDialog, QDialogButtonBox, QFormLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QSizePolicy,
-    QTabWidget, QToolButton, QWidget)
+    QSpacerItem, QTabWidget, QToolButton, QWidget)
 
 class Ui_dlgSettings(object):
     def setupUi(self, dlgSettings):
@@ -33,10 +33,6 @@ class Ui_dlgSettings(object):
         dlgSettings.setModal(True)
         self.actionRunStandardGameLauncherWithPatchingDisabled = QAction(dlgSettings)
         self.actionRunStandardGameLauncherWithPatchingDisabled.setObjectName(u"actionRunStandardGameLauncherWithPatchingDisabled")
-        self.showAdvancedSettingsCheckbox = QCheckBox(dlgSettings)
-        self.showAdvancedSettingsCheckbox.setObjectName(u"showAdvancedSettingsCheckbox")
-        self.showAdvancedSettingsCheckbox.setGeometry(QRect(20, 332, 211, 28))
-        self.showAdvancedSettingsCheckbox.setChecked(True)
         self.tabWidget = QTabWidget(dlgSettings)
         self.tabWidget.setObjectName(u"tabWidget")
         self.tabWidget.setGeometry(QRect(0, 0, 471, 371))
@@ -44,10 +40,10 @@ class Ui_dlgSettings(object):
         self.gameInfoPage.setObjectName(u"gameInfoPage")
         self.formLayoutWidget = QWidget(self.gameInfoPage)
         self.formLayoutWidget.setObjectName(u"formLayoutWidget")
-        self.formLayoutWidget.setGeometry(QRect(20, 20, 431, 271))
+        self.formLayoutWidget.setGeometry(QRect(0, 0, 471, 291))
         self.gameInfoFormLayout = QFormLayout(self.formLayoutWidget)
         self.gameInfoFormLayout.setObjectName(u"gameInfoFormLayout")
-        self.gameInfoFormLayout.setContentsMargins(0, 0, 0, 0)
+        self.gameInfoFormLayout.setContentsMargins(20, 15, 20, 20)
         self.gameNameLabel = QLabel(self.formLayoutWidget)
         self.gameNameLabel.setObjectName(u"gameNameLabel")
 
@@ -125,10 +121,10 @@ class Ui_dlgSettings(object):
         self.gamePage.setObjectName(u"gamePage")
         self.formLayoutWidget_3 = QWidget(self.gamePage)
         self.formLayoutWidget_3.setObjectName(u"formLayoutWidget_3")
-        self.formLayoutWidget_3.setGeometry(QRect(20, 19, 431, 271))
+        self.formLayoutWidget_3.setGeometry(QRect(0, 0, 471, 291))
         self.gameFormLayout = QFormLayout(self.formLayoutWidget_3)
         self.gameFormLayout.setObjectName(u"gameFormLayout")
-        self.gameFormLayout.setContentsMargins(0, 0, 0, 0)
+        self.gameFormLayout.setContentsMargins(20, 15, 20, 20)
         self.gameLanguageLabel = QLabel(self.formLayoutWidget_3)
         self.gameLanguageLabel.setObjectName(u"gameLanguageLabel")
         self.gameLanguageLabel.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
@@ -202,10 +198,10 @@ class Ui_dlgSettings(object):
         self.winePage.setObjectName(u"winePage")
         self.formLayoutWidget_5 = QWidget(self.winePage)
         self.formLayoutWidget_5.setObjectName(u"formLayoutWidget_5")
-        self.formLayoutWidget_5.setGeometry(QRect(19, 20, 431, 271))
+        self.formLayoutWidget_5.setGeometry(QRect(-1, 0, 471, 291))
         self.wineFormLayout = QFormLayout(self.formLayoutWidget_5)
         self.wineFormLayout.setObjectName(u"wineFormLayout")
-        self.wineFormLayout.setContentsMargins(0, 0, 0, 0)
+        self.wineFormLayout.setContentsMargins(20, 15, 20, 20)
         self.autoManageWineLabel = QLabel(self.formLayoutWidget_5)
         self.autoManageWineLabel.setObjectName(u"autoManageWineLabel")
 
@@ -255,11 +251,11 @@ class Ui_dlgSettings(object):
         self.programPage.setObjectName(u"programPage")
         self.formLayoutWidget_4 = QWidget(self.programPage)
         self.formLayoutWidget_4.setObjectName(u"formLayoutWidget_4")
-        self.formLayoutWidget_4.setGeometry(QRect(20, 20, 431, 271))
+        self.formLayoutWidget_4.setGeometry(QRect(0, 0, 471, 291))
         self.programFormLayout = QFormLayout(self.formLayoutWidget_4)
         self.programFormLayout.setObjectName(u"programFormLayout")
         self.programFormLayout.setRowWrapPolicy(QFormLayout.WrapLongRows)
-        self.programFormLayout.setContentsMargins(0, 0, 0, 0)
+        self.programFormLayout.setContentsMargins(20, 15, 20, 20)
         self.defaultLanguageLabel = QLabel(self.formLayoutWidget_4)
         self.defaultLanguageLabel.setObjectName(u"defaultLanguageLabel")
         self.defaultLanguageLabel.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
@@ -316,14 +312,29 @@ class Ui_dlgSettings(object):
         self.programFormLayout.setWidget(4, QFormLayout.FieldRole, self.setupWizardButton)
 
         self.tabWidget.addTab(self.programPage, "")
-        self.settingsButtonBox = QDialogButtonBox(dlgSettings)
+        self.horizontalLayoutWidget = QWidget(dlgSettings)
+        self.horizontalLayoutWidget.setObjectName(u"horizontalLayoutWidget")
+        self.horizontalLayoutWidget.setGeometry(QRect(0, 324, 471, 51))
+        self.horizontalLayout = QHBoxLayout(self.horizontalLayoutWidget)
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.horizontalLayout.setContentsMargins(15, 0, 15, 15)
+        self.showAdvancedSettingsCheckbox = QCheckBox(self.horizontalLayoutWidget)
+        self.showAdvancedSettingsCheckbox.setObjectName(u"showAdvancedSettingsCheckbox")
+        self.showAdvancedSettingsCheckbox.setChecked(True)
+
+        self.horizontalLayout.addWidget(self.showAdvancedSettingsCheckbox)
+
+        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+
+        self.horizontalLayout.addItem(self.verticalSpacer)
+
+        self.settingsButtonBox = QDialogButtonBox(self.horizontalLayoutWidget)
         self.settingsButtonBox.setObjectName(u"settingsButtonBox")
-        self.settingsButtonBox.setGeometry(QRect(0, 332, 450, 32))
         self.settingsButtonBox.setOrientation(Qt.Horizontal)
         self.settingsButtonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Save)
-        self.tabWidget.raise_()
-        self.settingsButtonBox.raise_()
-        self.showAdvancedSettingsCheckbox.raise_()
+
+        self.horizontalLayout.addWidget(self.settingsButtonBox)
+
 
         self.retranslateUi(dlgSettings)
         self.settingsButtonBox.rejected.connect(dlgSettings.reject)
@@ -340,10 +351,6 @@ class Ui_dlgSettings(object):
 #if QT_CONFIG(tooltip)
         self.actionRunStandardGameLauncherWithPatchingDisabled.setToolTip(QCoreApplication.translate("dlgSettings", u"Run launcher using \"-skiprawdownload\" and \"-disablepatch\" arguments", None))
 #endif // QT_CONFIG(tooltip)
-#if QT_CONFIG(tooltip)
-        self.showAdvancedSettingsCheckbox.setToolTip(QCoreApplication.translate("dlgSettings", u"<html><head/><body><p>Enable advanced options</p></body></html>", None))
-#endif // QT_CONFIG(tooltip)
-        self.showAdvancedSettingsCheckbox.setText(QCoreApplication.translate("dlgSettings", u"Advanced Options", None))
         self.gameNameLabel.setText(QCoreApplication.translate("dlgSettings", u"Name", None))
         self.gameDescriptionLabel.setText(QCoreApplication.translate("dlgSettings", u"Description", None))
         self.gameNewsfeedLabel.setText(QCoreApplication.translate("dlgSettings", u"Newsfeed URL", None))
@@ -444,5 +451,9 @@ class Ui_dlgSettings(object):
         self.gamesManagementButton.setText(QCoreApplication.translate("dlgSettings", u"Manage Games", None))
         self.setupWizardButton.setText(QCoreApplication.translate("dlgSettings", u"Run Setup Wizard", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.programPage), QCoreApplication.translate("dlgSettings", u"OneLauncher", None))
+#if QT_CONFIG(tooltip)
+        self.showAdvancedSettingsCheckbox.setToolTip(QCoreApplication.translate("dlgSettings", u"<html><head/><body><p>Enable advanced options</p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+        self.showAdvancedSettingsCheckbox.setText(QCoreApplication.translate("dlgSettings", u"Advanced Options", None))
     # retranslateUi
 
