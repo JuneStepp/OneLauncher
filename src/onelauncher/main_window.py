@@ -64,12 +64,6 @@ from .ui_resources import icon_font
 
 
 class MainWindow(QtWidgets.QMainWindow):
-    # Make signals for communicating with MainWindowThread
-    ReturnLog = QtCore.Signal(str, bool)
-    return_game_services_info = QtCore.Signal(GameServicesInfo)
-    return_game_launcher_config = QtCore.Signal(GameLauncherConfig)
-    return_newsfeed = QtCore.Signal(str)
-
     def __init__(self, game: Game):
         super(
             MainWindow,
@@ -102,8 +96,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Pressing enter in password box acts like pressing login button
         self.ui.txtPassword.returnPressed.connect(self.btnLoginClicked)
-
-        self.connectMainWindowThreadSignals()
 
         self.setupMousePropagation()
 
@@ -216,13 +208,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btnSwitchGame.setMenu(menu)
         # Needed for menu to show up for some reason
         self.ui.btnSwitchGame.menu()
-
-    def connectMainWindowThreadSignals(self):
-        """Connects function signals for communicating with MainWindowThread."""
-        self.ReturnLog.connect(self.AddLog)
-        self.return_game_services_info.connect(self.get_game_services_info)
-        self.return_game_launcher_config.connect(self.get_game_launcher_config)
-        self.return_newsfeed.connect(self.get_newsfeed)
 
     def btnAboutSelected(self):
         dlgAbout = QtWidgets.QDialog(self, QtCore.Qt.WindowType.Popup)
@@ -654,12 +639,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.configThread = MainWindowThread()
         self.configThread.SetUp(
             self.game,
-            self.ReturnLog,
-            self.return_game_services_info,
-            self.return_game_launcher_config,
-            self.return_newsfeed
+            self.AddLog,
+            self.get_game_services_info,
+            self.get_game_launcher_config,
+            self.get_newsfeed
         )
-        self.configThread.start()
+        self.configThread.run()
 
     def get_game_services_info(self, game_services_info: GameServicesInfo):
         self.game_services_info = game_services_info
@@ -714,7 +699,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btnSwitchGame.setEnabled(True)
 
 
-class MainWindowThread(QtCore.QThread):
+class MainWindowThread():
     def SetUp(
         self,
         game,
@@ -742,21 +727,21 @@ class MainWindowThread(QtCore.QThread):
             logger.exception("")
             # TODO: load anything else that can be, provide option to retry, and
             # don't lock up the whole UI
-            self.ReturnLog.emit(
+            self.ReturnLog(
                 "Network error while fetching game services info.", True)
             return
         except GLSServiceError:
             logger.exception("")
             # TODO Specify how they they can report or even have the report
             # text be something they can click to report the issue.
-            self.ReturnLog.emit(
+            self.ReturnLog(
                 "Non-network error with GLS datacenter service. Please report "
                 "this issue, if it continues.", True)
             return
 
-        self.ReturnLog.emit("Fetched game services info.", False)
-        self.return_game_services_info.emit(self.game_services_info)
-        self.ReturnLog.emit("World list obtained.", False)
+        self.ReturnLog("Fetched game services info.", False)
+        self.return_game_services_info(self.game_services_info)
+        self.ReturnLog("World list obtained.", False)
 
         self.get_game_launcher_config(
             self.game_services_info.launcher_config_url)
@@ -767,19 +752,19 @@ class MainWindowThread(QtCore.QThread):
                 game_launcher_config_url)
         except RequestException:
             logger.exception("")
-            self.ReturnLog.emit(
+            self.ReturnLog(
                 "Network error while retrieving game launcher config.", True)
             return
         except GameLauncherConfigParseError:
             logger.exception("")
-            self.ReturnLog.emit(
+            self.ReturnLog(
                 "Game launcher config has incompatible format. Please report "
                 "this issue if using a supported game server", True
             )  # TODO: Easy report
             return
 
-        self.ReturnLog.emit("Game launcher configuration read", False)
-        self.return_game_launcher_config.emit(self.game_launcher_config)
+        self.ReturnLog("Game launcher configuration read", False)
+        self.return_game_launcher_config(self.game_launcher_config)
 
         self.get_newsfeed()
 
@@ -789,12 +774,12 @@ class MainWindowThread(QtCore.QThread):
                         self.game_launcher_config.get_newfeed_url(
                             ui_locale))
         try:
-            self.return_newsfeed.emit(
+            self.return_newsfeed(
                 newsfeed_url_to_html(
                     newsfeed_url,
                     ui_locale.babel_locale))
         except RequestException:
-            self.ReturnLog.emit(
+            self.ReturnLog(
                 "Network error while downloading newsfeed", True)
             logger.exception("Network error while downloading newsfeed.")
 
