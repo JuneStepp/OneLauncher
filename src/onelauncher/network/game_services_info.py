@@ -61,7 +61,7 @@ class GameServicesInfo():
             return cls.from_url(
                 game.gls_datacenter_service,
                 game.datacenter_game_name)
-        except (RequestException, GLSServiceError):
+        except (RequestException, GLSServiceError, AttributeError):
             return None
 
     @property
