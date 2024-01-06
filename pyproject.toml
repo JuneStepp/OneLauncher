@@ -23,7 +23,7 @@ PySide6-Essentials = "^6.6.0"
 
 # Keyring packages
 keyring = "^24.2.0"
-cryptography = "^41.0.4"
+cryptography = "^41.0.7"
 SecretStorage = { version = "^3.3.3", markers = "sys_platform == 'linux'" }
 # Should only use with KWallet versions < 5.97. See https://bugs.kde.org/show_bug.cgi?id=458318.
 dbus-python = { version = "^1.3.2", markers = "sys_platform == 'linux'", optional = true }
