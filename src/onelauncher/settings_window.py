@@ -30,6 +30,7 @@ import os
 import re
 from pathlib import Path
 
+import trio
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from . import games_sorted
@@ -42,8 +43,8 @@ from .game import ClientType, Game
 from .game_utilities import GamesSortingMode, find_game_dir_game_type
 from .network.game_launcher_config import GameLauncherConfig
 from .resources import available_locales
-from .standard_game_launcher import get_standard_game_launcher_path
 from .setup_wizard import SetupWizard
+from .standard_game_launcher import get_standard_game_launcher_path
 from .ui.settings_uic import Ui_dlgSettings
 from .ui_utilities import show_warning_message
 from .utilities import CaseInsensitiveAbsolutePath
@@ -77,7 +78,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.ui.gameUUIDLineEdit.setText(str(self.game.uuid))
         self.ui.gameDescriptionLineEdit.setText(
             self.game.description)
-        self.setup_newsfeed_option()
+        trio.run(self.setup_newsfeed_option)
         self.ui.gameDirLineEdit.setText(
             str(self.game.game_directory))
         self.ui.browseGameConfigDirButton.clicked.connect(
@@ -103,7 +104,7 @@ class SettingsWindow(QtWidgets.QDialog):
                 self.ui.tabWidget.indexOf(
                     self.ui.winePage), False)
 
-        self.setup_client_type_combo_box()
+        trio.run(self.setup_client_type_combo_box)
         self.ui.standardLauncherLineEdit.setText(
             self.game.standard_game_launcher_filename or "")
         self.ui.patchClientLineEdit.setText(
@@ -146,10 +147,11 @@ class SettingsWindow(QtWidgets.QDialog):
             self.toggle_advanced_settings)
         self.ui.settingsButtonBox.accepted.connect(self.save_config)
 
-    def setup_newsfeed_option(self):
+    async def setup_newsfeed_option(self):
         # Attempt to set placeholder text to default newsfeed URL
         if self.game.newsfeed is None:
-            game_launcher_config = GameLauncherConfig.from_game(self.game)
+            game_launcher_config = await GameLauncherConfig.from_game(
+                self.game)
             if game_launcher_config is not None:
                 self.ui.gameNewsfeedLineEdit.setPlaceholderText(
                     game_launcher_config.get_newfeed_url(
@@ -184,11 +186,11 @@ class SettingsWindow(QtWidgets.QDialog):
                     self.ui.winePage),
                 is_checked)
 
-    def setup_client_type_combo_box(self):
+    async def setup_client_type_combo_box(self):
         combo_box_item_names = {ClientType.WIN64: "64-bit",
                                 ClientType.WIN32: "32-bit",
                                 ClientType.WIN32_LEGACY: "32-bit Legacy"}
-        game_launcher_config = GameLauncherConfig.from_game(self.game)
+        game_launcher_config = await GameLauncherConfig.from_game(self.game)
         if game_launcher_config is not None:
             # Mark all unavailable client types as not found.
             for client_type, client_filename in (game_launcher_config.
@@ -207,7 +209,7 @@ class SettingsWindow(QtWidgets.QDialog):
                 self.game.client_type))
 
     def run_standard_game_launcher(self, disable_patching=False):
-        launcher_path = get_standard_game_launcher_path(self.game)
+        launcher_path = trio.run(get_standard_game_launcher_path, self.game)
 
         if launcher_path is None:
             show_warning_message("No valid launcher executable found", self)

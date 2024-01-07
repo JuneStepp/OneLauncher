@@ -31,8 +31,10 @@ import logging
 from pathlib import Path
 from typing import List, Optional
 
+import httpx
+import trio
+from pkg_resources import parse_version
 from PySide6 import QtCore, QtGui, QtWidgets
-from requests.exceptions import RequestException
 from xmlschema import XMLSchemaValidationError
 
 from . import __about__, games_sorted
@@ -48,6 +50,7 @@ from .network.game_launcher_config import (GameLauncherConfig,
                                            GameLauncherConfigParseError)
 from .network.game_newsfeed import newsfeed_url_to_html
 from .network.game_services_info import GameServicesInfo
+from .network.httpx_client import get_httpx_client
 from .network.soap import GLSServiceError
 from .network.world import World, WorldUnavailableError
 from .network.world_login_queue import (JoinWorldQueueFailedError,
@@ -61,6 +64,7 @@ from .ui.main_uic import Ui_winMain
 from .ui.select_subscription_uic import Ui_dlgSelectSubscription
 from .ui.start_game_window import StartGame
 from .ui_resources import icon_font
+from .ui_utilities import AsyncHelper, show_message_box_details_as_markdown
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -72,7 +76,7 @@ class MainWindow(QtWidgets.QMainWindow):
             QtCore.Qt.WindowType.FramelessWindowHint)
         self.game: Game = game
 
-        self.setAttribute(QtCore.Qt.WA_DeleteOnClose, on=True)
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose, on=True)
 
         self.ui = Ui_winMain()
         self.ui.setupUi(self)
@@ -99,6 +103,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setupMousePropagation()
 
+        self.checked_for_program_update = False
+        self.async_setup_helper = AsyncHelper(self, self.async_initial_setup)
         self.InitialSetup()
 
     def run(self):
@@ -397,7 +403,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.ui.cboAccount.currentIndex(), current_account)
 
         try:
-            self.login_response = login_account.login_account(
+            self.login_response = trio.run(
+                login_account.login_account,
                 self.game_services_info.auth_server,
                 current_account.username,
                 self.ui.txtPassword.text() or current_account.password or "",
@@ -405,7 +412,7 @@ class MainWindow(QtWidgets.QMainWindow):
         except login_account.WrongUsernameOrPasswordError:
             self.AddLog("Username or password is incorrect", True)
             return
-        except RequestException:
+        except httpx.HTTPError:
             logger.exception("")
             self.AddLog("Network error while authenticating account", True)
             return
@@ -459,8 +466,8 @@ class MainWindow(QtWidgets.QMainWindow):
         selected_world: World = self.ui.cboWorld.currentData()
 
         try:
-            selected_world_status = selected_world.get_status()
-        except RequestException:
+            selected_world_status = trio.run(selected_world.get_status)
+        except httpx.HTTPError:
             logger.exception(
                 "Network error while downloading world status xml")
             self.AddLog(
@@ -509,8 +516,8 @@ class MainWindow(QtWidgets.QMainWindow):
             queueURL)
         while True:
             try:
-                world_queue_result = world_login_queue.join_queue()
-            except RequestException:
+                world_queue_result = trio.run(world_login_queue.join_queue)
+            except httpx.HTTPError:
                 self.AddLog(
                     "Network error while joining world queue",
                     is_error=True)
@@ -636,28 +643,21 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.resetFocus()
 
-        self.configThread = MainWindowThread()
-        self.configThread.SetUp(
-            self.game,
-            self.AddLog,
-            self.get_game_services_info,
-            self.get_game_launcher_config,
-            self.get_newsfeed
-        )
-        self.configThread.run()
+        QtCore.QTimer.singleShot(0, self.async_setup_helper.launch_guest_run)
 
-    def get_game_services_info(self, game_services_info: GameServicesInfo):
-        self.game_services_info = game_services_info
+    async def async_initial_setup(self):
+        async with trio.open_nursery() as nursery:
+            nursery.start_soon(self.get_game_services_info, self.game)
 
-        for world in self.game_services_info.worlds:
-            self.ui.cboWorld.addItem(world.name, userData=world)
-
-        self.setCurrentAccountWorld()
-
-    def get_game_launcher_config(
-            self, game_launcher_config: GameLauncherConfig):
-        self.game_launcher_config = game_launcher_config
-
+            if not self.checked_for_program_update:
+                nursery.start_soon(check_for_update)
+        self.checked_for_program_update = True
+        if not self.game_services_info:
+            return
+        self.load_worlds_list(self.game_services_info)
+        await self.get_game_launcher_config(
+            self.game_services_info.launcher_config_url)
+        # Enable UI elements that rely on what's been loaded.
         self.ui.actionPatch.setEnabled(True)
         self.ui.actionPatch.setVisible(True)
         self.ui.btnLogin.setEnabled(True)
@@ -666,10 +666,72 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.cboAccount.setEnabled(True)
         self.ui.txtPassword.setEnabled(True)
 
-    def get_newsfeed(self, newsfeed: str):
-        self.ui.txtFeed.setHtml(newsfeed)
+        await self.load_newsfeed()
 
-        self.configThreadFinished()
+        self.ui.btnOptions.setEnabled(True)
+        self.ui.btnSwitchGame.setEnabled(True)
+
+    async def get_game_services_info(self, game: Game) -> GameServicesInfo | None:
+        try:
+            self.game_services_info = await GameServicesInfo.from_url(
+                game.gls_datacenter_service, game.datacenter_game_name)
+        except httpx.HTTPError:
+            logger.exception("")
+            # TODO: load anything else that can be, provide option to retry, and
+            # don't lock up the whole UI
+            self.AddLog(
+                "Network error while fetching game services info.", True)
+            return
+        except GLSServiceError:
+            logger.exception("")
+            # TODO Specify how they they can report or even have the report
+            # text be something they can click to report the issue.
+            self.AddLog(
+                "Non-network error with GLS datacenter service. Please report "
+                "this issue, if it continues.", True)
+            return
+
+        self.AddLog("Fetched game services info.", False)
+
+    def load_worlds_list(self, game_services_info: GameServicesInfo):
+        for world in self.game_services_info.worlds:
+            self.ui.cboWorld.addItem(world.name, userData=world)
+
+        self.setCurrentAccountWorld()
+        self.AddLog("World list obtained.", False)
+
+    async def get_game_launcher_config(self, game_launcher_config_url: str):
+        try:
+            self.game_launcher_config = await GameLauncherConfig.from_url(
+                game_launcher_config_url)
+            self.AddLog("Game launcher configuration read", False)
+            return
+        except httpx.HTTPError:
+            logger.exception("")
+            self.AddLog(
+                "Network error while retrieving game launcher config.", True)
+            return
+        except GameLauncherConfigParseError:
+            logger.exception("")
+            self.AddLog(
+                "Game launcher config has incompatible format. Please report "
+                "this issue if using a supported game server", True
+            )  # TODO: Easy report
+            return
+
+    async def load_newsfeed(self):
+        ui_locale = program_config.get_ui_locale(self.game)
+        newsfeed_url = (self.game.newsfeed or
+                        self.game_launcher_config.get_newfeed_url(
+                            ui_locale))
+        try:
+            self.ui.txtFeed.setHtml(await newsfeed_url_to_html(
+                    newsfeed_url,
+                    ui_locale.babel_locale))
+        except httpx.HTTPError:
+            self.ReturnLog(
+                "Network error while downloading newsfeed", True)
+            logger.exception("Network error while downloading newsfeed.")
 
     def ClearLog(self):
         self.ui.txtStatus.setText("")
@@ -694,94 +756,60 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.ui.txtStatus.append(line)
 
-    def configThreadFinished(self) -> None:
-        self.ui.btnOptions.setEnabled(True)
-        self.ui.btnSwitchGame.setEnabled(True)
 
+async def check_for_update():
+    """Notifies user if their copy of OneLauncher is out of date"""
+    current_version = parse_version(__about__.__version__)
+    repository_url = __about__.__project_url__
+    if "github.com" not in repository_url.lower():
+        logger.warning(
+            "Repository URL set in Information.py is not "
+            "at github.com. The system for update notifications"
+            " only supports this site."
+        )
+        return
 
-class MainWindowThread():
-    def SetUp(
-        self,
-        game,
-        ReturnLog: QtCore.Signal,
-        return_game_services_info: QtCore.Signal,
-        return_game_launcher_config: QtCore.Signal,
-        return_newsfeed: QtCore.Signal,
-    ):
-        self.game = game
-        # First argument is string. Second is bool representing if message is
-        # error or not
-        self.ReturnLog = ReturnLog
-        self.return_game_services_info = return_game_services_info
-        self.return_game_launcher_config = return_game_launcher_config
-        self.return_newsfeed = return_newsfeed
+    latest_release_template = (
+        "https://api.github.com/repos/{user_and_repo}/releases/latest"
+    )
+    latest_release_url = latest_release_template.format(
+        user_and_repo=repository_url.lower().split("github.com")[
+            1].strip("/")
+    )
 
-    def run(self):
-        self.access_game_services_info(self.game)
+    try:
+        response = await get_httpx_client(latest_release_url).get(
+            latest_release_url)
+        response.raise_for_status()
+    except (httpx.HTTPError):
+        logger.exception(f"Network error while checking for "
+                         f"{__about__.__title__} updates")
+        return
+    release_dictionary = response.json()
 
-    def access_game_services_info(self, game: Game):
-        try:
-            self.game_services_info = GameServicesInfo.from_url(
-                game.gls_datacenter_service, game.datacenter_game_name)
-        except RequestException:
-            logger.exception("")
-            # TODO: load anything else that can be, provide option to retry, and
-            # don't lock up the whole UI
-            self.ReturnLog(
-                "Network error while fetching game services info.", True)
-            return
-        except GLSServiceError:
-            logger.exception("")
-            # TODO Specify how they they can report or even have the report
-            # text be something they can click to report the issue.
-            self.ReturnLog(
-                "Non-network error with GLS datacenter service. Please report "
-                "this issue, if it continues.", True)
-            return
+    release_version = parse_version(release_dictionary["tag_name"])
 
-        self.ReturnLog("Fetched game services info.", False)
-        self.return_game_services_info(self.game_services_info)
-        self.ReturnLog("World list obtained.", False)
+    if release_version > current_version:
+        url = release_dictionary["html_url"]
+        name = release_dictionary["name"]
+        description = release_dictionary["body"]
 
-        self.get_game_launcher_config(
-            self.game_services_info.launcher_config_url)
+        messageBox = QtWidgets.QMessageBox()
+        messageBox.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
+        messageBox.setIcon(QtWidgets.QMessageBox.Icon.Information)
+        messageBox.setStandardButtons(messageBox.StandardButton.Ok)
 
-    def get_game_launcher_config(self, game_launcher_config_url: str):
-        try:
-            self.game_launcher_config = GameLauncherConfig.from_url(
-                game_launcher_config_url)
-        except RequestException:
-            logger.exception("")
-            self.ReturnLog(
-                "Network error while retrieving game launcher config.", True)
-            return
-        except GameLauncherConfigParseError:
-            logger.exception("")
-            self.ReturnLog(
-                "Game launcher config has incompatible format. Please report "
-                "this issue if using a supported game server", True
-            )  # TODO: Easy report
-            return
-
-        self.ReturnLog("Game launcher configuration read", False)
-        self.return_game_launcher_config(self.game_launcher_config)
-
-        self.get_newsfeed()
-
-    def get_newsfeed(self):
-        ui_locale = program_config.get_ui_locale(self.game)
-        newsfeed_url = (self.game.newsfeed or
-                        self.game_launcher_config.get_newfeed_url(
-                            ui_locale))
-        try:
-            self.return_newsfeed(
-                newsfeed_url_to_html(
-                    newsfeed_url,
-                    ui_locale.babel_locale))
-        except RequestException:
-            self.ReturnLog(
-                "Network error while downloading newsfeed", True)
-            logger.exception("Network error while downloading newsfeed.")
-
+        centered_href = (
+            f'<html><head/><body><p align="center"><a href="{url}">'
+            f'<span>{name}</span></a></p></body></html>'
+        )
+        messageBox.setInformativeText(
+            f"There is a new version of {__about__.__title__} available! {centered_href}"
+        )
+        messageBox.setDetailedText(description)
+        show_message_box_details_as_markdown(messageBox)
+        messageBox.exec()
+    else:
+        logger.info(f"{__about__.__title__} is up to date.")
 
 logger = logging.getLogger("main")

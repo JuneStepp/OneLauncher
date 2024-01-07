@@ -9,15 +9,15 @@ import feedparser
 from babel import Locale
 from babel.dates import format_datetime
 
-from . import session
+from .httpx_client import get_httpx_client
 
 
-def newsfeed_url_to_html(url: str, babel_locale: Locale) -> str:
+async def newsfeed_url_to_html(url: str, babel_locale: Locale) -> str:
     """
     Raises:
-        RequestsException: Network error while downloading newsfeed
+        HTTPError: Network error while downloading newsfeed
     """
-    response = session.get(url, timeout=10)
+    response = await get_httpx_client(url).get(url)
     response.raise_for_status()
 
     return newsfeed_xml_to_html(response.text, babel_locale, url)

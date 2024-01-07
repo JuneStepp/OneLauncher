@@ -2,7 +2,7 @@ from typing import Dict, Final, NamedTuple
 
 from ..resources import data_dir
 import xmlschema
-from . import session
+from .httpx_client import get_httpx_client
 
 
 class JoinWorldQueueResult(NamedTuple):
@@ -53,17 +53,17 @@ class WorldLoginQueue():
             arguments_dict[param_name] = param_value
         return arguments_dict
 
-    def join_queue(self) -> JoinWorldQueueResult:
+    async def join_queue(self) -> JoinWorldQueueResult:
         """
         Raises:
-            RequestException: Network error
+            HTTPError: Network error
             WorldQueueResultXMLParseError: Error with content/formatting of
                                            world queue respone XML
             JoinWorldQueueFailedError: Failed to join world login queue
         """
-        response = session.post(
+        response = await get_httpx_client(self._login_queue_url).post(
             self._login_queue_url,
-            self._login_queue_arguments_dict)
+            data=self._login_queue_arguments_dict)
 
         try:
             queue_result_dict = self._WORLD_QUEUE_RESULT_SCHEMA.to_dict(

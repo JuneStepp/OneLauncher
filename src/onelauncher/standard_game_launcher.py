@@ -3,9 +3,9 @@ from .network.game_launcher_config import GameLauncherConfig
 from .utilities import CaseInsensitiveAbsolutePath
 
 
-def _get_launcher_path_based_on_client_filename(
+async def _get_launcher_path_based_on_client_filename(
         game: Game) -> CaseInsensitiveAbsolutePath | None:
-    game_launcher_config = GameLauncherConfig.from_game(game)
+    game_launcher_config = await GameLauncherConfig.from_game(game)
     if game_launcher_config is None:
         return None
 
@@ -51,13 +51,13 @@ def _get_launcher_path_from_config(
     return None
 
 
-def get_standard_game_launcher_path(
+async def get_standard_game_launcher_path(
         game: Game) -> CaseInsensitiveAbsolutePath | None:
     launcher_path = _get_launcher_path_from_config(game)
     if launcher_path is not None:
         return launcher_path
 
-    launcher_path = _get_launcher_path_based_on_client_filename(game)
+    launcher_path = await _get_launcher_path_based_on_client_filename(game)
     if launcher_path is not None:
         return launcher_path
 

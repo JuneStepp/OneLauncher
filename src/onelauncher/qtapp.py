@@ -32,9 +32,8 @@ from pathlib import Path
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from .__about__ import (__project_url__, __title__, __version__)
+from .__about__ import __title__, __version__
 from .config.program_config import program_config
-
 from .resources import get_resource
 
 

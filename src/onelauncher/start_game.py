@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import trio
 
 from PySide6 import QtCore
 from .config.games.wine import get_wine_environment_from_game
@@ -28,7 +29,7 @@ def get_launch_args(
     """
     launch_args_template_mapping = {
         "{SUBSCRIPTION}": account_number,
-        "{LOGIN}": world.get_status().login_server,
+        "{LOGIN}": trio.run(world.get_status).login_server,
         "{GLS}": ticket,
         "{CHAT}": world.chat_server_url,
         "{LANG}": game.locale.game_language_name,

@@ -1,6 +1,6 @@
 # coding=utf-8
 ###########################################################################
-# Information specific to official game clients. See `.network.requests_session`
+# Information and configuration specific to official game clients.
 #
 # Based on PyLotRO
 # (C) 2009 AJackson <ajackson@bcs.org.uk>
@@ -30,11 +30,11 @@ import logging
 import socket
 import ssl
 from typing import Final
-from urllib.parse import urlparse, urlunparse
+from functools import cache
+from urllib.parse import urlparse
 
-import requests
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.ssl_ import create_urllib3_context
+import httpx
+
 
 LOTRO_GLS_PREVIEW_DOMAIN = "gls-bullroarer.lotro.com"
 LOTRO_GLS_DOMAINS: Final = [
@@ -85,100 +85,68 @@ def is_gls_url_for_preview_client(url: str) -> bool:
                       DDO_GLS_PREVIEW_IP]
 
 
-class _OfficialClientAdapter(HTTPAdapter):
-    """
-    A TransportAdapter configured for the lower security of
-    the official LOTRO and DDO servers. Also, forces HTTPS.
-    """
-
-    def init_poolmanager(self, *args, **kwargs):
-        context = create_urllib3_context(
-            cert_reqs=ssl.CERT_REQUIRED,
-            ciphers=OFFICIAL_CLIENT_CIPHERS)
-        kwargs['ssl_context'] = context
-        return super(
-            _OfficialClientAdapter,
-            self).init_poolmanager(
-            *args,
-            **kwargs)
-
-    def proxy_manager_for(self, *args, **kwargs):
-        context = create_urllib3_context(
-            cert_reqs=ssl.CERT_REQUIRED,
-            ciphers=OFFICIAL_CLIENT_CIPHERS)
-        kwargs['ssl_context'] = context
-        return super(
-            _OfficialClientAdapter,
-            self).proxy_manager_for(
-            *args,
-            **kwargs)
-
-    def send(self, request: requests.PreparedRequest, **kwargs) -> requests.Response:  # type: ignore
-        if request.url:
-            parsed_url = urlparse(request.url)
-            # Make sure URL uses HTTPS
-            request.url = urlunparse(parsed_url._replace(scheme="https"))
-        return super(_OfficialClientAdapter, self).send(request, **kwargs)
-
-
-class _MoriaGLSAdapter(_OfficialClientAdapter):
-    """
-    A subclass of `_OfficialClientAdapter` that changes "moria.gls.lotro.com"
-    domains to "gls.lotro.com".
-
-    This is necessary, because the SSL certificate used by "moria.gls.lotro.com"
-    is only valid for "*.lotro.com" and "lotro.com".
-    """
-
-    def send(self, request: requests.PreparedRequest, **kwargs) -> requests.Response:  # type: ignore
-        if request.url:
-            request.url = request.url.lower().replace(
-                LOTRO_GLS_INVALID_SSL_DOMAIN, LOTRO_GLS_DOMAINS[0], 1)
-        return super(_MoriaGLSAdapter, self).send(request, **kwargs)
-
-
-class DDOPreviewIPDoesNotMatchDomainError(requests.RequestException):
+class DDOPreviewIPDoesNotMatchDomainError(httpx.RequestError):
     """Expected IP to match the DDO preview GLS server domain IP"""
 
 
-class _DDOPreviewGLSAdapter(_OfficialClientAdapter):
+def _httpx_request_hook_sync(request: httpx.Request) -> None:
+    # Force HTTPS. It's supported by all the official servers, but most URLs
+    # default to HTTP.
+    request.url = request.url.copy_with(scheme="https")
+
+    # Change "moria.gls.lotro.com" domains to "gls.lotro.com".
+    # This is necessary, because the SSL certificate used by
+    # "moria.gls.lotro.com" is only valid for "*.lotro.com" and "lotro.com".
+    if request.url.host.lower().startswith(LOTRO_GLS_INVALID_SSL_DOMAIN):
+        request.url = request.url.copy_with(
+            host=request.url.host.lower().replace(
+                LOTRO_GLS_INVALID_SSL_DOMAIN, LOTRO_GLS_DOMAINS[0], 1))
+
+    # Change DDO preview server IP to domain name.
+    # This is to make HTTPS work properly.
+    if request.url.host.lower().startswith(DDO_GLS_PREVIEW_IP):
+        try:
+            # Verify that DDO preview server still matches the expected IP
+            if socket.gethostbyname(
+                    DDO_GLS_PREVIEW_DOMAIN) != DDO_GLS_PREVIEW_IP:
+                raise DDOPreviewIPDoesNotMatchDomainError(
+                    "IP doesn't match the DDO preview GLS server domain IP")
+        except OSError as e:
+            raise httpx.RequestError(
+                "Connection error while verifying DDO preview "
+                "GLS server IP") from e
+
+        request.url = request.url.copy_with(host=DDO_GLS_PREVIEW_DOMAIN)
+
+
+async def _httpx_request_hook(request: httpx.Request) -> None:
+    _httpx_request_hook_sync(request)
+
+
+def get_official_servers_ssl_context() -> ssl.SSLContext:
     """
-    A subclass of `_OfficialClientAdapter` that changes DDO Preview server IP
-    to domain name. This is to make HTTPS work properly.
+    Return SSLContext configured for the lower security of the official servers
     """
-
-    def send(self, request: requests.PreparedRequest, **kwargs) -> requests.Response:  # type: ignore
-        if request.url:
-            try:
-                # Verify that DDO preview server still matches the expected IP
-                if socket.gethostbyname(
-                        DDO_GLS_PREVIEW_DOMAIN) != DDO_GLS_PREVIEW_IP:
-                    raise DDOPreviewIPDoesNotMatchDomainError(
-                        "IP doesn't match the DDO preview GLS server domain IP")
-            except OSError as e:
-                raise requests.RequestException(
-                    "Connection error while verifying DDO preview "
-                    "GLS server IP") from e
-
-            parsed_url = urlparse(request.url)
-            request.url = urlunparse(parsed_url._replace(
-                netloc=DDO_GLS_PREVIEW_DOMAIN))
-        return super(_DDOPreviewGLSAdapter, self).send(request, **kwargs)
+    ssl_context = httpx.create_ssl_context()
+    ssl_context.verify_mode = ssl.CERT_REQUIRED
+    ssl_context.set_ciphers(OFFICIAL_CLIENT_CIPHERS)
+    return ssl_context
 
 
-def configure_requests_session(session: requests.Session) -> None:
-    """Configure requests session to work with official game servers"""
-    for prefix in LOTRO_GLS_DOMAINS + LOTRO_FORMS_DOMAINS + \
-            DDO_GLS_DOMAINS + DDO_FORMS_DOMAINS:
-        session.mount(f"https://{prefix}", _OfficialClientAdapter())
-        # HTTP will be changed to HTTPS
-        session.mount(f"http://{prefix}", _OfficialClientAdapter())
-    session.mount(
-        f"https://{LOTRO_GLS_INVALID_SSL_DOMAIN}",
-        _MoriaGLSAdapter())
-    session.mount(f"http://{LOTRO_GLS_INVALID_SSL_DOMAIN}", _MoriaGLSAdapter())
-    session.mount(f"https://{DDO_GLS_PREVIEW_IP}", _DDOPreviewGLSAdapter())
-    session.mount(f"http://{DDO_GLS_PREVIEW_IP}", _DDOPreviewGLSAdapter())
+@cache
+def get_official_servers_httpx_client() -> httpx.AsyncClient:
+    """Return httpx client configured to work with official game servers"""
+    return httpx.AsyncClient(
+        verify=get_official_servers_ssl_context(),
+        event_hooks={"request": [_httpx_request_hook]})
+
+
+@cache
+def get_official_servers_httpx_client_sync() -> httpx.Client:
+    """Return httpx client configured to work with official game servers"""
+    return httpx.Client(
+        verify=get_official_servers_ssl_context(),
+        event_hooks={"request": [_httpx_request_hook_sync]})
 
 
 logger = logging.getLogger("main")

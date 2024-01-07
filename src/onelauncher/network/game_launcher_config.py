@@ -1,16 +1,17 @@
 import logging
 from typing import Optional, Tuple
 
-from cachetools import TTLCache, cached
-from requests import RequestException
+from asyncache import cached
+from cachetools import TTLCache
+from httpx import HTTPError
 
 from ..game import ClientType, Game
 from ..official_clients import (DDO_PREVIEW_BROKEN_NEWS_URL_TEMPLATE,
-                                     DDO_PREVIEW_NEWS_URL_TEMPLATE)
+                                DDO_PREVIEW_NEWS_URL_TEMPLATE)
 from ..resources import OneLauncherLocale
 from ..utilities import AppSettingsParseError, parse_app_settings_config
-from . import session
 from .game_services_info import GameServicesInfo
+from .httpx_client import get_httpx_client
 
 
 class GameLauncherConfigParseError(KeyError):
@@ -142,41 +143,38 @@ class GameLauncherConfig:
 
     @classmethod
     @cached(cache=TTLCache(maxsize=48, ttl=60 * 2))
-    def from_url(cls, config_url: str):
+    async def from_url(cls, config_url: str):
         """
         Raises:
-            RequestException: Network error while downloading the config XML
+            HTTPError: Network error while downloading the config XML
             GameLauncherConfigParseError: Config doesn't match expected game
                                           launcher config format
         """
-        config_xml = cls._get_config_xml(config_url)
+        config_xml = await cls._get_config_xml(config_url)
         return cls.from_xml(config_xml)
 
     @classmethod
-    def from_game(cls, game: Game):
+    async def from_game(cls, game: Game):
         """Simplified shortcut for getting `GameLauncherConfig` object.
         Will return `None` if any exceptions are raised."""
         try:
-            game_services_info = GameServicesInfo.from_game(game)
+            game_services_info = await GameServicesInfo.from_game(game)
             if game_services_info is None:
                 return None
-            return cls.from_url(
+            return await cls.from_url(
                 game_services_info.launcher_config_url)
-        except (RequestException, GameLauncherConfigParseError):
+        except (HTTPError, GameLauncherConfigParseError):
             return None
 
     @staticmethod
-    def _get_config_xml(config_url: str) -> str:
+    async def _get_config_xml(config_url: str) -> str:
         """Return world queue config appsettings xml from url
 
         Raises:
-            RequestException: Network error while downloading the config XML
+            HTTPError: Network error while downloading the config XML
         """
-        response = session.get(config_url, timeout=10)
-
+        response = await get_httpx_client(config_url).get(config_url)
         response.raise_for_status()
-
-        response.encoding = response.apparent_encoding
         return response.text
 
     def get_specific_client_filename(

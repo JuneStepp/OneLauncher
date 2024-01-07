@@ -98,20 +98,22 @@ class WrongUsernameOrPasswordError(Exception):
     """Either the username does not exist, or the password was incorrect."""
 
 
-def login_account(
+async def login_account(
         auth_server: str,
         username: str,
         password: str) -> AccountLoginResponse:
     """Login to game account using SOAP API
 
     Args:
-        auth_server (str): Authentication server. Normally found in `GameServicesInfo`
+        auth_server (str): Authentication server. Normally found in
+                           `GameServicesInfo`.
         username (str): Account username
         password (str): Account password
 
     Raises:
-        WrongUsernameOrPasswordError: Username doesn't exist or password is wrong.
-        RequestException: Network error
+        WrongUsernameOrPasswordError: Username doesn't exist or password is
+                                      wrong.
+        HTTPError: Network error
         GLSServiceError: Non-network issue with the GLS service
 
     Returns:
@@ -121,7 +123,7 @@ def login_account(
 
     try:
         return AccountLoginResponse.from_soap_response_dict(
-            client.service.LoginAccount(
+            await client.service.LoginAccount(
                 username, password, ""))
     except zeep.exceptions.Fault as e:
         raise WrongUsernameOrPasswordError("") from e

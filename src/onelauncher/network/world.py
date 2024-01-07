@@ -4,8 +4,9 @@ from urllib.parse import urlparse, urlunparse
 
 from ..resources import data_dir
 import xmlschema
-from cachetools import TTLCache, cached
-from . import session
+from asyncache import cached
+from cachetools import TTLCache
+from .httpx_client import get_httpx_client
 
 
 class WorldUnavailableError(Exception):
@@ -56,11 +57,11 @@ class World:
         return self._status_server_url
 
     @cached(cache=TTLCache(maxsize=1, ttl=60))
-    def get_status(self) -> WorldStatus:
+    async def get_status(self) -> WorldStatus:
         """Return current world status info
 
         Raises:
-            RequestException: Network error while downloading the status XML
+            HTTPError: Network error while downloading the status XML
             WorldUnavailableError: World is unavailable
             XMLSchemaValidationError: Status XML doesn't match schema
 
@@ -68,18 +69,18 @@ class World:
             dict: Dictionary representation of world status.
                   See `self._WORLD_STATUS_SCHEMA` schema file for what to expect.
         """
-        status_dict = self._get_status_dict(self.status_server_url)
+        status_dict = await self._get_status_dict(self.status_server_url)
         queue_urls: Tuple[str, ...] = tuple(
             url for url in status_dict["queueurls"].split(";") if url)
         login_servers: Tuple[str, ...] = tuple(
             server for server in status_dict["loginservers"].split(";") if server)
         return WorldStatus(queue_urls[0], login_servers[0])
 
-    def _get_status_dict(self, status_server_url: str) -> dict:
+    async def _get_status_dict(self, status_server_url: str) -> dict:
         """Return world status dictionary
 
         Raises:
-            RequestException: Network error while downloading the status XML
+            HTTPError: Network error while downloading the status XML
             WorldUnavailableError: World is unavailable
             XMLSchemaValidationError: Status XML doesn't match schema
 
@@ -87,7 +88,8 @@ class World:
             dict: Dictionary representation of world status.
                   See `self._WORLD_STATUS_SCHEMA` schema file for what to expect.
         """
-        response = session.get(status_server_url, timeout=10)
+        response = await get_httpx_client(
+            status_server_url).get(status_server_url)
 
         if response.status_code == 404:
             # Fix broken status URLs for LOTRO legendary servers
@@ -97,7 +99,7 @@ class World:
                     parsed_gls_service = urlparse(self._gls_datacenter_service)
                     url_fixed_netloc = parsed_status_url._replace(
                         netloc=parsed_gls_service.netloc)
-                    return self._get_status_dict(urlunparse(url_fixed_netloc))
+                    return await self._get_status_dict(urlunparse(url_fixed_netloc))
 
             # 404 response generally means world is unavailable
             raise WorldUnavailableError(f"{self} world unavailable")

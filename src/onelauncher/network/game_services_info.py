@@ -2,12 +2,13 @@ import logging
 from typing import Optional, Set
 
 import zeep.exceptions
-from cachetools import TTLCache, cached
-from requests import RequestException
+from asyncache import cached
+from cachetools import TTLCache
+from httpx import HTTPError
 
 from ..game import Game
 from .soap import GLSServiceError, get_soap_client
-from.world import World
+from .world import World
 
 
 class GameServicesInfo():
@@ -18,11 +19,6 @@ class GameServicesInfo():
                  patch_server: str,
                  launcher_config_url: str,
                  worlds: Set[World]) -> None:
-        """
-        Raises:
-            RequestException: Network error
-            GLSServiceError: Non-network issue with the GLS service
-        """
         self._gls_datacenter_service = gls_datacenter_service
         self._game_datacenter_name = game_datacenter_name
         self._auth_server = auth_server
@@ -32,15 +28,15 @@ class GameServicesInfo():
 
     @classmethod
     @cached(cache=TTLCache(maxsize=48, ttl=60 * 2))
-    def from_url(cls, gls_datacenter_service: str,
-                 game_datacenter_name: str):
+    async def from_url(cls, gls_datacenter_service: str,
+                       game_datacenter_name: str):
         """
         Raises:
-            RequestException: Network error
+            HTTPError: Network error
             GLSServiceError: Non-network issue with the GLS service
         """
-        datacenter_dict = cls._get_datacenter_dict(gls_datacenter_service,
-                                                   game_datacenter_name)
+        datacenter_dict = await cls._get_datacenter_dict(gls_datacenter_service,
+                                                         game_datacenter_name)
         try:
             return cls(
                 gls_datacenter_service,
@@ -54,14 +50,14 @@ class GameServicesInfo():
                 "GetDatacenters response missing required value") from e
 
     @classmethod
-    def from_game(cls, game: Game):
+    async def from_game(cls, game: Game):
         """Simplified shortcut for getting `GameServicesInfo` object.
         Will return `None` if any exceptions are raised."""
         try:
-            return cls.from_url(
+            return await cls.from_url(
                 game.gls_datacenter_service,
                 game.datacenter_game_name)
-        except (RequestException, GLSServiceError, AttributeError):
+        except (HTTPError, GLSServiceError, AttributeError):
             return None
 
     @property
@@ -106,13 +102,13 @@ class GameServicesInfo():
                 gls_datacenter_service) for world_dict in world_dicts}
 
     @staticmethod
-    def _get_datacenter_dict(
+    async def _get_datacenter_dict(
             gls_datacenter_service: str,
             game_datacenter_name: str) -> dict:
         """Return dictionary of GetDatacenters SOAP operation response.
 
         Raises:
-            RequestException: Network error
+            HTTPError: Network error
             GLSServiceError: Non-network issue with the GLS service
 
         Returns:
@@ -121,8 +117,8 @@ class GameServicesInfo():
         client = get_soap_client(gls_datacenter_service)
 
         try:
-            return client.service.GetDatacenters(
-                game=game_datacenter_name)[0]
+            return (await client.service.GetDatacenters(
+                game=game_datacenter_name))[0]
         except zeep.exceptions.Error as e:
             raise GLSServiceError(
                 "Error while parsing GetDatacenters response") from e

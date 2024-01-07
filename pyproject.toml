@@ -19,7 +19,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
-PySide6-Essentials = "^6.6.0"
+PySide6-Essentials = "^6.6.1"
 
 # Keyring packages
 keyring = "^24.2.0"
@@ -33,12 +33,14 @@ vkbeautify = "^0.3.0"
 rtoml = "^0.9.0"
 platformdirs = "^3.11.0"
 xmlschema = "^2.5.0"
-requests = "^2.31.0"
 feedparser = "^6.0.10"
 Babel = "^2.12.1"
 zeep = "^4.2.1"
 cachetools = "^5.3.1"
 attrs = "^23.1.0"
+trio = "^0.23.2"
+httpx = "^0.26.0"
+asyncache = {git = "https://github.com/JuneStepp/asyncache.git"}
 
 [tool.poetry.group.dev.dependencies]
 bandit = "^1.7.5"
@@ -47,9 +49,9 @@ autopep8 = "^2.0.4"
 pytest = "^7.4.2"
 isort = "^5.12.0"
 mypy = "^1.6.1"
-types-requests = "^2.31.0"
 types-cachetools = "^5.3.0"
 types-setuptools = "^67.8.0.0"
+trio-typing = {extras = ["mypy"], version = "^0.9.0"}
 
 [tool.poetry.scripts]
 onelauncher = "onelauncher.cli:main"
@@ -64,6 +66,8 @@ aggressive = 3
 [tool.pytest.ini_options]
 addopts = ["--import-mode=importlib"]
 
+[tool.mypy]
+plugins = "trio_typing.plugin"
 
 [[tool.mypy.overrides]]
 module = [

@@ -1,20 +1,13 @@
 import argparse
 import logging
 import sys
-import urllib.error
-import urllib.request
-from json import loads as jsonLoads
 from uuid import UUID
-
-from pkg_resources import parse_version
-from PySide6 import QtCore, QtWidgets
 
 from . import __about__, games_sorted
 from .config.program_config import program_config
 from .game import Game, GameType
 from .qtapp import setup_qtapplication
 from .resources import available_locales
-from .ui_utilities import show_message_box_details_as_markdown
 
 
 def setup_arg_parser() -> argparse.ArgumentParser:
@@ -58,59 +51,6 @@ def setup_arg_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def check_for_update():
-    """Notifies user if their copy of OneLauncher is out of date"""
-    current_version = parse_version(__about__.__version__)
-    repository_url = __about__.__project_url__
-    if "github.com" not in repository_url.lower():
-        logger.warning(
-            "Repository URL set in Information.py is not "
-            "at github.com. The system for update notifications"
-            " only supports this site."
-        )
-        return
-
-    latest_release_template = (
-        "https://api.github.com/repos/{user_and_repo}/releases/latest"
-    )
-    latest_release_url = latest_release_template.format(
-        user_and_repo=repository_url.lower().split("github.com")[
-            1].strip("/")
-    )
-
-    try:
-        with urllib.request.urlopen(latest_release_url, timeout=4) as response:
-            release_dictionary = jsonLoads(response.read())
-    except (urllib.error.URLError, urllib.error.HTTPError) as error:
-        logger.error(error.reason, exc_info=True)
-        return
-
-    release_version = parse_version(release_dictionary["tag_name"])
-
-    if release_version > current_version:
-        url = release_dictionary["html_url"]
-        name = release_dictionary["name"]
-        description = release_dictionary["body"]
-
-        messageBox = QtWidgets.QMessageBox()
-        messageBox.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
-        messageBox.setIcon(QtWidgets.QMessageBox.Icon.Information)
-        messageBox.setStandardButtons(messageBox.StandardButton.Ok)
-
-        centered_href = (
-            f'<html><head/><body><p align="center"><a href="{url}">'
-            f'<span>{name}</span></a></p></body></html>'
-        )
-        messageBox.setInformativeText(
-            f"There is a new version of {__about__.__title__} available! {centered_href}"
-        )
-        messageBox.setDetailedText(description)
-        show_message_box_details_as_markdown(messageBox)
-        messageBox.exec()
-    else:
-        logger.info(f"{__about__.__title__} is up to date.")
-
-
 def handle_program_start_setup_wizard():
     """Run setup wizard if there are no settings"""
     # If game settings haven't been generated
@@ -150,7 +90,6 @@ def main() -> None:
     if args.language:
         game.locale = available_locales[args.language]
 
-    check_for_update()
     start_main_window(game)
     sys.exit(qapp.exec())
 
