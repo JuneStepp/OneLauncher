@@ -13,34 +13,28 @@ An enhanced launcher for both [LOTRO](https://www.lotro.com/) and [DDO](https://
 
 ***Version 2.0 is on the way with many many changes. The current version is stable and has all major features, though.***
 
-## Features Overview
+## Features
 
 - Plugins, skins, and music manager
 - Multiple accounts support
 - Password saving
 - External scripting support for add-ons
-- Auto optimum WINE setup for Mac and Linux
-- Easy game detection
-- Game patching and launching
+- Auto WINE setup for Linux
 - Multiple clients support
 - *more*
 
-## Basic Usage
+## Installation
 
-Simply download the executable for your operating system from [the releases page](https://Github.com/JuneStepp/OneLauncher/releases) and install it.
-If on Linux or Mac make sure WINE is installed, so all dependencies for the version OneLauncher
-installs are met.
+The easiest way to get OneLauncher is with a pre-built installer. Linux users should make sure a recent version of Wine is installed.
 
-## Advanced Usage
+- [**Installers**](https://Github.com/JuneStepp/OneLauncher/releases/latest)
+- [Wine instructions](https://github.com/lutris/docs/blob/master/WineDependencies.md#distribution-specific-instructions)
+- [Running from source code](#development-install)
 
-### Launch Arguments
+## Launch Arguments
 
 - `--game`: Specifies starting game or game type. Accepted values are `LOTRO`, `DDO`, or the UUID of a game. You can find the UUID of a game by showing advanced options in the settings window.
 - `--language`: Specifies game client language. Accepted values are IETF language tags such as `de`, `en-US`, or `fr`.
-
-### Separate Settings Folders for Default and Preview Game Versions
-
-OneLauncher supports custom game settings folders through the `ddo.launcherconfig` and `lotro.launcherconfig` files located in their respective game install folders. Changing the value for `Product.DocumentFolder` will register the new folder with both OneLauncher and the game. Setting different directory names for the normal and preview versions of games allows for completely separate in-game settings and add-ons between them.
 
 ## Development Install
 
@@ -54,8 +48,7 @@ OneLauncher uses [Poetry](https://python-poetry.org) for dependency management. 
 
 The build ends up in `start_onelauncher.dist`.
 
-Nuitka can't currently cross-compile, but the InstallBuilder installers can be
-cross-compiled.
+Nuitka can't currently cross-compile, but the InstallBuilder installers can be cross-compiled.
 
 `poetry run python compile.py`
 
@@ -155,11 +148,11 @@ Collections of add-ons can be made by listing the add-ons you would like in the 
 
 ### Dependencies
 
-Dependencies will be installed automatically after your add-on. See the [Compendium Files](#Compendium-Files) section for how to add dependencies to your add-on. Turbine Utilities uses ID `0`.
+Dependencies will be installed automatically after your add-on. See the [Compendium Files](#compendium-files) section for how to add dependencies to your add-on. Turbine Utilities uses ID `0`.
 
 ### Startup Scripts
 
-Startup scripts are Python scripts that will be run before every game launch. When installing an add-on with a startup script, the user will be prompted for permission for the script to run and shown the contents of the script. It is likely that users will not give permission for your script to run, so make sure to program in a message for that situation. See the [Compendium Files](#Compendium-Files) section for how to add a startup script to your add-on.
+Startup scripts are Python scripts that will be run before every game launch. When installing an add-on with a startup script, the user will be prompted for permission for the script to run and shown the contents of the script. It is likely that users will not give permission for your script to run, so make sure to program in a message for that situation. See the [Compendium Files](#compendium-files) section for how to add a startup script to your add-on.
 
 #### Builtin Variables
 
