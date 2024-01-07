@@ -10,7 +10,7 @@
 # (C) 2007-2008 AJackson <ajackson@bcs.org.uk>
 #
 #
-# (C) 2019-2023 June Stepp <contact@JuneStepp.me>
+# (C) 2019-2024 June Stepp <contact@JuneStepp.me>
 #
 # This file is part of OneLauncher
 #

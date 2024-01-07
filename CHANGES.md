@@ -1,7 +1,7 @@
 Lord of the Rings Online and Dungeons & Dragons Online
 Launcher for Linux, Windows, and Mac OS X
 
-(C) 2019-2023 June Stepp
+(C) 2019-2024 June Stepp
 
 # Changes
 
