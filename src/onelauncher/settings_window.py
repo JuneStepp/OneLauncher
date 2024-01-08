@@ -55,15 +55,18 @@ class SettingsWindow(QtWidgets.QDialog):
     def __init__(
             self,
             game: Game):
+        assert QtCore.QCoreApplication.instance()
         super(
             SettingsWindow,
             self).__init__(
             QtCore.QCoreApplication.instance().activeWindow(),
             QtCore.Qt.WindowType.FramelessWindowHint)
         self.game = game
-
         self.ui = Ui_dlgSettings()
         self.ui.setupUi(self)
+
+    async def setup_ui(self):
+        self.finished.connect(self.cleanup)
 
         self.ui.showAdvancedSettingsCheckbox.toggled.connect(
             self.toggle_advanced_settings)
@@ -78,7 +81,6 @@ class SettingsWindow(QtWidgets.QDialog):
         self.ui.gameUUIDLineEdit.setText(str(self.game.uuid))
         self.ui.gameDescriptionLineEdit.setText(
             self.game.description)
-        trio.run(self.setup_newsfeed_option)
         self.ui.gameDirLineEdit.setText(
             str(self.game.game_directory))
         self.ui.browseGameConfigDirButton.clicked.connect(
@@ -104,15 +106,16 @@ class SettingsWindow(QtWidgets.QDialog):
                 self.ui.tabWidget.indexOf(
                     self.ui.winePage), False)
 
-        trio.run(self.setup_client_type_combo_box)
+        await self.setup_client_type_combo_box()
         self.ui.standardLauncherLineEdit.setText(
             self.game.standard_game_launcher_filename or "")
         self.ui.patchClientLineEdit.setText(
             self.game.patch_client_filename)
         self.ui.standardGameLauncherButton.clicked.connect(
-            self.run_standard_game_launcher)
+            lambda: self.nursery.start_soon(self.run_standard_game_launcher))
         self.ui.actionRunStandardGameLauncherWithPatchingDisabled.triggered.connect(
-            lambda: self.run_standard_game_launcher(disable_patching=True))
+            lambda: self.nursery.start_soon(
+                self.run_standard_game_launcher, True))
         self.ui.standardGameLauncherButton.addAction(
             self.ui.actionRunStandardGameLauncherWithPatchingDisabled)
 
@@ -146,6 +149,22 @@ class SettingsWindow(QtWidgets.QDialog):
         self.ui.showAdvancedSettingsCheckbox.clicked.connect(
             self.toggle_advanced_settings)
         self.ui.settingsButtonBox.accepted.connect(self.save_config)
+
+        self.open()
+
+    async def run(self):
+        async with trio.open_nursery() as self.nursery:
+            self.nursery.start_soon(self.setup_ui)
+            self.nursery.start_soon(self.setup_newsfeed_option)
+            # Will be canceled when the winddow is closed
+            self.nursery.start_soon(trio.sleep_forever)
+
+    def cleanup(self):
+        self.nursery.cancel_scope.cancel()
+
+    def closeEvent(self, event):
+        self.cleanup()
+        event.accept()
 
     async def setup_newsfeed_option(self):
         # Attempt to set placeholder text to default newsfeed URL
@@ -208,8 +227,8 @@ class SettingsWindow(QtWidgets.QDialog):
             self.ui.clientTypeComboBox.findData(
                 self.game.client_type))
 
-    def run_standard_game_launcher(self, disable_patching=False):
-        launcher_path = trio.run(get_standard_game_launcher_path, self.game)
+    async def run_standard_game_launcher(self, disable_patching=False):
+        launcher_path = await get_standard_game_launcher_path(self.game)
 
         if launcher_path is None:
             show_warning_message("No valid launcher executable found", self)

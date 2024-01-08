@@ -40,6 +40,8 @@ from .resources import get_resource
 def setup_qtapplication() -> QtWidgets.QApplication:
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
     application = QtWidgets.QApplication(sys.argv)
+    # Will be quit after Trio event loop finishes
+    application.setQuitOnLastWindowClosed(False)
     application.setApplicationName(__title__)
     application.setApplicationDisplayName(__title__)
     application.setApplicationVersion(__version__)

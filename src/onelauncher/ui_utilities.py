@@ -1,7 +1,8 @@
-from PySide6 import QtWidgets, QtCore
+import logging
+
 import outcome
-import traceback
 import trio
+from PySide6 import QtCore, QtWidgets
 
 
 def show_warning_message(message: str, parent: QtWidgets.QWidget):
@@ -51,34 +52,35 @@ class AsyncHelper(QtCore.QObject):
             super().__init__(QtCore.QEvent.Type(QtCore.QEvent.Type.User + 1))
             self.fn = fn
 
-    def __init__(self, worker, entry):
+    def __init__(self, entry):
         super().__init__()
         self.reenter_qt = self.ReenterQtObject()
         self.entry = entry
 
-        self.worker = worker
-        if hasattr(self.worker, "start_signal") and isinstance(self.worker.start_signal, Signal):
-            self.worker.start_signal.connect(self.launch_guest_run)
-
     @QtCore.Slot()
     def launch_guest_run(self):
-        """ To use Trio and Qt together, one must run the Trio event
-            loop as a "guest" inside the Qt "host" event loop. """
+        """
+        To use Trio and Qt together, one must run the Trio event
+        loop as a "guest" inside the Qt "host" event loop.
+        """
         if not self.entry:
             raise Exception("No entry point for the Trio guest run was set.")
         trio.lowlevel.start_guest_run(
             self.entry,
             run_sync_soon_threadsafe=self.next_guest_run_schedule,
             done_callback=self.trio_done_callback,
+            strict_exception_groups=True
         )
 
     def next_guest_run_schedule(self, fn):
-        """ This function serves to re-schedule the guest (Trio) event
-            loop inside the host (Qt) event loop. It is called by Trio
-            at the end of an event loop run in order to relinquish back
-            to Qt's event loop. By posting an event on the Qt event loop
-            that contains Trio's next entry point, it ensures that Trio's
-            event loop will be scheduled again by Qt. """
+        """
+        This function serves to re-schedule the guest (Trio) event
+        loop inside the host (Qt) event loop. It is called by Trio
+        at the end of an event loop run in order to relinquish back
+        to Qt's event loop. By posting an event on the Qt event loop
+        that contains Trio's next entry point, it ensures that Trio's
+        event loop will be scheduled again by Qt.
+        """
         QtWidgets.QApplication.postEvent(self.reenter_qt, self.ReenterQtEvent(fn))
 
     def trio_done_callback(self, outcome_):
@@ -86,4 +88,10 @@ class AsyncHelper(QtCore.QObject):
             finished. """
         if isinstance(outcome_, outcome.Error):
             error = outcome_.error
-            traceback.print_exception(type(error), error, error.__traceback__)
+            logger.error("Trio Event loop error", exc_info=error)
+
+        if qapp := QtCore.QCoreApplication.instance():
+            qapp.exit()
+
+
+logger = logging.getLogger("main")

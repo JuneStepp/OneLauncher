@@ -64,7 +64,7 @@ from .ui.main_uic import Ui_winMain
 from .ui.select_subscription_uic import Ui_dlgSelectSubscription
 from .ui.start_game_window import StartGame
 from .ui_resources import icon_font
-from .ui_utilities import AsyncHelper, show_message_box_details_as_markdown
+from .ui_utilities import show_message_box_details_as_markdown
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -75,9 +75,11 @@ class MainWindow(QtWidgets.QMainWindow):
             None,
             QtCore.Qt.WindowType.FramelessWindowHint)
         self.game: Game = game
+        self.checked_for_program_update = False
 
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose, on=True)
 
+    def init_ui(self):
         self.ui = Ui_winMain()
         self.ui.setupUi(self)
 
@@ -90,7 +92,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setupBtnOptions()
         self.setupBtnAddonManager()
         self.setupBtnLoginMenu()
-        self.ui.btnSwitchGame.clicked.connect(self.btnSwitchGameClicked)
+        self.ui.btnSwitchGame.clicked.connect(
+            lambda: self.nursery.start_soon(self.btnSwitchGameClicked))
 
         self.ui.cboAccount.lineEdit().setClearButtonEnabled(True)
         # Accounts combo box item selection signal
@@ -99,16 +102,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.cboAccount.lineEdit().textEdited.connect(self.user_edited_account_name)
 
         # Pressing enter in password box acts like pressing login button
-        self.ui.txtPassword.returnPressed.connect(self.btnLoginClicked)
+        self.ui.txtPassword.returnPressed.connect(
+            lambda: self.nursery.start_soon(self.btnLoginClicked))
 
         self.setupMousePropagation()
 
-        self.checked_for_program_update = False
-        self.async_setup_helper = AsyncHelper(self, self.async_initial_setup)
-        self.InitialSetup()
-
-    def run(self):
-        self.show()
+    async def run(self):
+        async with trio.open_nursery() as self.nursery:
+            self.init_ui()
+            self.show()
+            await self.InitialSetup()
+            # Will be canceled when the winddow is closed
+            self.nursery.start_soon(trio.sleep_forever)
 
     def resetFocus(self):
         if self.ui.cboAccount.currentText() == "":
@@ -139,6 +144,10 @@ class MainWindow(QtWidgets.QMainWindow):
         for widget in mouse_ignore_list:
             widget.setAttribute(QtCore.Qt.WA_NoMousePropagation)
 
+    def closeEvent(self, event):
+        self.nursery.cancel_scope.cancel()
+        event.accept()
+
     def setupBtnExit(self):
         self.ui.btnExit.clicked.connect(self.close)
 
@@ -158,7 +167,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btnAbout.setText("\uf05a")
 
     def setupBtnOptions(self):
-        self.ui.btnOptions.clicked.connect(self.btnOptionsSelected)
+        self.ui.btnOptions.clicked.connect(
+            lambda: self.nursery.start_soon(self.btnOptionsSelected))
 
         self.ui.btnOptions.setFont(icon_font)
         self.ui.btnOptions.setText("\uf013")
@@ -172,7 +182,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def setupBtnLoginMenu(self):
         """Sets up signals and context menu for btnLoginMenu"""
-        self.ui.btnLogin.clicked.connect(self.btnLoginClicked)
+        self.ui.btnLogin.clicked.connect(
+            lambda: self.nursery.start_soon(self.btnLoginClicked))
 
         # Setup context menu
         self.ui.btnLoginMenu = QtWidgets.QMenu()
@@ -206,7 +217,9 @@ class MainWindow(QtWidgets.QMainWindow):
         games.remove(self.game)
 
         menu = QtWidgets.QMenu()
-        menu.triggered.connect(self.game_switch_action_triggered)
+        menu.triggered.connect(
+            lambda action: self.nursery.start_soon(
+                self.game_switch_action_triggered, action))
         for game in games:
             action = QtGui.QAction(game.name, self)
             action.setData(game)
@@ -238,10 +251,11 @@ class MainWindow(QtWidgets.QMainWindow):
         winPatch.Run()
         self.resetFocus()
 
-    def btnOptionsSelected(self):
+    async def btnOptionsSelected(self):
         winSettings = SettingsWindow(self.game)
-        winSettings.accepted.connect(self.InitialSetup)
-        winSettings.open()
+        await winSettings.run()
+        if winSettings.result() == QtWidgets.QDialog.DialogCode.Accepted:
+            await self.InitialSetup()
 
     def btnAddonManagerSelected(self):
         winAddonManager = AddonManagerWindow(self.game)
@@ -250,20 +264,20 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.resetFocus()
 
-    def btnSwitchGameClicked(self):
+    async def btnSwitchGameClicked(self):
         new_game_type = (
             GameType.LOTRO if
             self.game.game_type == GameType.DDO
             else GameType.DDO)
         self.game = games_sorted.get_sorted_games_list(
             program_config.games_sorting_mode, new_game_type)[0]
-        self.InitialSetup()
+        await self.InitialSetup()
 
-    def game_switch_action_triggered(self, action: QtGui.QAction):
+    async def game_switch_action_triggered(self, action: QtGui.QAction):
         self.game = action.data()
-        self.InitialSetup()
+        await self.InitialSetup()
 
-    def btnLoginClicked(self):
+    async def btnLoginClicked(self):
         if (
             self.ui.cboAccount.currentText() == ""
             or (self.ui.txtPassword.text() == "" and
@@ -274,7 +288,7 @@ class MainWindow(QtWidgets.QMainWindow):
             )
             return
 
-        self.AuthAccount()
+        await self.AuthAccount()
 
     def save_settings(self):
         program_config.save_accounts = self.ui.chkSaveSettings.isChecked()
@@ -384,7 +398,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.AddLog("No sub-account selected - aborting")
             return None
 
-    def AuthAccount(self) -> None:
+    async def AuthAccount(self) -> None:
         self.AddLog("Checking account details...")
 
         # Force a small display to ensure message above is displayed
@@ -403,12 +417,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.ui.cboAccount.currentIndex(), current_account)
 
         try:
-            self.login_response = trio.run(
-                login_account.login_account,
+            self.login_response = await login_account.login_account(
                 self.game_services_info.auth_server,
                 current_account.username,
-                self.ui.txtPassword.text() or current_account.password or "",
-            )
+                self.ui.txtPassword.text() or current_account.password or "")
         except login_account.WrongUsernameOrPasswordError:
             self.AddLog("Username or password is incorrect", True)
             return
@@ -466,7 +478,7 @@ class MainWindow(QtWidgets.QMainWindow):
         selected_world: World = self.ui.cboWorld.currentData()
 
         try:
-            selected_world_status = trio.run(selected_world.get_status)
+            selected_world_status = await selected_world.get_status()
         except httpx.HTTPError:
             logger.exception(
                 "Network error while downloading world status xml")
@@ -491,12 +503,12 @@ class MainWindow(QtWidgets.QMainWindow):
             return
 
         if selected_world_status.queue_url == "":
-            self.start_game(account_number)
+            await self.start_game(account_number)
         else:
-            self.EnterWorldQueue(
+            await self.EnterWorldQueue(
                 selected_world_status.queue_url, account_number)
 
-    def start_game(self, account_number: str):
+    async def start_game(self, account_number: str):
         world: World = self.ui.cboWorld.currentData()
         game = StartGame(
             self.game,
@@ -505,9 +517,9 @@ class MainWindow(QtWidgets.QMainWindow):
             account_number,
             self.login_response.session_ticket,
         )
-        game.start_game()
+        await game.start_game()
 
-    def EnterWorldQueue(self, queueURL, account_number):
+    async def EnterWorldQueue(self, queueURL, account_number):
         world_login_queue = WorldLoginQueue(
             self.game_launcher_config.login_queue_url,
             self.game_launcher_config.login_queue_params_template,
@@ -516,7 +528,7 @@ class MainWindow(QtWidgets.QMainWindow):
             queueURL)
         while True:
             try:
-                world_queue_result = trio.run(world_login_queue.join_queue)
+                world_queue_result = await world_login_queue.join_queue()
             except httpx.HTTPError:
                 self.AddLog(
                     "Network error while joining world queue",
@@ -536,7 +548,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 world_queue_result.now_serving_number
             self.AddLog(f"Position in queue: {people_ahead_in_queue}")
 
-        self.start_game(account_number)
+        await self.start_game(account_number)
 
     def set_banner_image(self):
         ui_locale = program_config.get_ui_locale(self.game)
@@ -594,7 +606,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         return True
 
-    def InitialSetup(self):
+    async def InitialSetup(self):
         self.ui.cboAccount.setEnabled(False)
         self.ui.cboAccount.setFocus()
         self.ui.txtPassword.setEnabled(False)
@@ -625,7 +637,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.game not in games_sorted.get_games_sorted_by_priority():
             self.game = games_sorted.get_sorted_games_list(
                 program_config.games_sorting_mode)[0]
-            self.InitialSetup()
+            await self.InitialSetup()
             return
 
         self.loadAllSavedAccounts()
@@ -643,15 +655,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.resetFocus()
 
-        QtCore.QTimer.singleShot(0, self.async_setup_helper.launch_guest_run)
-
-    async def async_initial_setup(self):
         async with trio.open_nursery() as nursery:
-            nursery.start_soon(self.get_game_services_info, self.game)
+            nursery.start_soon(self.game_initial_network_setup)
 
             if not self.checked_for_program_update:
                 nursery.start_soon(check_for_update)
-        self.checked_for_program_update = True
+        self.checked_for_program_update = True      
+
+    async def game_initial_network_setup(self):
+        await self.get_game_services_info(self.game)
         if not self.game_services_info:
             return
         self.load_worlds_list(self.game_services_info)

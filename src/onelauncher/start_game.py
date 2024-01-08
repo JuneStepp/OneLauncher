@@ -15,7 +15,7 @@ class MissingLaunchArgumentError(Exception):
     """Launch argument missing."""
 
 
-def get_launch_args(
+async def get_launch_args(
         game_launcher_config: GameLauncherConfig,
         game: Game,
         world: World,
@@ -29,7 +29,7 @@ def get_launch_args(
     """
     launch_args_template_mapping = {
         "{SUBSCRIPTION}": account_number,
-        "{LOGIN}": trio.run(world.get_status).login_server,
+        "{LOGIN}": (await world.get_status()).login_server,
         "{GLS}": ticket,
         "{CHAT}": world.chat_server_url,
         "{LANG}": game.locale.game_language_name,
@@ -67,7 +67,7 @@ def get_launch_args(
     return launch_args
 
 
-def get_qprocess(
+async def get_qprocess(
         game_launcher_config: GameLauncherConfig,
         game: Game,
         world: World,
@@ -86,7 +86,7 @@ def get_qprocess(
     else:
         client_relative_path = Path(client_filename)
 
-    launch_args = get_launch_args(
+    launch_args = await get_launch_args(
         game_launcher_config,
         game,
         world,

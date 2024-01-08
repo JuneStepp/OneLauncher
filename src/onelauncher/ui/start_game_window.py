@@ -26,12 +26,13 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-from datetime import datetime
 import logging
+from datetime import datetime
 from typing import Optional
 
 from PySide6 import QtCore, QtWidgets
 
+from ..cli import app_cancel_scope
 from ..config import platform_dirs
 from ..config.games.addons import get_addons_manager_from_game
 from ..config.games.game import save_game
@@ -39,8 +40,8 @@ from ..game import Game
 from ..network.game_launcher_config import GameLauncherConfig
 from ..network.world import World
 from ..start_game import MissingLaunchArgumentError, get_qprocess
-from .start_game_uic import Ui_startGameDialog
 from ..utilities import QByteArray2str
+from .start_game_uic import Ui_startGameDialog
 
 
 class StartGame(QtWidgets.QDialog):
@@ -81,10 +82,10 @@ class StartGame(QtWidgets.QDialog):
 
         self.show()
 
-    def get_qprocess(self) -> Optional[QtCore.QProcess]:
+    async def get_qprocess(self) -> Optional[QtCore.QProcess]:
         """Return setup qprocess with connected signals"""
         try:
-            process = get_qprocess(
+            process = await get_qprocess(
                 self.game_launcher_config,
                 self.game,
                 self.world,
@@ -133,7 +134,9 @@ class StartGame(QtWidgets.QDialog):
 
     def btnStopClicked(self):
         if self.finished:
-            QtCore.QCoreApplication.instance().quit()
+            self.close()
+            # Close entire application
+            app_cancel_scope.cancel()
         else:
             self.aborted = True
             self.process.kill()
@@ -164,11 +167,11 @@ class StartGame(QtWidgets.QDialog):
                 self.ui.txtLog.append(
                     f"'{script.relative_path}' ran into syntax error: {e}")
 
-    def start_game(self):
+    async def start_game(self):
         self.game.last_played = datetime.now()
         save_game(self.game)
 
-        self.process = self.get_qprocess()
+        self.process = await self.get_qprocess()
         if self.process is None:
             return
 
