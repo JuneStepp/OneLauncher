@@ -741,7 +741,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     newsfeed_url,
                     ui_locale.babel_locale))
         except httpx.HTTPError:
-            self.ReturnLog(
+            self.AddLog(
                 "Network error while downloading newsfeed", True)
             logger.exception("Network error while downloading newsfeed.")
 
