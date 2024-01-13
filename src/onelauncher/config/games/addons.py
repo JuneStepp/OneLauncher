@@ -27,6 +27,8 @@ def get_config_from_addons_manager(
         config["enabled_startup_scripts"] = [
             str(startup_script.relative_path)
             for startup_script in addons_manager.enabled_startup_scripts]
+    else:
+        config["enabled_startup_scripts"] = None
 
     return config
 

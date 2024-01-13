@@ -11,15 +11,13 @@ CONFIG_SECTION_NAME: Final = "wine"
 def get_config_from_wine_environment(
         wine_env: WineEnvironment) -> Dict[str, Any]:
     config_dict: Dict[str, Any] = {
-        "builtin_prefix_enabled": wine_env.builtin_prefix_enabled}
-    if wine_env.user_wine_executable_path:
-        config_dict["user_wine_executable_path"] = str(
-            wine_env.user_wine_executable_path)
-    if wine_env.user_prefix_path:
-        config_dict["user_prefix_path"] = str(wine_env.user_prefix_path)
-    if wine_env.debug_level:
-        config_dict["debug_level"] = wine_env.debug_level
-
+        "builtin_prefix_enabled": wine_env.builtin_prefix_enabled,
+        "user_wine_executable_path": str(wine_env.user_wine_executable_path)
+        if wine_env.user_wine_executable_path else None,
+        "user_prefix_path": str(wine_env.user_prefix_path)
+        if wine_env.user_prefix_path else None,
+        "debug_level": wine_env.debug_level
+    }
     return config_dict
 
 

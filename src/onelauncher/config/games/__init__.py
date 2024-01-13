@@ -146,7 +146,13 @@ class GamesConfig():
         # be saved. This is done one by one, to not interfere with
         # sections within the existing config.
         for key, val in new_game_config.items():
-            existing_config[key] = val
+            if val is not None:
+                existing_config[key] = val
+                continue
+
+            # TOML doesn't support null values. They should just be left out.
+            if key in existing_config:
+                del existing_config[key]
 
         self._save_full_game_config(game_uuid, existing_config)
 
