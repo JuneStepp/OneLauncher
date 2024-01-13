@@ -165,6 +165,9 @@ class GamesConfig():
         Raises: InvalidGameUUIDError: No game config exists for game_uuid
         """
         game_config = self._get_full_game_config(game_uuid)
+        # TOML doesn't support null values. They should just be left out.
+        config_section = {key: val for key, val in config_section.items()
+                          if val is not None}
         game_config[config_section_name] = config_section
 
         # Don't save empty config section
