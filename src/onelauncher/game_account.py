@@ -1,27 +1,18 @@
 import contextlib
-from typing import Final
 from uuid import UUID
+import attrs
 
 import keyring
 
 from .__about__ import __title__
 
 
+@attrs.define
 class GameAccount():
-    def __init__(self,
-                 username: str,
-                 game_uuid: UUID,
-                 last_used_world_name: str,
-                 display_name: str | None = None) -> None:
-        self._username: Final = username
-        self.display_name = display_name or username
-        self.game_uuid = game_uuid
-        self.last_used_world_name = last_used_world_name
-
-    @property
-    def username(self) -> str:
-        """Account name. This is immutable."""
-        return self._username
+    game_uuid: UUID
+    username: str = attrs.field(on_setattr=attrs.setters.frozen)
+    display_name: str | None
+    last_used_world_name: str
 
     @property
     def _account_keyring_username(self) -> str:

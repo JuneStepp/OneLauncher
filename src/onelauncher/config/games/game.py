@@ -34,7 +34,7 @@ def get_config_from_game(game: Game) -> dict[str, Any]:
             account_dict = {
                 "account_name": account.username,
                 "last_used_world_name": account.last_used_world_name}
-            if account.display_name != account.username:
+            if account.display_name is not None:
                 account_dict["display_name"] = account.display_name
             account_dicts.append(account_dict)
         game_dict["accounts"] = account_dicts
@@ -78,10 +78,11 @@ def get_game_from_config(game_config: dict[str, Any],) -> Game:
                 game_config.get("standard_game_launcher_filename"),
                 {
                     account["account_name"]: GameAccount(
-                        account["account_name"],
-                        uuid,
-                        account["last_used_world_name"],
-                        display_name=account.get("display_name"))
+                        game_uuid=uuid,
+                        username=account["account_name"],
+                        display_name=account.get("display_name"),
+                        last_used_world_name=account["last_used_world_name"],
+                        )
                     for account in game_config["accounts"]},
                 )
 

@@ -337,7 +337,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # Accounts are read backwards, so they
         # are in order of most recentally played
         for account in accounts[::-1]:
-            self.ui.cboAccount.addItem(account.display_name, userData=account)
+            self.ui.cboAccount.addItem(
+                account.display_name or account.username, userData=account)
         self.ui.cboAccount.setCurrentIndex(0)
 
     def get_current_game_account(self) -> GameAccount | None:
@@ -410,9 +411,10 @@ class MainWindow(QtWidgets.QMainWindow):
         current_world: World = self.ui.cboWorld.currentData()
         if current_account is None:
             current_account = GameAccount(
-                self.ui.cboAccount.currentText(),
-                self.game.uuid,
-                current_world.name)
+                game_uuid=self.game.uuid,
+                username=self.ui.cboAccount.currentText(),
+                display_name=None,
+                last_used_world_name=current_world.name)
             self.ui.cboAccount.setItemData(
                 self.ui.cboAccount.currentIndex(), current_account)
 
@@ -660,7 +662,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             if not self.checked_for_program_update:
                 nursery.start_soon(check_for_update)
-        self.checked_for_program_update = True      
+        self.checked_for_program_update = True
 
     async def game_initial_network_setup(self):
         await self.get_game_services_info(self.game)
@@ -738,8 +740,8 @@ class MainWindow(QtWidgets.QMainWindow):
                             ui_locale))
         try:
             self.ui.txtFeed.setHtml(await newsfeed_url_to_html(
-                    newsfeed_url,
-                    ui_locale.babel_locale))
+                newsfeed_url,
+                ui_locale.babel_locale))
         except httpx.HTTPError:
             self.AddLog(
                 "Network error while downloading newsfeed", True)
