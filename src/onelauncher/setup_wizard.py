@@ -268,9 +268,8 @@ class SetupWizard(QtWidgets.QWizard):
         return [items_dict[key] for key in sorted(items_dict)]
 
     def delete_game_config(self, game: Game) -> None:
-        if game.accounts:
-            for account in game.accounts.values():
-                account.delete_account_keyring_info()
+        for account in game.accounts:
+            account.delete_account_keyring_info()
 
         rmtree(games_config.get_game_config_dir(game.uuid))
 

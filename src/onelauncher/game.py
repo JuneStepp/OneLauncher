@@ -1,14 +1,16 @@
-from .official_clients import is_official_game_server, is_gls_url_for_preview_client
-from .utilities import CaseInsensitiveAbsolutePath
-from .resources import OneLauncherLocale
-from .game_account import GameAccount
 from datetime import datetime
 from enum import StrEnum
-from typing import Dict, Optional
 from uuid import UUID
 
+import attrs
+
 from .config import platform_dirs
+from .game_account import GameAccount
 from .game_launcher_local_config import GameLauncherLocalConfig
+from .official_clients import (is_gls_url_for_preview_client,
+                               is_official_game_server)
+from .resources import OneLauncherLocale
+from .utilities import CaseInsensitiveAbsolutePath
 
 
 class ClientType(StrEnum):
@@ -23,38 +25,23 @@ class GameType(StrEnum):
     DDO = "DDO"
 
 
+@attrs.define(eq=False)
 class Game():
-    def __init__(self,
-                 uuid: UUID,
-                 sorting_priority: int,
-                 game_type: GameType,
-                 game_directory: CaseInsensitiveAbsolutePath,
-                 locale: OneLauncherLocale,
-                 client_type: ClientType,
-                 high_res_enabled: bool,
-                 patch_client_filename: str,
-                 name: str,
-                 description: str,
-                 newsfeed: Optional[str] = None,
-                 last_played: datetime | None = None,
-                 standard_game_launcher_filename: Optional[str] = None,
-                 accounts: Optional[Dict[str, GameAccount]] = None,
-                 ) -> None:
-        self.uuid = uuid
-        self.sorting_priority = sorting_priority
-        self.game_type = game_type
-        self.game_directory = game_directory
-        self.locale = locale
-        self.client_type = client_type
-        self.high_res_enabled = high_res_enabled
-        self.patch_client_filename = patch_client_filename
-        self.name = name
-        self.description = description
-        self.newsfeed = newsfeed
-        self.last_played = last_played
-        self.standard_game_launcher_filename = standard_game_launcher_filename
-        self.accounts = accounts
-        self.launcher_local_config: GameLauncherLocalConfig
+    uuid: UUID
+    sorting_priority: int
+    game_type: GameType
+    game_directory: CaseInsensitiveAbsolutePath
+    locale: OneLauncherLocale
+    client_type: ClientType
+    high_res_enabled: bool
+    patch_client_filename: str
+    name: str
+    description: str
+    accounts: list[GameAccount]
+    newsfeed: str | None = None
+    last_played: datetime | None = None
+    standard_game_launcher_filename: str | None = None
+    launcher_local_config: GameLauncherLocalConfig = attrs.field(init=False)
 
     @property
     def gls_datacenter_service(self) -> str:

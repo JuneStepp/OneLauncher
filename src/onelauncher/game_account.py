@@ -30,7 +30,7 @@ class GameAccount():
         )
 
     @password.setter
-    def password(self, password: str):
+    def password(self, password: str) -> None:
         keyring.set_password(
             __title__,
             self._account_keyring_username,
@@ -50,7 +50,10 @@ class GameAccount():
 
     @property
     def last_used_subscription_name(self) -> str | None:
-        """Name of the subscription that was last played. See `login_account.py`"""
+        """
+        Name of the subscription that was last played.
+        See `login_account.py`
+        """
         return keyring.get_password(
             __title__,
             self._last_used_subscription_keyring_username,
@@ -72,6 +75,8 @@ class GameAccount():
             )
 
     def delete_account_keyring_info(self) -> None:
-        """Delete all information for account saved with keyring. ex. password"""
+        """
+        Delete all information for account saved with keyring. ex. password
+        """
         self.delete_password()
         self.delete_last_used_subscription_name()

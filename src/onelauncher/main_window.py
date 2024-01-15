@@ -325,24 +325,20 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.cboAccount.clear()
         self.ui.cboAccount.setCurrentText("")
 
-        if (program_config.save_accounts is False or
-                self.game.accounts is None):
-            self.game.accounts = None
-            return
-
-        accounts = list(self.game.accounts.values())
-        if not accounts:
+        if program_config.save_accounts is False or not self.game.accounts:
+            self.game.accounts = []
             return
 
         # Accounts are read backwards, so they
         # are in order of most recentally played
-        for account in accounts[::-1]:
+        for account in self.game.accounts[::-1]:
             self.ui.cboAccount.addItem(
                 account.display_name or account.username, userData=account)
         self.ui.cboAccount.setCurrentIndex(0)
 
     def get_current_game_account(self) -> GameAccount | None:
-        if type(self.ui.cboAccount.currentData()) == GameAccount:
+        current_data = self.ui.cboAccount.currentData()
+        if type(current_data) is GameAccount:
             return self.ui.cboAccount.currentData()
         else:
             return None
@@ -443,15 +439,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.AddLog("Account authenticated")
 
         if self.ui.chkSaveSettings.isChecked():
-            if self.game.accounts is None:
-                self.game.accounts = {}
-
             # Account is deleted first, because accounts are in order of
             # the most recently played at the end.
-            with contextlib.suppress(KeyError):
-                del self.game.accounts[current_account.username]
+            with contextlib.suppress(ValueError):
+                self.game.accounts.remove(current_account)
 
-            self.game.accounts[current_account.username] = current_account
+            self.game.accounts.append(current_account)
 
             current_account.last_used_world_name = current_world.name
 

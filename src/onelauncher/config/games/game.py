@@ -30,7 +30,7 @@ def get_config_from_game(game: Game) -> dict[str, Any]:
     }
     if game.accounts:
         account_dicts = []
-        for account in game.accounts.values():
+        for account in game.accounts:
             account_dict = {
                 "account_name": account.username,
                 "last_used_world_name": account.last_used_world_name}
@@ -73,17 +73,17 @@ def get_game_from_config(game_config: dict[str, Any],) -> Game:
                                 generate_default_game_name(game_directory,
                                                            uuid)),
                 game_config.get("description", ""),
-                game_config.get("newsfeed"),
-                game_config.get("last_played"),
-                game_config.get("standard_game_launcher_filename"),
-                {
-                    account["account_name"]: GameAccount(
+                [
+                    GameAccount(
                         game_uuid=uuid,
                         username=account["account_name"],
                         display_name=account.get("display_name"),
                         last_used_world_name=account["last_used_world_name"],
-                        )
-                    for account in game_config["accounts"]},
+                    )
+                    for account in game_config["accounts"]],
+                game_config.get("newsfeed"),
+                game_config.get("last_played"),
+                game_config.get("standard_game_launcher_filename"),
                 )
 
 
