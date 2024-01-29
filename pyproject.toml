@@ -1,10 +1,10 @@
 [tool.poetry]
 name = "OneLauncher"
-version = "1.2.6"
-description = "The OneLauncher for LOTRO and DDO"
+version = "2.0.dev"
+description = "The OneLauncher to rule them all."
+readme = "README.md"
 authors = ["June Stepp <contact@junestepp.me>"]
 license = "GPL-3.0-or-later"
-readme = "README.md"
 repository = "https://github.com/JuneStepp/OneLauncher"
 packages = [{ include = "onelauncher", from = "src" }]
 keywords = ["LOTRO", "DDO", "launcher", "addon-manager", "custom-launcher"]
