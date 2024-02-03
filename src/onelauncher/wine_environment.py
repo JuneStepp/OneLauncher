@@ -36,6 +36,7 @@ from typing import Optional
 from urllib import request
 from urllib.error import HTTPError, URLError
 
+import attrs
 from PySide6 import QtCore, QtWidgets
 
 from .config import platform_dirs
@@ -49,16 +50,12 @@ DXVK_URL = (
 )
 
 
+@attrs.define
 class WineEnvironment():
-    def __init__(self,
-                 builtin_prefix_enabled: bool,
-                 user_wine_executable_path: Optional[Path] = None,
-                 user_prefix_path: Optional[Path] = None,
-                 debug_level: Optional[str] = None) -> None:
-        self.builtin_prefix_enabled = builtin_prefix_enabled
-        self.user_wine_executable_path = user_wine_executable_path
-        self.user_prefix_path = user_prefix_path
-        self.debug_level = debug_level
+    builtin_prefix_enabled: bool = True
+    user_wine_executable_path: Path | None = None
+    user_prefix_path: Path | None = None
+    debug_level: str | None = None
 
 
 class WineManagement:
@@ -294,6 +291,9 @@ class WineManagement:
         self.is_setup = True
 
 
+wine_management = None
+
+
 def edit_qprocess_to_use_wine(
         qprocess: QtCore.QProcess,
         wine_env: WineEnvironment) -> None:
@@ -301,6 +301,10 @@ def edit_qprocess_to_use_wine(
     processEnvironment = QtCore.QProcessEnvironment.systemEnvironment()
 
     if wine_env.builtin_prefix_enabled:
+        global wine_management
+        if wine_management is None:
+            wine_management = WineManagement()
+
         if not wine_management.is_setup:
             wine_management.setup_files()
 
@@ -340,4 +344,3 @@ def edit_qprocess_to_use_wine(
 
 
 logger = logging.getLogger("main")
-wine_management = WineManagement()
