@@ -106,10 +106,14 @@ def get_launcher_config_paths(
                 ) == f"{other_game_type.lower()}.launcherconfig":
                     config_files.remove(file)
 
-    # Add legacy launcher config file to `config_files`
-    legacy_path = search_dir / "TurbineLauncher.exe.config"
-    if legacy_path.exists():
-        config_files.append(legacy_path)
+    # Add legacy launcher config files to `config_files`
+    legacy_config_names = ["TurbineLauncher.exe.config"]
+    if game_type == GameType.DDO or game_type is None:
+        legacy_config_names.append("DNDLauncher.exe.config")
+    for config_name in legacy_config_names:
+        legacy_path = search_dir / config_name
+        if legacy_path.exists():
+            config_files.append(legacy_path)
 
     def config_files_sorting_key(file: CaseInsensitiveAbsolutePath) -> int:
         if game_type is not None and (
