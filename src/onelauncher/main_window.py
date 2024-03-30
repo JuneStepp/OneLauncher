@@ -188,7 +188,9 @@ class MainWindow(QtWidgets.QMainWindow):
         # Setup context menu
         self.ui.btnLoginMenu = QtWidgets.QMenu()
         self.ui.btnLoginMenu.addAction(self.ui.actionPatch)
-        self.ui.actionPatch.triggered.connect(self.actionPatchSelected)
+        self.ui.actionPatch.triggered.connect(
+            lambda: self.nursery.start_soon(
+                self.actionPatchSelected))
         self.ui.btnLogin.setMenu(self.ui.btnLoginMenu)
 
     def setup_switch_game_button(self):
@@ -244,10 +246,14 @@ class MainWindow(QtWidgets.QMainWindow):
         dlgAbout.exec()
         self.resetFocus()
 
-    def actionPatchSelected(self):
+    async def actionPatchSelected(self):
+        game_services_info = await GameServicesInfo.from_game(self.game)
+        if game_services_info is None:
+            return
+
         winPatch = PatchWindow(
             self.game,
-            self.game_services_info.patch_server)
+            game_services_info.patch_server)
         winPatch.Run()
         self.resetFocus()
 
@@ -414,9 +420,13 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.cboAccount.setItemData(
                 self.ui.cboAccount.currentIndex(), current_account)
 
+        game_services_info = await GameServicesInfo.from_game(self.game)
+        if game_services_info is None:
+            return
+
         try:
-            self.login_response = await login_account.login_account(
-                self.game_services_info.auth_server,
+            login_response = await login_account.login_account(
+                game_services_info.auth_server,
                 current_account.username,
                 self.ui.txtPassword.text() or current_account.password or "")
         except login_account.WrongUsernameOrPasswordError:
@@ -456,7 +466,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.loadAllSavedAccounts()
 
-        game_subscriptions = self.login_response.get_game_subscriptions(
+        game_subscriptions = login_response.get_game_subscriptions(
             self.game.datacenter_game_name)
         if len(game_subscriptions) > 1:
             subscription = self.get_game_subscription_selection(
@@ -497,29 +507,42 @@ class MainWindow(QtWidgets.QMainWindow):
                 is_error=True)  # TODO: Easy report
             return
 
-        if selected_world_status.queue_url == "":
-            await self.start_game(account_number)
-        else:
-            await self.EnterWorldQueue(
-                selected_world_status.queue_url, account_number)
+        if selected_world_status.queue_url != "":
+            await self.world_queue(
+                queueURL=selected_world_status.queue_url,
+                account_number=account_number,
+                login_response=login_response)
+        await self.start_game(
+            account_number=account_number,
+            world=selected_world,
+            login_server=selected_world_status.login_server,
+            login_response=login_response)
 
-    async def start_game(self, account_number: str):
+    async def start_game(self,
+                         account_number: str,
+                         world: World,
+                         login_server: str,
+                         login_response: login_account.AccountLoginResponse):
         world: World = self.ui.cboWorld.currentData()
         game = StartGame(
             self.game,
             self.game_launcher_config,
             world,
+            login_server,
             account_number,
-            self.login_response.session_ticket,
+            login_response.session_ticket,
         )
         await game.start_game()
 
-    async def EnterWorldQueue(self, queueURL, account_number):
+    async def world_queue(self,
+                          queueURL: str,
+                          account_number: str,
+                          login_response: login_account.AccountLoginResponse) -> None:
         world_login_queue = WorldLoginQueue(
             self.game_launcher_config.login_queue_url,
             self.game_launcher_config.login_queue_params_template,
             account_number,
-            self.login_response.session_ticket,
+            login_response.session_ticket,
             queueURL)
         while True:
             try:
@@ -542,8 +565,6 @@ class MainWindow(QtWidgets.QMainWindow):
             people_ahead_in_queue = world_queue_result.queue_number - \
                 world_queue_result.now_serving_number
             self.AddLog(f"Position in queue: {people_ahead_in_queue}")
-
-        await self.start_game(account_number)
 
     def set_banner_image(self):
         ui_locale = program_config.get_ui_locale(self.game)
@@ -658,30 +679,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.checked_for_program_update = True
 
     async def game_initial_network_setup(self):
-        await self.get_game_services_info(self.game)
-        if not self.game_services_info:
-            return
-        self.load_worlds_list(self.game_services_info)
-        await self.get_game_launcher_config(
-            self.game_services_info.launcher_config_url)
-        # Enable UI elements that rely on what's been loaded.
-        self.ui.actionPatch.setEnabled(True)
-        self.ui.actionPatch.setVisible(True)
-        self.ui.btnLogin.setEnabled(True)
-        self.ui.chkSaveSettings.setEnabled(True)
-        self.ui.chkSavePassword.setEnabled(True)
-        self.ui.cboAccount.setEnabled(True)
-        self.ui.txtPassword.setEnabled(True)
-
-        await self.load_newsfeed()
-
-        self.ui.btnOptions.setEnabled(True)
-        self.ui.btnSwitchGame.setEnabled(True)
-
-    async def get_game_services_info(self, game: Game) -> GameServicesInfo | None:
         try:
-            self.game_services_info = await GameServicesInfo.from_url(
-                game.gls_datacenter_service, game.datacenter_game_name)
+            game_services_info = await GameServicesInfo.from_url(
+                self.game.gls_datacenter_service,
+                self.game.datacenter_game_name)
         except httpx.HTTPError:
             logger.exception("")
             # TODO: load anything else that can be, provide option to retry, and
@@ -700,19 +701,38 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.AddLog("Fetched game services info.", False)
 
+        self.load_worlds_list(game_services_info)
+        self.game_launcher_config = await self.get_game_launcher_config(
+            game_services_info.launcher_config_url)
+        # Enable UI elements that rely on what's been loaded.
+        self.ui.actionPatch.setEnabled(True)
+        self.ui.actionPatch.setVisible(True)
+        self.ui.btnLogin.setEnabled(True)
+        self.ui.chkSaveSettings.setEnabled(True)
+        self.ui.chkSavePassword.setEnabled(True)
+        self.ui.cboAccount.setEnabled(True)
+        self.ui.txtPassword.setEnabled(True)
+
+        await self.load_newsfeed(self.game_launcher_config)
+
+        self.ui.btnOptions.setEnabled(True)
+        self.ui.btnSwitchGame.setEnabled(True)
+
     def load_worlds_list(self, game_services_info: GameServicesInfo):
-        for world in self.game_services_info.worlds:
+        for world in game_services_info.worlds:
             self.ui.cboWorld.addItem(world.name, userData=world)
 
         self.setCurrentAccountWorld()
         self.AddLog("World list obtained.", False)
 
-    async def get_game_launcher_config(self, game_launcher_config_url: str):
+    async def get_game_launcher_config(
+            self,
+            game_launcher_config_url: str) -> GameLauncherConfig | None:
         try:
-            self.game_launcher_config = await GameLauncherConfig.from_url(
+            game_launcher_config = await GameLauncherConfig.from_url(
                 game_launcher_config_url)
             self.AddLog("Game launcher configuration read", False)
-            return
+            return game_launcher_config
         except httpx.HTTPError:
             logger.exception("")
             self.AddLog(
@@ -726,10 +746,10 @@ class MainWindow(QtWidgets.QMainWindow):
             )  # TODO: Easy report
             return
 
-    async def load_newsfeed(self):
+    async def load_newsfeed(self, game_launcher_config: GameLauncherConfig):
         ui_locale = program_config.get_ui_locale(self.game)
         newsfeed_url = (self.game.newsfeed or
-                        self.game_launcher_config.get_newfeed_url(
+                        game_launcher_config.get_newfeed_url(
                             ui_locale))
         try:
             self.ui.txtFeed.setHtml(await newsfeed_url_to_html(

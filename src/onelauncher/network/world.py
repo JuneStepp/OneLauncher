@@ -106,6 +106,11 @@ class World:
 
         response.raise_for_status()
 
+        if not response.text:
+            # Got an empty but successful response during an unexpected
+            # worlds downtime on 2024/30/31.
+            raise WorldUnavailableError(f"{self} world unavailable")
+
         return self._WORLD_STATUS_SCHEMA.to_dict(response.text)
 
     def __str__(self) -> str:

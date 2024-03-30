@@ -19,6 +19,7 @@ async def get_launch_args(
         game_launcher_config: GameLauncherConfig,
         game: Game,
         world: World,
+        login_server: str,
         account_number: str,
         ticket: str) -> str:
     """Return complete client launch arguments based on
@@ -29,7 +30,7 @@ async def get_launch_args(
     """
     launch_args_template_mapping = {
         "{SUBSCRIPTION}": account_number,
-        "{LOGIN}": (await world.get_status()).login_server,
+        "{LOGIN}": login_server,
         "{GLS}": ticket,
         "{CHAT}": world.chat_server_url,
         "{LANG}": game.locale.game_language_name,
@@ -71,6 +72,7 @@ async def get_qprocess(
         game_launcher_config: GameLauncherConfig,
         game: Game,
         world: World,
+        login_server: str,
         account_number: str,
         ticket: str) -> QtCore.QProcess:
     """Return QProcess configured to start game client.
@@ -90,6 +92,7 @@ async def get_qprocess(
         game_launcher_config,
         game,
         world,
+        login_server,
         account_number,
         ticket)
 

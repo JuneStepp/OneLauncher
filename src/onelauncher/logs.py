@@ -6,7 +6,7 @@ from platform import platform
 
 from .config import platform_dirs
 
-from.__about__ import __title__, __version__
+from .__about__ import __title__, __version__
 
 
 class Logger():

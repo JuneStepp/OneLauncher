@@ -50,12 +50,14 @@ class StartGame(QtWidgets.QDialog):
         game: Game,
         game_launcher_config: GameLauncherConfig,
         world: World,
+        login_server: str,
         account_number: str,
-        ticket,
-    ):
+        ticket: str,
+    ) -> None:
         self.game = game
         self.game_launcher_config = game_launcher_config
         self.world = world
+        self.login_server = login_server
         self.account_number = account_number
         self.ticket = ticket
 
@@ -89,6 +91,7 @@ class StartGame(QtWidgets.QDialog):
                 self.game_launcher_config,
                 self.game,
                 self.world,
+                self.login_server,
                 self.account_number,
                 self.ticket)
         except MissingLaunchArgumentError:
