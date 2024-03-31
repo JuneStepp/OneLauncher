@@ -32,8 +32,8 @@ from pathlib import Path
 from typing import List, Optional
 
 import httpx
+import packaging.version
 import trio
-from pkg_resources import parse_version
 from PySide6 import QtCore, QtGui, QtWidgets
 from xmlschema import XMLSchemaValidationError
 
@@ -786,7 +786,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 async def check_for_update():
     """Notifies user if their copy of OneLauncher is out of date"""
-    current_version = parse_version(__about__.__version__)
+    current_version = packaging.version.parse(__about__.__version__)
     repository_url = __about__.__project_url__
     if "github.com" not in repository_url.lower():
         logger.warning(
@@ -814,7 +814,7 @@ async def check_for_update():
         return
     release_dictionary = response.json()
 
-    release_version = parse_version(release_dictionary["tag_name"])
+    release_version = packaging.version.parse(release_dictionary["tag_name"])
 
     if release_version > current_version:
         url = release_dictionary["html_url"]
