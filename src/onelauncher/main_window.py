@@ -79,7 +79,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose, on=True)
 
-    def init_ui(self):
+    def init_ui(self) -> None:
         self.ui = Ui_winMain()
         self.ui.setupUi(self)
 

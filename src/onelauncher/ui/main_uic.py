@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'main.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.4.2
+## Created by: Qt User Interface Compiler version 6.6.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -52,11 +52,11 @@ class Ui_winMain(object):
         self.lblPassword.setFont(font)
         self.cboWorld = QComboBox(self.centralwidget)
         self.cboWorld.setObjectName(u"cboWorld")
-        self.cboWorld.setGeometry(QRect(525, 55, 201, 34))
+        self.cboWorld.setGeometry(QRect(525, 55, 196, 34))
         self.cboWorld.setFont(font)
         self.txtPassword = QLineEdit(self.centralwidget)
         self.txtPassword.setObjectName(u"txtPassword")
-        self.txtPassword.setGeometry(QRect(525, 133, 260, 32))
+        self.txtPassword.setGeometry(QRect(525, 133, 254, 32))
         self.txtPassword.setFont(font)
         self.txtPassword.setEchoMode(QLineEdit.Password)
         self.txtPassword.setClearButtonEnabled(True)
@@ -74,7 +74,7 @@ class Ui_winMain(object):
         self.chkSaveSettings.setFont(font)
         self.txtStatus = QTextBrowser(self.centralwidget)
         self.txtStatus.setObjectName(u"txtStatus")
-        self.txtStatus.setGeometry(QRect(400, 240, 385, 221))
+        self.txtStatus.setGeometry(QRect(400, 240, 381, 221))
         self.txtStatus.setFont(font)
         self.txtStatus.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.txtStatus.setOpenLinks(False)
@@ -97,9 +97,9 @@ class Ui_winMain(object):
         self.btnMinimize.setFocusPolicy(Qt.ClickFocus)
         self.btnSwitchGame = QToolButton(self.centralwidget)
         self.btnSwitchGame.setObjectName(u"btnSwitchGame")
-        self.btnSwitchGame.setGeometry(QRect(733, 60, 51, 27))
+        self.btnSwitchGame.setGeometry(QRect(728, 56, 49, 32))
         self.btnSwitchGame.setFocusPolicy(Qt.ClickFocus)
-        self.btnSwitchGame.setIconSize(QSize(32, 32))
+        self.btnSwitchGame.setIconSize(QSize(22, 22))
         self.btnSwitchGame.setPopupMode(QToolButton.MenuButtonPopup)
         self.btnSwitchGame.setToolButtonStyle(Qt.ToolButtonIconOnly)
         self.btnOptions = QToolButton(self.centralwidget)
@@ -117,7 +117,7 @@ class Ui_winMain(object):
         self.btnAddonManager.setFocusPolicy(Qt.ClickFocus)
         self.cboAccount = QComboBox(self.centralwidget)
         self.cboAccount.setObjectName(u"cboAccount")
-        self.cboAccount.setGeometry(QRect(525, 95, 260, 32))
+        self.cboAccount.setGeometry(QRect(525, 95, 254, 32))
         self.cboAccount.setEditable(True)
         self.cboAccount.setInsertPolicy(QComboBox.NoInsert)
         winMain.setCentralWidget(self.centralwidget)

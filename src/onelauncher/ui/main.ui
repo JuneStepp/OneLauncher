@@ -93,7 +93,7 @@
      <rect>
       <x>525</x>
       <y>55</y>
-      <width>201</width>
+      <width>196</width>
       <height>34</height>
      </rect>
     </property>
@@ -111,7 +111,7 @@
      <rect>
       <x>525</x>
       <y>133</y>
-      <width>260</width>
+      <width>254</width>
       <height>32</height>
      </rect>
     </property>
@@ -190,7 +190,7 @@
      <rect>
       <x>400</x>
       <y>240</y>
-      <width>385</width>
+      <width>381</width>
       <height>221</height>
      </rect>
     </property>
@@ -282,10 +282,10 @@
    <widget class="QToolButton" name="btnSwitchGame">
     <property name="geometry">
      <rect>
-      <x>733</x>
-      <y>60</y>
-      <width>51</width>
-      <height>27</height>
+      <x>728</x>
+      <y>56</y>
+      <width>49</width>
+      <height>32</height>
      </rect>
     </property>
     <property name="focusPolicy">
@@ -299,8 +299,8 @@
     </property>
     <property name="iconSize">
      <size>
-      <width>32</width>
-      <height>32</height>
+      <width>22</width>
+      <height>22</height>
      </size>
     </property>
     <property name="popupMode">
@@ -377,7 +377,7 @@
      <rect>
       <x>525</x>
       <y>95</y>
-      <width>260</width>
+      <width>254</width>
       <height>32</height>
      </rect>
     </property>
