@@ -41,6 +41,7 @@ trio = "^0.23.2"
 httpx = "^0.26.0"
 asyncache = { git = "https://github.com/JuneStepp/asyncache.git" }
 attrs = "^23.2.0"
+packaging = "^24.0"
 
 [tool.poetry.group.dev.dependencies]
 bandit = "^1.7.5"
