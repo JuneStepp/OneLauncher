@@ -126,7 +126,10 @@ async def login_account(
             await client.service.LoginAccount(
                 username, password, ""))
     except zeep.exceptions.Fault as e:
-        raise WrongUsernameOrPasswordError("") from e
+        if e.message == "No Subscriber Formal Entity was found.":
+            raise WrongUsernameOrPasswordError("") from e
+        else:
+            raise GLSServiceError("") from e
     except zeep.exceptions.Error as e:
         raise GLSServiceError(
             "Error while parsing LoginAccount response") from e
