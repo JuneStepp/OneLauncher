@@ -90,10 +90,12 @@ class GamesSorted():
 
 def get_launcher_config_paths(
         search_dir: CaseInsensitiveAbsolutePath,
-        game_type: GameType | None = None) -> tuple[CaseInsensitiveAbsolutePath, ...]:
-    """Return all launcher config files from search_dir sorted by relevance.
-       File names matching a different game type from `game_type` won't be
-       returned.
+        game_type: GameType | None = None
+) -> tuple[CaseInsensitiveAbsolutePath, ...]:
+    """
+    Return all launcher config files from search_dir sorted by relevance.
+    File names matching a different game type from `game_type` won't be
+    returned.
     """
     config_files = list(search_dir.glob("*.launcherconfig"))
 

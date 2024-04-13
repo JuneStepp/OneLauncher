@@ -4,7 +4,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from platform import platform
 
-from .config import platform_dirs
+from .config_old import platform_dirs
 
 from .__about__ import __title__, __version__
 

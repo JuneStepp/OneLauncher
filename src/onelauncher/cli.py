@@ -7,7 +7,7 @@ import trio
 from PySide6 import QtCore
 
 from . import __about__, games_sorted
-from .config.program_config import program_config
+from .config_old.program_config import program_config
 from .game import Game, GameType
 from .qtapp import setup_qtapplication
 from .resources import available_locales
@@ -26,7 +26,7 @@ def setup_arg_parser() -> argparse.ArgumentParser:
     game_type_choices = [str(game_type) for game_type in GameType]
     game_uuid_choices = [str(uuid) for uuid in games_sorted.games]
 
-    def game_arg_type(arg_val: str):
+    def game_arg_type(arg_val: str) -> str:
         if arg_val.upper() in game_type_choices:
             arg_val = arg_val.upper()
             games_of_type = games_sorted.get_sorted_games_list(
@@ -55,7 +55,7 @@ def setup_arg_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def handle_program_start_setup_wizard():
+def handle_program_start_setup_wizard() -> None:
     """Run setup wizard if there are no settings"""
     # If game settings haven't been generated
     if not games_sorted.games:
@@ -69,7 +69,7 @@ def handle_program_start_setup_wizard():
         sys.exit()
 
 
-async def start_main_window(game: Game):
+async def start_main_window(game: Game) -> None:
     # Import has to be done here, because some code run when
     # main_window.py imports requires the QApplication to exist.
     from .main_window import MainWindow

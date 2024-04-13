@@ -7,7 +7,7 @@
 
 ---
 
-[![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/junestepp/onelauncher?include_prereleases)](https://Github.com/JuneStepp/OneLauncher/releases/latest) [![Weblate project translated](https://img.shields.io/weblate/progress/onelauncher)](https://hosted.weblate.org/projects/onelauncher/) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/junestepp/onelauncher?include_prereleases)](https://Github.com/JuneStepp/OneLauncher/releases/latest) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 An enhanced launcher for both [LOTRO](https://www.lotro.com/) and [DDO](https://www.ddo.com/) with many features including an Add-on manager for plugins, skins, and music.
 
@@ -31,10 +31,50 @@ The easiest way to get OneLauncher is with a pre-built installer. Linux users sh
 - [Wine instructions](https://github.com/lutris/docs/blob/master/WineDependencies.md#distribution-specific-instructions)
 - [Running from source code](#development-install)
 
-## Launch Arguments
+## Command Line Usage
 
-- `--game`: Specifies starting game or game type. Accepted values are `LOTRO`, `DDO`, or the UUID of a game. You can find the UUID of a game by showing advanced options in the settings window.
-- `--language`: Specifies game client language. Accepted values are IETF language tags such as `de`, `en-US`, or `fr`.
+All settings can be overridden from the command line. This is especially useful for making custom shortcuts. For example, loading the LOTRO preview client in French could be done with `--game lotro_preview --locale fr`.
+
+```txt
+ OneLauncher 2.0.dev0                                                                                                                                                               
+                                                                                                                                                                                    
+  Usage: onelauncher [OPTIONS] COMMAND [ARGS]...                                                                                                                                    
+                                                                                                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --version                       Print version and exit.                                                                                                                          │
+│ --install-completion            Install completion for the current shell.                                                                                                        │
+│ --show-completion               Show completion for the current shell, to copy it or customize the installation.                                                                 │
+│ --help                -h        Show this message and exit.                                                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Program Options ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --default-locale                                                               TEXT                               The default language for games and UI                          │
+│ --always-use-default-locale-for-ui    --no-always-use-default-locale-for-ui                                       Use default language for UI regardless of game language        │
+│ --save-accounts                       --no-save-accounts                                                          Save game accounts                                             │
+│ --save-accounts-passwords             --no-save-accounts-passwords                                                Save game account passwords with Keyring                       │
+│ --games-sorting-mode                                                           [priority|last_used|alphabetical]  Order to show games in UI                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Game Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --game                                                        GAME_TYPE_OR_UUID          Which game to load. (lotro, lotro_preview, ddo, ddo_preview, or a game UUID)            │
+│ --game-directory                                              DIRECTORY                  The game's install directory                                                            │
+│ --locale                                                      TEXT                       Language used for game                                                                  │
+│ --client-type                                                 [WIN64|WIN32|WIN32Legacy]  Which version of the game client to use                                                 │
+│ --high-res-enabled                   --no-high-res-enabled                               If the high resolution game files should be used                                        │
+│ --standard-game-launcher-filename                             TEXT                       The name of the standard game launcher executable. Ex. LotroLauncher.exe                │
+│ --patch-client-filename                                       TEXT                       Name of the dll used for game patching. Ex. patchclient.dll                             │
+│ --newsfeed                                                    TEXT                       URL of the feed (RSS, ATOM, ect) to show in the launcher                                │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Game WINE Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --builtin-prefix-enabled       --no-builtin-prefix-enabled               If WINE should be automatically managed                                                                 │
+│ --user-wine-executable-path                                   FILE       Path to the WINE executable to use when WINE isn't automatically managed                                │
+│ --user-prefix-path                                            DIRECTORY  Path to the WINE prefix to use when WINE isn't automatically managed                                    │
+│ --wine-debug-level                                            TEXT       WINE debug level to use                                                                                 │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Game Account Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --username                    TEXT  Login username                                                                                                                               │
+│ --display-name                TEXT  Name shown instead of account name                                                                                                           │
+│ --last-used-world-name        TEXT  World last logged into. Will be the default at next login                                                                                    │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
 
 ## Development Install
 

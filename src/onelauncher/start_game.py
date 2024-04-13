@@ -3,7 +3,7 @@ from pathlib import Path
 import trio
 
 from PySide6 import QtCore
-from .config.games.wine import get_wine_environment_from_game
+from .config_old.games.wine import get_wine_environment_from_game
 
 from .game import ClientType, Game
 from .network.game_launcher_config import GameLauncherConfig

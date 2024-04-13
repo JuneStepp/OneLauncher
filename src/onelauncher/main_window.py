@@ -39,8 +39,8 @@ from xmlschema import XMLSchemaValidationError
 
 from . import __about__, games_sorted
 from .addon_manager import AddonManagerWindow
-from .config.games.game import save_game
-from .config.program_config import program_config
+from .config_old.games.game import save_game
+from .config_old.program_config import program_config
 from .game import Game, GameType
 from .game_account import GameAccount
 from .game_launcher_local_config import GameLauncherLocalConfig

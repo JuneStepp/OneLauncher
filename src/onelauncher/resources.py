@@ -28,7 +28,7 @@ class OneLauncherLocale():
         file = data_dir / "language_info.toml"
         if not file.exists():
             raise FileNotFoundError(
-                f"The language_info.toml file is missing for the lang tag: {self.lang_tag}")
+                f"The language_info.toml file is missing for {data_dir.name}")
 
         settings_dict = tomllib.loads(file.read_text())
 
@@ -40,14 +40,16 @@ class OneLauncherLocale():
             display_name,
             game_language_name)
 
-    def get_resource(self, relative_path: Path):
+    def get_resource(self, relative_path: Path) -> Path:
         """Returns the localized resource for path
 
         Args:
-            relative_path (Path): Relative path from data_dir to resource. Example: "images/LOTRO_banner.png"
+            relative_path (Path): Relative path from data_dir to resource.
+                Example: "images/LOTRO_banner.png"
 
         Returns:
-            Path: Full path to resource, localized if a generic version isn't available.
+            Path: Full path to resource, localized if a generic version isn't
+                available.
         """
         return get_resource(relative_path, self)
 
@@ -74,11 +76,14 @@ def get_resource(relative_path: Path, locale: OneLauncherLocale) -> Path:
     """Returns the localized resource for path
 
     Args:
-        relative_path (Path): Relative path from data_dir to resource. Example: "images/LOTRO_banner.png"
-        locale (OneLauncherLocale): the OneLauncherLocale to get the resource from if there is no standard version.
+        relative_path (Path): Relative path from data_dir to resource.
+            Example: "images/LOTRO_banner.png"
+        locale (OneLauncherLocale): the OneLauncherLocale to get the resource
+            from if there is no standard version.
 
     Returns:
-        Path: Full path to resource, localized if a generic version isn't available.
+        Path: Full path to resource, localized if a generic version isn't
+            available.
     """
     generic_path = data_dir / relative_path
 
@@ -89,7 +94,8 @@ def get_resource(relative_path: Path, locale: OneLauncherLocale) -> Path:
         return generic_path
     else:
         raise FileNotFoundError(
-            f"There is no generic or localized version of {relative_path} for the language {locale}")
+            (f"There is no generic or localized version of {relative_path} "
+             f"for the language {locale}"))
 
 
 def _get_available_locales(data_dir: Path) -> Dict[str, OneLauncherLocale]:
@@ -105,8 +111,10 @@ def _get_available_locales(data_dir: Path) -> Dict[str, OneLauncherLocale]:
 
 def _get_system_locale(
         available_locales: dict[str, OneLauncherLocale]) -> Optional[OneLauncherLocale]:
-    """Returns locale from available_locales that
-    matches the system. None will be returned if none match."""
+    """
+    Return locale from available_locales that matches the system.
+    None will be returned if none match.
+    """
 
     system_lang_tag = QLocale.system().bcp47Name()
 
@@ -115,10 +123,11 @@ def _get_system_locale(
         return available_locales[system_lang_tag]
 
     # Get locales that match the base language.
-    matching_langs = [locale for locale in available_locales.values(
-    ) if locale.lang_tag.split("-")[0] == system_lang_tag.split("-")[0]]
-
-    if matching_langs:
+    if matching_langs := [
+        locale
+        for locale in available_locales.values()
+        if locale.lang_tag.split("-")[0] == system_lang_tag.split("-")[0]
+    ]:
         return matching_langs[0]
     else:
         return None

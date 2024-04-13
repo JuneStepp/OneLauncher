@@ -33,9 +33,9 @@ from typing import Optional
 from PySide6 import QtCore, QtWidgets
 
 from ..cli import app_cancel_scope
-from ..config import platform_dirs
-from ..config.games.addons import get_addons_manager_from_game
-from ..config.games.game import save_game
+from ..config_old import platform_dirs
+from ..config_old.games.addons import get_addons_manager_from_game
+from ..config_old.games.game import save_game
 from ..game import Game
 from ..network.game_launcher_config import GameLauncherConfig
 from ..network.world import World

@@ -35,9 +35,9 @@ from PySide6 import QtCore, QtGui, QtWidgets
 
 from . import games_sorted
 from .__about__ import __title__
-from .config.games import games_config
-from .config.games.game import get_game_from_config, save_game
-from .config.program_config import program_config
+from .config_old.games import games_config
+from .config_old.games.game import get_game_from_config, save_game
+from .config_old.program_config import program_config
 from .game import Game
 from .game_utilities import GamesSortingMode, find_game_dir_game_type
 from .resources import available_locales

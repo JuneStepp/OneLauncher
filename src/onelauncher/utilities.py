@@ -26,25 +26,31 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
+from __future__ import annotations
+
 import logging
 import os
 import pathlib
 from pathlib import Path
-from typing import Generator, Optional, Self
+from typing import TYPE_CHECKING, Generator, Optional, Self
 from xml.etree.ElementTree import Element
 
 from defusedxml import ElementTree
 
+if TYPE_CHECKING:
+    from _typeshed import StrPath
+
 
 class CaseInsensitiveAbsolutePath(Path):
-    _flavour = pathlib._windows_flavour if os.name == 'nt' else pathlib._posix_flavour  # type: ignore
+    _flavour = (pathlib._windows_flavour if os.name ==  # type: ignore
+                'nt' else pathlib._posix_flavour)  # type: ignore
 
-    def __new__(cls, *pathsegments, **kwargs):
-        normal_path = Path(*pathsegments, **kwargs)
+    def __new__(cls, *pathsegments: StrPath) -> Self:
+        normal_path = Path(*pathsegments)
         if not normal_path.is_absolute():
             raise ValueError("Path is not absolute.")
         path = cls._get_real_path_from_fully_case_insensitive_path(normal_path)
-        return super().__new__(cls, path, **kwargs)
+        return super().__new__(cls, path)
 
     @classmethod
     def _get_real_path_from_fully_case_insensitive_path(
@@ -163,14 +169,6 @@ def parse_app_settings_config(config_text: str) -> dict[str, str]:
         attribs_dict = element.attrib
         config_dict[attribs_dict["key"]] = attribs_dict["value"]
     return config_dict
-
-
-def string_encode(s):
-    return s.encode()
-
-
-def string_decode(s):
-    return s.decode()
 
 
 def QByteArray2str(s):

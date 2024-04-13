@@ -34,11 +34,11 @@ import trio
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from . import games_sorted
-from .config.games import games_config
-from .config.games.game import save_game
-from .config.games.wine import (get_wine_environment_from_game,
-                                save_wine_environment)
-from .config.program_config import program_config
+from .config_old.games import games_config
+from .config_old.games.game import save_game
+from .config_old.games.wine import (get_wine_environment_from_game,
+                                    save_wine_environment)
+from .config_old.program_config import program_config
 from .game import ClientType, Game
 from .game_utilities import GamesSortingMode, find_game_dir_game_type
 from .network.game_launcher_config import GameLauncherConfig
