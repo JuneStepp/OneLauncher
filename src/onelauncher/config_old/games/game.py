@@ -1,8 +1,5 @@
-
-from typing import Any, Dict
+from typing import Any
 from uuid import UUID
-
-import attrs
 
 from ...game import ClientType, Game, generate_default_game_name
 from ...game_account import GameAccount
@@ -12,12 +9,9 @@ from ..program_config import program_config
 from . import games_config
 
 
-
-
 def get_config_from_game(game: Game) -> dict[str, Any]:
-    game_dict: Dict[str, Any] = {
-        "uuid": str(
-            game.uuid),
+    game_dict: dict[str, Any] = {
+        "uuid": str(game.uuid),
         "sorting_priority": game.sorting_priority,
         "game_type": str(game.game_type),
         "name": game.name,
@@ -29,14 +23,15 @@ def get_config_from_game(game: Game) -> dict[str, Any]:
         "patch_client_filename": game.patch_client_filename,
         "newsfeed": game.newsfeed,
         "last_played": game.last_played,
-        "standard_game_launcher_filename": game.standard_game_launcher_filename
+        "standard_game_launcher_filename": game.standard_game_launcher_filename,
     }
     if game.accounts:
         account_dicts = []
         for account in game.accounts:
             account_dict = {
                 "account_name": account.username,
-                "last_used_world_name": account.last_used_world_name}
+                "last_used_world_name": account.last_used_world_name,
+            }
             if account.display_name is not None:
                 account_dict["display_name"] = account.display_name
             account_dicts.append(account_dict)
@@ -45,43 +40,47 @@ def get_config_from_game(game: Game) -> dict[str, Any]:
     return game_dict
 
 
-def get_game_from_config(game_config: dict[str, Any],) -> Game:
+def get_game_from_config(
+    game_config: dict[str, Any],
+) -> Game:
     uuid = UUID(game_config["uuid"])
-    game_directory = CaseInsensitiveAbsolutePath(
-        game_config["game_directory"])
+    game_directory = CaseInsensitiveAbsolutePath(game_config["game_directory"])
 
     # Deal with missing sections
     game_config["user_addons_feeds"] = game_config.get("user_addons_feeds", {})
     game_config["info"] = game_config.get("info", {})
     game_config["accounts"] = game_config.get("accounts", [])
 
-    return Game(uuid=uuid,
-                sorting_priority=game_config.get("sorting_priority",
-                                                 -1),
-                game_type=game_config["game_type"],
-                game_directory=game_directory,
-                locale=available_locales[game_config.get("language",
-                                                         str(program_config.default_locale))],
-                client_type=ClientType(game_config.get("client_type",
-                                                       "WIN64")),
-                high_res_enabled=game_config.get("high_res_enabled",
-                                                 True),
-                standard_game_launcher_filename=game_config.get("standard_game_launcher_filename"),
-                patch_client_filename=game_config.get("patch_client_filename",
-                                                      "patchclient.dll"),
-                name=game_config.get("name",
-                                     generate_default_game_name(game_directory,
-                                                                uuid)),
-                description=game_config.get("description",
-                                            ""),
-                newsfeed=game_config.get("newsfeed"),
-                last_played=game_config.get("last_played"),
-                accounts=[GameAccount(game_uuid=uuid,
-                          username=account["account_name"],
-                          display_name=account.get("display_name"),
-                          last_used_world_name=account["last_used_world_name"],
-                                      ) for account in game_config["accounts"]],
-                )
+    return Game(
+        uuid=uuid,
+        sorting_priority=game_config.get("sorting_priority", -1),
+        game_type=game_config["game_type"],
+        game_directory=game_directory,
+        locale=available_locales[
+            game_config.get("language", str(program_config.default_locale))
+        ],
+        client_type=ClientType(game_config.get("client_type", "WIN64")),
+        high_res_enabled=game_config.get("high_res_enabled", True),
+        standard_game_launcher_filename=game_config.get(
+            "standard_game_launcher_filename"
+        ),
+        patch_client_filename=game_config.get(
+            "patch_client_filename", "patchclient.dll"
+        ),
+        name=game_config.get("name", generate_default_game_name(game_directory, uuid)),
+        description=game_config.get("description", ""),
+        newsfeed=game_config.get("newsfeed"),
+        last_played=game_config.get("last_played"),
+        accounts=[
+            GameAccount(
+                game_uuid=uuid,
+                username=account["account_name"],
+                display_name=account.get("display_name"),
+                last_used_world_name=account["last_used_world_name"],
+            )
+            for account in game_config["accounts"]
+        ],
+    )
 
 
 def save_game(game: Game):

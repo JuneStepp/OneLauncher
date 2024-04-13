@@ -1,4 +1,3 @@
-# coding=utf-8
 ###########################################################################
 # Code for managing WINE. This code should not be called on Windows, as
 # WINE is neither supported or needed there.
@@ -32,7 +31,6 @@ import lzma
 import tarfile
 from pathlib import Path
 from shutil import move, rmtree
-from typing import Optional
 from urllib import request
 from urllib.error import HTTPError, URLError
 
@@ -51,7 +49,7 @@ DXVK_URL = (
 
 
 @attrs.define
-class WineEnvironment():
+class WineEnvironment:
     builtin_prefix_enabled: bool = True
     user_wine_executable_path: Path | None = None
     user_prefix_path: Path | None = None
@@ -62,10 +60,9 @@ class WineManagement:
     def __init__(self):
         self.is_setup = False
 
-        (platform_dirs.user_data_path /
-         "wine").mkdir(parents=True, exist_ok=True)
+        (platform_dirs.user_data_path / "wine").mkdir(parents=True, exist_ok=True)
 
-        self.wine_path: Optional[Path] = None
+        self.wine_path: Path | None = None
         self.prefix_path = platform_dirs.user_cache_path / "wine/prefix"
         self.prefix_path.mkdir(exist_ok=True, parents=True)
         self.downloads_path = platform_dirs.user_data_path / "wine"
@@ -103,18 +100,19 @@ class WineManagement:
         # Uncomment line below when using Proton
         # self.proton_documents_symlinker()
 
-        self.latest_wine_version = WINE_URL.split(
-            "/download/")[1].split("/")[0]
-        latest_wine_path = platform_dirs.user_data_path / \
-            ("wine/wine-" + self.latest_wine_version)
+        self.latest_wine_version = WINE_URL.split("/download/")[1].split("/")[0]
+        latest_wine_path = platform_dirs.user_data_path / (
+            "wine/wine-" + self.latest_wine_version
+        )
 
         if latest_wine_path.exists():
             self.wine_path = latest_wine_path / "bin/wine"
             return
 
         self.dlgDownloader.setLabelText("Downloading Wine...")
-        latest_wine_path_tar = latest_wine_path.parent / \
-            (latest_wine_path.name + ".tar.xz")
+        latest_wine_path_tar = latest_wine_path.parent / (
+            latest_wine_path.name + ".tar.xz"
+        )
 
         if not self._downloader(WINE_URL, latest_wine_path_tar):
             return
@@ -126,27 +124,27 @@ class WineManagement:
         self.dlgDownloader.setValue(100)
 
         self.wine_path = (
-            platform_dirs.user_data_path /
-            ("wine/wine-" + self.latest_wine_version) / "bin/wine"
+            platform_dirs.user_data_path
+            / ("wine/wine-" + self.latest_wine_version)
+            / "bin/wine"
         )
 
     def dxvk_setup(self):
-        self.latest_dxvk_version = DXVK_URL.split(
-            "download/v")[1].split("/")[0]
-        self.latest_dxvk_path = (
-            platform_dirs.user_data_path /
-            ("wine/dxvk-" + self.latest_dxvk_version)
+        self.latest_dxvk_version = DXVK_URL.split("download/v")[1].split("/")[0]
+        self.latest_dxvk_path = platform_dirs.user_data_path / (
+            "wine/dxvk-" + self.latest_dxvk_version
         )
         if self.latest_dxvk_path.exists():
             if not (
-                    self.prefix_path /
-                    "drive_c/windows/system32/d3d11.dll").is_symlink():
+                self.prefix_path / "drive_c/windows/system32/d3d11.dll"
+            ).is_symlink():
                 self._dxvk_injector()
             return
 
         self.dlgDownloader.setLabelText("Downloading DXVK...")
-        latest_dxvk_path_tar = (self.latest_dxvk_path.parent /
-                                (self.latest_dxvk_path.name + ".tar.gz"))
+        latest_dxvk_path_tar = self.latest_dxvk_path.parent / (
+            self.latest_dxvk_path.name + ".tar.gz"
+        )
         if self._downloader(DXVK_URL, latest_dxvk_path_tar):
             self.dlgDownloader.reset()
             self.dlgDownloader.setLabelText("Extracting DXVK...")
@@ -167,7 +165,9 @@ class WineManagement:
             logger.error(error.reason, exc_info=True)
             show_warning_message(
                 f"There was an error downloading '{url}'. "
-                "You may want to check your network connection.", self)
+                "You may want to check your network connection.",
+                self,
+            )
             return False
 
     def _handle_download_progress(self, index, frame, size):
@@ -176,8 +176,7 @@ class WineManagement:
         self.dlgDownloader.setValue(percent)
 
     def _wine_extractor(self, path: Path):
-        path_no_suffix = path.parent / \
-            (path.with_suffix("").with_suffix(""))
+        path_no_suffix = path.parent / (path.with_suffix("").with_suffix(""))
 
         # Extracts tar.xz file
         with lzma.open(path) as file:
@@ -185,8 +184,7 @@ class WineManagement:
                 tar.extractall(path_no_suffix)
 
         # Moves files from nested directory to main one
-        source_dir = [path for path in path_no_suffix.glob("*")
-                      if path.is_dir()][0]
+        source_dir = [path for path in path_no_suffix.glob("*") if path.is_dir()][0]
         move(source_dir, platform_dirs.user_data_path / "wine")
         source_dir = platform_dirs.user_data_path / "wine" / source_dir.name
         path_no_suffix.rmdir()
@@ -201,28 +199,26 @@ class WineManagement:
                 continue
 
             if dir.name.startswith("wine") and not dir.name.endswith(
-                    self.latest_wine_version):
+                self.latest_wine_version
+            ):
                 rmtree(dir)
 
     def _dxvk_extracor(self, path: Path):
-        path_no_suffix = path.parent / \
-            (path.with_suffix("").with_suffix(""))
+        path_no_suffix = path.parent / (path.with_suffix("").with_suffix(""))
 
         # Extracts tar.gz file
         with tarfile.open(path, "r:gz") as file:
-            file.extractall(path_no_suffix.with_name(
-                path_no_suffix.name + "_TEMP"))
+            file.extractall(path_no_suffix.with_name(path_no_suffix.name + "_TEMP"))
 
         # Moves files from nested directory to main one
-        source_dir = [dir for dir in path_no_suffix.with_name(
-            path_no_suffix.name + "_TEMP").glob("*") if dir.is_dir()][0]
+        source_dir = [
+            dir
+            for dir in path_no_suffix.with_name(path_no_suffix.name + "_TEMP").glob("*")
+            if dir.is_dir()
+        ][0]
         move(
-            path_no_suffix.with_name(
-                path_no_suffix.name +
-                "_TEMP") /
-            source_dir,
-            platform_dirs.user_data_path /
-            "wine",
+            path_no_suffix.with_name(path_no_suffix.name + "_TEMP") / source_dir,
+            platform_dirs.user_data_path / "wine",
         )
         path_no_suffix.with_name(path_no_suffix.name + "_TEMP").rmdir()
 
@@ -234,18 +230,21 @@ class WineManagement:
             if not dir.is_dir():
                 continue
 
-            if str(
-                    dir.name).startswith("dxvk") and not str(
-                    dir.name).endswith(
-                    self.latest_dxvk_version):
+            if str(dir.name).startswith("dxvk") and not str(dir.name).endswith(
+                self.latest_dxvk_version
+            ):
                 rmtree(dir)
 
     def _dxvk_injector(self):
         """Adds dxvk to the wine prefix"""
         # Makes directories for dxvk dlls in case wine prefix hasn't been run
         # yet
-        (self.prefix_path / "drive_c/windows/system32").mkdir(parents=True, exist_ok=True)
-        (self.prefix_path / "drive_c/windows/syswow64").mkdir(parents=True, exist_ok=True)
+        (self.prefix_path / "drive_c/windows/system32").mkdir(
+            parents=True, exist_ok=True
+        )
+        (self.prefix_path / "drive_c/windows/syswow64").mkdir(
+            parents=True, exist_ok=True
+        )
 
         dll_list = ["dxgi.dll", "d3d10core.dll", "d3d11.dll", "d3d9.dll"]
 
@@ -266,8 +265,9 @@ class WineManagement:
         Symlinks prefix documents folder to system documents folder.path
         This is needed for Proton.
         """
-        prefix_documents_folder = self.prefix_path / \
-            "drive_c/users/steamuser/My Documents"
+        prefix_documents_folder = (
+            self.prefix_path / "drive_c/users/steamuser/My Documents"
+        )
 
         # Will assume that the user has set something else up for now if the
         # folder already exists
@@ -281,7 +281,8 @@ class WineManagement:
 
         # Make symlink to system documents folder
         platform_dirs.user_documents_path.symlink_to(
-            prefix_documents_folder, target_is_directory=True)
+            prefix_documents_folder, target_is_directory=True
+        )
 
     def setup_files(self):
         self.wine_setup()
@@ -295,8 +296,8 @@ wine_management = None
 
 
 def edit_qprocess_to_use_wine(
-        qprocess: QtCore.QProcess,
-        wine_env: WineEnvironment) -> None:
+    qprocess: QtCore.QProcess, wine_env: WineEnvironment
+) -> None:
     """Reconfigures QProcess to use WINE. The program and arguments must be pre-set!"""
     processEnvironment = QtCore.QProcessEnvironment.systemEnvironment()
 
@@ -324,8 +325,7 @@ def edit_qprocess_to_use_wine(
         processEnvironment.insert("WINEFSYNC", "1")
 
         # Adds dll overrides for DirectX, so DXVK is used instead of wine3d
-        processEnvironment.insert(
-            "WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10=n")
+        processEnvironment.insert("WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10=n")
     else:
         prefix_path = wine_env.user_prefix_path
         wine_path = wine_env.user_wine_executable_path
@@ -333,8 +333,7 @@ def edit_qprocess_to_use_wine(
     processEnvironment.insert("WINEPREFIX", str(prefix_path))
 
     if wine_env.debug_level:
-        processEnvironment.insert(
-            "WINEDEBUG", wine_env.debug_level)
+        processEnvironment.insert("WINEDEBUG", wine_env.debug_level)
 
     # Move current program to arguments and replace it with WINE.
     qprocess.setArguments([qprocess.program()] + qprocess.arguments())

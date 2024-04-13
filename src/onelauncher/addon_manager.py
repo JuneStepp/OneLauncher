@@ -1,4 +1,3 @@
-# coding=utf-8
 ###########################################################################
 # Main window for OneLauncher.
 #
@@ -34,7 +33,6 @@ from pathlib import Path
 from shutil import copy, copytree, move, rmtree
 from tempfile import TemporaryDirectory
 from time import localtime, strftime
-from typing import List, Optional, Tuple
 from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minidom import Document, Element  # nosec
 
@@ -42,12 +40,10 @@ import defusedxml.minidom
 from PySide6 import QtCore, QtGui, QtWidgets
 from vkbeautify import xml as prettify_xml
 
-from . import games_sorted
 from .__about__ import __title__
 from .addons.startup_script import StartupScript
 from .config_old import platform_dirs
-from .config_old.games.addons import (get_addons_manager_from_game,
-                                  save_addons_manager)
+from .config_old.games.addons import get_addons_manager_from_game, save_addons_manager
 from .game import Game, GameType
 from .ui.addon_manager_uic import Ui_winAddonManager
 from .ui_resources import icon_font
@@ -87,18 +83,14 @@ class AddonManagerWindow(QtWidgets.QDialog):
     MUSIC_URL = "https://api.lotrointerface.com/fav/OneLauncher-Music.xml"
     SKINS_DDO_URL = "https://api.lotrointerface.com/fav/OneLauncher-Themes-DDO.xml"
 
-    def __init__(
-        self, game: Game
-    ):
-        super(
-            AddonManagerWindow,
-            self).__init__(
+    def __init__(self, game: Game):
+        super(AddonManagerWindow, self).__init__(
             QtCore.QCoreApplication.instance().activeWindow(),
-            QtCore.Qt.WindowType.FramelessWindowHint)
+            QtCore.Qt.WindowType.FramelessWindowHint,
+        )
 
         self.game = game
-        self.addons_manager = get_addons_manager_from_game(
-            self.game)
+        self.addons_manager = get_addons_manager_from_game(self.game)
         self.ui = Ui_winAddonManager()
         self.ui.setupUi(self)
 
@@ -116,11 +108,8 @@ class AddonManagerWindow(QtWidgets.QDialog):
         self.installed_addons_color = QtGui.QColor()
         self.installed_addons_color.setRgb(63, 73, 83)
 
-        self.setContextMenuPolicy(
-            QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
-        self.customContextMenuRequested.connect(
-            self.contextMenuRequested
-        )
+        self.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.contextMenuRequested)
         self.ui.actionShowOnLotrointerface.triggered.connect(
             self.actionShowOnLotrointerfaceSelected
         )
@@ -128,57 +117,39 @@ class AddonManagerWindow(QtWidgets.QDialog):
         self.ui.btnBox.rejected.connect(self.btnBoxActivated)
 
         self.ui.btnAddonsMenu = QtWidgets.QMenu()
-        self.ui.btnAddonsMenu.addAction(
-            self.ui.actionAddonImport
-        )
-        self.ui.btnAddonsMenu.addAction(
-            self.ui.actionShowSelectedOnLotrointerface
-        )
-        self.ui.actionAddonImport.triggered.connect(
-            self.actionAddonImportSelected
-        )
+        self.ui.btnAddonsMenu.addAction(self.ui.actionAddonImport)
+        self.ui.btnAddonsMenu.addAction(self.ui.actionShowSelectedOnLotrointerface)
+        self.ui.actionAddonImport.triggered.connect(self.actionAddonImportSelected)
         self.ui.actionShowSelectedOnLotrointerface.triggered.connect(
             self.showSelectedOnLotrointerface
         )
         self.ui.actionShowAddonInFileManager.triggered.connect(
             self.actionShowAddonInFileManagerSelected
         )
-        self.ui.btnAddonsMenu.addAction(
-            self.ui.actionShowPluginsFolderInFileManager
-        )
+        self.ui.btnAddonsMenu.addAction(self.ui.actionShowPluginsFolderInFileManager)
         self.ui.actionShowPluginsFolderInFileManager.triggered.connect(
             self.actionShowPluginsFolderSelected
         )
-        self.ui.btnAddonsMenu.addAction(
-            self.ui.actionShowSkinsFolderInFileManager
-        )
+        self.ui.btnAddonsMenu.addAction(self.ui.actionShowSkinsFolderInFileManager)
         self.ui.actionShowSkinsFolderInFileManager.triggered.connect(
             self.actionShowSkinsFolderSelected
         )
-        self.ui.btnAddonsMenu.addAction(
-            self.ui.actionShowMusicFolderInFileManager
-        )
+        self.ui.btnAddonsMenu.addAction(self.ui.actionShowMusicFolderInFileManager)
         self.ui.actionShowMusicFolderInFileManager.triggered.connect(
             self.actionShowMusicFolderSelected
         )
-        self.ui.btnAddonsMenu.addAction(
-            self.ui.actionUpdateAllSelectedAddons
-        )
+        self.ui.btnAddonsMenu.addAction(self.ui.actionUpdateAllSelectedAddons)
         self.ui.actionUpdateAllSelectedAddons.triggered.connect(
             self.updateAllSelectedAddons
         )
 
         self.updateAddonFolderActions(0)
 
-        self.ui.actionInstallAddon.triggered.connect(
-            self.actionInstallAddonSelected
-        )
+        self.ui.actionInstallAddon.triggered.connect(self.actionInstallAddonSelected)
         self.ui.actionUninstallAddon.triggered.connect(
             self.actionUninstallAddonSelected
         )
-        self.ui.actionUpdateAddon.triggered.connect(
-            self.actionUpdateAddonSelected
-        )
+        self.ui.actionUpdateAddon.triggered.connect(self.actionUpdateAddonSelected)
 
         self.ui.actionEnableStartupScript.triggered.connect(
             self.actionEnableStartupScriptSelected
@@ -189,33 +160,25 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
         self.ui.btnCheckForUpdates.setFont(icon_font)
         self.ui.btnCheckForUpdates.setText("\uf2f1")
-        self.ui.btnCheckForUpdates.pressed.connect(
-            self.checkForUpdates)
+        self.ui.btnCheckForUpdates.pressed.connect(self.checkForUpdates)
         self.ui.btnUpdateAll.pressed.connect(self.updateAll)
 
-        self.ui.btnAddons.setMenu(
-            self.ui.btnAddonsMenu)
+        self.ui.btnAddons.setMenu(self.ui.btnAddonsMenu)
         self.ui.btnAddons.clicked.connect(self.btnAddonsClicked)
         self.ui.btnAddons.setFont(icon_font)
         self.ui.btnAddons.setText("\uf068")
 
-        self.ui.tabWidget.currentChanged.connect(
-            self.tabWidgetIndexChanged
-        )
+        self.ui.tabWidget.currentChanged.connect(self.tabWidgetIndexChanged)
         self.ui.tabWidgetInstalled.currentChanged.connect(
             self.tabWidgetInstalledIndexChanged
         )
-        self.ui.tabWidgetRemote.currentChanged.connect(
-            self.tabWidgetRemoteIndexChanged
-        )
+        self.ui.tabWidgetRemote.currentChanged.connect(self.tabWidgetRemoteIndexChanged)
 
         self.ui.txtLog.hide()
         self.ui.btnLog.clicked.connect(self.btnLogClicked)
 
         self.ui.txtSearchBar.setFocus()
-        self.ui.txtSearchBar.textChanged.connect(
-            self.txtSearchBarTextChanged
-        )
+        self.ui.txtSearchBar.textChanged.connect(self.txtSearchBarTextChanged)
 
         for table in self.TABLE_LIST[:-2]:
             # Gets callable form from the string
@@ -233,9 +196,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         if self.game.game_type == GameType.DDO:
             self.data_folder_skins = self.data_folder / "ui/skins"
 
-            self.ui.tableSkinsInstalled.setObjectName(
-                "tableSkinsDDOInstalled"
-            )
+            self.ui.tableSkinsInstalled.setObjectName("tableSkinsDDOInstalled")
             self.ui.tableSkins.setObjectName("tableSkinsDDO")
             self.getInstalledSkins()
         else:
@@ -246,7 +207,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             # Loads in installed plugins
             self.getInstalledPlugins()
 
-    def getInstalledSkins(self, folders_list: Optional[List[Path]] = None):
+    def getInstalledSkins(self, folders_list: list[Path] | None = None):
         if self.isTableEmpty(self.ui.tableSkinsInstalled):
             folders_list = None
 
@@ -254,7 +215,8 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
         if not folders_list:
             folders_list = [
-                path for path in self.data_folder_skins.glob("*") if path.is_dir()]
+                path for path in self.data_folder_skins.glob("*") if path.is_dir()
+            ]
 
         skins_list = []
         skins_list_compendium = []
@@ -269,9 +231,8 @@ class AddonManagerWindow(QtWidgets.QDialog):
         self.addInstalledSkinsToDB(skins_list, skins_list_compendium)
 
     def addInstalledSkinsToDB(
-            self,
-            skins_list: List[Path],
-            skins_list_compendium: List[Path]):
+        self, skins_list: list[Path], skins_list_compendium: list[Path]
+    ):
         table = self.ui.tableSkinsInstalled
 
         # Clears rows from db table if needed (This function is called to add
@@ -300,7 +261,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         # Populate user visible table
         self.reloadSearch(self.ui.tableSkinsInstalled)
 
-    def getInstalledMusic(self, folders_list: Optional[List[Path]] = None):
+    def getInstalledMusic(self, folders_list: list[Path] | None = None):
         if self.isTableEmpty(self.ui.tableMusicInstalled):
             folders_list = None
 
@@ -308,7 +269,8 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
         if not folders_list:
             folders_list = [
-                path for path in self.data_folder_music.glob("*") if path.is_dir()]
+                path for path in self.data_folder_music.glob("*") if path.is_dir()
+            ]
 
         music_list = []
         music_list_compendium = []
@@ -316,9 +278,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             music_list.append(folder)
             for file in folder.iterdir():
                 if file.suffix == ".musiccompendium":
-                    music_list_compendium.append(
-                        folder / file
-                    )
+                    music_list_compendium.append(folder / file)
                     music_list.remove(folder)
                     break
 
@@ -328,7 +288,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
         self.addInstalledMusicToDB(music_list, music_list_compendium)
 
-    def parse_abc_file(self, abc_path: Path) -> Tuple[str, str]:
+    def parse_abc_file(self, abc_path: Path) -> tuple[str, str]:
         with abc_path.open() as file:
             song_name = ""
             author = ""
@@ -338,17 +298,14 @@ class AddonManagerWindow(QtWidgets.QDialog):
                     song_name = line[3:]
                 if line.startswith("Z: "):
                     author = (
-                        line[18:]
-                        if line.startswith("Z: Transcribed by ")
-                        else line[3:]
+                        line[18:] if line.startswith("Z: Transcribed by ") else line[3:]
                     )
 
             return song_name, author
 
     def addInstalledMusicToDB(
-            self,
-            music_list: List[Path],
-            music_list_compendium: List[Path]):
+        self, music_list: list[Path], music_list_compendium: list[Path]
+    ):
         table = self.ui.tableMusicInstalled
 
         # Clears rows from db table if needed (This function is called
@@ -378,7 +335,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         # Populate user visible table
         self.reloadSearch(table)
 
-    def getInstalledPlugins(self, folders_list: Optional[List[Path]] = None):
+    def getInstalledPlugins(self, folders_list: list[Path] | None = None):
         if self.isTableEmpty(self.ui.tablePluginsInstalled):
             folders_list = None
 
@@ -386,7 +343,8 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
         if not folders_list:
             folders_list = [
-                path for path in self.data_folder_plugins.glob("*") if path.is_dir()]
+                path for path in self.data_folder_plugins.glob("*") if path.is_dir()
+            ]
 
         # Finds all plugins and adds their .plugincompendium files to a list
         plugins_list_compendium = []
@@ -400,16 +358,15 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 elif file.suffix == ".plugin":
                     plugins_list.append(file)
 
-        self.removeManagedPluginsFromList(
-            plugins_list, plugins_list_compendium
-        )
+        self.removeManagedPluginsFromList(plugins_list, plugins_list_compendium)
 
         self.addInstalledPluginsToDB(plugins_list, plugins_list_compendium)
 
     def removeManagedPluginsFromList(
-            self,
-            plugin_files: List[CaseInsensitiveAbsolutePath],
-            compendium_files: List[CaseInsensitiveAbsolutePath]) -> None:
+        self,
+        plugin_files: list[CaseInsensitiveAbsolutePath],
+        compendium_files: list[CaseInsensitiveAbsolutePath],
+    ) -> None:
         """Removes plugin files from plugin_files that aren't managed by a compendium file"""
         for compendium_file in compendium_files:
             doc = defusedxml.minidom.parse(str(compendium_file))
@@ -417,23 +374,25 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
             for node in nodes:
                 if node.nodeName == "descriptor":
-                    descriptor_path = self.data_folder_plugins / \
-                        (GetText(node.childNodes).replace("\\", "/"))
+                    descriptor_path = self.data_folder_plugins / (
+                        GetText(node.childNodes).replace("\\", "/")
+                    )
 
                     # Remove descriptor plugin file from plugin_files
                     descriptor_plugin_files = [
-                        file for file in plugin_files if file == descriptor_path]
+                        file for file in plugin_files if file == descriptor_path
+                    ]
                     for file in descriptor_plugin_files:
                         plugin_files.remove(file)
 
                     if not descriptor_path.exists():
-                        self.addLog(
-                            f"{compendium_file} has misconfigured descriptors")
+                        self.addLog(f"{compendium_file} has misconfigured descriptors")
 
     def addInstalledPluginsToDB(
-            self,
-            plugin_files: List[CaseInsensitiveAbsolutePath],
-            compendium_files: List[CaseInsensitiveAbsolutePath]):
+        self,
+        plugin_files: list[CaseInsensitiveAbsolutePath],
+        compendium_files: list[CaseInsensitiveAbsolutePath],
+    ):
         table = self.ui.tablePluginsInstalled
 
         # Clears rows from db table if needed (This function is called to
@@ -463,7 +422,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 dependencies = dependencies + "," + (GetText(node.childNodes))
         return dependencies[1:]
 
-    def parseCompendiumFile(self, file: Path, tag: str) -> List[str]:
+    def parseCompendiumFile(self, file: Path, tag: str) -> list[str]:
         """Returns list of common values for compendium or .plugin files"""
         items_row = [""] * (len(self.COLUMN_LIST) - 1)
 
@@ -487,9 +446,8 @@ class AddonManagerWindow(QtWidgets.QDialog):
         return items_row
 
     def getOnlineAddonInfo(
-            self,
-            items_row: List[str],
-            remote_addons_table: str) -> List[str]:
+        self, items_row: list[str], remote_addons_table: str
+    ) -> list[str]:
         for info in self.c.execute(
             "SELECT Category, LatestRelease FROM {table} WHERE InterfaceID == ?".format(  # nosec
                 table=remote_addons_table
@@ -536,7 +494,8 @@ class AddonManagerWindow(QtWidgets.QDialog):
         for column_data in self.c.execute(
             "SELECT m.name as tableName, p.name as columnName FROM sqlite_master"
             " m left outer join pragma_table_info((m.name)) p on m.name <>"
-                " p.name ORDER BY tableName, columnName"):
+            " p.name ORDER BY tableName, columnName"
+        ):
             # Ignore tables without actual information
             if column_data[0].endswith(
                 ("_idx", "_docsize", "_data", "_content", "_config")
@@ -590,7 +549,8 @@ class AddonManagerWindow(QtWidgets.QDialog):
                     clmG=self.COLUMN_LIST[7],
                     clmH=self.COLUMN_LIST[8],
                     clmI=self.COLUMN_LIST[9],
-                ))
+                )
+            )
 
     def closeDB(self):
         self.conn.commit()
@@ -623,7 +583,8 @@ class AddonManagerWindow(QtWidgets.QDialog):
             self.addLog(
                 f"{__title__} does not support .rar archives, because it"
                 " is a proprietary format that would require and external "
-                "program to extract")
+                "program to extract"
+            )
             return
         elif addon_path.suffix == ".zip":
             self.installZipAddon(addon_path, interface_id)
@@ -658,14 +619,11 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
             for path in tmp_dir.glob("**/*.*"):
                 if path.suffix == ".plugin":
-                    self.install_plugin(
-                        tmp_dir, interface_id)
+                    self.install_plugin(tmp_dir, interface_id)
                     return
                 elif path.suffix == ".abc":
                     if (
-                        self.install_music(
-                            tmp_dir, interface_id, addon_path.stem
-                        )
+                        self.install_music(tmp_dir, interface_id, addon_path.stem)
                         is False
                     ):
                         continue
@@ -686,8 +644,10 @@ class AddonManagerWindow(QtWidgets.QDialog):
         # Filter out common dependency folder names
         # that are sometimes included with plugins.
         filtered_author_folders = [
-            folder for folder in author_folders if folder.name.lower() not in [
-                "turbine", "turbineplugins"]]
+            folder
+            for folder in author_folders
+            if folder.name.lower() not in ["turbine", "turbineplugins"]
+        ]
         # Use non-filtered author folders if there are no author
         # folders left after filtering.
         # Ex. When installing the filtered libraries standalone.
@@ -702,8 +662,8 @@ class AddonManagerWindow(QtWidgets.QDialog):
             # The most likely author folder is where a
             # .plugincompendium file is.
             author_folders_compendium = [
-                dir for dir in author_folders if list(
-                    dir.glob("*.plugincompendium"))]
+                dir for dir in author_folders if list(dir.glob("*.plugincompendium"))
+            ]
             if author_folders_compendium:
                 author_folder = author_folders_compendium[0]
             else:
@@ -711,13 +671,14 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 # .plugin files are. Dependencies may also
                 # have .plugin files though.
                 author_folders_plugin = [
-                    dir for dir in author_folders if list(
-                        dir.glob("*.plugin"))]
+                    dir for dir in author_folders if list(dir.glob("*.plugin"))
+                ]
                 if author_folders_plugin:
                     author_folder = author_folders_plugin[0]
                 else:
-                    self.addLog("Plugin doesn't have an author folder"
-                                " with a .plugin file.")
+                    self.addLog(
+                        "Plugin doesn't have an author folder" " with a .plugin file."
+                    )
                     return
         else:
             author_folder = author_folders[0]
@@ -726,8 +687,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         # will be ignored by both me and the game.
         plugin_files = list(author_folder.glob("*.plugin"))
 
-        existing_compendium_file = self.get_existing_compendium_file(
-            author_folder)
+        existing_compendium_file = self.get_existing_compendium_file(author_folder)
         if existing_compendium_file is False:
             return
 
@@ -753,20 +713,17 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
         # Move plugin from temp directory to actual plugins directory
         for path in tmp_dir.glob("*"):
-            copytree(path, self.data_folder_plugins /
-                     path.name, dirs_exist_ok=True)
+            copytree(path, self.data_folder_plugins / path.name, dirs_exist_ok=True)
 
         # Make plugin and compendium file paths point to their new location
         plugin_files = [
-            self.data_folder_plugins /
-            str(file).replace(
-                str(tmp_dir),
-                "").strip("/") for file in plugin_files]
+            self.data_folder_plugins / str(file).replace(str(tmp_dir), "").strip("/")
+            for file in plugin_files
+        ]
         compendium_files = [
-            self.data_folder_plugins /
-            str(file).replace(
-                str(tmp_dir),
-                "").strip("/") for file in compendium_files]
+            self.data_folder_plugins / str(file).replace(str(tmp_dir), "").strip("/")
+            for file in compendium_files
+        ]
 
         self.removeManagedPluginsFromList(plugin_files, compendium_files)
 
@@ -776,10 +733,10 @@ class AddonManagerWindow(QtWidgets.QDialog):
         logger.info(
             "Installed addon corresponding to "
             f"{plugin_files} )"
-            f"{compendium_files}")
+            f"{compendium_files}"
+        )
 
-        self.installAddonRemoteDependencies(
-            table.objectName() + "Installed")
+        self.installAddonRemoteDependencies(table.objectName() + "Installed")
 
     def get_existing_compendium_file(self, tmp_search_dir: Path):
         """Return existing compendium file, None, or False
@@ -791,11 +748,9 @@ class AddonManagerWindow(QtWidgets.QDialog):
                                    has been extracted to or compendium files
                                    from other addons will be detected.
         """
-        existing_compendium_files = list(
-            tmp_search_dir.glob("*.*compendium"))
+        existing_compendium_files = list(tmp_search_dir.glob("*.*compendium"))
         if len(existing_compendium_files) > 1:
-            self.addLog(
-                f"Addon has multiple compendium files.")
+            self.addLog("Addon has multiple compendium files.")
             return False
         elif len(existing_compendium_files) == 1:
             return existing_compendium_files[0]
@@ -820,12 +775,15 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
         if interface_id:
             self.generateCompendiumFile(
-                root_dir, interface_id, "Music", table.objectName(),
-                existing_compendium_file)
+                root_dir,
+                interface_id,
+                "Music",
+                table.objectName(),
+                existing_compendium_file,
+            )
 
         # Move the addon into the real data folder
-        copytree(root_dir, self.data_folder_music /
-                 root_dir.name, dirs_exist_ok=True)
+        copytree(root_dir, self.data_folder_music / root_dir.name, dirs_exist_ok=True)
         root_dir = self.data_folder_music / root_dir.name
 
         self.getInstalledMusic(folders_list=[root_dir])
@@ -851,11 +809,11 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 interface_id,
                 "Skin",
                 table.objectName(),
-                existing_compendium_file)
+                existing_compendium_file,
+            )
 
         # Move the addon into the real data folder
-        copytree(root_dir, self.data_folder_skins /
-                 root_dir.name, dirs_exist_ok=True)
+        copytree(root_dir, self.data_folder_skins / root_dir.name, dirs_exist_ok=True)
         root_dir = self.data_folder_skins / root_dir.name
 
         self.getInstalledSkins(folders_list=[root_dir])
@@ -886,17 +844,14 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 for item in self.c.execute(  # nosec
                     "SELECT File, Name FROM {table} WHERE InterfaceID = ? AND InterfaceID NOT IN "
                     "(SELECT InterfaceID FROM {table_installed})".format(
-                        table=table.split("Installed")[
-                            0], table_installed=table,
+                        table=table.split("Installed")[0],
+                        table_installed=table,
                     ),
                     (dependency,),
                 ):
                     self.installRemoteAddon(item[0], item[1], dependency)
 
-    def fix_improper_root_dir_addon(
-            self,
-            addon_tmp_dir: Path,
-            addon_name: str) -> Path:
+    def fix_improper_root_dir_addon(self, addon_tmp_dir: Path, addon_name: str) -> Path:
         """Moves addon to new folder if the top of the directory tree
            is anything but one folder and no files. This should only be
            used for skins and music.
@@ -961,8 +916,10 @@ class AddonManagerWindow(QtWidgets.QDialog):
             while True:
                 invalid_dir = None
                 for potential_invalid_path in addon_dir.glob("*"):
-                    if (potential_invalid_path.is_dir() and
-                            potential_invalid_path.name in invalid_folder_names):
+                    if (
+                        potential_invalid_path.is_dir()
+                        and potential_invalid_path.name in invalid_folder_names
+                    ):
                         invalid_dir = potential_invalid_path
                         # Move everything from the invalid directory to a temporary one.
                         # This is done to prevent issues when a folder in the invalid folder
@@ -982,12 +939,13 @@ class AddonManagerWindow(QtWidgets.QDialog):
                     break
 
     def generateCompendiumFile(
-            self,
-            tmp_addon_root_dir: Path,
-            interface_id: str,
-            addon_type: str,
-            table: str,
-            existing_compendium_file: Path = None):
+        self,
+        tmp_addon_root_dir: Path,
+        interface_id: str,
+        addon_type: str,
+        table: str,
+        existing_compendium_file: Path = None,
+    ):
         """Generate compendium file for addon. If there is an existing one
            data that can only be gotten from it will be gathered and put
            in the new file. The old one will be removed.
@@ -1018,11 +976,13 @@ class AddonManagerWindow(QtWidgets.QDialog):
             existing_compendium_file.unlink()
 
         for row in self.c.execute(
-                f"SELECT * FROM {table} WHERE InterfaceID = ?", (interface_id,)):  # nosec
+            f"SELECT * FROM {table} WHERE InterfaceID = ?", (interface_id,)
+        ):  # nosec
             if row[0]:
                 doc = Document()
                 mainNode = doc.createElementNS(
-                    EMPTY_NAMESPACE, addon_type.title() + "Config")
+                    EMPTY_NAMESPACE, addon_type.title() + "Config"
+                )
                 doc.appendChild(mainNode)
 
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Id")
@@ -1043,8 +1003,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "InfoUrl")
                 tempNode.appendChild(
-                    doc.createTextNode(
-                        "%s" % (self.getInterfaceInfoUrl(row[5])))
+                    doc.createTextNode("%s" % (self.getInterfaceInfoUrl(row[5])))
                 )
                 mainNode.appendChild(tempNode)
 
@@ -1059,29 +1018,26 @@ class AddonManagerWindow(QtWidgets.QDialog):
                     )
                     mainNode.appendChild(descriptorsNode)
                     for plugin_file in tmp_addon_root_dir.glob("*.plugin"):
-                        tempNode = doc.createElementNS(
-                            EMPTY_NAMESPACE, "descriptor"
-                        )
+                        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "descriptor")
                         tempNode.appendChild(
                             doc.createTextNode(
-                                "%s" %
-                                (f"{tmp_addon_root_dir.name}\\{plugin_file.name}")))
+                                "%s"
+                                % (f"{tmp_addon_root_dir.name}\\{plugin_file.name}")
+                            )
+                        )
                         descriptorsNode.appendChild(tempNode)
 
                 # Can't add dependencies, because they are defined in
                 # compendium files
-                dependenciesNode = doc.createElementNS(
-                    EMPTY_NAMESPACE, "Dependencies")
+                dependenciesNode = doc.createElementNS(EMPTY_NAMESPACE, "Dependencies")
                 mainNode.appendChild(dependenciesNode)
 
                 # If compendium file from add-on already existed with
                 # dependencies
                 if dependencies:
                     for dependency in dependencies.split(","):
-                        tempNode = doc.createElementNS(
-                            EMPTY_NAMESPACE, "dependency")
-                        tempNode.appendChild(
-                            doc.createTextNode("%s" % (dependency)))
+                        tempNode = doc.createElementNS(EMPTY_NAMESPACE, "dependency")
+                        tempNode.appendChild(doc.createTextNode("%s" % (dependency)))
                         dependenciesNode.appendChild(tempNode)
 
                 # Can't add startup script, because it is defined in compendium
@@ -1098,8 +1054,9 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 mainNode.appendChild(startupScriptNode)
 
                 # Write compendium file
-                compendium_file = tmp_addon_root_dir / \
-                    f"{row[0]}.{addon_type.lower()}compendium"
+                compendium_file = (
+                    tmp_addon_root_dir / f"{row[0]}.{addon_type.lower()}compendium"
+                )
                 with compendium_file.open("w+") as file:
                     pretty_xml = prettify_xml(doc.toxml())
                     file.write(pretty_xml)
@@ -1122,16 +1079,13 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
                 # If in PluginsInstalled tab
                 if index_installed == 0:
-                    self.searchDB(
-                        self.ui.tablePluginsInstalled, text)
+                    self.searchDB(self.ui.tablePluginsInstalled, text)
                 # If in SkinsInstalled tab
                 elif index_installed == 1:
-                    self.searchDB(
-                        self.ui.tableSkinsInstalled, text)
+                    self.searchDB(self.ui.tableSkinsInstalled, text)
                 # If in MusicInstalled tab
                 elif index_installed == 2:
-                    self.searchDB(
-                        self.ui.tableMusicInstalled, text)
+                    self.searchDB(self.ui.tableMusicInstalled, text)
             # If in Find More tab
             elif self.ui.tabWidget.currentIndex() == 1:
                 index_remote = self.ui.tabWidgetRemote.currentIndex()
@@ -1169,7 +1123,8 @@ class AddonManagerWindow(QtWidgets.QDialog):
                     # Detects duplicates from multi-word search
                     duplicate = False
                     for item in table.findItems(
-                            row[1], QtCore.Qt.MatchFlag.MatchExactly):
+                        row[1], QtCore.Qt.MatchFlag.MatchExactly
+                    ):
                         if int((table.item(item.row(), 0)).text()) == row[0]:
                             duplicate = True
                             break
@@ -1193,9 +1148,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
     def resetRemoteAddonsTables(self):
         for i in range(self.ui.tabWidgetRemote.count()):
             tab = self.ui.tabWidgetRemote.widget(i)
-            table = getattr(
-                self.ui, tab.objectName().replace("tab", "table")
-            )
+            table = getattr(self.ui, tab.objectName().replace("tab", "table"))
             if not self.isTableEmpty(table):
                 self.searchDB(table, "")
 
@@ -1204,7 +1157,10 @@ class AddonManagerWindow(QtWidgets.QDialog):
             "UPDATE {table} SET Name = ? WHERE InterfaceID == ?".format(  # nosec
                 table=remote_table.objectName()
             ),
-            (addon[2], addon[0],),
+            (
+                addon[2],
+                addon[0],
+            ),
         )
 
         # Removes indicator that a new version of an installed addon is out if present.
@@ -1213,8 +1169,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         self.c.execute(
             # nosec
             "UPDATE {table} SET Version = REPLACE(Version,'(Updated) ', '') WHERE "
-            "Version LIKE '(Updated) %'".format(
-                table=remote_table.objectName())
+            "Version LIKE '(Updated) %'".format(table=remote_table.objectName())
         )
 
     def setRemoteAddonToInstalled(self, addon, remote_table):
@@ -1222,7 +1177,10 @@ class AddonManagerWindow(QtWidgets.QDialog):
             "UPDATE {table} SET Name = ? WHERE InterfaceID == ?".format(  # nosec
                 table=remote_table.objectName()
             ),
-            ("(Installed) " + addon[2], addon[0],),
+            (
+                "(Installed) " + addon[2],
+                addon[0],
+            ),
         )
 
     # Adds row to a visible table. First value in list is row name
@@ -1290,8 +1248,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
     def addLog(self, message):
         self.ui.lblErrors.setText(
-            "Errors: " +
-            str(int(self.ui.lblErrors.text()[-1]) + 1)
+            "Errors: " + str(int(self.ui.lblErrors.text()[-1]) + 1)
         )
         logger.warning(message)
         self.ui.txtLog.append(message + "\n")
@@ -1366,8 +1323,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
                     table = self.ui.tableMusic
         else:
             raise IndexError(
-                str(self.ui.tabWidget.currentIndex())
-                + " isn't valid main tab index"
+                str(self.ui.tabWidget.currentIndex()) + " isn't valid main tab index"
             )
 
         return table
@@ -1391,8 +1347,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             else:
                 plural, plural1 = "these ", " addons?"
             text = (
-                "Are you sure you want to remove " +
-                plural + str(len(addons)) + plural1
+                "Are you sure you want to remove " + plural + str(len(addons)) + plural1
             )
             if self.confirmationPrompt(text, details):
                 return True, addons
@@ -1407,7 +1362,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         selected_addons = []
         details = ""
         # Column count is minus one because of hidden ID column
-        for item in table.selectedItems()[0:: (table.columnCount() - 1)]:
+        for item in table.selectedItems()[0 :: (table.columnCount() - 1)]:
             # Gets db row id for selected row
             selected_row = int((table.item(item.row(), 0)).text())
 
@@ -1432,17 +1387,16 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 plugin_files = []
                 if self.checkAddonForDependencies(plugin, table):
                     doc = defusedxml.minidom.parse(plugin[1])
-                    nodes = doc.getElementsByTagName(
-                        "Descriptors")[0].childNodes
+                    nodes = doc.getElementsByTagName("Descriptors")[0].childNodes
                     for node in nodes:
                         if node.nodeName == "descriptor":
                             plugin_files.append(
-                                self.data_folder_plugins /
-                                (GetText(node.childNodes).replace("\\", "/")))
+                                self.data_folder_plugins
+                                / (GetText(node.childNodes).replace("\\", "/"))
+                            )
 
                     # Check for startup scripts to remove them
-                    nodes = doc.getElementsByTagName(
-                        "PluginConfig")[0].childNodes
+                    nodes = doc.getElementsByTagName("PluginConfig")[0].childNodes
                     for node in nodes:
                         if node.nodeName == "StartupScript":
                             script = GetText(node.childNodes)
@@ -1458,8 +1412,9 @@ class AddonManagerWindow(QtWidgets.QDialog):
                     nodes = doc.getElementsByTagName("Plugin")[0].childNodes
                     for node in nodes:
                         if node.nodeName == "Package":
-                            plugin_folder = (self.data_folder_plugins / (
-                                "/".join(GetText(node.childNodes).split(".")[0:2])))
+                            plugin_folder = self.data_folder_plugins / (
+                                "/".join(GetText(node.childNodes).split(".")[0:2])
+                            )
 
                             # Removes plugin and all related files
                             if plugin_folder.exists():
@@ -1475,8 +1430,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
             logger.info(f"{plugin} plugin uninstalled")
 
-            self.setRemoteAddonToUninstalled(
-                plugin, self.ui.tablePlugins)
+            self.setRemoteAddonToUninstalled(plugin, self.ui.tablePlugins)
 
         # Reloads plugins
         table.clearContents()
@@ -1487,8 +1441,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             if skin[1].endswith(".skincompendium"):
                 skin_path = Path(skin[1]).parent
 
-                items_row = self.parseCompendiumFile(
-                    Path(skin[1]), "SkinConfig")
+                items_row = self.parseCompendiumFile(Path(skin[1]), "SkinConfig")
                 script = items_row[8]
                 self.uninstallStartupScript(script, self.data_folder_skins)
             else:
@@ -1497,8 +1450,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
             logger.info(f"{skin} skin uninstalled")
 
-            self.setRemoteAddonToUninstalled(
-                skin, self.ui.tableSkins)
+            self.setRemoteAddonToUninstalled(skin, self.ui.tableSkins)
 
         # Reloads skins
         table.clearContents()
@@ -1509,8 +1461,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             if music[1].endswith(".musiccompendium"):
                 music_path = Path(music[1]).parent
 
-                items_row = self.parseCompendiumFile(
-                    Path(music[1]), "MusicConfig")
+                items_row = self.parseCompendiumFile(Path(music[1]), "MusicConfig")
                 script = items_row[8]
                 self.uninstallStartupScript(script, self.data_folder_music)
             else:
@@ -1523,8 +1474,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
             logger.info(f"{music} music uninstalled")
 
-            self.setRemoteAddonToUninstalled(
-                music, self.ui.tableMusic)
+            self.setRemoteAddonToUninstalled(music, self.ui.tableMusic)
 
         # Reloads music
         table.clearContents()
@@ -1563,7 +1513,8 @@ class AddonManagerWindow(QtWidgets.QDialog):
         messageBox.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
         messageBox.setIcon(QtWidgets.QMessageBox.Icon.Question)
         messageBox.setStandardButtons(
-            messageBox.StandardButton.Apply | messageBox.StandardButton.Cancel)
+            messageBox.StandardButton.Apply | messageBox.StandardButton.Cancel
+        )
 
         messageBox.setInformativeText(text)
         messageBox.setDetailedText(details)
@@ -1573,7 +1524,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
     def searchSearchBarContents(self):
         """
-            Used to re-search users' search when new tabs are selected
+        Used to re-search users' search when new tabs are selected
         """
         user_search = self.ui.txtSearchBar.text()
         self.txtSearchBarTextChanged(user_search)
@@ -1619,10 +1570,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             self.updateAddonFolderActions(index_remote)
 
             # Populates remote addons tables if not done already
-            if (
-                self.isTableEmpty(self.ui.tableSkins)
-                and self.loadRemoteAddons()
-            ):
+            if self.isTableEmpty(self.ui.tableSkins) and self.loadRemoteAddons():
                 self.getOutOfDateAddons()
 
         self.searchSearchBarContents()
@@ -1631,18 +1579,12 @@ class AddonManagerWindow(QtWidgets.QDialog):
         if self.game.game_type == GameType.LOTRO:
             # Only keep loading remote add-ons if the first load doesn't run
             # into issues
-            if self.getRemoteAddons(
-                self.PLUGINS_URL, self.ui.tablePlugins
-            ):
-                self.getRemoteAddons(
-                    self.SKINS_URL, self.ui.tableSkins)
-                self.getRemoteAddons(
-                    self.MUSIC_URL, self.ui.tableMusic)
+            if self.getRemoteAddons(self.PLUGINS_URL, self.ui.tablePlugins):
+                self.getRemoteAddons(self.SKINS_URL, self.ui.tableSkins)
+                self.getRemoteAddons(self.MUSIC_URL, self.ui.tableMusic)
                 return True
         else:
-            if self.getRemoteAddons(
-                self.SKINS_DDO_URL, self.ui.tableSkins
-            ):
+            if self.getRemoteAddons(self.SKINS_DDO_URL, self.ui.tableSkins):
                 return True
 
     def getRemoteAddons(self, favorites_url, table):
@@ -1660,8 +1602,13 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 installed_IDs.append(ID[0])
 
         try:
-            addons_file = urllib.request.urlopen(  # nosec
-                favorites_url).read().decode()
+            addons_file = (
+                urllib.request.urlopen(  # nosec
+                    favorites_url
+                )
+                .read()
+                .decode()
+            )
         except (urllib.error.URLError, urllib.error.HTTPError) as error:
             logger.error(error.reason, exc_info=True)
             self.addLog(
@@ -1679,8 +1626,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 if node.nodeName == "UIName":
                     items_row[0] = GetText(node.childNodes)
                     # Sanitize
-                    items_row[0] = items_row[0].replace(
-                        '/', '-').replace('\\', '-')
+                    items_row[0] = items_row[0].replace("/", "-").replace("\\", "-")
                 elif node.nodeName == "UIAuthorName":
                     items_row[3] = GetText(node.childNodes)
                 elif node.nodeName == "UICategory":
@@ -1738,12 +1684,10 @@ class AddonManagerWindow(QtWidgets.QDialog):
         self.closeDB()
 
     def contextMenuRequested(self, cursor_position):
-        global_cursor_position = self.mapToGlobal(
-            cursor_position)
+        global_cursor_position = self.mapToGlobal(cursor_position)
 
         # It is not a local variable, because of garbage collection
-        self.contextMenu = self.getContextMenu(
-            global_cursor_position)
+        self.contextMenu = self.getContextMenu(global_cursor_position)
         if self.contextMenu:
             self.contextMenu.popup(global_cursor_position)
 
@@ -1765,27 +1709,23 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
                 # If addon has online page
                 self.context_menu_selected_interface_ID = self.getTableRowInterfaceID(
-                    self.context_menu_selected_table, self.context_menu_selected_row)
+                    self.context_menu_selected_table, self.context_menu_selected_row
+                )
                 if self.context_menu_selected_interface_ID:
-                    menu.addAction(
-                        self.ui.actionShowOnLotrointerface)
+                    menu.addAction(self.ui.actionShowOnLotrointerface)
 
                 # If addon is installed
                 if self.context_menu_selected_table.objectName().endswith("Installed"):
                     menu.addAction(self.ui.actionUninstallAddon)
-                    menu.addAction(
-                        self.ui.actionShowAddonInFileManager)
+                    menu.addAction(self.ui.actionShowAddonInFileManager)
                 else:
                     # If addon in remote table is installed
                     if (
                         selected_item.background().color()
                         == self.installed_addons_color
                     ):
-                        menu.addAction(
-                            self.ui.actionUninstallAddon)
-                        menu.addAction(
-                            self.ui.actionShowAddonInFileManager
-                        )
+                        menu.addAction(self.ui.actionUninstallAddon)
+                        menu.addAction(self.ui.actionShowAddonInFileManager)
                     else:
                         menu.addAction(self.ui.actionInstallAddon)
 
@@ -1794,26 +1734,25 @@ class AddonManagerWindow(QtWidgets.QDialog):
                     self.context_menu_selected_row, 3
                 )
                 version_color = version_item.foreground().color()
-                if version_color in [
-                        QtGui.QColor("crimson"),
-                        QtGui.QColor("green")]:
+                if version_color in [QtGui.QColor("crimson"), QtGui.QColor("green")]:
                     menu.addAction(self.ui.actionUpdateAddon)
 
                 # If addon has a statup script
                 if self.context_menu_selected_interface_ID:
                     relative_script_path = self.getRelativeStartupScriptFromInterfaceID(
-                        self.context_menu_selected_table, self.context_menu_selected_interface_ID, )
+                        self.context_menu_selected_table,
+                        self.context_menu_selected_interface_ID,
+                    )
                     if relative_script_path:
                         # If startup script is enabled
                         relative_script_paths = [
-                            script.relative_path for script in
-                            self.addons_manager.enabled_startup_scripts]
+                            script.relative_path
+                            for script in self.addons_manager.enabled_startup_scripts
+                        ]
                         if relative_script_path in relative_script_paths:
-                            menu.addAction(
-                                self.ui.actionDisableStartupScript)
+                            menu.addAction(self.ui.actionDisableStartupScript)
                         else:
-                            menu.addAction(
-                                self.ui.actionEnableStartupScript)
+                            menu.addAction(self.ui.actionEnableStartupScript)
 
         # Only return menu if something has been added to it
         if not menu.isEmpty():
@@ -1822,9 +1761,8 @@ class AddonManagerWindow(QtWidgets.QDialog):
             return None
 
     def getTableRowInterfaceID(
-            self,
-            table: QtWidgets.QTableWidget,
-            row: int) -> Optional[str]:
+        self, table: QtWidgets.QTableWidget, row: int
+    ) -> str | None:
         addon_db_id = table.item(row, 0).text()
 
         for interface_ID in self.c.execute(
@@ -1852,10 +1790,11 @@ class AddonManagerWindow(QtWidgets.QDialog):
             QtGui.QDesktopServices.openUrl(url)
 
     def getAddonUrlFromInterfaceID(
-            self,
-            interface_ID: str,
-            table: QtWidgets.QTableWidget,
-            download_url: bool = False) -> str:
+        self,
+        interface_ID: str,
+        table: QtWidgets.QTableWidget,
+        download_url: bool = False,
+    ) -> str:
         """Returns info URL for addon or download URL if download_url=True"""
         # URL is only in remote version of table
         table = self.getRemoteOrLocalTableFromOne(table, remote=True)
@@ -1929,8 +1868,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         ):
             uninstall_function = self.getUninstallFunctionFromTable(table)
 
-            table_installed = self.getRemoteOrLocalTableFromOne(
-                table, remote=False)
+            table_installed = self.getRemoteOrLocalTableFromOne(table, remote=False)
             uninstall_function([addon], table_installed)
 
             self.resetRemoteAddonsTables()
@@ -1948,14 +1886,12 @@ class AddonManagerWindow(QtWidgets.QDialog):
             return
 
         if remote:
-            table_remote = self.getRemoteOrLocalTableFromOne(
-                table, remote=True)
+            table_remote = self.getRemoteOrLocalTableFromOne(table, remote=True)
             file = self.getAddonUrlFromInterfaceID(
                 interface_ID, table_remote, download_url=True
             )
         else:
-            table_installed = self.getRemoteOrLocalTableFromOne(
-                table, remote=False)
+            table_installed = self.getRemoteOrLocalTableFromOne(table, remote=False)
 
             if table.objectName().endswith("Installed"):
                 self.reloadSearch(table_installed)
@@ -1968,8 +1904,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 ):
                     file = item[0]
             else:
-                file = self.getAddonFileFromInterfaceID(
-                    interface_ID, table_installed)
+                file = self.getAddonFileFromInterfaceID(interface_ID, table_installed)
 
         return [interface_ID, file, table.item(row, 1).text()]
 
@@ -1983,8 +1918,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         table_name = table_name.replace("DDO", "")
 
         if remote:
-            table = getattr(self.ui,
-                            table_name.split("Installed")[0])
+            table = getattr(self.ui, table_name.split("Installed")[0])
         else:
             if table_name.endswith("Installed"):
                 table = input_table
@@ -2004,8 +1938,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             addon_folder = Path(addon[1]).parent
         else:
             addon_folder = Path(addon[1])
-        QtGui.QDesktopServices.openUrl(
-            QtCore.QUrl.fromLocalFile(str(addon_folder)))
+        QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(str(addon_folder)))
 
     def actionShowPluginsFolderSelected(self):
         folder = self.data_folder_plugins
@@ -2025,26 +1958,17 @@ class AddonManagerWindow(QtWidgets.QDialog):
         current tab the only addon folder opening action visible.
         """
         if self.game.game_type == GameType.DDO or index == 1:
-            self.ui.actionShowPluginsFolderInFileManager.setVisible(
-                False)
-            self.ui.actionShowSkinsFolderInFileManager.setVisible(
-                True)
-            self.ui.actionShowMusicFolderInFileManager.setVisible(
-                False)
+            self.ui.actionShowPluginsFolderInFileManager.setVisible(False)
+            self.ui.actionShowSkinsFolderInFileManager.setVisible(True)
+            self.ui.actionShowMusicFolderInFileManager.setVisible(False)
         elif index == 0:
-            self.ui.actionShowPluginsFolderInFileManager.setVisible(
-                True)
-            self.ui.actionShowSkinsFolderInFileManager.setVisible(
-                False)
-            self.ui.actionShowMusicFolderInFileManager.setVisible(
-                False)
+            self.ui.actionShowPluginsFolderInFileManager.setVisible(True)
+            self.ui.actionShowSkinsFolderInFileManager.setVisible(False)
+            self.ui.actionShowMusicFolderInFileManager.setVisible(False)
         elif index == 2:
-            self.ui.actionShowPluginsFolderInFileManager.setVisible(
-                False)
-            self.ui.actionShowSkinsFolderInFileManager.setVisible(
-                False)
-            self.ui.actionShowMusicFolderInFileManager.setVisible(
-                True)
+            self.ui.actionShowPluginsFolderInFileManager.setVisible(False)
+            self.ui.actionShowSkinsFolderInFileManager.setVisible(False)
+            self.ui.actionShowMusicFolderInFileManager.setVisible(True)
 
     def checkForUpdates(self):
         if self.loadRemoteAddons():
@@ -2104,8 +2028,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 latest_version = remote_addon_info[0]
                 if addon[0] != latest_version:
                     rowid_remote = remote_addon_info[1]
-                    out_of_date_addons.append(
-                        (addon[2], rowid_remote, table_installed))
+                    out_of_date_addons.append((addon[2], rowid_remote, table_installed))
 
             for addon in out_of_date_addons:
                 self.markAddonForUpdating(addon[0], addon[1], addon[2])
@@ -2115,8 +2038,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         Marks addon as having having updates
         available in installed and remote tables
         """
-        table_remote = self.getRemoteOrLocalTableFromOne(
-            table_installed, remote=True)
+        table_remote = self.getRemoteOrLocalTableFromOne(table_installed, remote=True)
 
         self.c.execute(
             (
@@ -2157,8 +2079,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
     def updateAddon(self, addon, table):
         uninstall_function = self.getUninstallFunctionFromTable(table)
-        table_installed = self.getRemoteOrLocalTableFromOne(
-            table, remote=False)
+        table_installed = self.getRemoteOrLocalTableFromOne(table, remote=False)
         table_remote = self.getRemoteOrLocalTableFromOne(table, remote=True)
 
         uninstall_function([addon], table_installed)
@@ -2209,8 +2130,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         ):
             version = entry[0]
             return bool(
-                version.startswith(
-                    "(Outdated) ") or version.startswith("(Updated) ")
+                version.startswith("(Outdated) ") or version.startswith("(Updated) ")
             )
 
     def loadRemoteDataIfNotDone(self):
@@ -2219,10 +2139,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         """
         # If remote addons haven't been loaded then out of date addons haven't
         # been found.
-        if (
-            self.isTableEmpty(self.ui.tableSkins)
-            and self.loadRemoteAddons()
-        ):
+        if self.isTableEmpty(self.ui.tableSkins) and self.loadRemoteAddons():
             self.getOutOfDateAddons()
 
         return True
@@ -2231,11 +2148,13 @@ class AddonManagerWindow(QtWidgets.QDialog):
         if not self.context_menu_selected_interface_ID:
             return
         script = self.getRelativeStartupScriptFromInterfaceID(
-            self.context_menu_selected_table, self.context_menu_selected_interface_ID)
+            self.context_menu_selected_table, self.context_menu_selected_interface_ID
+        )
         full_script_path = self.data_folder / script
         if full_script_path.exists():
             self.addons_manager.enabled_startup_scripts.append(
-                StartupScript(script, self.game))
+                StartupScript(script, self.game)
+            )
             save_addons_manager(self.addons_manager)
         else:
             self.addLog(
@@ -2245,11 +2164,12 @@ class AddonManagerWindow(QtWidgets.QDialog):
     def actionDisableStartupScriptSelected(self):
         if self.context_menu_selected_interface_ID:
             relative_script_path = self.getRelativeStartupScriptFromInterfaceID(
-                self.context_menu_selected_table, self.context_menu_selected_interface_ID)
+                self.context_menu_selected_table,
+                self.context_menu_selected_interface_ID,
+            )
             for startup_script in self.addons_manager.enabled_startup_scripts:
                 if startup_script.relative_path == relative_script_path:
-                    self.addons_manager.enabled_startup_scripts.remove(
-                        startup_script)
+                    self.addons_manager.enabled_startup_scripts.remove(startup_script)
             save_addons_manager(self.addons_manager)
 
     def getRelativeStartupScriptFromInterfaceID(
@@ -2264,8 +2184,11 @@ class AddonManagerWindow(QtWidgets.QDialog):
         ):
             if entry[0]:
                 script = entry[0].replace("\\", "/")
-                addon_data_folder_relative = Path(str(self.getAddonTypeDataFolderFromTable(
-                    table_local)).split(str(self.data_folder))[1].strip("/\\"))
+                addon_data_folder_relative = Path(
+                    str(self.getAddonTypeDataFolderFromTable(table_local))
+                    .split(str(self.data_folder))[1]
+                    .strip("/\\")
+                )
 
                 return addon_data_folder_relative / script
 
@@ -2284,8 +2207,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         self, table: QtWidgets.QTableWidget, interface_ID: str
     ):
         """Asks user if they want to enable an add-on's startup script if present"""
-        script = self.getRelativeStartupScriptFromInterfaceID(
-            table, interface_ID)
+        script = self.getRelativeStartupScriptFromInterfaceID(table, interface_ID)
         if script:
             script_contents = (self.data_folder / script).open().read()
             for name in self.c.execute(
@@ -2298,10 +2220,13 @@ class AddonManagerWindow(QtWidgets.QDialog):
             activate_script = self.confirmationPrompt(
                 f"{addon_name} is requesting to run a Python script at every game launch."
                 " It is highly recommended to review the script's code in the details"
-                " box below to make sure it's safe.", script_contents, )
+                " box below to make sure it's safe.",
+                script_contents,
+            )
             if activate_script:
                 self.addons_manager.enabled_startup_scripts.append(
-                    StartupScript(script, self.game))
+                    StartupScript(script, self.game)
+                )
                 save_addons_manager(self.addons_manager)
 
     def uninstallStartupScript(self, script: str, addon_data_folder: Path):
@@ -2309,13 +2234,15 @@ class AddonManagerWindow(QtWidgets.QDialog):
             script_path = addon_data_folder / (script.replace("\\", "/"))
 
             relative_to_game_documents_dir_script = script_path.relative_to(
-                self.data_folder)
+                self.data_folder
+            )
 
             for startup_script in self.addons_manager.enabled_startup_scripts:
-                if (startup_script.relative_path ==
-                        relative_to_game_documents_dir_script):
-                    self.addons_manager.enabled_startup_scripts.remove(
-                        startup_script)
+                if (
+                    startup_script.relative_path
+                    == relative_to_game_documents_dir_script
+                ):
+                    self.addons_manager.enabled_startup_scripts.remove(startup_script)
                     save_addons_manager(self.addons_manager)
 
             script_path.unlink(missing_ok=True)

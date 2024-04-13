@@ -1,4 +1,3 @@
-# coding=utf-8
 ###########################################################################
 # Support classes for OneLauncher.
 #
@@ -31,8 +30,9 @@ from __future__ import annotations
 import logging
 import os
 import pathlib
+from collections.abc import Generator
 from pathlib import Path
-from typing import TYPE_CHECKING, Generator, Optional, Self
+from typing import TYPE_CHECKING, Self
 from xml.etree.ElementTree import Element
 
 from defusedxml import ElementTree
@@ -42,8 +42,12 @@ if TYPE_CHECKING:
 
 
 class CaseInsensitiveAbsolutePath(Path):
-    _flavour = (pathlib._windows_flavour if os.name ==  # type: ignore
-                'nt' else pathlib._posix_flavour)  # type: ignore
+    _flavour = (
+        pathlib._windows_flavour
+        if os.name  # type: ignore
+        == "nt"
+        else pathlib._posix_flavour
+    )  # type: ignore
 
     def __new__(cls, *pathsegments: StrPath) -> Self:
         normal_path = Path(*pathsegments)
@@ -53,8 +57,7 @@ class CaseInsensitiveAbsolutePath(Path):
         return super().__new__(cls, path)
 
     @classmethod
-    def _get_real_path_from_fully_case_insensitive_path(
-            cls, base_path: Path) -> Path:
+    def _get_real_path_from_fully_case_insensitive_path(cls, base_path: Path) -> Path:
         """Return any found path that matches base_path when ignoring case"""
         # Base version already exists
         if base_path.exists():
@@ -67,15 +70,12 @@ class CaseInsensitiveAbsolutePath(Path):
 
         # Range starts at 1 to ingore root which has already been checked
         for i in range(1, len(parts)):
-            current_path = Path(
-                *(parts if i == len(parts) - 1 else parts[:i + 1]))
-            real_path = cls._get_real_path_from_name_case_insensitive_path(
-                current_path)
+            current_path = Path(*(parts if i == len(parts) - 1 else parts[: i + 1]))
+            real_path = cls._get_real_path_from_name_case_insensitive_path(current_path)
             # Second check is for if there is a file or broken symlink before
             # the end of the path. Without the check it would raise and
             # exception in cls._get_real_path_from_name_case_insensitive_path
-            if real_path is None or (
-                    i < len(parts) - 1 and not real_path.is_dir()):
+            if real_path is None or (i < len(parts) - 1 and not real_path.is_dir()):
                 # No version exists, so the original is just returned
                 return base_path
 
@@ -84,35 +84,36 @@ class CaseInsensitiveAbsolutePath(Path):
         return Path(*parts)
 
     @staticmethod
-    def _get_real_path_from_name_case_insensitive_path(
-            base_path: Path) -> Optional[Path]:
+    def _get_real_path_from_name_case_insensitive_path(base_path: Path) -> Path | None:
         """
         Return any found path where path.name == base_path.name ignoring case.
         base_path.parent has to exist. Use _get_case_sensitive_full_path if
         this is not the case.
         """
         if not base_path.parent.exists():
-            raise FileNotFoundError(
-                f"`{base_path.parent}` parent path does not exist")
+            raise FileNotFoundError(f"`{base_path.parent}` parent path does not exist")
 
         if base_path.exists():
             return base_path
 
-        return next((path for path in base_path.parent.iterdir()
-                    if path.name.lower() == base_path.name.lower()), None)
+        return next(
+            (
+                path
+                for path in base_path.parent.iterdir()
+                if path.name.lower() == base_path.name.lower()
+            ),
+            None,
+        )
 
     def _make_child(self, args) -> Path:
         _, _, parts = super()._parse_args(args)  # type: ignore
         joined_path = super()._make_child((Path(*parts),))  # type: ignore
-        return self._get_real_path_from_fully_case_insensitive_path(
-            joined_path)
+        return self._get_real_path_from_fully_case_insensitive_path(joined_path)
 
     def _get_case_insensitive_glob_pattern(self, pattern: str) -> str:
-        return ''.join([
-            f"[{c.lower()}{c.upper()}]"
-            if c.isalpha() else c
-            for c in pattern
-        ])
+        return "".join(
+            [f"[{c.lower()}{c.upper()}]" if c.isalpha() else c for c in pattern]
+        )
 
     def glob(self, pattern: str) -> Generator[Self, None, None]:
         return super().glob(self._get_case_insensitive_glob_pattern(pattern))
@@ -148,8 +149,7 @@ def verify_app_settings_config(config_text: str) -> None:
     for element in app_settings.iterfind("./add"):
         keys = element.keys()
         if "key" not in keys or "value" not in keys:
-            raise AppSettingsParseError(
-                "'add' element doesn't have all required keys")
+            raise AppSettingsParseError("'add' element doesn't have all required keys")
 
 
 def parse_app_settings_config(config_text: str) -> dict[str, str]:

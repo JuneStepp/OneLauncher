@@ -1,6 +1,4 @@
-
 from pathlib import Path
-from typing import Optional
 
 import rtoml
 
@@ -11,17 +9,16 @@ from ..resources import OneLauncherLocale, available_locales, system_locale
 from . import platform_dirs
 
 
-class ProgramConfig():
-    def __init__(self, config_path: Optional[Path] = None) -> None:
+class ProgramConfig:
+    def __init__(self, config_path: Path | None = None) -> None:
         if not config_path:
-            config_path = platform_dirs.user_config_path / \
-                f"{__title__.lower()}.toml"
+            config_path = platform_dirs.user_config_path / f"{__title__.lower()}.toml"
         self.config_path = config_path
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
 
         self.load()
 
-    def get_ui_locale(self, game: Optional[Game]) -> OneLauncherLocale:
+    def get_ui_locale(self, game: Game | None) -> OneLauncherLocale:
         if game is None or self.always_use_default_language_for_ui:
             return self.default_locale
 
@@ -42,12 +39,15 @@ class ProgramConfig():
             self.default_locale = available_locales["en-US"]
 
         self.always_use_default_language_for_ui: bool = settings_dict.get(
-            "always_use_default_language_for_ui", False)
+            "always_use_default_language_for_ui", False
+        )
         self.save_accounts = settings_dict.get("save_accounts", False)
         self.save_accounts_passwords = settings_dict.get(
-            "save_accounts_passwords", False)
-        self.games_sorting_mode = GamesSortingMode(settings_dict.get(
-            "games_sorting_mode", "priority"))
+            "save_accounts_passwords", False
+        )
+        self.games_sorting_mode = GamesSortingMode(
+            settings_dict.get("games_sorting_mode", "priority")
+        )
 
     def save(self):
         settings_dict = {

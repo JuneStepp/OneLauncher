@@ -3,7 +3,6 @@ import html
 import logging
 from datetime import datetime
 from io import StringIO
-from typing import Optional
 
 import feedparser
 from babel import Locale
@@ -37,30 +36,32 @@ def _escape_feed_val(details: feedparser.util.FeedParserDict) -> str:
 
 
 def newsfeed_xml_to_html(
-        newsfeed_string: str,
-        babel_locale: Locale,
-        original_feed_url: Optional[str] = None) -> str:
+    newsfeed_string: str, babel_locale: Locale, original_feed_url: str | None = None
+) -> str:
     with StringIO(initial_value=newsfeed_string) as feed_text_stream:
         feed_dict = feedparser.parse(feed_text_stream.getvalue())
 
     entries_html = ""
     for entry in feed_dict.entries:
-        title = _escape_feed_val(
-            entry["title_detail"]) if "title_detail" in entry else ""
-        description = _escape_feed_val(
-            entry["description_detail"]) if "description_detail" in entry else ""
+        title = (
+            _escape_feed_val(entry["title_detail"]) if "title_detail" in entry else ""
+        )
+        description = (
+            _escape_feed_val(entry["description_detail"])
+            if "description_detail" in entry
+            else ""
+        )
         if "published_parsed" in entry:
             timestamp = calendar.timegm(entry["published_parsed"])
             datetime_object = datetime.fromtimestamp(timestamp)
             date = format_datetime(
-                datetime_object,
-                format="medium",
-                locale=babel_locale)
+                datetime_object, format="medium", locale=babel_locale
+            )
         else:
             date = ""
         entry_url = entry.get("link", "")
 
-        entries_html += f'''
+        entries_html += f"""
         <div>
             <a href="{entry_url}" style="text-decoration:none">
                 <font color="gold">
@@ -76,7 +77,7 @@ def newsfeed_xml_to_html(
             <div><p>{description}</p></div>
         </div>
         <hr>
-        '''
+        """
 
     feed_url = feed_dict.feed.get("link") or original_feed_url
     return f"""

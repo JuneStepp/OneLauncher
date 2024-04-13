@@ -4,19 +4,24 @@ from xml.etree.ElementTree import Element
 import vkbeautify
 from defusedxml import ElementTree
 
-from .utilities import (AppSettingsParseError,
-                        parse_app_settings_config,
-                        verify_app_settings_config)
+from .utilities import (
+    AppSettingsParseError,
+    parse_app_settings_config,
+    verify_app_settings_config,
+)
+
 
 class GameLauncherLocalConfigParseError(KeyError):
     """Config doesn't match expected .launcherconfig format"""
 
 
-class GameLauncherLocalConfig():
-    def __init__(self,
-                 gls_datacenter_service: str,
-                 datacenter_game_name: str,
-                 documents_config_dir_name: str):
+class GameLauncherLocalConfig:
+    def __init__(
+        self,
+        gls_datacenter_service: str,
+        datacenter_game_name: str,
+        documents_config_dir_name: str,
+    ):
         self.gls_datacenter_service = gls_datacenter_service
         self.datacenter_game_name = datacenter_game_name
         self.documents_config_dir_name = documents_config_dir_name
@@ -34,21 +39,23 @@ class GameLauncherLocalConfig():
         """
         config_dict = parse_app_settings_config(config_xml)
         try:
-            return cls(config_dict["Launcher.DataCenterService.GLS"],
-                       config_dict["DataCenter.GameName"],
-                       config_dict["Product.DocumentFolder"])
+            return cls(
+                config_dict["Launcher.DataCenterService.GLS"],
+                config_dict["DataCenter.GameName"],
+                config_dict["Product.DocumentFolder"],
+            )
         except AppSettingsParseError as e:
             raise GameLauncherLocalConfigParseError(
-                "Config XML doesn't follow the appSettings format") from e
+                "Config XML doesn't follow the appSettings format"
+            ) from e
         except KeyError as e:
             raise GameLauncherLocalConfigParseError(
-                "Config doesn't include a required value") from e
+                "Config doesn't include a required value"
+            ) from e
 
     def _edit_config_xml_app_setting(
-            self,
-            app_settings_element: Element,
-            key: str,
-            val: str) -> None:
+        self, app_settings_element: Element, key: str, val: str
+    ) -> None:
         """Edit a setting in an appSettings config xml.
            Setting will be added if it doesn't already exist.
 
@@ -87,20 +94,15 @@ class GameLauncherLocalConfig():
         app_settings = root.find("./appSettings")
         assert type(app_settings) is Element
         self._edit_config_xml_app_setting(
-            app_settings,
-            "Launcher.DataCenterService.GLS",
-            self.gls_datacenter_service)
+            app_settings, "Launcher.DataCenterService.GLS", self.gls_datacenter_service
+        )
         self._edit_config_xml_app_setting(
-            app_settings,
-            "DataCenter.GameName",
-            self.datacenter_game_name)
+            app_settings, "DataCenter.GameName", self.datacenter_game_name
+        )
         self._edit_config_xml_app_setting(
-            app_settings,
-            "Product.DocumentFolder",
-            self.documents_config_dir_name)
+            app_settings, "Product.DocumentFolder", self.documents_config_dir_name
+        )
 
         return vkbeautify.xml(
-            ElementTree.tostring(
-                root,
-                "utf-8",
-                xml_declaration=True).decode())
+            ElementTree.tostring(root, "utf-8", xml_declaration=True).decode()
+        )

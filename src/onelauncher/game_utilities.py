@@ -5,7 +5,8 @@ from uuid import UUID, uuid4
 from .game import Game, GameType
 from .game_launcher_local_config import (
     GameLauncherLocalConfig,
-    GameLauncherLocalConfigParseError)
+    GameLauncherLocalConfigParseError,
+)
 from .utilities import CaseInsensitiveAbsolutePath
 
 
@@ -15,12 +16,13 @@ class GamesSortingMode(Enum):
     - alphabetical: Alphabetical order.
     - last_used: Order of the most recently played games.
     """
+
     PRIORITY = "priority"
     LAST_USED = "last_used"
     ALPHABETICAL = "alphabetical"
 
 
-class GamesSorted():
+class GamesSorted:
     def __init__(
         self,
         games: list[Game],
@@ -28,41 +30,45 @@ class GamesSorted():
         self.games = {game.uuid: game for game in games}
 
     def get_games_by_game_type(self, game_type: GameType) -> list[Game]:
-        return [game for game in self.games.values() if game.game_type ==
-                game_type]
+        return [game for game in self.games.values() if game.game_type == game_type]
 
     def get_games_sorted_by_priority(
-            self, game_type: GameType | None = None) -> list[Game]:
-        games = self.get_games_by_game_type(
-            game_type) if game_type else self.games.values()
+        self, game_type: GameType | None = None
+    ) -> list[Game]:
+        games = (
+            self.get_games_by_game_type(game_type) if game_type else self.games.values()
+        )
         # Sort games by sorting_priority. Games with sorting_priority of -1 are
         # put at end of list
         return sorted(
             games,
-            key=lambda game: "Z" if game.sorting_priority == -
-            1 else str(
-                game.sorting_priority))
+            key=lambda game: "Z"
+            if game.sorting_priority == -1
+            else str(game.sorting_priority),
+        )
 
     def get_games_sorted_by_last_played(
-            self, game_type: GameType | None = None) -> list[Game]:
-        games = set(
-            self.get_games_by_game_type(game_type)) if game_type else set(
-            self.games.values())
-        games_never_played = {
-            game for game in games if game.last_played is None}
+        self, game_type: GameType | None = None
+    ) -> list[Game]:
+        games = (
+            set(self.get_games_by_game_type(game_type))
+            if game_type
+            else set(self.games.values())
+        )
+        games_never_played = {game for game in games if game.last_played is None}
         games_played = games - games_never_played
         # Get list of played games sorted by when they were last played
         games_played_sorted = sorted(
             games_played,
             key=lambda game: game.last_played,  # type: ignore
-            reverse=True)
+            reverse=True,
+        )
         # Games never played should be at end of list
         return games_played_sorted + list(games_never_played)
 
     def get_sorted_games_list(
-            self,
-            sorting_mode: GamesSortingMode,
-            game_type: GameType | None = None) -> list[Game]:
+        self, sorting_mode: GamesSortingMode, game_type: GameType | None = None
+    ) -> list[Game]:
         match sorting_mode:
             case GamesSortingMode.PRIORITY:
                 return self.get_games_sorted_by_priority(game_type)
@@ -71,10 +77,10 @@ class GamesSorted():
             case GamesSortingMode.ALPHABETICAL:
                 return self.get_games_sorted_alphabetically(game_type)
 
-    def get_games_sorted_alphabetically(
-            self, game_type: GameType | None) -> list[Game]:
-        games = self.get_games_by_game_type(
-            game_type) if game_type else self.games.values()
+    def get_games_sorted_alphabetically(self, game_type: GameType | None) -> list[Game]:
+        games = (
+            self.get_games_by_game_type(game_type) if game_type else self.games.values()
+        )
         return sorted(games, key=lambda game: game.name)
 
     def get_new_uuid(self) -> UUID:
@@ -89,8 +95,7 @@ class GamesSorted():
 
 
 def get_launcher_config_paths(
-        search_dir: CaseInsensitiveAbsolutePath,
-        game_type: GameType | None = None
+    search_dir: CaseInsensitiveAbsolutePath, game_type: GameType | None = None
 ) -> tuple[CaseInsensitiveAbsolutePath, ...]:
     """
     Return all launcher config files from search_dir sorted by relevance.
@@ -104,8 +109,7 @@ def get_launcher_config_paths(
         other_game_types = set(GameType) - {game_type}
         for file in config_files:
             for other_game_type in other_game_types:
-                if file.name.lower(
-                ) == f"{other_game_type.lower()}.launcherconfig":
+                if file.name.lower() == f"{other_game_type.lower()}.launcherconfig":
                     config_files.remove(file)
 
     # Add legacy launcher config files to `config_files`
@@ -119,7 +123,8 @@ def get_launcher_config_paths(
 
     def config_files_sorting_key(file: CaseInsensitiveAbsolutePath) -> int:
         if game_type is not None and (
-                file.name.lower() == f"{game_type.lower()}.launcherconfig"):
+            file.name.lower() == f"{game_type.lower()}.launcherconfig"
+        ):
             return 0
         elif file.suffix.lower() == ".launcherconfig":
             return 1
@@ -131,8 +136,7 @@ def get_launcher_config_paths(
     return tuple(sorted(config_files, key=config_files_sorting_key))
 
 
-def find_game_dir_game_type(
-        game_dir: CaseInsensitiveAbsolutePath) -> GameType | None:
+def find_game_dir_game_type(game_dir: CaseInsensitiveAbsolutePath) -> GameType | None:
     """Attempt to find the game type associated with a given folder.
        Will return None, if `game_dir` appears to not be a valid game directory.
 
@@ -154,7 +158,8 @@ def find_game_dir_game_type(
     # Try determing game type from datacenter game name
     try:
         launcher_config = GameLauncherLocalConfig.from_config_xml(
-            launcher_config_path.read_text())
+            launcher_config_path.read_text()
+        )
         return GameType(launcher_config.datacenter_game_name)
     except (GameLauncherLocalConfigParseError, ValueError):
         return None

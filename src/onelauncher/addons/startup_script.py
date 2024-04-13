@@ -4,7 +4,7 @@ from ..game import Game
 from ..utilities import CaseInsensitiveAbsolutePath
 
 
-class StartupScript():
+class StartupScript:
     def __init__(self, relative_path: Path, game: Game) -> None:
         """Python script that runs whenever a game is started
 
@@ -12,7 +12,7 @@ class StartupScript():
             relative_path (Path): Path from the game documents config dir to
                                   the startup script.
             game (Game): The `Game` object associated with this startup script.
-        """ 
+        """
         self.relative_path = relative_path
         self.game = game
 
@@ -40,5 +40,5 @@ class StartupScript():
     @property
     def absolute_path(self) -> CaseInsensitiveAbsolutePath:
         return CaseInsensitiveAbsolutePath(
-            self.relative_path.relative_to(
-                self.game.documents_config_dir))
+            self.relative_path.relative_to(self.game.documents_config_dir)
+        )

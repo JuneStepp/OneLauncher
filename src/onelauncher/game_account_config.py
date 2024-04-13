@@ -10,10 +10,11 @@ from .config import Config, ConfigSection, config_field
 class GameAccountConfig(ConfigSection):
     username: str = config_field(help="Login username")
     display_name: str | None = config_field(
-        default=None, help="Name shown instead of account name")
+        default=None, help="Name shown instead of account name"
+    )
     last_used_world_name: str | None = config_field(
-        default=None,
-        help="World last logged into. Will be the default at next login")
+        default=None, help="World last logged into. Will be the default at next login"
+    )
 
 
 @attrs.frozen

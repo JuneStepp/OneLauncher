@@ -1,4 +1,3 @@
-# coding=utf-8
 ###########################################################################
 # Information and configuration specific to official game clients.
 #
@@ -29,12 +28,11 @@
 import logging
 import socket
 import ssl
-from typing import Final
 from functools import cache
+from typing import Final
 from urllib.parse import urlparse
 
 import httpx
-
 
 LOTRO_GLS_PREVIEW_DOMAIN = "gls-bullroarer.lotro.com"
 LOTRO_GLS_DOMAINS: Final = [
@@ -64,7 +62,9 @@ DDO_FORMS_DOMAINS: Final = [
 ]
 # DDO preview client provides broken news URL template. This info is used
 # to fix it.
-DDO_PREVIEW_BROKEN_NEWS_URL_TEMPLATE: Final = "http://www.ddo.com/index.php?option=com_bca-rss-syndicator&feed_id=3"
+DDO_PREVIEW_BROKEN_NEWS_URL_TEMPLATE: Final = (
+    "http://www.ddo.com/index.php?option=com_bca-rss-syndicator&feed_id=3"
+)
 DDO_PREVIEW_NEWS_URL_TEMPLATE: Final = "https://forums.ddo.com/index.php?forums/lamannia-news-and-official-discussions.20/index.rss"
 
 
@@ -75,14 +75,23 @@ OFFICIAL_CLIENT_CIPHERS: Final = "DEFAULT@SECLEVEL=1"
 
 def is_official_game_server(url: str) -> bool:
     netloc = urlparse(url).netloc.lower()
-    return netloc in LOTRO_GLS_DOMAINS + LOTRO_FORMS_DOMAINS + DDO_GLS_DOMAINS + \
-        DDO_FORMS_DOMAINS + [LOTRO_GLS_INVALID_SSL_DOMAIN, DDO_GLS_PREVIEW_IP]
+    return (
+        netloc
+        in LOTRO_GLS_DOMAINS
+        + LOTRO_FORMS_DOMAINS
+        + DDO_GLS_DOMAINS
+        + DDO_FORMS_DOMAINS
+        + [LOTRO_GLS_INVALID_SSL_DOMAIN, DDO_GLS_PREVIEW_IP]
+    )
 
 
 def is_gls_url_for_preview_client(url: str) -> bool:
     netloc = urlparse(url).netloc.lower()
-    return netloc in [LOTRO_GLS_PREVIEW_DOMAIN, DDO_GLS_PREVIEW_DOMAIN,
-                      DDO_GLS_PREVIEW_IP]
+    return netloc in [
+        LOTRO_GLS_PREVIEW_DOMAIN,
+        DDO_GLS_PREVIEW_DOMAIN,
+        DDO_GLS_PREVIEW_IP,
+    ]
 
 
 class DDOPreviewIPDoesNotMatchDomainError(httpx.RequestError):
@@ -100,21 +109,23 @@ def _httpx_request_hook_sync(request: httpx.Request) -> None:
     if request.url.host.lower().startswith(LOTRO_GLS_INVALID_SSL_DOMAIN):
         request.url = request.url.copy_with(
             host=request.url.host.lower().replace(
-                LOTRO_GLS_INVALID_SSL_DOMAIN, LOTRO_GLS_DOMAINS[0], 1))
+                LOTRO_GLS_INVALID_SSL_DOMAIN, LOTRO_GLS_DOMAINS[0], 1
+            )
+        )
 
     # Change DDO preview server IP to domain name.
     # This is to make HTTPS work properly.
     if request.url.host.lower().startswith(DDO_GLS_PREVIEW_IP):
         try:
             # Verify that DDO preview server still matches the expected IP
-            if socket.gethostbyname(
-                    DDO_GLS_PREVIEW_DOMAIN) != DDO_GLS_PREVIEW_IP:
+            if socket.gethostbyname(DDO_GLS_PREVIEW_DOMAIN) != DDO_GLS_PREVIEW_IP:
                 raise DDOPreviewIPDoesNotMatchDomainError(
-                    "IP doesn't match the DDO preview GLS server domain IP")
+                    "IP doesn't match the DDO preview GLS server domain IP"
+                )
         except OSError as e:
             raise httpx.RequestError(
-                "Connection error while verifying DDO preview "
-                "GLS server IP") from e
+                "Connection error while verifying DDO preview " "GLS server IP"
+            ) from e
 
         request.url = request.url.copy_with(host=DDO_GLS_PREVIEW_DOMAIN)
 
@@ -138,7 +149,8 @@ def get_official_servers_httpx_client() -> httpx.AsyncClient:
     """Return httpx client configured to work with official game servers"""
     return httpx.AsyncClient(
         verify=get_official_servers_ssl_context(),
-        event_hooks={"request": [_httpx_request_hook]})
+        event_hooks={"request": [_httpx_request_hook]},
+    )
 
 
 @cache
@@ -146,7 +158,8 @@ def get_official_servers_httpx_client_sync() -> httpx.Client:
     """Return httpx client configured to work with official game servers"""
     return httpx.Client(
         verify=get_official_servers_ssl_context(),
-        event_hooks={"request": [_httpx_request_hook_sync]})
+        event_hooks={"request": [_httpx_request_hook_sync]},
+    )
 
 
 logger = logging.getLogger("main")

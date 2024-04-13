@@ -1,14 +1,14 @@
 import contextlib
 from uuid import UUID
-import attrs
 
+import attrs
 import keyring
 
 from .__about__ import __title__
 
 
 @attrs.define
-class GameAccount():
+class GameAccount:
     game_uuid: UUID
     username: str = attrs.field(on_setattr=attrs.setters.frozen)
     display_name: str | None
@@ -31,10 +31,7 @@ class GameAccount():
 
     @password.setter
     def password(self, password: str) -> None:
-        keyring.set_password(
-            __title__,
-            self._account_keyring_username,
-            password)
+        keyring.set_password(__title__, self._account_keyring_username, password)
 
     def delete_password(self) -> None:
         """Delete account password from keyring."""

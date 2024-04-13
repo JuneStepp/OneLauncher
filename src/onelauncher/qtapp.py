@@ -1,4 +1,3 @@
-# coding=utf-8
 ###########################################################################
 # Runner for OneLauncher.
 #
@@ -45,8 +44,16 @@ def setup_qtapplication() -> QtWidgets.QApplication:
     application.setApplicationName(__title__)
     application.setApplicationDisplayName(__title__)
     application.setApplicationVersion(__version__)
-    application.setWindowIcon(QtGui.QIcon(str(get_resource(
-        Path("images/OneLauncherIcon.png"), program_config.get_ui_locale(None)))))
+    application.setWindowIcon(
+        QtGui.QIcon(
+            str(
+                get_resource(
+                    Path("images/OneLauncherIcon.png"),
+                    program_config.get_ui_locale(None),
+                )
+            )
+        )
+    )
 
     # Set font size explicitly to stop OS text size options from
     # breaking the UI.
@@ -64,43 +71,45 @@ def handle_windows_dark_theme():
 
     qsettings = QtCore.QSettings(
         "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
-        QtCore.QSettings.Format.NativeFormat)
+        QtCore.QSettings.Format.NativeFormat,
+    )
     # If user has dark theme activated
     if not qsettings.value("AppsUseLightTheme"):
         # Use QPalette to set custom dark theme for Windows.
         # The builtin Windows dark theme for Windows is not ready
         # as of 7-5-2021
         QtCore.QCoreApplication.instance().setStyle(
-            QtWidgets.QStyleFactory.create("Fusion"))
+            QtWidgets.QStyleFactory.create("Fusion")
+        )
         dark_palette = QtGui.QPalette()
         dark_color = QtGui.QColor(45, 45, 45)
         disabled_color = QtGui.QColor(127, 127, 127)
 
         dark_palette.setColor(QtGui.QPalette.Window, dark_color)
         dark_palette.setColor(QtGui.QPalette.WindowText, QtCore.Qt.white)
-        dark_palette.setColor(QtGui.QPalette.Base,
-                              QtGui.QColor(18, 18, 18))
+        dark_palette.setColor(QtGui.QPalette.Base, QtGui.QColor(18, 18, 18))
         dark_palette.setColor(QtGui.QPalette.AlternateBase, dark_color)
         dark_palette.setColor(QtGui.QPalette.ToolTipBase, QtCore.Qt.white)
         dark_palette.setColor(QtGui.QPalette.ToolTipText, QtCore.Qt.white)
         dark_palette.setColor(QtGui.QPalette.Text, QtCore.Qt.white)
-        dark_palette.setColor(QtGui.QPalette.Disabled,
-                              QtGui.QPalette.Text, disabled_color)
+        dark_palette.setColor(
+            QtGui.QPalette.Disabled, QtGui.QPalette.Text, disabled_color
+        )
         dark_palette.setColor(QtGui.QPalette.Button, dark_color)
         dark_palette.setColor(QtGui.QPalette.ButtonText, QtCore.Qt.white)
-        dark_palette.setColor(QtGui.QPalette.Disabled,
-                              QtGui.QPalette.ButtonText, disabled_color)
-        dark_palette.setColor(QtGui.QPalette.BrightText, QtCore.Qt.red)
-        dark_palette.setColor(QtGui.QPalette.Link,
-                              QtGui.QColor(42, 130, 218))
-
-        dark_palette.setColor(QtGui.QPalette.Highlight,
-                              QtGui.QColor(42, 130, 218))
         dark_palette.setColor(
-            QtGui.QPalette.HighlightedText, QtCore.Qt.black)
-        dark_palette.setColor(QtGui.QPalette.Disabled,
-                              QtGui.QPalette.HighlightedText, disabled_color)
+            QtGui.QPalette.Disabled, QtGui.QPalette.ButtonText, disabled_color
+        )
+        dark_palette.setColor(QtGui.QPalette.BrightText, QtCore.Qt.red)
+        dark_palette.setColor(QtGui.QPalette.Link, QtGui.QColor(42, 130, 218))
+
+        dark_palette.setColor(QtGui.QPalette.Highlight, QtGui.QColor(42, 130, 218))
+        dark_palette.setColor(QtGui.QPalette.HighlightedText, QtCore.Qt.black)
+        dark_palette.setColor(
+            QtGui.QPalette.Disabled, QtGui.QPalette.HighlightedText, disabled_color
+        )
 
         QtCore.QCoreApplication.instance().setPalette(dark_palette)
         QtCore.QCoreApplication.instance().setStyleSheet(
-            "QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
+            "QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }"
+        )

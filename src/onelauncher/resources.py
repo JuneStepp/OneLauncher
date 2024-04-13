@@ -1,20 +1,22 @@
-from functools import cached_property
 import logging
 import sys
-from pathlib import Path
-from typing import Dict, List, Optional, Self
 import tomllib
-from PySide6.QtCore import QLocale
-import babel
+from functools import cached_property
+from pathlib import Path
+from typing import Self
+
 import attrs
+import babel
+from PySide6.QtCore import QLocale
 
 
 @attrs.define
-class OneLauncherLocale():
+class OneLauncherLocale:
     """
     Args:
         lang_tag (str): An IETF BCP 47 language tag for the locale.
     """
+
     lang_tag: str
     data_dir: Path
     display_name: str
@@ -28,17 +30,14 @@ class OneLauncherLocale():
         file = data_dir / "language_info.toml"
         if not file.exists():
             raise FileNotFoundError(
-                f"The language_info.toml file is missing for {data_dir.name}")
+                f"The language_info.toml file is missing for {data_dir.name}"
+            )
 
         settings_dict = tomllib.loads(file.read_text())
 
         display_name = settings_dict["display_name"]
         game_language_name = settings_dict["game_language_name"]
-        return cls(
-            data_dir.name,
-            data_dir,
-            display_name,
-            game_language_name)
+        return cls(data_dir.name, data_dir, display_name, game_language_name)
 
     def get_resource(self, relative_path: Path) -> Path:
         """Returns the localized resource for path
@@ -94,11 +93,12 @@ def get_resource(relative_path: Path, locale: OneLauncherLocale) -> Path:
         return generic_path
     else:
         raise FileNotFoundError(
-            (f"There is no generic or localized version of {relative_path} "
-             f"for the language {locale}"))
+            f"There is no generic or localized version of {relative_path} "
+            f"for the language {locale}"
+        )
 
 
-def _get_available_locales(data_dir: Path) -> Dict[str, OneLauncherLocale]:
+def _get_available_locales(data_dir: Path) -> dict[str, OneLauncherLocale]:
     locales: dict[str, OneLauncherLocale] = {}
 
     for path in (data_dir / "locale").glob("*/"):
@@ -110,7 +110,8 @@ def _get_available_locales(data_dir: Path) -> Dict[str, OneLauncherLocale]:
 
 
 def _get_system_locale(
-        available_locales: dict[str, OneLauncherLocale]) -> Optional[OneLauncherLocale]:
+    available_locales: dict[str, OneLauncherLocale],
+) -> OneLauncherLocale | None:
     """
     Return locale from available_locales that matches the system.
     None will be returned if none match.
@@ -133,11 +134,12 @@ def _get_system_locale(
         return None
 
 
-def get_game_dir_available_locales(game_dir: Path) -> List[OneLauncherLocale]:
-    available_game_locales: List[OneLauncherLocale] = []
+def get_game_dir_available_locales(game_dir: Path) -> list[OneLauncherLocale]:
+    available_game_locales: list[OneLauncherLocale] = []
 
     available_locales_game_names = {
-        locale.game_language_name: locale for locale in available_locales.values()}
+        locale.game_language_name: locale for locale in available_locales.values()
+    }
     language_data_files = game_dir.glob("client_local_*.dat")
     for file in language_data_files:
         # remove "client_local_" (13 chars) and ".dat" (4 chars) from filename
@@ -145,11 +147,13 @@ def get_game_dir_available_locales(game_dir: Path) -> List[OneLauncherLocale]:
 
         try:
             available_game_locales.append(
-                available_locales_game_names[game_language_name])
+                available_locales_game_names[game_language_name]
+            )
         except KeyError:
             logger.error(
                 f"{game_language_name} does not match a game language name for"
-                f" an available locale.")
+                f" an available locale."
+            )
 
     return available_game_locales
 

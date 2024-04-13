@@ -15,13 +15,13 @@ from .ui_utilities import AsyncHelper
 
 
 def setup_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description=__about__.__description__)
+    parser = argparse.ArgumentParser(description=__about__.__description__)
     parser.add_argument(
         "--version",
         "-v",
         action="version",
-        version=f"{__about__.__title__} {__about__.__version__}")
+        version=f"{__about__.__title__} {__about__.__version__}",
+    )
 
     game_type_choices = [str(game_type) for game_type in GameType]
     game_uuid_choices = [str(uuid) for uuid in games_sorted.games]
@@ -30,11 +30,12 @@ def setup_arg_parser() -> argparse.ArgumentParser:
         if arg_val.upper() in game_type_choices:
             arg_val = arg_val.upper()
             games_of_type = games_sorted.get_sorted_games_list(
-                program_config.games_sorting_mode, GameType(arg_val))
+                program_config.games_sorting_mode, GameType(arg_val)
+            )
             if not games_of_type:
-                raise argparse.ArgumentTypeError(
-                    f"no {arg_val} games found")
+                raise argparse.ArgumentTypeError(f"no {arg_val} games found")
         return arg_val
+
     parser.add_argument(
         "-g",
         "--game",
@@ -42,7 +43,8 @@ def setup_arg_parser() -> argparse.ArgumentParser:
         type=game_arg_type,
         choices=game_type_choices + game_uuid_choices,
         help=f"game to load ({', '.join(game_type_choices)} or game UUID)",
-        metavar="")
+        metavar="",
+    )
 
     language_choices = list(available_locales)
     parser.add_argument(
@@ -51,7 +53,8 @@ def setup_arg_parser() -> argparse.ArgumentParser:
         action="store",
         choices=language_choices,
         help=f"game language. ({', '.join(language_choices)})",
-        metavar="")
+        metavar="",
+    )
     return parser
 
 
@@ -60,6 +63,7 @@ def handle_program_start_setup_wizard() -> None:
     # If game settings haven't been generated
     if not games_sorted.games:
         from .setup_wizard import SetupWizard
+
         setup_wizard = SetupWizard()
         setup_wizard.exec()
 
@@ -73,6 +77,7 @@ async def start_main_window(game: Game) -> None:
     # Import has to be done here, because some code run when
     # main_window.py imports requires the QApplication to exist.
     from .main_window import MainWindow
+
     main_window = MainWindow(game)
     await main_window.run()
 
@@ -93,11 +98,14 @@ async def async_main() -> None:
 
         last_played_game = games_sorted.get_games_sorted_by_last_played()[0]
         game = (
-            last_played_game if last_played_game.last_played is not None
-            else games_sorted.get_games_sorted_by_priority()[0])
+            last_played_game
+            if last_played_game.last_played is not None
+            else games_sorted.get_games_sorted_by_priority()[0]
+        )
         if args.game in [str(game_type) for game_type in GameType]:
             game = games_sorted.get_sorted_games_list(
-                program_config.games_sorting_mode, GameType(args.game))[0]
+                program_config.games_sorting_mode, GameType(args.game)
+            )[0]
         elif args.game:
             game = games_sorted.games[UUID(args.game)]
         if args.language:

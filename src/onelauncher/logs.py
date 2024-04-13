@@ -4,12 +4,11 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from platform import platform
 
+from .__about__ import __title__, __version__
 from .config_old import platform_dirs
 
-from .__about__ import __title__, __version__
 
-
-class Logger():
+class Logger:
     def __init__(self, logs_dir: Path, log_name: str) -> None:
         """
         Args:
@@ -29,8 +28,13 @@ class Logger():
             "Uncaught exception:", exc_info=(exc_type, exc_value, exc_traceback)
         )
 
-    def setup_logging(self, logs_dir: Path, log_name: str, file_logging_level=logging.INFO,
-                      stream_logging_level=logging.WARNING) -> logging.Logger:
+    def setup_logging(
+        self,
+        logs_dir: Path,
+        log_name: str,
+        file_logging_level=logging.INFO,
+        stream_logging_level=logging.WARNING,
+    ) -> logging.Logger:
         """Initializes logging and logger object
 
         Args:
@@ -51,7 +55,7 @@ class Logger():
         stream_handler = logging.StreamHandler()
         stream_handler.setLevel(stream_logging_level)
 
-        log_file = logs_dir/f"{log_name}.log"
+        log_file = logs_dir / f"{log_name}.log"
         file_handler = RotatingFileHandler(
             log_file,
             mode="a",
@@ -63,9 +67,7 @@ class Logger():
         file_handler.setLevel(file_logging_level)
 
         # Create formatters and add it to handlers
-        stream_format = logging.Formatter(
-            "%(module)s - %(levelname)s - %(message)s"
-        )
+        stream_format = logging.Formatter("%(module)s - %(levelname)s - %(message)s")
         stream_handler.setFormatter(stream_format)
         file_format = logging.Formatter(
             "%(asctime)s - %(module)s - %(levelname)s - %(lineno)d - %(message)s"
@@ -85,6 +87,7 @@ class Logger():
         self.logger.info("Logging started")
         self.logger.info(f"{__title__}: {__version__}")
         self.logger.info(platform())
+
 
 def setup_application_logging():
     """Create main logger configured for running application"""

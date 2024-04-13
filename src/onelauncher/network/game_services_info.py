@@ -1,5 +1,4 @@
 import logging
-from typing import Optional, Set
 
 import zeep.exceptions
 from asyncache import cached
@@ -11,14 +10,16 @@ from .soap import GLSServiceError, get_soap_client
 from .world import World
 
 
-class GameServicesInfo():
-    def __init__(self,
-                 gls_datacenter_service: str,
-                 game_datacenter_name: str,
-                 auth_server: str,
-                 patch_server: str,
-                 launcher_config_url: str,
-                 worlds: Set[World]) -> None:
+class GameServicesInfo:
+    def __init__(
+        self,
+        gls_datacenter_service: str,
+        game_datacenter_name: str,
+        auth_server: str,
+        patch_server: str,
+        launcher_config_url: str,
+        worlds: set[World],
+    ) -> None:
         self._gls_datacenter_service = gls_datacenter_service
         self._game_datacenter_name = game_datacenter_name
         self._auth_server = auth_server
@@ -28,15 +29,15 @@ class GameServicesInfo():
 
     @classmethod
     @cached(cache=TTLCache(maxsize=48, ttl=60 * 2))
-    async def from_url(cls, gls_datacenter_service: str,
-                       game_datacenter_name: str):
+    async def from_url(cls, gls_datacenter_service: str, game_datacenter_name: str):
         """
         Raises:
             HTTPError: Network error
             GLSServiceError: Non-network issue with the GLS service
         """
-        datacenter_dict = await cls._get_datacenter_dict(gls_datacenter_service,
-                                                         game_datacenter_name)
+        datacenter_dict = await cls._get_datacenter_dict(
+            gls_datacenter_service, game_datacenter_name
+        )
         try:
             return cls(
                 gls_datacenter_service,
@@ -44,10 +45,12 @@ class GameServicesInfo():
                 datacenter_dict["AuthServer"],
                 datacenter_dict["PatchServer"],
                 datacenter_dict["LauncherConfigurationServer"],
-                cls._get_worlds(datacenter_dict, gls_datacenter_service))
+                cls._get_worlds(datacenter_dict, gls_datacenter_service),
+            )
         except KeyError as e:
             raise GLSServiceError(
-                "GetDatacenters response missing required value") from e
+                "GetDatacenters response missing required value"
+            ) from e
 
     @classmethod
     async def from_game(cls, game: Game):
@@ -55,8 +58,8 @@ class GameServicesInfo():
         Will return `None` if any exceptions are raised."""
         try:
             return await cls.from_url(
-                game.gls_datacenter_service,
-                game.datacenter_game_name)
+                game.gls_datacenter_service, game.datacenter_game_name
+            )
         except (HTTPError, GLSServiceError, AttributeError):
             return None
 
@@ -81,13 +84,13 @@ class GameServicesInfo():
         return self._launcher_config_url
 
     @property
-    def worlds(self) -> Set[World]:
+    def worlds(self) -> set[World]:
         return self._worlds
 
     @staticmethod
     def _get_worlds(
-            datacenter_dict: dict,
-            gls_datacenter_service: Optional[str]) -> Set[World]:
+        datacenter_dict: dict, gls_datacenter_service: str | None
+    ) -> set[World]:
         """Return set of game `World` objects
 
         Raises:
@@ -99,12 +102,15 @@ class GameServicesInfo():
                 world_dict["Name"],
                 world_dict["ChatServerUrl"],
                 world_dict["StatusServerUrl"],
-                gls_datacenter_service) for world_dict in world_dicts}
+                gls_datacenter_service,
+            )
+            for world_dict in world_dicts
+        }
 
     @staticmethod
     async def _get_datacenter_dict(
-            gls_datacenter_service: str,
-            game_datacenter_name: str) -> dict:
+        gls_datacenter_service: str, game_datacenter_name: str
+    ) -> dict:
         """Return dictionary of GetDatacenters SOAP operation response.
 
         Raises:
@@ -117,14 +123,11 @@ class GameServicesInfo():
         client = get_soap_client(gls_datacenter_service)
 
         try:
-            return (await client.service.GetDatacenters(
-                game=game_datacenter_name))[0]
+            return (await client.service.GetDatacenters(game=game_datacenter_name))[0]
         except zeep.exceptions.Error as e:
-            raise GLSServiceError(
-                "Error while parsing GetDatacenters response") from e
+            raise GLSServiceError("Error while parsing GetDatacenters response") from e
         except AttributeError as e:
-            raise GLSServiceError(
-                "Service has no GetDatacenters operation") from e
+            raise GLSServiceError("Service has no GetDatacenters operation") from e
 
 
 logger = logging.getLogger("main")

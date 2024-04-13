@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable, Mapping
 from contextlib import suppress
-from typing import TYPE_CHECKING, Any, Callable, Mapping, Self, overload
+from typing import TYPE_CHECKING, Any, Self, overload
 
 import attrs
 import cattrs
@@ -27,8 +28,7 @@ class Config(ABC):
 
 
 @attrs.frozen
-class ConfigSection(ABC):
-    ...
+class ConfigSection: ...
 
 
 # The typing for the `config_field` overloads is based on
@@ -37,8 +37,14 @@ class ConfigSection(ABC):
 
 
 if TYPE_CHECKING:
-    from attr import (_T, _ConverterType, _EqOrderType, _OnSetAttrArgType,
-                      _ReprArgType, _ValidatorArgType)
+    from attr import (
+        _T,
+        _ConverterType,
+        _EqOrderType,
+        _OnSetAttrArgType,
+        _ReprArgType,
+        _ValidatorArgType,
+    )
 
 _CONFIG_METADATA = "__config"
 _CONFIG_HELP_METADATA = "__config_help"
@@ -49,8 +55,8 @@ def config_field(
     *,
     default: None = ...,
     validator: None = ...,
-    repr: _ReprArgType = ...,
-    hash: bool | None = ...,
+    repr: _ReprArgType = ...,  # noqa: A002
+    hash: bool | None = ...,  # noqa: A002
     init: bool = ...,
     metadata: Mapping[Any, Any] | None = ...,
     converter: None = ...,
@@ -60,9 +66,9 @@ def config_field(
     order: bool | None = ...,
     on_setattr: _OnSetAttrArgType | None = ...,
     alias: str | None = ...,
-    type: type | None = ...,
-    help: str | None = ...
-) -> Any: ...
+    type: type | None = ...,  # noqa: A002
+    help: str | None = ...,  # noqa: A002
+) -> Any: ...  # noqa: ANN401
 
 
 @overload
@@ -70,8 +76,8 @@ def config_field(
     *,
     default: None = ...,
     validator: _ValidatorArgType[_T] | None = ...,
-    repr: _ReprArgType = ...,
-    hash: bool | None = ...,
+    repr: _ReprArgType = ...,  # noqa: A002
+    hash: bool | None = ...,  # noqa: A002
     init: bool = ...,
     metadata: Mapping[Any, Any] | None = ...,
     converter: _ConverterType | None = ...,
@@ -81,8 +87,8 @@ def config_field(
     order: _EqOrderType | None = ...,
     on_setattr: _OnSetAttrArgType | None = ...,
     alias: str | None = ...,
-    type: type | None = ...,
-    help: str | None = ...
+    type: type | None = ...,  # noqa: A002
+    help: str | None = ...,  # noqa: A002
 ) -> _T:
     """
     This form catches an explicit None or no default and infers the type from
@@ -96,8 +102,8 @@ def config_field(
     *,
     default: _T,
     validator: _ValidatorArgType[_T] | None = ...,
-    repr: _ReprArgType = ...,
-    hash: bool | None = ...,
+    repr: _ReprArgType = ...,  # noqa: A002
+    hash: bool | None = ...,  # noqa: A002
     init: bool = ...,
     metadata: Mapping[Any, Any] | None = ...,
     converter: _ConverterType | None = ...,
@@ -107,8 +113,8 @@ def config_field(
     order: _EqOrderType | None = ...,
     on_setattr: _OnSetAttrArgType | None = ...,
     alias: str | None = ...,
-    type: type | None = ...,
-    help: str | None = ...
+    type: type | None = ...,  # noqa: A002
+    help: str | None = ...,  # noqa: A002
 ) -> _T:
     """
     This form catches an explicit default argument.
@@ -121,8 +127,8 @@ def config_field(
     *,
     default: _T | None = ...,
     validator: _ValidatorArgType[_T] | None = ...,
-    repr: _ReprArgType = ...,
-    hash: bool | None = ...,
+    repr: _ReprArgType = ...,  # noqa: A002
+    hash: bool | None = ...,  # noqa: A002
     init: bool = ...,
     metadata: Mapping[Any, Any] | None = ...,
     converter: _ConverterType | None = ...,
@@ -132,9 +138,9 @@ def config_field(
     order: _EqOrderType | None = ...,
     on_setattr: _OnSetAttrArgType | None = ...,
     alias: str | None = ...,
-    type: type | None = ...,
-    help: str | None = ...
-) -> Any:
+    type: type | None = ...,  # noqa: A002
+    help: str | None = ...,  # noqa: A002
+) -> Any:  # noqa: ANN401
     """
     This form covers type=non-Type: e.g. forward references (str), Any
     """
@@ -142,22 +148,23 @@ def config_field(
 
 
 def config_field(  # type: ignore[no-untyped-def]
-        *,
-        default=attrs.NOTHING,
-        validator=None,
-        repr=True,
-        hash=None,
-        init=True,
-        metadata=None,
-        type=None,
-        converter=None,
-        factory=None,
-        kw_only=False,
-        eq=None,
-        order=None,
-        on_setattr=None,
-        alias=None,
-        help: str | None = None):
+    *,
+    default=attrs.NOTHING,
+    validator=None,
+    repr=True,  # noqa: A002
+    hash=None,  # noqa: A002
+    init=True,
+    metadata=None,
+    type=None,  # noqa: A002
+    converter=None,
+    factory=None,
+    kw_only=False,
+    eq=None,
+    order=None,
+    on_setattr=None,
+    alias=None,
+    help: str | None = None,  # noqa: A002
+):
     """
     Alias to `attrs.field()` with a config help parameter.
     """
@@ -166,20 +173,22 @@ def config_field(  # type: ignore[no-untyped-def]
     metadata[_CONFIG_METADATA] = True
     metadata[_CONFIG_HELP_METADATA] = help
 
-    return attrs.field(default=default,
-                       validator=validator,
-                       repr=repr,
-                       hash=hash,
-                       init=init,
-                       metadata=metadata,
-                       type=type,
-                       converter=converter,
-                       factory=factory,
-                       kw_only=kw_only,
-                       eq=eq,
-                       order=order,
-                       on_setattr=on_setattr,
-                       alias=alias)
+    return attrs.field(
+        default=default,
+        validator=validator,
+        repr=repr,
+        hash=hash,
+        init=init,
+        metadata=metadata,
+        type=type,
+        converter=converter,
+        factory=factory,
+        kw_only=kw_only,
+        eq=eq,
+        order=order,
+        on_setattr=on_setattr,
+        alias=alias,
+    )
 
 
 class NotConfigAttributeError(ValueError):
@@ -187,11 +196,11 @@ class NotConfigAttributeError(ValueError):
 
 
 @attrs.frozen
-class ConfigFieldMetadata():
+class ConfigFieldMetadata:
     help: str | None = None
 
     @classmethod
-    def from_attribute(cls, attribute: attrs.Attribute[Any]) -> Self:
+    def from_attribute(cls: type[Self], attribute: attrs.Attribute[Any]) -> Self:
         """
         Raises:
             NotConfigAttributeError: Attribute doesn't have config metadata
@@ -203,27 +212,24 @@ class ConfigFieldMetadata():
 
     @classmethod
     def from_field_name(
-            cls,
-            field_name: str,
-            attrs_class: type[attrs.AttrsInstance]) -> Self:
-        return cls.from_attribute(
-            attrs.fields_dict(attrs_class)[field_name])
+        cls: type[Self], field_name: str, attrs_class: type[attrs.AttrsInstance]
+    ) -> Self:
+        return cls.from_attribute(attrs.fields_dict(attrs_class)[field_name])
 
 
 @attrs.frozen
-class ConfigValWithMetadata():
+class ConfigValWithMetadata:
     value: Any
     metadata: ConfigFieldMetadata
 
 
 def unstructure_config(
-        converter: cattrs.Converter,
-        obj: StructuredValue) -> UnstructuredValue:
+    converter: cattrs.Converter, obj: StructuredValue
+) -> UnstructuredValue:
     """
     cattrs unstructure hook function for handling help/documentation metadata
     """
-    base_unstructure_func = converter.gen_unstructure_attrs_fromdict(
-        type(obj))
+    base_unstructure_func = converter.gen_unstructure_attrs_fromdict(type(obj))
     destructured = base_unstructure_func(obj)
     # Convert config vals to `ConfigValWithMetadata`.
     if isinstance(destructured, dict) and attrs.has(type(obj)):
@@ -234,5 +240,6 @@ def unstructure_config(
                     with suppress(NotConfigAttributeError):
                         destructured[attribute.name] = ConfigValWithMetadata(
                             destructured_val,
-                            ConfigFieldMetadata.from_attribute(attribute))
+                            ConfigFieldMetadata.from_attribute(attribute),
+                        )
     return destructured

@@ -1,12 +1,12 @@
-
 import logging
 from urllib.parse import urlparse, urlunparse
 
 import zeep.exceptions
-from .httpx_client import get_httpx_client, get_httpx_client_sync
 from zeep import AsyncClient
 from zeep.cache import InMemoryCache
 from zeep.transports import AsyncTransport
+
+from .httpx_client import get_httpx_client, get_httpx_client_sync
 
 
 class GLSServiceError(Exception):
@@ -35,13 +35,13 @@ def get_soap_client(gls_service: str) -> AsyncClient:
     transport = AsyncTransport(
         client=get_httpx_client(wsdl_url),
         wsdl_client=get_httpx_client_sync(wsdl_url),
-        cache=cache)
+        cache=cache,
+    )
 
     try:
         return AsyncClient(wsdl_url, transport=transport)
     except zeep.exceptions.Error as e:
-        raise GLSServiceError(
-            "Error while parsing the service description") from e
+        raise GLSServiceError("Error while parsing the service description") from e
 
 
 logger = logging.getLogger("main")

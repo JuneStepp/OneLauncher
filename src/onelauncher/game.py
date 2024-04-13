@@ -7,8 +7,7 @@ import attrs
 from .config_old import platform_dirs
 from .game_account import GameAccount
 from .game_launcher_local_config import GameLauncherLocalConfig
-from .official_clients import (is_gls_url_for_preview_client,
-                               is_official_game_server)
+from .official_clients import is_gls_url_for_preview_client, is_official_game_server
 from .resources import OneLauncherLocale
 from .utilities import CaseInsensitiveAbsolutePath
 
@@ -26,13 +25,13 @@ class GameType(StrEnum):
 
 
 def generate_default_game_name(
-        game_directory: CaseInsensitiveAbsolutePath,
-        uuid: UUID) -> str:
+    game_directory: CaseInsensitiveAbsolutePath, uuid: UUID
+) -> str:
     return f"{game_directory.name} ({uuid})"
 
 
 @attrs.define(eq=False, kw_only=True)
-class Game():
+class Game:
     uuid: UUID = attrs.field(on_setattr=attrs.setters.frozen)
     sorting_priority: int = -1
     game_type: GameType
@@ -68,8 +67,9 @@ class Game():
         This includes addons, screenshots, user config files, ect
         """
         return CaseInsensitiveAbsolutePath(
-            platform_dirs.user_documents_path /
-            self.launcher_local_config.documents_config_dir_name)
+            platform_dirs.user_documents_path
+            / self.launcher_local_config.documents_config_dir_name
+        )
 
     @property
     def is_official_client(self) -> bool:

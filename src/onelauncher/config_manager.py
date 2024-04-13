@@ -1,7 +1,8 @@
 from collections import OrderedDict
+from collections.abc import Callable
 from functools import cache, partial, update_wrapper
 from pathlib import Path
-from typing import Any, Callable, Final, Generic, ParamSpec, TypeVar
+from typing import Any, Final, Generic, ParamSpec, TypeVar
 from uuid import UUID
 
 import attrs
@@ -10,24 +11,23 @@ import tomlkit
 from cattrs.preconf.tomlkit import make_converter
 from tomlkit.items import Table
 
-
 from .__about__ import __title__
-from .config import (Config, ConfigValWithMetadata,
-                     unstructure_config)
+from .config import Config, ConfigValWithMetadata, unstructure_config
 from .config_old import platform_dirs
 from .game_account_config import GameAccountConfig, GameAccountsConfig
 from .game_config import GameConfig
 from .program_config import ProgramConfig
 from .resources import OneLauncherLocale, available_locales
 
-PROGRAM_CONFIG_DEFAULT_PATH: Path = platform_dirs.user_config_path / \
-    f"{__title__.lower()}1.toml"
+PROGRAM_CONFIG_DEFAULT_PATH: Path = (
+    platform_dirs.user_config_path / f"{__title__.lower()}1.toml"
+)
 GAMES_DIR_DEFAULT_PATH: Path = platform_dirs.user_data_path / "games"
 
 
 def _structure_onelauncher_locale(
-        lang_tag: str,
-        type: type[OneLauncherLocale]) -> OneLauncherLocale:
+    lang_tag: str, type: type[OneLauncherLocale]
+) -> OneLauncherLocale:
     return available_locales[lang_tag]
 
 
@@ -43,21 +43,22 @@ def _unstructure_onelauncher_locale(locale: OneLauncherLocale) -> str:
 def get_converter() -> cattrs.Converter:
     converter = make_converter()
 
-    converter.register_structure_hook(
-        OneLauncherLocale, _structure_onelauncher_locale)
+    converter.register_structure_hook(OneLauncherLocale, _structure_onelauncher_locale)
 
     converter.register_unstructure_hook(UUID, _unstructure_uuid)
     converter.register_unstructure_hook(
-        OneLauncherLocale,
-        _unstructure_onelauncher_locale)
+        OneLauncherLocale, _unstructure_onelauncher_locale
+    )
     converter.register_unstructure_hook_func(
-        check_func=attrs.has, func=partial(unstructure_config, converter))
+        check_func=attrs.has, func=partial(unstructure_config, converter)
+    )
 
     return converter
 
 
-def convert_to_toml(data_dict: dict[str, Any],
-                    container: tomlkit.TOMLDocument | Table) -> None:
+def convert_to_toml(
+    data_dict: dict[str, Any], container: tomlkit.TOMLDocument | Table
+) -> None:
     """
     Convert unstructured config data to toml. None values are commented out.
     Config values can also have help text that is put in a comment above them.
@@ -72,9 +73,7 @@ def convert_to_toml(data_dict: dict[str, Any],
             table = tomlkit.table()
             convert_to_toml(val, table)
             container.add(key, table)
-        elif isinstance(val, list) and all(
-            isinstance(item, dict) for item in val
-        ):
+        elif isinstance(val, list) and all(isinstance(item, dict) for item in val):
             table_array = tomlkit.aot()
             for item in val:
                 table = tomlkit.table()
@@ -90,9 +89,10 @@ def convert_to_toml(data_dict: dict[str, Any],
 
 
 def _tables_to_array_of_tables(
-        unstructured_tables: dict[str, dict[str, Any]],
-        array_name: str,
-        table_name_key_name: str) -> dict[str, list[dict[str, Any]]]:
+    unstructured_tables: dict[str, dict[str, Any]],
+    array_name: str,
+    table_name_key_name: str,
+) -> dict[str, list[dict[str, Any]]]:
     """
     Convert unstructured TOML tables to an array of tables with the table name
     included within the table as as the value of `table_name_key_name`.
@@ -118,9 +118,9 @@ def _tables_to_array_of_tables(
 
 
 def _array_of_tables_to_tables(
-        array_of_tables: dict[str, list[dict[str, Any]]],
-        array_name: str,
-        table_name_key_name: str
+    array_of_tables: dict[str, list[dict[str, Any]]],
+    array_name: str,
+    table_name_key_name: str,
 ) -> dict[str, dict[str, Any]]:
     """
     Convert an unstructured TOML array of tables to individual top-level
@@ -136,13 +136,16 @@ def _array_of_tables_to_tables(
     final_dict: dict[str, dict[str, Any]] = {}
     for table in array_of_tables[array_name]:
         table_name = table.pop(table_name_key_name)
-        final_dict[table_name.value if isinstance(
-            table_name, ConfigValWithMetadata) else table_name] = table
+        final_dict[
+            table_name.value
+            if isinstance(table_name, ConfigValWithMetadata)
+            else table_name
+        ] = table
     return final_dict
 
 
-_R_co = TypeVar('_R_co')
-_P = ParamSpec('_P')
+_R_co = TypeVar("_R_co")
+_P = ParamSpec("_P")
 
 
 class RemovableKeysLRUCache(Generic[_P, _R_co]):
@@ -184,11 +187,7 @@ class RemovableKeysLRUCache(Generic[_P, _R_co]):
         if key in self.cache:
             self.cache.pop(key)
 
-    def cache_replace(
-            self,
-            value: _R_co,
-            *args: _P.args,
-            **kwargs: _P.kwargs) -> None:
+    def cache_replace(self, value: _R_co, *args: _P.args, **kwargs: _P.kwargs) -> None:
         key = self._generate_hash_key(*args, **kwargs)
         self.cache[key] = value
 
@@ -206,10 +205,10 @@ ConfigTypeVar = TypeVar("ConfigTypeVar", bound=Config)
 
 @RemovableKeysLRUCache
 def read_config_file(
-        *,  # Paremeters are keyword only for cache entry clearing
-        config_class: type[ConfigTypeVar],
-        config_file_path: Path,
-        preconverter: Callable[[dict[str, Any]], dict[str, Any]] | None = None
+    *,  # Paremeters are keyword only for cache entry clearing
+    config_class: type[ConfigTypeVar],
+    config_file_path: Path,
+    preconverter: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
 ) -> ConfigTypeVar:
     """
     Read and parse config file into config_class object.
@@ -227,12 +226,14 @@ def read_config_file(
     """
     try:
         unstructured_config: tomlkit.TOMLDocument = tomlkit.parse(
-            config_file_path.read_text())
+            config_file_path.read_text()
+        )
     except tomlkit.exceptions.ParseError as e:
         raise ConfigFileParseError("Error parsing config TOML") from e
 
-    preconverted_config = preconverter(
-        unstructured_config) if preconverter else unstructured_config
+    preconverted_config = (
+        preconverter(unstructured_config) if preconverter else unstructured_config
+    )
 
     try:
         return get_converter().structure(preconverted_config, config_class)
@@ -306,16 +307,17 @@ def read_config_file(
 
 
 def update_config_file(
-        config: Config,
-        config_file_path: Path,
-        postconverter: Callable[[dict[str, Any]], dict[str, Any]] | None = None
+    config: Config,
+    config_file_path: Path,
+    postconverter: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
 ) -> None:
     """
     Replace contents of config file with `config`.
     """
     unstructured = get_converter().unstructure(config)
-    postconverted_unstructured = postconverter(
-        unstructured) if postconverter else unstructured
+    postconverted_unstructured = (
+        postconverter(unstructured) if postconverter else unstructured
+    )
     doc = tomlkit.document()
     if config.get_config_file_description().strip():
         doc.add(tomlkit.comment(config.get_config_file_description()))
@@ -323,22 +325,24 @@ def update_config_file(
     # Make sure there's always a single newline between the version directive
     # comment and config contents
     if postconverted_unstructured and isinstance(
-            tuple(postconverted_unstructured.values())[0], dict):
+        tuple(postconverted_unstructured.values())[0], dict
+    ):
         trail = "\n"
     else:
         trail = "\n\n"
     doc.add(
         tomlkit.items.Comment(
             tomlkit.items.Trivia(
-                comment=f"#:version {config.get_config_version()}",
-                trail=trail)))
+                comment=f"#:version {config.get_config_version()}", trail=trail
+            )
+        )
+    )
 
     convert_to_toml(postconverted_unstructured, doc)
     config_file_path.write_text(doc.as_string())
     read_config_file.cache_replace(
-        config,
-        config_class=type(config),
-        config_file_path=config_file_path)
+        config, config_class=type(config), config_file_path=config_file_path
+    )
 
 
 # def update_config_file_section(
@@ -365,16 +369,14 @@ def update_config_file(
 
 
 @attrs.frozen
-class ConfigManager():
+class ConfigManager:
     get_merged_program_config: Callable[[ProgramConfig], ProgramConfig]
     get_merged_game_config: Callable[[GameConfig], GameConfig]
-    get_merged_game_accounts_config: Callable[[
-        GameAccountsConfig], GameAccountsConfig]
+    get_merged_game_accounts_config: Callable[[GameAccountsConfig], GameAccountsConfig]
     program_config_path: Path = PROGRAM_CONFIG_DEFAULT_PATH
     games_dir_path: Path = GAMES_DIR_DEFAULT_PATH
 
-    GAME_CONFIG_FILE_NAME: Final[str] = attrs.field(
-        default="config1.toml", init=False)
+    GAME_CONFIG_FILE_NAME: Final[str] = attrs.field(default="config1.toml", init=False)
 
     def get_game_config_dir(self, game_uuid: UUID) -> Path:
         return self.games_dir_path / str(game_uuid)
@@ -404,8 +406,8 @@ class ConfigManager():
             ConfigFileParseError: Error parsing config file
         """
         return read_config_file(
-            config_class=ProgramConfig,
-            config_file_path=self.program_config_path)
+            config_class=ProgramConfig, config_file_path=self.program_config_path
+        )
 
     def update_program_config_file(self, config: ProgramConfig) -> None:
         """
@@ -414,9 +416,12 @@ class ConfigManager():
         update_config_file(config, self.program_config_path)
 
     def get_game_uuids(self) -> tuple[UUID, ...]:
-        return tuple(UUID(config_file.parent.name)
-                     for config_file in self.games_dir_path.glob(
-            f"*/{self.GAME_CONFIG_FILE_NAME}"))
+        return tuple(
+            UUID(config_file.parent.name)
+            for config_file in self.games_dir_path.glob(
+                f"*/{self.GAME_CONFIG_FILE_NAME}"
+            )
+        )
 
     def get_game_config(self, game_uuid: UUID) -> GameConfig:
         """
@@ -426,8 +431,7 @@ class ConfigManager():
             FileNotFoundError: Config file not found
             ConfigFileParseError: Error parsing config file
         """
-        return self.get_merged_game_config(
-            self.read_game_config_file(game_uuid))
+        return self.get_merged_game_config(self.read_game_config_file(game_uuid))
 
     # def get_game_config_section(
     #         self,
@@ -453,7 +457,8 @@ class ConfigManager():
         """
         return read_config_file(
             config_class=GameConfig,
-            config_file_path=self.get_game_config_path(game_uuid))
+            config_file_path=self.get_game_config_path(game_uuid),
+        )
 
     # def read_game_config_file_section(
     #         self,
@@ -473,16 +478,13 @@ class ConfigManager():
     #         config_section_class=config_section,
     #         config_file_path=self.get_game_config_path(game_uuid))
 
-    def update_game_config_file(
-            self,
-            game_uuid: UUID,
-            config: GameConfig) -> None:
+    def update_game_config_file(self, game_uuid: UUID, config: GameConfig) -> None:
         """
         Replace contents of game config file with `config`.
         """
         update_config_file(
-            config=config,
-            config_file_path=self.get_game_config_path(game_uuid))
+            config=config, config_file_path=self.get_game_config_path(game_uuid)
+        )
 
     # def update_game_config_file_section(
     #         self,
@@ -504,17 +506,20 @@ class ConfigManager():
     #         config_file_path=self.get_game_config_path(game_uuid))
 
     def get_game_accounts_config(
-            self, game_uuid: UUID) -> tuple[GameAccountConfig, ...]:
+        self, game_uuid: UUID
+    ) -> tuple[GameAccountConfig, ...]:
         """
         Raises:
             FileNotFoundError: Config file not found
             ConfigFileParseError: Error parsing config file
         """
         return self.get_merged_game_accounts_config(
-            self._read_game_accounts_config_file_full(game_uuid)).accounts
+            self._read_game_accounts_config_file_full(game_uuid)
+        ).accounts
 
     def _read_game_accounts_config_file_full(
-            self, game_uuid: UUID) -> GameAccountsConfig:
+        self, game_uuid: UUID
+    ) -> GameAccountsConfig:
         """
         Read and parse game accounts config file into `GameAccountsConfig`
         object.
@@ -529,10 +534,13 @@ class ConfigManager():
             preconverter=partial(
                 _tables_to_array_of_tables,
                 array_name="accounts",
-                table_name_key_name="username"))
+                table_name_key_name="username",
+            ),
+        )
 
     def read_game_accounts_config_file(
-            self, game_uuid: UUID) -> tuple[GameAccountConfig, ...]:
+        self, game_uuid: UUID
+    ) -> tuple[GameAccountConfig, ...]:
         """
         Read and parse game accounts config file into tuple of
         `GameAccountConfig` objects.
@@ -543,9 +551,8 @@ class ConfigManager():
         return self._read_game_accounts_config_file_full(game_uuid).accounts
 
     def update_game_accounts_config_file(
-            self,
-            game_uuid: UUID,
-            accounts: tuple[GameAccountConfig, ...]) -> None:
+        self, game_uuid: UUID, accounts: tuple[GameAccountConfig, ...]
+    ) -> None:
         """
         Replace contents of game accounts config file with `accounts`.
         """
@@ -555,4 +562,6 @@ class ConfigManager():
             postconverter=partial(
                 _array_of_tables_to_tables,
                 array_name="accounts",
-                table_name_key_name="username"))
+                table_name_key_name="username",
+            ),
+        )

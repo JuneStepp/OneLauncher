@@ -1,11 +1,12 @@
 import logging
-from typing import Final, Optional, Tuple
+from typing import Final
 from urllib.parse import urlparse, urlunparse
 
-from ..resources import data_dir
 import xmlschema
 from asyncache import cached
 from cachetools import TTLCache
+
+from ..resources import data_dir
 from .httpx_client import get_httpx_client
 
 
@@ -21,7 +22,7 @@ class WorldStatus:
     @property
     def queue_url(self) -> str:
         """URL used to queue for world login.
-           Will be an empty string, if no queueing is needed."""
+        Will be an empty string, if no queueing is needed."""
         return self._queue_url
 
     @property
@@ -31,14 +32,16 @@ class WorldStatus:
 
 class World:
     _WORLD_STATUS_SCHEMA: Final = xmlschema.XMLSchema(
-        data_dir / "network" / "schemas" / "world_status.xsd")
+        data_dir / "network" / "schemas" / "world_status.xsd"
+    )
 
     def __init__(
-            self,
-            name: str,
-            chat_server_url: str,
-            status_server_url: str,
-            gls_datacenter_service: Optional[str] = None):
+        self,
+        name: str,
+        chat_server_url: str,
+        status_server_url: str,
+        gls_datacenter_service: str | None = None,
+    ):
         self._name = name
         self._chat_server_url = chat_server_url
         self._status_server_url = status_server_url
@@ -70,10 +73,12 @@ class World:
                   See `self._WORLD_STATUS_SCHEMA` schema file for what to expect.
         """
         status_dict = await self._get_status_dict(self.status_server_url)
-        queue_urls: Tuple[str, ...] = tuple(
-            url for url in status_dict["queueurls"].split(";") if url)
-        login_servers: Tuple[str, ...] = tuple(
-            server for server in status_dict["loginservers"].split(";") if server)
+        queue_urls: tuple[str, ...] = tuple(
+            url for url in status_dict["queueurls"].split(";") if url
+        )
+        login_servers: tuple[str, ...] = tuple(
+            server for server in status_dict["loginservers"].split(";") if server
+        )
         return WorldStatus(queue_urls[0], login_servers[0])
 
     async def _get_status_dict(self, status_server_url: str) -> dict:
@@ -88,8 +93,7 @@ class World:
             dict: Dictionary representation of world status.
                   See `self._WORLD_STATUS_SCHEMA` schema file for what to expect.
         """
-        response = await get_httpx_client(
-            status_server_url).get(status_server_url)
+        response = await get_httpx_client(status_server_url).get(status_server_url)
 
         if response.status_code == 404:
             # Fix broken status URLs for LOTRO legendary servers
@@ -98,7 +102,8 @@ class World:
                 if parsed_status_url.path.lower().endswith("/statusserver.aspx"):
                     parsed_gls_service = urlparse(self._gls_datacenter_service)
                     url_fixed_netloc = parsed_status_url._replace(
-                        netloc=parsed_gls_service.netloc)
+                        netloc=parsed_gls_service.netloc
+                    )
                     return await self._get_status_dict(urlunparse(url_fixed_netloc))
 
             # 404 response generally means world is unavailable

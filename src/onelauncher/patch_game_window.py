@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# coding=utf-8
 ###########################################################################
 # Patching window for OneLauncher.
 #
@@ -47,11 +46,10 @@ class PatchWindow(QtWidgets.QDialog):
         game: Game,
         urlPatchServer: str,
     ):
-        super(
-            PatchWindow,
-            self).__init__(
+        super(PatchWindow, self).__init__(
             QtCore.QCoreApplication.instance().activeWindow(),
-            QtCore.Qt.WindowType.FramelessWindowHint)
+            QtCore.Qt.WindowType.FramelessWindowHint,
+        )
 
         self.ui = Ui_patchingWindow()
         self.ui.setupUi(self)
@@ -75,17 +73,14 @@ class PatchWindow(QtWidgets.QDialog):
         self.lastRun = False
 
         self.process_status_timer = QtCore.QTimer()
-        self.process_status_timer.timeout.connect(
-            self.activelyShowProcessStatus)
+        self.process_status_timer.timeout.connect(self.activelyShowProcessStatus)
 
-        patch_client = game.game_directory / \
-            game.patch_client_filename
+        patch_client = game.game_directory / game.patch_client_filename
 
         # Make sure patch_client exists
         if not patch_client.exists():
             self.ui.txtLog.append(
-                '<font color="Khaki">Patch client %s not found</font>' % (
-                    patch_client)
+                '<font color="Khaki">Patch client %s not found</font>' % (patch_client)
             )
             logger.error("Patch client %s not found" % (patch_client))
             return
@@ -96,16 +91,18 @@ class PatchWindow(QtWidgets.QDialog):
         self.process.readyReadStandardOutput.connect(self.readOutput)
         self.process.readyReadStandardError.connect(self.readErrors)
         self.process.finished.connect(self.processFinished)
-        self.process.setWorkingDirectory(
-            str(game.game_directory))
+        self.process.setWorkingDirectory(str(game.game_directory))
 
         if os.name == "nt":
             # Get log file to read patching details from, since
             # rundll32 doesn't provide output on Windows
             log_folder_name = game.documents_config_dir.name
 
-            game_logs_folder = CaseInsensitiveAbsolutePath(
-                os.environ.get("APPDATA")).parent / "Local" / log_folder_name
+            game_logs_folder = (
+                CaseInsensitiveAbsolutePath(os.environ.get("APPDATA")).parent
+                / "Local"
+                / log_folder_name
+            )
 
             patch_log_path = game_logs_folder / "PatchClient.log"
             patch_log_path.unlink(missing_ok=True)
@@ -124,8 +121,7 @@ class PatchWindow(QtWidgets.QDialog):
         if game.high_res_enabled:
             arguments.append("--highres")
         self.process.setArguments(arguments)
-        edit_qprocess_to_use_wine(
-            self.process, get_wine_environment_from_game(game))
+        edit_qprocess_to_use_wine(self.process, get_wine_environment_from_game(game))
 
         # Arguments have to be gotten from self.process, because
         # they mey have been changed by edit_qprocess_to_use_wine().
@@ -165,8 +161,7 @@ class PatchWindow(QtWidgets.QDialog):
 
     def btnSaveClicked(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(
-            self, "Save log file", str(
-                platform_dirs.user_log_path)
+            self, "Save log file", str(platform_dirs.user_log_path)
         )[0]
 
         if filename != "":

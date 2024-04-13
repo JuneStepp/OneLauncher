@@ -32,30 +32,35 @@ class GameConfig(Config):
     name: str = attrs.field()  # Default is from `self._get_name_default`
     description: str = ""
     game_directory: CaseInsensitiveAbsolutePath = config_field(
-        help="The game's install directory")
+        help="The game's install directory"
+    )
     locale: OneLauncherLocale = config_field(help="Language used for game")
     client_type: ClientType = config_field(
-        default=ClientType.WIN64,
-        help="Which version of the game client to use")
+        default=ClientType.WIN64, help="Which version of the game client to use"
+    )
     high_res_enabled: bool = config_field(
-        default=True, help="If the high resolution game files should be used")
+        default=True, help="If the high resolution game files should be used"
+    )
     standard_game_launcher_filename: str | None = config_field(
         default=None,
-        help=("The name of the standard game launcher executable. "
-              "Ex. LotroLauncher.exe"))
+        help=(
+            "The name of the standard game launcher executable. "
+            "Ex. LotroLauncher.exe"
+        ),
+    )
     patch_client_filename: str = config_field(
         default="patchclient.dll",
-        help="Name of the dll used for game patching. Ex. patchclient.dll")
+        help="Name of the dll used for game patching. Ex. patchclient.dll",
+    )
     newsfeed: str | None = config_field(
-        default=None,
-        help="URL of the feed (RSS, ATOM, ect) to show in the launcher")
+        default=None, help="URL of the feed (RSS, ATOM, ect) to show in the launcher"
+    )
     last_played: datetime | None = None
     wine: WineConfigSection = config_field(help="WINE is not used on Windows")
 
     @name.default
     def _get_name_default(self) -> str:
-        return (f"{self.game_type}"
-                f"{' - Preview' if self.is_preview_client else ''}")
+        return f"{self.game_type}" f"{' - Preview' if self.is_preview_client else ''}"
 
     @override
     @staticmethod

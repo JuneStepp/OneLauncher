@@ -1,7 +1,7 @@
-from html.parser import HTMLParser
-from typing import Dict, List
 import sys
+from html.parser import HTMLParser
 from pathlib import Path
+
 
 class MyHTMLParser(HTMLParser):
     def handle_starttag(self, tag: str, attrs):
@@ -42,10 +42,11 @@ class MyHTMLParser(HTMLParser):
         self.data.append(f"<!--{data}-->")
 
     def feed(self, data):
-        self.attrs: Dict[str, List[Dict[str, str]]] = {}
+        self.attrs: dict[str, list[dict[str, str]]] = {}
         self.data = []
         HTMLParser.feed(self, data)
-        return ''.join(self.data)
+        return "".join(self.data)
+
 
 input_file = Path(sys.argv[1])
 with input_file.open("r") as file:

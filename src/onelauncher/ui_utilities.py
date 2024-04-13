@@ -22,13 +22,13 @@ def show_message_box_details_as_markdown(messageBox: QtWidgets.QMessageBox):
     )
     for button in button_box.buttons():
         if (
-            messageBox.buttonRole(
-                button) == QtWidgets.QMessageBox.ButtonRole.ActionRole
+            messageBox.buttonRole(button) == QtWidgets.QMessageBox.ButtonRole.ActionRole
             and button.text() == "Show Details..."
         ):
             button.click()
             detailed_text_widget: QtWidgets.QTextEdit = messageBox.findChild(  # type: ignore
-                QtWidgets.QTextEdit)
+                QtWidgets.QTextEdit
+            )
             detailed_text_widget.setMarkdown(messageBox.detailedText())
             button.click()
             return
@@ -36,9 +36,10 @@ def show_message_box_details_as_markdown(messageBox: QtWidgets.QMessageBox):
 
 class AsyncHelper(QtCore.QObject):
     class ReenterQtObject(QtCore.QObject):
-        """ This is a QObject to which an event will be posted, allowing
-            Trio to resume when the event is handled. event.fn() is the
-            next entry point of the Trio event loop. """
+        """This is a QObject to which an event will be posted, allowing
+        Trio to resume when the event is handled. event.fn() is the
+        next entry point of the Trio event loop."""
+
         def event(self, event):
             if event.type() == QtCore.QEvent.Type.User + 1:
                 event.fn()
@@ -46,8 +47,9 @@ class AsyncHelper(QtCore.QObject):
             return False
 
     class ReenterQtEvent(QtCore.QEvent):
-        """ This is the QEvent that will be handled by the ReenterQtObject.
-            self.fn is the next entry point of the Trio event loop. """
+        """This is the QEvent that will be handled by the ReenterQtObject.
+        self.fn is the next entry point of the Trio event loop."""
+
         def __init__(self, fn):
             super().__init__(QtCore.QEvent.Type(QtCore.QEvent.Type.User + 1))
             self.fn = fn
@@ -69,7 +71,7 @@ class AsyncHelper(QtCore.QObject):
             self.entry,
             run_sync_soon_threadsafe=self.next_guest_run_schedule,
             done_callback=self.trio_done_callback,
-            strict_exception_groups=True
+            strict_exception_groups=True,
         )
 
     def next_guest_run_schedule(self, fn):
@@ -84,8 +86,8 @@ class AsyncHelper(QtCore.QObject):
         QtWidgets.QApplication.postEvent(self.reenter_qt, self.ReenterQtEvent(fn))
 
     def trio_done_callback(self, outcome_):
-        """ This function is called by Trio when its event loop has
-            finished. """
+        """This function is called by Trio when its event loop has
+        finished."""
         if isinstance(outcome_, outcome.Error):
             error = outcome_.error
             logger.error("Trio Event loop error", exc_info=error)
