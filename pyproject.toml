@@ -90,6 +90,7 @@ select = [
 ignore = [
     "ANN101",  # missing-type-self
     "PLR0913", # too-many-arguments
+    "PLR0915", # too-many-statements
 ]
 
 [tool.ruff.lint.per-file-ignores]

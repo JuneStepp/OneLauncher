@@ -175,12 +175,4 @@ def QByteArray2str(s):
     return str(s, encoding="utf8", errors="replace")
 
 
-def GetText(nodelist):
-    return "".join(
-        node.data
-        for node in nodelist
-        if node.nodeType in [node.TEXT_NODE, node.CDATA_SECTION_NODE]
-    )
-
-
 logger = logging.getLogger("main")
