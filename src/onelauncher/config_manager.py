@@ -26,7 +26,7 @@ GAMES_DIR_DEFAULT_PATH: Path = platform_dirs.user_data_path / "games"
 
 
 def _structure_onelauncher_locale(
-    lang_tag: str, type: type[OneLauncherLocale]
+    lang_tag: str, conversion_type: type[OneLauncherLocale]
 ) -> OneLauncherLocale:
     return available_locales[lang_tag]
 
@@ -63,12 +63,14 @@ def convert_to_toml(
     Convert unstructured config data to toml. None values are commented out.
     Config values can also have help text that is put in a comment above them.
     """
-    for key, val in data_dict.items():
-        if isinstance(val, ConfigValWithMetadata):
-            metadata = val.metadata
-            val = val.value
+    for key, unprocessed_val in data_dict.items():
+        if isinstance(unprocessed_val, ConfigValWithMetadata):
+            metadata = unprocessed_val.metadata
+            val = unprocessed_val.value
             if metadata.help and not isinstance(val, dict):
                 container.add(tomlkit.comment(metadata.help))
+        else:
+            val = unprocessed_val
         if isinstance(val, dict):
             table = tomlkit.table()
             convert_to_toml(val, table)
@@ -144,11 +146,11 @@ def _array_of_tables_to_tables(
     return final_dict
 
 
-_R_co = TypeVar("_R_co")
+_R = TypeVar("_R")
 _P = ParamSpec("_P")
 
 
-class RemovableKeysLRUCache(Generic[_P, _R_co]):
+class RemovableKeysLRUCache(Generic[_P, _R]):
     """
     LRU Cache implementation with methods for removing or replacing specific
     cached calls.
@@ -157,13 +159,13 @@ class RemovableKeysLRUCache(Generic[_P, _R_co]):
     [stackoverflow](https://stackoverflow.com/a/64816003).
     """
 
-    def __init__(self, func: Callable[_P, _R_co], maxsize: int = 128):
+    def __init__(self, func: Callable[_P, _R], maxsize: int = 128):
         update_wrapper(self, func)
-        self.cache: OrderedDict[int, _R_co] = OrderedDict()
+        self.cache: OrderedDict[int, _R] = OrderedDict()
         self.func = func
         self.maxsize = maxsize
 
-    def __call__(self, *args: _P.args, **kwargs: _P.kwargs) -> _R_co:
+    def __call__(self, *args: _P.args, **kwargs: _P.kwargs) -> _R:
         cache = self.cache
         key = self._generate_hash_key(*args, **kwargs)
         if key in cache:
@@ -187,7 +189,7 @@ class RemovableKeysLRUCache(Generic[_P, _R_co]):
         if key in self.cache:
             self.cache.pop(key)
 
-    def cache_replace(self, value: _R_co, *args: _P.args, **kwargs: _P.kwargs) -> None:
+    def cache_replace(self, value: _R, *args: _P.args, **kwargs: _P.kwargs) -> None:
         key = self._generate_hash_key(*args, **kwargs)
         self.cache[key] = value
 
@@ -325,7 +327,7 @@ def update_config_file(
     # Make sure there's always a single newline between the version directive
     # comment and config contents
     if postconverted_unstructured and isinstance(
-        tuple(postconverted_unstructured.values())[0], dict
+        next(iter(postconverted_unstructured.values())), dict
     ):
         trail = "\n"
     else:
@@ -377,6 +379,10 @@ class ConfigManager:
     games_dir_path: Path = GAMES_DIR_DEFAULT_PATH
 
     GAME_CONFIG_FILE_NAME: Final[str] = attrs.field(default="config1.toml", init=False)
+
+    def __attrs_post_init__(self) -> None:
+        self.program_config_path.parent.mkdir(parents=True, exist_ok=True)
+        self.games_dir_path.mkdir(parents=True, exist_ok=True)
 
     def get_game_config_dir(self, game_uuid: UUID) -> Path:
         return self.games_dir_path / str(game_uuid)
@@ -482,8 +488,10 @@ class ConfigManager:
         """
         Replace contents of game config file with `config`.
         """
+        game_config_path = self.get_game_config_path(game_uuid)
+        game_config_path.parent.mkdir(exist_ok=True)
         update_config_file(
-            config=config, config_file_path=self.get_game_config_path(game_uuid)
+            config=config, config_file_path=game_config_path
         )
 
     # def update_game_config_file_section(
