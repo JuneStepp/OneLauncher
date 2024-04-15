@@ -424,7 +424,12 @@ class ConfigManager:
         """
         Replace contents of program config file with `config`.
         """
-        update_config_file(config, self.program_config_path)
+        update_config_file(config=config, config_file_path=self.program_config_path)
+
+    def delete_program_config(self) -> None:
+        """Delete program config"""
+        self.program_config_path.unlink(missing_ok=True)
+        read_config_file.clear_cache()
 
     def get_game_uuids(self) -> tuple[UUID, ...]:
         return tuple(
@@ -505,6 +510,7 @@ class ConfigManager:
                 game_uuid=game_uuid, game_account=account_config
             )
         rmtree(self.get_game_config_dir(game_uuid=game_uuid))
+        read_config_file.clear_cache()
 
     # def update_game_config_file_section(
     #         self,
