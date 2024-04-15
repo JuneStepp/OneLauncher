@@ -1,12 +1,15 @@
 from collections import OrderedDict
 from collections.abc import Callable
+from contextlib import suppress
 from functools import cache, partial, update_wrapper
 from pathlib import Path
+from shutil import rmtree
 from typing import Any, Final, Generic, ParamSpec, TypeVar
 from uuid import UUID
 
 import attrs
 import cattrs
+import keyring
 import tomlkit
 from cattrs.preconf.tomlkit import make_converter
 from tomlkit.items import Table
@@ -571,4 +574,108 @@ class ConfigManager:
                 array_name="accounts",
                 table_name_key_name="username",
             ),
+        )
+
+    def _get_account_keyring_username(
+        self, game_uuid: UUID, game_account: GameAccountConfig
+    ) -> str:
+        return f"{self.game_uuid}{game_account.username}"
+
+    def get_game_account_password(
+        self, game_uuid: UUID, game_account: GameAccountConfig
+    ) -> str | None:
+        """
+        Get account password that is saved in keyring.
+        Will return `None` if no saved passwords are found
+        """
+        return keyring.get_password(
+            service_name=__title__,
+            username=self._get_account_keyring_username(
+                game_uuid=game_uuid, game_account=game_accout
+            ),
+        )
+
+    def save_game_account_password(
+        self, game_uuid: UUID, game_account: GameAccountConfig, password: str
+    ) -> None:
+        """Save account password with keyring"""
+        keyring.set_password(
+            service_name=__title__,
+            username=self._get_account_keyring_username(
+                game_uuid=game_uuid, game_account=game_account
+            ),
+            password=password,
+        )
+
+    def delete_game_account_password(
+        self, game_uuid: UUID, game_account: GameAccountConfig
+    ) -> None:
+        """Delete account password saved with keyring"""
+        with suppress(keyring.errors.PasswordDeleteError):
+            keyring.delete_password(
+                service_name=__title__,
+                username=self._get_account_keyring_username(
+                    game_uuid=game_uuid, game_account=game_account
+                ),
+            )
+
+    def _get_account_last_used_subscription_keyring_username(
+        self, game_uuid: UUID, game_account: GameAccountConfig
+    ) -> str:
+        base_keyring_username = self._get_account_keyring_username(
+            game_uuid=game_uuid, game_account=game_account
+        )
+        return f"{base_keyring_username}LastUsedSubscription"
+
+    def get_game_account_last_used_subscription_name(
+        self, game_uuid: UUID, game_account: GameAccountConfig
+    ) -> str | None:
+        """
+        Get name of the subscription that was last played with from keyring.
+        See `login_account.py`
+        """
+        return keyring.get_password(
+            service_name=__title__,
+            username=self._get_account_last_used_subscription_keyring_username(
+                game_uuid=game_uuid, game_account=game_account
+            ),
+        )
+
+    def save_game_account_last_used_subscription_name(
+        self, game_uuid: UUID, game_account: GameAccountConfig, subscription_name: str
+    ) -> None:
+        """Save last used subscription name with keyring"""
+        keyring.set_password(
+            service_name=__title__,
+            username=self._get_account_last_used_subscription_keyring_username(
+                game_uuid=game_uuid, game_account=game_account
+            ),
+            password=subscription_name,
+        )
+
+    def delete_game_account_last_used_subscription_name(
+        self,
+        game_uuid: UUID,
+        game_account: GameAccountConfig,
+    ) -> None:
+        """Delete last used subscription name saved with keyring"""
+        with suppress(keyring.errors.PasswordDeleteError):
+            keyring.delete_password(
+                service_name=__title__,
+                username=self._get_account_last_used_subscription_keyring_username(
+                    game_uuid=game_uuid, game_account=game_account
+                ),
+            )
+
+    def delete_game_account_keyring_info(
+        self, game_uuid: UUID, game_account: GameAccountConfig
+    ) -> None:
+        """
+        Delete all information for account saved with keyring. ex. password
+        """
+        self.delete_game_account_password(
+            game_uuid=game_uuid, game_account=game_account
+        )
+        self.delete_game_account_last_used_subscription_name(
+            game_uuid=game_uuid, game_account=game_account
         )
