@@ -345,6 +345,7 @@ def update_config_file(
     )
 
     convert_to_toml(postconverted_unstructured, doc)
+    config_file_path.touch(exist_ok=True)
     config_file_path.write_text(doc.as_string())
     read_config_file.cache_replace(
         config, config_class=type(config), config_file_path=config_file_path
