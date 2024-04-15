@@ -589,7 +589,7 @@ class ConfigManager:
     def _get_account_keyring_username(
         self, game_uuid: UUID, game_account: GameAccountConfig
     ) -> str:
-        return f"{self.game_uuid}{game_account.username}"
+        return f"{game_uuid}{game_account.username}"
 
     def get_game_account_password(
         self, game_uuid: UUID, game_account: GameAccountConfig
@@ -601,7 +601,7 @@ class ConfigManager:
         return keyring.get_password(
             service_name=__title__,
             username=self._get_account_keyring_username(
-                game_uuid=game_uuid, game_account=game_accout
+                game_uuid=game_uuid, game_account=game_account
             ),
         )
 
