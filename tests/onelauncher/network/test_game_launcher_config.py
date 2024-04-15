@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from functools import partial
 
 import pytest
@@ -28,7 +29,7 @@ def get_mock_game_launcher_config_partial() -> partial[GameLauncherConfig]:
 
 
 @pytest.fixture
-def mock_game_launcher_config():
+def mock_game_launcher_config() -> Iterator[GameLauncherConfig]:
     yield get_mock_game_launcher_config_partial()()
 
 
@@ -37,7 +38,7 @@ class TestGameLauncherConfig:
     @pytest.mark.parametrize("client_type", list(ClientType))
     def test_get_specific_client_filename(
         self, mock_game_launcher_config: GameLauncherConfig, client_type: ClientType
-    ):
+    ) -> None:
         assert type(
             mock_game_launcher_config.get_specific_client_filename(client_type)
         ) in [None, str]
@@ -102,7 +103,7 @@ class TestGameLauncherConfig:
         client_win32_legacy_filename: str,
         input_client_type: ClientType,
         expected_output_client_type: str,
-    ):
+    ) -> None:
         mock_game_launcher_config = get_mock_game_launcher_config_partial()(
             client_win64_filename=client_win64_filename,
             client_win32_filename=client_win32_filename,

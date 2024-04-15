@@ -1,4 +1,4 @@
-from typing import Self
+from typing import Self, cast
 from xml.etree.ElementTree import Element
 
 import vkbeautify
@@ -27,7 +27,7 @@ class GameLauncherLocalConfig:
         self.documents_config_dir_name = documents_config_dir_name
 
     @classmethod
-    def from_config_xml(cls, config_xml: str) -> Self:
+    def from_config_xml(cls: type[Self], config_xml: str) -> Self:
         """Construct `GameLauncherLocalConfig` from game launcher config text.
 
         Args:
@@ -86,13 +86,13 @@ class GameLauncherLocalConfig:
         if existing_xml:
             verify_app_settings_config(existing_xml)
             root = ElementTree.fromstring(existing_xml)
-            assert type(root) is Element
+            root = cast(Element, root)
         else:
             root = Element("configuration")
             root.append(Element("appSettings"))
 
         app_settings = root.find("./appSettings")
-        assert type(app_settings) is Element
+        app_settings = cast(Element, app_settings)
         self._edit_config_xml_app_setting(
             app_settings, "Launcher.DataCenterService.GLS", self.gls_datacenter_service
         )

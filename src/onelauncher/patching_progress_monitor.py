@@ -29,10 +29,12 @@
 
 import re
 
+from .ui.patching_window_uic import Ui_patchingWindow
+
 
 class ProgressMonitor:
-    def __init__(self, logWindow=None):
-        self.uiLog = logWindow
+    def __init__(self, ui_patching_window: Ui_patchingWindow | None = None) -> None:
+        self.ui_patch = ui_patching_window
         self._re_filestat = re.compile(
             r"^.*?files to patch: ([\d]+) bytes to download: ([\d]+)"
         )
@@ -41,7 +43,7 @@ class ProgressMonitor:
         )
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         self.stateFunc = self.handlePatchMain
 
         self.fileCount = -1
@@ -56,10 +58,10 @@ class ProgressMonitor:
         self._fileDots = 0
         self._dataTotalDots = 0
 
-        if self.uiLog:
-            self.uiLog.progressBar.reset()
+        if self.ui_patch:
+            self.ui_patch.progressBar.reset()
 
-    def parseOutput(self, text):
+    def parseOutput(self, text: str) -> None:
         # split the output in lines
         text_lines = (self.currentLine + text).splitlines()
         linePos = -1
@@ -79,7 +81,7 @@ class ProgressMonitor:
             self.currentLine = text_lines[-1]
             self.currentPos = linePos
 
-    def handlePatchMain(self, text, offset):
+    def handlePatchMain(self, text: str, offset: int) -> None:
         res = self._re_filestat.match(text)
         if res:
             # file patching is checked again before data patching starts, don't overwrite
@@ -87,9 +89,9 @@ class ProgressMonitor:
                 self.fileCount = int(res.group(1))
                 self.fileBytes = int(res.group(2))
                 # print("Files: %d, Bytes: %d"%(self.fileCount, self.fileBytes))
-                if self.uiLog and self.fileCount > 1:
-                    self.uiLog.progressBar.setMaximum(self.fileCount)
-                    self.uiLog.progressBar.setValue(0)
+                if self.ui_patch and self.fileCount > 1:
+                    self.ui_patch.progressBar.setMaximum(self.fileCount)
+                    self.ui_patch.progressBar.setValue(0)
             self.stateFunc = self.handlePatchFiles
 
         res = self._re_datastat.match(text)
@@ -97,12 +99,12 @@ class ProgressMonitor:
             self.dataCount = int(res.group(1))
             self.dataBytes = int(res.group(2))
             # print("Iterations: %d, Bytes: %d"%(self.dataCount, self.dataBytes))
-            if self.uiLog and self.dataCount > 1:
-                self.uiLog.progressBar.setMaximum(self.dataCount)
-                self.uiLog.progressBar.setValue(0)
+            if self.ui_patch and self.dataCount > 1:
+                self.ui_patch.progressBar.setMaximum(self.dataCount)
+                self.ui_patch.progressBar.setValue(0)
             self.stateFunc = self.handlePatchData
 
-    def handlePatchFiles(self, text, offset):
+    def handlePatchFiles(self, text: str, offset: int) -> int | None:
         if text.startswith("Downloading "):
             self.currentFileNum += 1
             filename = text.split()[1].strip(".")
@@ -115,7 +117,9 @@ class ProgressMonitor:
         elif text.startswith("File patching complete"):
             self.stateFunc = self.handlePatchMain
 
-    def handlePatchData(self, text, offset):
+        return None
+
+    def handlePatchData(self, text: str, offset: int) -> int | None:
         if text.startswith("Downloading "):
             self.currentIterNum += 1
             filename = text.split()[1].strip(".")
@@ -128,7 +132,9 @@ class ProgressMonitor:
         elif text.startswith("Data patching complete"):
             self.stateFunc = self.handlePatchMain
 
-    def handleFileDownload(self, text, offset):
+        return None
+
+    def handleFileDownload(self, text: str, offset: int) -> int | None:
         idx = offset
         while idx < len(text):
             if text[idx] == ".":
@@ -136,8 +142,8 @@ class ProgressMonitor:
                 self._fileDots += 1
             else:
                 self.stateFunc = self.handlePatchFiles
-                if self.uiLog:
-                    self.uiLog.progressBar.setValue(self.currentFileNum)
+                if self.ui_patch:
+                    self.ui_patch.progressBar.setValue(self.currentFileNum)
                 # print('%d dots' % self._fileDots)
                 self._fileDots = 0
                 return self.stateFunc(text, idx)
@@ -145,7 +151,7 @@ class ProgressMonitor:
 
         return idx
 
-    def handleDataDownload(self, text, offset):
+    def handleDataDownload(self, text: str, offset: int) -> int | None:
         idx = offset
         while idx < len(text):
             if text[idx] == ".":
@@ -153,8 +159,8 @@ class ProgressMonitor:
                 # self._fileDots += 1
             else:
                 self.stateFunc = self.handlePatchData
-                if self.uiLog:
-                    self.uiLog.progressBar.setValue(self.currentIterNum)
+                if self.ui_patch:
+                    self.ui_patch.progressBar.setValue(self.currentIterNum)
                 return self.stateFunc(text, idx)
                 # print('%d dots' % self._fileDots)
                 # self._fileDots = 0

@@ -57,7 +57,7 @@ class GameAccount:
         )
 
     @last_used_subscription_name.setter
-    def last_used_subscription_name(self, subscription_name: str):
+    def last_used_subscription_name(self, subscription_name: str) -> None:
         keyring.set_password(
             __title__,
             self._last_used_subscription_keyring_username,

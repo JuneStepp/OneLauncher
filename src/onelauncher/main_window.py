@@ -71,7 +71,7 @@ from .ui_utilities import show_message_box_details_as_markdown
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, game: Game):
-        super(MainWindow, self).__init__(None, QtCore.Qt.WindowType.FramelessWindowHint)
+        super().__init__(None, QtCore.Qt.WindowType.FramelessWindowHint)
         self.game: Game = game
         self.checked_for_program_update = False
 
@@ -79,7 +79,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def init_ui(self) -> None:
         self.ui = Ui_winMain()
-        self.ui.setupUi(self)
+        self.ui.setupUi(self)  # type: ignore
 
         self.setFixedSize(790, 470)
 
@@ -106,7 +106,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setupMousePropagation()
 
-    async def run(self):
+    async def run(self) -> None:
         async with trio.open_nursery() as self.nursery:
             self.init_ui()
             self.show()
@@ -114,7 +114,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # Will be canceled when the winddow is closed
             self.nursery.start_soon(trio.sleep_forever)
 
-    def resetFocus(self):
+    def resetFocus(self) -> None:
         if self.ui.cboAccount.currentText() == "":
             self.ui.cboAccount.setFocus()
         elif (
@@ -123,13 +123,13 @@ class MainWindow(QtWidgets.QMainWindow):
         ):
             self.ui.txtPassword.setFocus()
 
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
         """Lets the user drag the window when left-click holding it"""
-        if event.button() == QtCore.Qt.LeftButton:
+        if event.button() == QtCore.Qt.MouseButton.LeftButton:
             self.windowHandle().startSystemMove()
             event.accept()
 
-    def setupMousePropagation(self):
+    def setupMousePropagation(self) -> None:
         """Sets some widgets to WA_NoMousePropagation to avoid window dragging issues"""
         mouse_ignore_list = [
             self.ui.btnAbout,
@@ -143,31 +143,31 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.chkSaveSettings,
         ]
         for widget in mouse_ignore_list:
-            widget.setAttribute(QtCore.Qt.WA_NoMousePropagation)
+            widget.setAttribute(QtCore.Qt.WidgetAttribute.WA_NoMousePropagation)
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         self.nursery.cancel_scope.cancel()
         event.accept()
 
-    def setupBtnExit(self):
+    def setupBtnExit(self) -> None:
         self.ui.btnExit.clicked.connect(self.close)
 
         self.ui.btnExit.setFont(icon_font)
         self.ui.btnExit.setText("\uf00d")
 
-    def setupBtnMinimize(self):
+    def setupBtnMinimize(self) -> None:
         self.ui.btnMinimize.clicked.connect(self.showMinimized)
 
         self.ui.btnMinimize.setFont(icon_font)
         self.ui.btnMinimize.setText("\uf2d1")
 
-    def setupBtnAbout(self):
+    def setupBtnAbout(self) -> None:
         self.ui.btnAbout.clicked.connect(self.btnAboutSelected)
 
         self.ui.btnAbout.setFont(icon_font)
         self.ui.btnAbout.setText("\uf05a")
 
-    def setupBtnOptions(self):
+    def setupBtnOptions(self) -> None:
         self.ui.btnOptions.clicked.connect(
             lambda: self.nursery.start_soon(self.btnOptionsSelected)
         )
@@ -175,27 +175,27 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btnOptions.setFont(icon_font)
         self.ui.btnOptions.setText("\uf013")
 
-    def setupBtnAddonManager(self):
+    def setupBtnAddonManager(self) -> None:
         self.ui.btnAddonManager.clicked.connect(self.btnAddonManagerSelected)
 
         self.ui.btnAddonManager.setFont(icon_font)
         self.ui.btnAddonManager.setText("\uf055")
 
-    def setupBtnLoginMenu(self):
+    def setupBtnLoginMenu(self) -> None:
         """Sets up signals and context menu for btnLoginMenu"""
         self.ui.btnLogin.clicked.connect(
             lambda: self.nursery.start_soon(self.btnLoginClicked)
         )
 
         # Setup context menu
-        self.ui.btnLoginMenu = QtWidgets.QMenu()
-        self.ui.btnLoginMenu.addAction(self.ui.actionPatch)
+        self.btnLoginMenu = QtWidgets.QMenu()
+        self.btnLoginMenu.addAction(self.ui.actionPatch)
         self.ui.actionPatch.triggered.connect(
             lambda: self.nursery.start_soon(self.actionPatchSelected)
         )
-        self.ui.btnLogin.setMenu(self.ui.btnLoginMenu)
+        self.ui.btnLogin.setMenu(self.btnLoginMenu)
 
-    def setup_switch_game_button(self):
+    def setup_switch_game_button(self) -> None:
         """Set icon and dropdown options of switch game button according to current game"""
         if self.game.game_type == GameType.DDO:
             self.ui.btnSwitchGame.setIcon(
@@ -240,11 +240,11 @@ class MainWindow(QtWidgets.QMainWindow):
         # Needed for menu to show up for some reason
         self.ui.btnSwitchGame.menu()
 
-    def btnAboutSelected(self):
+    def btnAboutSelected(self) -> None:
         dlgAbout = QtWidgets.QDialog(self, QtCore.Qt.WindowType.Popup)
 
         ui = Ui_dlgAbout()
-        ui.setupUi(dlgAbout)
+        ui.setupUi(dlgAbout)  # type: ignore
 
         ui.lblDescription.setText(__about__.__description__)
         ui.lblRepoWebsite.setText(
@@ -257,7 +257,7 @@ class MainWindow(QtWidgets.QMainWindow):
         dlgAbout.exec()
         self.resetFocus()
 
-    async def actionPatchSelected(self):
+    async def actionPatchSelected(self) -> None:
         game_services_info = await GameServicesInfo.from_game(self.game)
         if game_services_info is None:
             return
@@ -266,20 +266,20 @@ class MainWindow(QtWidgets.QMainWindow):
         winPatch.Run()
         self.resetFocus()
 
-    async def btnOptionsSelected(self):
+    async def btnOptionsSelected(self) -> None:
         winSettings = SettingsWindow(self.game)
         await winSettings.run()
         if winSettings.result() == QtWidgets.QDialog.DialogCode.Accepted:
             await self.InitialSetup()
 
-    def btnAddonManagerSelected(self):
+    def btnAddonManagerSelected(self) -> None:
         winAddonManager = AddonManagerWindow(self.game)
         winAddonManager.Run()
         save_game(self.game)
 
         self.resetFocus()
 
-    async def btnSwitchGameClicked(self):
+    async def btnSwitchGameClicked(self) -> None:
         new_game_type = (
             GameType.LOTRO if self.game.game_type == GameType.DDO else GameType.DDO
         )
@@ -288,11 +288,11 @@ class MainWindow(QtWidgets.QMainWindow):
         )[0]
         await self.InitialSetup()
 
-    async def game_switch_action_triggered(self, action: QtGui.QAction):
+    async def game_switch_action_triggered(self, action: QtGui.QAction) -> None:
         self.game = action.data()
         await self.InitialSetup()
 
-    async def btnLoginClicked(self):
+    async def btnLoginClicked(self) -> None:
         if self.ui.cboAccount.currentText() == "" or (
             self.ui.txtPassword.text() == ""
             and self.ui.txtPassword.placeholderText() == ""
@@ -304,14 +304,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         await self.AuthAccount()
 
-    def save_settings(self):
+    def save_settings(self) -> None:
         program_config.save_accounts = self.ui.chkSaveSettings.isChecked()
         program_config.save_accounts_passwords = self.ui.chkSavePassword.isChecked()
 
         program_config.save()
         save_game(self.game)
 
-    def accounts_index_changed(self, new_index):
+    def accounts_index_changed(self, new_index: int) -> None:
         """Sets saved information for selected account."""
         # No selection
         if new_index == -1:
@@ -322,7 +322,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.set_current_account_placeholder_password()
         self.resetFocus()
 
-    def user_edited_account_name(self, new_text: str):
+    def user_edited_account_name(self, new_text: str) -> None:
         # No saved account is selected
         if self.ui.cboAccount.currentIndex() == -1:
             return
@@ -353,18 +353,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def get_current_game_account(self) -> GameAccount | None:
         current_data = self.ui.cboAccount.currentData()
-        if type(current_data) is GameAccount:
-            return self.ui.cboAccount.currentData()
-        else:
-            return None
+        return current_data if isinstance(current_data, GameAccount) else None
 
-    def setCurrentAccountWorld(self):
+    def setCurrentAccountWorld(self) -> None:
         account = self.get_current_game_account()
         if account is None:
             return
         self.ui.cboWorld.setCurrentText(account.last_used_world_name)
 
-    def set_current_account_placeholder_password(self):
+    def set_current_account_placeholder_password(self) -> None:
         if not program_config.save_accounts_passwords:
             self.ui.txtPassword.setFocus()
             return
@@ -396,17 +393,17 @@ class MainWindow(QtWidgets.QMainWindow):
             self, QtCore.Qt.WindowType.FramelessWindowHint
         )
         ui = Ui_dlgSelectSubscription()
-        ui.setupUi(select_subscription_dialog)
+        ui.setupUi(select_subscription_dialog)  # type: ignore
 
         for subscription in subscriptions:
-            ui.subscriptionsComboBox.addItem(
-                subscription.description, subscription.name
-            )
+            ui.subscriptionsComboBox.addItem(subscription.description, subscription)
 
-        if select_subscription_dialog.exec() == QtWidgets.QDialog.Accepted:
-            selected_subscription_name: str = ui.subscriptionsComboBox.currentData()
+        if select_subscription_dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+            selected_subscription: login_account.GameSubscription = (
+                ui.subscriptionsComboBox.currentData()
+            )
             self.resetFocus()
-            return selected_subscription_name
+            return selected_subscription
         else:
             self.resetFocus()
             self.AddLog("No sub-account selected - aborting")
@@ -543,8 +540,7 @@ class MainWindow(QtWidgets.QMainWindow):
         world: World,
         login_server: str,
         login_response: login_account.AccountLoginResponse,
-    ):
-        world: World = self.ui.cboWorld.currentData()
+    ) -> None:
         game = StartGame(
             self.game,
             self.game_launcher_config,
@@ -589,7 +585,7 @@ class MainWindow(QtWidgets.QMainWindow):
             )
             self.AddLog(f"Position in queue: {people_ahead_in_queue}")
 
-    def set_banner_image(self):
+    def set_banner_image(self) -> None:
         ui_locale = program_config.get_ui_locale(self.game)
         game_dir_banner_override_path = (
             self.game.game_directory / ui_locale.lang_tag.split("-")[0] / "banner.png"
@@ -654,7 +650,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         return True
 
-    async def InitialSetup(self):
+    async def InitialSetup(self) -> None:
         self.ui.cboAccount.setEnabled(False)
         self.ui.cboAccount.setFocus()
         self.ui.txtPassword.setEnabled(False)
@@ -709,7 +705,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 nursery.start_soon(check_for_update)
         self.checked_for_program_update = True
 
-    async def game_initial_network_setup(self):
+    async def game_initial_network_setup(self) -> None:
         try:
             game_services_info = await GameServicesInfo.from_url(
                 self.game.gls_datacenter_service, self.game.datacenter_game_name
@@ -751,7 +747,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btnOptions.setEnabled(True)
         self.ui.btnSwitchGame.setEnabled(True)
 
-    def load_worlds_list(self, game_services_info: GameServicesInfo):
+    def load_worlds_list(self, game_services_info: GameServicesInfo) -> None:
         for world in game_services_info.worlds:
             self.ui.cboWorld.addItem(world.name, userData=world)
 
@@ -770,7 +766,7 @@ class MainWindow(QtWidgets.QMainWindow):
         except httpx.HTTPError:
             logger.exception("")
             self.AddLog("Network error while retrieving game launcher config.", True)
-            return
+            return None
         except GameLauncherConfigParseError:
             logger.exception("")
             self.AddLog(
@@ -778,9 +774,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 "this issue if using a supported game server",
                 True,
             )  # TODO: Easy report
-            return
+            return None
 
-    async def load_newsfeed(self, game_launcher_config: GameLauncherConfig):
+    async def load_newsfeed(self, game_launcher_config: GameLauncherConfig) -> None:
         ui_locale = program_config.get_ui_locale(self.game)
         newsfeed_url = self.game.newsfeed or game_launcher_config.get_newfeed_url(
             ui_locale
@@ -793,10 +789,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.AddLog("Network error while downloading newsfeed", True)
             logger.exception("Network error while downloading newsfeed.")
 
-    def ClearLog(self):
+    def ClearLog(self) -> None:
         self.ui.txtStatus.setText("")
 
-    def ClearNews(self):
+    def ClearNews(self) -> None:
         self.ui.txtFeed.setText("")
 
     def AddLog(self, message: str, is_error: bool = False) -> None:
@@ -805,7 +801,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if line.startswith("[E") or is_error:
                 logger.error(line)
 
-                line = '<font color="red">' + message + "</font>"
+                line = f'<font color="red">{message}</font>'
 
                 # Enable buttons that won't normally get re-enabled if
                 # MainWindowThread gets frozen.
@@ -817,7 +813,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.txtStatus.append(line)
 
 
-async def check_for_update():
+async def check_for_update() -> None:
     """Notifies user if their copy of OneLauncher is out of date"""
     current_version = packaging.version.parse(__about__.__version__)
     repository_url = __about__.__project_url__

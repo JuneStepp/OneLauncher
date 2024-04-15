@@ -3,6 +3,7 @@ import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from platform import platform
+from types import TracebackType
 
 from .__about__ import __title__, __version__
 from .config_old import platform_dirs
@@ -18,7 +19,12 @@ class Logger:
         self.logger = self.setup_logging(logs_dir, log_name)
         self.log_basic_info()
 
-    def handle_uncaught_exceptions(self, exc_type, exc_value, exc_traceback):
+    def handle_uncaught_exceptions(
+        self,
+        exc_type: type[BaseException],
+        exc_value: BaseException,
+        exc_traceback: TracebackType | None,
+    ) -> None:
         """Handler for uncaught exceptions that will write to the logs"""
         if issubclass(exc_type, KeyboardInterrupt):
             # call the default excepthook saved at __excepthook__
@@ -32,8 +38,8 @@ class Logger:
         self,
         logs_dir: Path,
         log_name: str,
-        file_logging_level=logging.INFO,
-        stream_logging_level=logging.WARNING,
+        file_logging_level: int = logging.INFO,
+        stream_logging_level: int = logging.WARNING,
     ) -> logging.Logger:
         """Initializes logging and logger object
 
@@ -57,12 +63,11 @@ class Logger:
 
         log_file = logs_dir / f"{log_name}.log"
         file_handler = RotatingFileHandler(
-            log_file,
+            filename=log_file,
             mode="a",
             maxBytes=10 * 1024 * 1024,
             backupCount=2,
             encoding=None,
-            delay=0,
         )
         file_handler.setLevel(file_logging_level)
 
@@ -83,12 +88,12 @@ class Logger:
 
         return logger
 
-    def log_basic_info(self):
+    def log_basic_info(self) -> None:
         self.logger.info("Logging started")
         self.logger.info(f"{__title__}: {__version__}")
         self.logger.info(platform())
 
 
-def setup_application_logging():
+def setup_application_logging() -> None:
     """Create main logger configured for running application"""
     Logger(platform_dirs.user_log_path, "main")

@@ -108,6 +108,7 @@ addopts = ["--import-mode=importlib"]
 [tool.mypy]
 plugins = "trio_typing.plugin"
 strict = true
+exclude = ["_uic\\.py"]
 
 
 [[tool.mypy.overrides]]

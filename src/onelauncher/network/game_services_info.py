@@ -1,4 +1,5 @@
 import logging
+from typing import Self
 
 import zeep.exceptions
 from asyncache import cached
@@ -29,7 +30,9 @@ class GameServicesInfo:
 
     @classmethod
     @cached(cache=TTLCache(maxsize=48, ttl=60 * 2))
-    async def from_url(cls, gls_datacenter_service: str, game_datacenter_name: str):
+    async def from_url(
+        cls: type[Self], gls_datacenter_service: str, game_datacenter_name: str
+    ) -> Self:
         """
         Raises:
             HTTPError: Network error
@@ -53,7 +56,7 @@ class GameServicesInfo:
             ) from e
 
     @classmethod
-    async def from_game(cls, game: Game):
+    async def from_game(cls: type[Self], game: Game) -> Self | None:
         """Simplified shortcut for getting `GameServicesInfo` object.
         Will return `None` if any exceptions are raised."""
         try:

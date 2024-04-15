@@ -1,4 +1,5 @@
 import logging
+from typing import Self
 
 from asyncache import cached
 from cachetools import TTLCache
@@ -87,7 +88,7 @@ class GameLauncherConfig:
             )
 
     @classmethod
-    def from_xml(cls, appsettings_config_xml: str):
+    def from_xml(cls: type[Self], appsettings_config_xml: str) -> Self:
         """
         Raises:
             GameLauncherConfigParseError: Config doesn't match expected game
@@ -152,7 +153,7 @@ class GameLauncherConfig:
 
     @classmethod
     @cached(cache=TTLCache(maxsize=48, ttl=60 * 2))
-    async def from_url(cls, config_url: str):
+    async def from_url(cls: type[Self], config_url: str) -> Self:
         """
         Raises:
             HTTPError: Network error while downloading the config XML
@@ -163,7 +164,7 @@ class GameLauncherConfig:
         return cls.from_xml(config_xml)
 
     @classmethod
-    async def from_game(cls, game: Game):
+    async def from_game(cls: type[Self], game: Game) -> Self | None:
         """Simplified shortcut for getting `GameLauncherConfig` object.
         Will return `None` if any exceptions are raised."""
         try:

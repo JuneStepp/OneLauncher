@@ -51,7 +51,7 @@ class SetupWizard(QtWidgets.QWizard):
         show_existing_games: bool = False,
         select_existing_games: bool = True,
     ):
-        super(SetupWizard, self).__init__()
+        super().__init__()
 
         self.game_selection_only = game_selection_only
         self.show_existing_games = show_existing_games
@@ -60,7 +60,7 @@ class SetupWizard(QtWidgets.QWizard):
         self.setWindowTitle(f"{__title__} Setup Wizard")
 
         self.ui = Ui_Wizard()
-        self.ui.setupUi(self)
+        self.ui.setupUi(self)  # type: ignore
 
         self.add_available_languages_to_ui()
 
@@ -72,14 +72,14 @@ class SetupWizard(QtWidgets.QWizard):
         self.accepted.connect(self.save_settings)
 
         if self.game_selection_only:
-            for id in self.pageIds():
-                self.removePage(id)
+            for page_id in self.pageIds():
+                self.removePage(page_id)
 
             self.addPage(self.ui.gamesSelectionWizardPage)
             self.setOption(QtWidgets.QWizard.WizardOption.NoBackButtonOnLastPage, True)
             self.find_games()
 
-    def add_available_languages_to_ui(self):
+    def add_available_languages_to_ui(self) -> None:
         for locale in available_locales.values():
             item = QtWidgets.QListWidgetItem(
                 QtGui.QPixmap(str(locale.flag_icon)), locale.display_name
@@ -90,7 +90,7 @@ class SetupWizard(QtWidgets.QWizard):
             if locale == program_config.default_locale:
                 self.ui.languagesListWidget.setCurrentItem(item)
 
-    def raise_selected_game_priority(self):
+    def raise_selected_game_priority(self) -> None:
         item = self.ui.gamesListWidget.currentItem()
         row = self.ui.gamesListWidget.row(item)
         if row == 0:
@@ -99,7 +99,7 @@ class SetupWizard(QtWidgets.QWizard):
         self.ui.gamesListWidget.insertItem(row - 1, item)
         self.ui.gamesListWidget.setCurrentItem(item)
 
-    def lower_selected_game_priority(self):
+    def lower_selected_game_priority(self) -> None:
         item = self.ui.gamesListWidget.currentItem()
         row = self.ui.gamesListWidget.row(item)
         # Item is already at end of list
@@ -109,7 +109,7 @@ class SetupWizard(QtWidgets.QWizard):
         self.ui.gamesListWidget.insertItem(row + 1, item)
         self.ui.gamesListWidget.setCurrentItem(item)
 
-    def current_id_changed(self, new_id):
+    def current_id_changed(self, new_id: int) -> None:
         if new_id == -1:
             return
 
@@ -121,17 +121,17 @@ class SetupWizard(QtWidgets.QWizard):
         elif new_id == self.ui.gamesSelectionWizardPage.nextId():
             self.games_selection_page_finished()
 
-    def find_games(self):
+    def find_games(self) -> None:
         if self.show_existing_games:
             self.add_existing_games()
 
         if os.name == "nt":
-            startDir = CaseInsensitiveAbsolutePath("C:/")
-            self.find_game_dirs(startDir / "Program Files")
-            if (startDir / "Program Files (x86)").exists():
-                self.find_game_dirs(startDir / "Program Files (x86)")
+            start_dir = CaseInsensitiveAbsolutePath("C:/")
+            self.find_game_dirs(start_dir / "Program Files")
+            if (start_dir / "Program Files (x86)").exists():
+                self.find_game_dirs(start_dir / "Program Files (x86)")
         else:
-            for dir, pattern in [
+            for search_start_dir, glob_pattern in [
                 (Path("~").expanduser(), "*wine*"),
                 (Path("~").expanduser() / ".steam/steam/steamapps/compatdata", "*"),
                 (Path("~").expanduser() / ".steam/steam/SteamApps/compatdata", "*"),
@@ -141,18 +141,23 @@ class SetupWizard(QtWidgets.QWizard):
                     "*",
                 ),
             ]:
-                for path in dir.glob(pattern):
+                for path in search_start_dir.glob(glob_pattern):
                     # Handle Steam Proton paths
                     if path.is_dir() and (path / "pfx").exists():
                         path = path / "pfx"
 
                     if path.is_dir() and (path / "drive_c").exists():
-                        self.find_game_dirs(path / "drive_c/Program Files")
-                        self.find_game_dirs(path / "drive_c/Program Files (x86)")
+                        self.find_game_dirs(
+                            CaseInsensitiveAbsolutePath(path) / "drive_c/Program Files"
+                        )
+                        self.find_game_dirs(
+                            CaseInsensitiveAbsolutePath(path)
+                            / "drive_c/Program Files (x86)"
+                        )
 
         self.games_found = True
 
-    def add_existing_games(self):
+    def add_existing_games(self) -> None:
         self.add_games_from_list(
             games_sorted.get_games_sorted_by_priority(),
             select_games=self.select_existing_games,
@@ -181,8 +186,7 @@ class SetupWizard(QtWidgets.QWizard):
         checked: bool = False,
         selected: bool = False,
     ) -> None:
-        game_dir = game.game_directory if type(game) is Game else game
-        assert type(game_dir) is CaseInsensitiveAbsolutePath
+        game_dir = game.game_directory if isinstance(game, Game) else game
         if item := self.get_game_dir_list_item(game_dir):
             messageBox = QtWidgets.QMessageBox(self)
             messageBox.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
@@ -204,7 +208,9 @@ class SetupWizard(QtWidgets.QWizard):
         if selected:
             self.ui.gamesListWidget.setCurrentItem(item)
 
-    def find_game_dirs(self, search_dir: CaseInsensitiveAbsolutePath, search_depth=5):
+    def find_game_dirs(
+        self, search_dir: CaseInsensitiveAbsolutePath, search_depth: int = 5
+    ) -> None:
         if search_depth <= 0:
             return
 
@@ -216,9 +222,9 @@ class SetupWizard(QtWidgets.QWizard):
             if path.is_dir() and path.name.upper() != "BACKUP":
                 self.find_game_dirs(path, search_depth=search_depth - 1)
 
-    def browse_for_game_dir(self):
+    def browse_for_game_dir(self) -> None:
         if os.name == "nt":
-            starting_dir = Path(os.environ.get("ProgramFiles"))
+            starting_dir = Path(os.environ.get("PROGRAMFILES") or "C:/Program Files")
         else:
             starting_dir = Path("~").expanduser()
 
@@ -226,7 +232,7 @@ class SetupWizard(QtWidgets.QWizard):
             self,
             "Game Directory",
             str(starting_dir),
-            options=QtWidgets.QFileDialog.ShowDirsOnly,
+            options=QtWidgets.QFileDialog.Option.ShowDirsOnly,
         )
         if not game_dir_string:
             return
@@ -244,7 +250,7 @@ class SetupWizard(QtWidgets.QWizard):
                 items.append(item)
         return items
 
-    def games_selection_page_finished(self):
+    def games_selection_page_finished(self) -> None:
         if not self.ui.gamesSelectionWizardPage.isComplete():
             return
 
@@ -309,7 +315,7 @@ class SetupWizard(QtWidgets.QWizard):
 
         return message_box.exec() == message_box.StandardButton.Yes
 
-    def save_settings(self):
+    def save_settings(self) -> None:
         if not self.game_selection_only:
             if self.get_games_config_reset_confirmation() is False:
                 return
@@ -318,11 +324,11 @@ class SetupWizard(QtWidgets.QWizard):
             selected_locale_display_name = (
                 self.ui.languagesListWidget.currentItem().text()
             )
-            program_config.default_locale = [
+            program_config.default_locale = next(
                 locale
                 for locale in available_locales.values()
                 if locale.display_name == selected_locale_display_name
-            ][0]
+            )
 
             program_config.always_use_default_language_for_ui = (
                 self.ui.alwaysUseDefaultLangForUICheckBox.isChecked()
@@ -343,17 +349,18 @@ class SetupWizard(QtWidgets.QWizard):
         selected_items = self.sort_list_widget_items(self.get_selected_game_items())
         selected_games: list[Game] = []
         for i, game_item in enumerate(selected_items):
-            item_data = game_item.data(QtCore.Qt.ItemDataRole.UserRole)
+            item_data: Game | CaseInsensitiveAbsolutePath = game_item.data(
+                QtCore.Qt.ItemDataRole.UserRole
+            )
             # Update only priority if game already exists.
-            if self.game_selection_only and type(item_data) is Game:
+            if self.game_selection_only and isinstance(item_data, Game):
                 item_data.sorting_priority = i
                 selected_games.append(item_data)
                 continue
 
             game_dir = (
-                item_data.game_directory if type(item_data) is Game else item_data
+                item_data.game_directory if isinstance(item_data, Game) else item_data
             )
-            assert type(game_dir) is CaseInsensitiveAbsolutePath
             uuid = games_sorted.get_new_uuid()
             game = get_game_from_config(
                 {

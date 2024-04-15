@@ -93,7 +93,7 @@ class AddonInfo(Sequence[str]):
 
 def GetText(nodelist: NodeList[Element]) -> str:
     return "".join(
-        node.data # type: ignore
+        node.data  # type: ignore
         for node in nodelist
         if node.nodeType in [node.TEXT_NODE, node.CDATA_SECTION_NODE]
     )

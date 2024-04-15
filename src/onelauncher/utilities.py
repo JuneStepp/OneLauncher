@@ -171,8 +171,4 @@ def parse_app_settings_config(config_text: str) -> dict[str, str]:
     return config_dict
 
 
-def QByteArray2str(s):
-    return str(s, encoding="utf8", errors="replace")
-
-
 logger = logging.getLogger("main")

@@ -37,7 +37,9 @@ from .resources import get_resource
 
 
 def setup_qtapplication() -> QtWidgets.QApplication:
-    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
+    QtCore.QCoreApplication.setAttribute(
+        QtCore.Qt.ApplicationAttribute.AA_ShareOpenGLContexts
+    )
     application = QtWidgets.QApplication(sys.argv)
     # Will be quit after Trio event loop finishes
     application.setQuitOnLastWindowClosed(False)
@@ -61,11 +63,11 @@ def setup_qtapplication() -> QtWidgets.QApplication:
     font.setPointSize(10)
     application.setFont(font)
 
-    handle_windows_dark_theme()
+    handle_windows_dark_theme(application)
     return application
 
 
-def handle_windows_dark_theme():
+def handle_windows_dark_theme(qapp: QtWidgets.QApplication) -> None:
     if os.name != "nt":
         return
 
@@ -78,38 +80,58 @@ def handle_windows_dark_theme():
         # Use QPalette to set custom dark theme for Windows.
         # The builtin Windows dark theme for Windows is not ready
         # as of 7-5-2021
-        QtCore.QCoreApplication.instance().setStyle(
-            QtWidgets.QStyleFactory.create("Fusion")
-        )
+        qapp.setStyle(QtWidgets.QStyleFactory.create("Fusion"))
         dark_palette = QtGui.QPalette()
         dark_color = QtGui.QColor(45, 45, 45)
         disabled_color = QtGui.QColor(127, 127, 127)
 
-        dark_palette.setColor(QtGui.QPalette.Window, dark_color)
-        dark_palette.setColor(QtGui.QPalette.WindowText, QtCore.Qt.white)
-        dark_palette.setColor(QtGui.QPalette.Base, QtGui.QColor(18, 18, 18))
-        dark_palette.setColor(QtGui.QPalette.AlternateBase, dark_color)
-        dark_palette.setColor(QtGui.QPalette.ToolTipBase, QtCore.Qt.white)
-        dark_palette.setColor(QtGui.QPalette.ToolTipText, QtCore.Qt.white)
-        dark_palette.setColor(QtGui.QPalette.Text, QtCore.Qt.white)
+        dark_palette.setColor(QtGui.QPalette.ColorRole.Window, dark_color)
         dark_palette.setColor(
-            QtGui.QPalette.Disabled, QtGui.QPalette.Text, disabled_color
+            QtGui.QPalette.ColorRole.WindowText, QtCore.Qt.GlobalColor.white
         )
-        dark_palette.setColor(QtGui.QPalette.Button, dark_color)
-        dark_palette.setColor(QtGui.QPalette.ButtonText, QtCore.Qt.white)
+        dark_palette.setColor(QtGui.QPalette.ColorRole.Base, QtGui.QColor(18, 18, 18))
+        dark_palette.setColor(QtGui.QPalette.ColorRole.AlternateBase, dark_color)
         dark_palette.setColor(
-            QtGui.QPalette.Disabled, QtGui.QPalette.ButtonText, disabled_color
+            QtGui.QPalette.ColorRole.ToolTipBase, QtCore.Qt.GlobalColor.white
         )
-        dark_palette.setColor(QtGui.QPalette.BrightText, QtCore.Qt.red)
-        dark_palette.setColor(QtGui.QPalette.Link, QtGui.QColor(42, 130, 218))
+        dark_palette.setColor(
+            QtGui.QPalette.ColorRole.ToolTipText, QtCore.Qt.GlobalColor.white
+        )
+        dark_palette.setColor(
+            QtGui.QPalette.ColorRole.Text, QtCore.Qt.GlobalColor.white
+        )
+        dark_palette.setColor(
+            QtGui.QPalette.ColorGroup.Disabled,
+            QtGui.QPalette.ColorRole.Text,
+            disabled_color,
+        )
+        dark_palette.setColor(QtGui.QPalette.ColorRole.Button, dark_color)
+        dark_palette.setColor(
+            QtGui.QPalette.ColorRole.ButtonText, QtCore.Qt.GlobalColor.white
+        )
+        dark_palette.setColor(
+            QtGui.QPalette.ColorGroup.Disabled,
+            QtGui.QPalette.ColorRole.ButtonText,
+            disabled_color,
+        )
+        dark_palette.setColor(
+            QtGui.QPalette.ColorRole.BrightText, QtCore.Qt.GlobalColor.red
+        )
+        dark_palette.setColor(QtGui.QPalette.ColorRole.Link, QtGui.QColor(42, 130, 218))
 
-        dark_palette.setColor(QtGui.QPalette.Highlight, QtGui.QColor(42, 130, 218))
-        dark_palette.setColor(QtGui.QPalette.HighlightedText, QtCore.Qt.black)
         dark_palette.setColor(
-            QtGui.QPalette.Disabled, QtGui.QPalette.HighlightedText, disabled_color
+            QtGui.QPalette.ColorRole.Highlight, QtGui.QColor(42, 130, 218)
+        )
+        dark_palette.setColor(
+            QtGui.QPalette.ColorRole.HighlightedText, QtCore.Qt.GlobalColor.black
+        )
+        dark_palette.setColor(
+            QtGui.QPalette.ColorGroup.Disabled,
+            QtGui.QPalette.ColorRole.HighlightedText,
+            disabled_color,
         )
 
-        QtCore.QCoreApplication.instance().setPalette(dark_palette)
-        QtCore.QCoreApplication.instance().setStyleSheet(
+        qapp.setPalette(dark_palette)
+        qapp.setStyleSheet(
             "QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }"
         )

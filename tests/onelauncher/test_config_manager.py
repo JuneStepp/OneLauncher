@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, tzinfo
+from datetime import datetime
 from textwrap import dedent
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -58,7 +58,7 @@ test_val_types_params: list[tuple[dict[str, Any], str]] = [
     ({"key": True}, "key = true\n"),
     ({"key": False}, "key = false\n"),
     ({"key": ["a", 2, True]}, 'key = ["a", 2, true]\n'),
-    ({"table": {}}, '[table]\n'),
+    ({"table": {}}, "[table]\n"),
     (
         {
             "key": datetime(

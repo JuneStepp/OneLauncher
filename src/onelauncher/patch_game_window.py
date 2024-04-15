@@ -36,7 +36,8 @@ from .config_old.games.wine import get_wine_environment_from_game
 from .game import Game
 from .patching_progress_monitor import ProgressMonitor
 from .ui.patching_window_uic import Ui_patchingWindow
-from .utilities import CaseInsensitiveAbsolutePath, QByteArray2str
+from .ui_utilities import QByteArray2str
+from .utilities import CaseInsensitiveAbsolutePath
 from .wine_environment import edit_qprocess_to_use_wine
 
 
@@ -46,13 +47,13 @@ class PatchWindow(QtWidgets.QDialog):
         game: Game,
         urlPatchServer: str,
     ):
-        super(PatchWindow, self).__init__(
+        super().__init__(
             QtCore.QCoreApplication.instance().activeWindow(),
             QtCore.Qt.WindowType.FramelessWindowHint,
         )
 
         self.ui = Ui_patchingWindow()
-        self.ui.setupUi(self)
+        self.ui.setupUi(self)  # type: ignore
 
         if os.name == "nt":
             self.setWindowTitle("Patching Output")
@@ -69,7 +70,7 @@ class PatchWindow(QtWidgets.QDialog):
         self.ui.btnStart.clicked.connect(self.btnStartClicked)
 
         self.aborted = False
-        self.finished = True
+        self.patching_finished = True
         self.lastRun = False
 
         self.process_status_timer = QtCore.QTimer()
@@ -130,19 +131,19 @@ class PatchWindow(QtWidgets.QDialog):
         self.data_arguments = self.process.arguments().copy()
         self.data_arguments.append("--dataonly")
 
-    def readOutput(self):
+    def readOutput(self) -> None:
         line = QByteArray2str(self.process.readAllStandardOutput())
         self.ui.txtLog.append(line)
         self.progressMonitor.parseOutput(line)
-        logger.debug("Patcher: " + line)
+        logger.debug(f"Patcher: {line}")
 
-    def readErrors(self):
+    def readErrors(self) -> None:
         line = QByteArray2str(self.process.readAllStandardError())
         self.ui.txtLog.append(line)
-        logger.debug("Patcher: " + line)
+        logger.debug(f"Patcher: {line}")
 
-    def resetButtons(self):
-        self.finished = True
+    def resetButtons(self) -> None:
+        self.patching_finished = True
         self.ui.btnStop.setText("Close")
         self.ui.btnSave.setEnabled(True)
         self.ui.btnStart.setEnabled(True)
@@ -152,14 +153,14 @@ class PatchWindow(QtWidgets.QDialog):
         elif self.lastRun:
             self.ui.txtLog.append("<b>***  Finished  ***</b>")
 
-    def btnStopClicked(self):
-        if self.finished:
+    def btnStopClicked(self) -> None:
+        if self.patching_finished:
             self.close()
         else:
             self.process.kill()
             self.aborted = True
 
-    def btnSaveClicked(self):
+    def btnSaveClicked(self) -> None:
         filename = QtWidgets.QFileDialog.getSaveFileName(
             self, "Save log file", str(platform_dirs.user_log_path)
         )[0]
@@ -168,7 +169,9 @@ class PatchWindow(QtWidgets.QDialog):
             with open(filename, "w") as outfile:
                 outfile.write(self.ui.txtLog.toPlainText())
 
-    def processFinished(self, exitCode, exitStatus):
+    def processFinished(
+        self, exitCode: int, exitStatus: QtCore.QProcess.ExitStatus
+    ) -> None:
         if self.aborted:
             self.resetButtons()
             return
@@ -190,10 +193,10 @@ class PatchWindow(QtWidgets.QDialog):
                 self.patch_log_file.close()
         self.phase += 1
 
-    def btnStartClicked(self):
+    def btnStartClicked(self) -> None:
         self.lastRun = False
         self.aborted = False
-        self.finished = False
+        self.patching_finished = False
         self.phase = 1
         self.ui.btnStart.setEnabled(False)
         self.ui.btnStop.setText("Abort")
@@ -205,32 +208,30 @@ class PatchWindow(QtWidgets.QDialog):
         if os.name == "nt":
             self.process_status_timer.start(100)
 
-    def activelyShowProcessStatus(self):
+    def activelyShowProcessStatus(self) -> None:
         """
         Gives patching progress on Windows where rundll32
         doesn't provide output.
         """
-        if self.process.state() != QtCore.QProcess.Running:
+        if self.process.state() != QtCore.QProcess.ProcessState.Running:
             return
 
-        line = self.patch_log_file.readline()
-        if line:
+        if line := self.patch_log_file.readline():
             # Ignore information only relevent to log
             if not line.startswith("//"):
                 line = line.split(": ")[1]
 
                 self.ui.txtLog.append(line)
                 self.progressMonitor.parseOutput(line)
-                logger.debug("Patcher: " + line)
+                logger.debug(f"Patcher: {line}")
         else:
             # Add "..." if log is not giving indicator of patching progress
             self.ui.txtLog.append("...")
 
         self.process_status_timer.start(100)
 
-    def Run(self):
+    def Run(self) -> None:
         self.__app = QtCore.QCoreApplication.instance()
-
         self.exec()
 
 

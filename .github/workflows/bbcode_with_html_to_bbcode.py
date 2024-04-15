@@ -4,24 +4,26 @@ from pathlib import Path
 
 
 class MyHTMLParser(HTMLParser):
-    def handle_starttag(self, tag: str, attrs):
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag not in self.attrs:
             self.attrs[tag] = []
 
-        attrs = dict(attrs)
-        if tag == "p" and attrs.get("align") == "center":
+        attrs_dict: dict[str, str | None] = dict(attrs)
+        if tag == "p" and attrs_dict.get("align") == "center":
             self.data.append("[center]")
-            self.attrs[tag].append(attrs)
+            self.attrs[tag].append(attrs_dict)
         elif tag == "a":
-            self.data.append(f"[url={attrs.get('href', '')}]")
+            self.data.append(f"[url={attrs_dict.get('href', '')}]")
         elif tag == "span":
             return
         else:
-            string_attrs = "".join(f" {key}={value}" for key, value in attrs.items())
+            string_attrs = "".join(
+                f" {key}={value}" for key, value in attrs_dict.items()
+            )
             self.data.append(f"<{tag}{string_attrs}>")
 
-    def handle_endtag(self, tag):
-        if tag in self.attrs and self.attrs[tag]:
+    def handle_endtag(self, tag: str) -> None:
+        if self.attrs.get(tag):
             attrs = self.attrs[tag][-1]
             if attrs.get("align") == "center":
                 self.data.append("[/center]")
@@ -34,14 +36,14 @@ class MyHTMLParser(HTMLParser):
         else:
             self.data.append(f"</{tag}>")
 
-    def handle_data(self, data):
+    def handle_data(self, data: str) -> None:
         self.data.append(data)
 
-    def handle_comment(self, data: str):
+    def handle_comment(self, data: str) -> None:
         """Leave comments as they are."""
         self.data.append(f"<!--{data}-->")
 
-    def feed(self, data):
+    def feed(self, data: str):
         self.attrs: dict[str, list[dict[str, str]]] = {}
         self.data = []
         HTMLParser.feed(self, data)

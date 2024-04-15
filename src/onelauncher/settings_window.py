@@ -51,8 +51,7 @@ from .wine_environment import edit_qprocess_to_use_wine
 
 class SettingsWindow(QtWidgets.QDialog):
     def __init__(self, game: Game):
-        assert QtCore.QCoreApplication.instance()
-        super(SettingsWindow, self).__init__(
+        super().__init__(
             QtCore.QCoreApplication.instance().activeWindow(),
             QtCore.Qt.WindowType.FramelessWindowHint,
         )
@@ -60,7 +59,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.ui = Ui_dlgSettings()
         self.ui.setupUi(self)
 
-    async def setup_ui(self):
+    async def setup_ui(self) -> None:
         self.finished.connect(self.cleanup)
 
         self.ui.showAdvancedSettingsCheckbox.toggled.connect(
@@ -163,21 +162,21 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.open()
 
-    async def run(self):
+    async def run(self) -> None:
         async with trio.open_nursery() as self.nursery:
             self.nursery.start_soon(self.setup_ui)
             self.nursery.start_soon(self.setup_newsfeed_option)
             # Will be canceled when the winddow is closed
             self.nursery.start_soon(trio.sleep_forever)
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         self.nursery.cancel_scope.cancel()
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         self.cleanup()
         event.accept()
 
-    async def setup_newsfeed_option(self):
+    async def setup_newsfeed_option(self) -> None:
         # Attempt to set placeholder text to default newsfeed URL
         if self.game.newsfeed is None:
             game_launcher_config = await GameLauncherConfig.from_game(self.game)
@@ -196,7 +195,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.ui.wineExecutableLabel.setEnabled(not is_checked)
         self.ui.wineExecutableLineEdit.setEnabled(not is_checked)
 
-    def toggle_advanced_settings(self, is_checked: bool):
+    def toggle_advanced_settings(self, is_checked: bool) -> None:
         advanced_widgets = [
             self.ui.gameUUIDLabel,
             self.ui.gameUUIDLineEdit,
@@ -216,7 +215,7 @@ class SettingsWindow(QtWidgets.QDialog):
                 self.ui.tabWidget.indexOf(self.ui.winePage), is_checked
             )
 
-    async def setup_client_type_combo_box(self):
+    async def setup_client_type_combo_box(self) -> None:
         combo_box_item_names = {
             ClientType.WIN64: "64-bit",
             ClientType.WIN32: "32-bit",
@@ -246,7 +245,7 @@ class SettingsWindow(QtWidgets.QDialog):
             self.ui.clientTypeComboBox.findData(self.game.client_type)
         )
 
-    async def run_standard_game_launcher(self, disable_patching=False):
+    async def run_standard_game_launcher(self, disable_patching: bool = False) -> None:
         launcher_path = await get_standard_game_launcher_path(self.game)
 
         if launcher_path is None:
@@ -261,12 +260,14 @@ class SettingsWindow(QtWidgets.QDialog):
         edit_qprocess_to_use_wine(process, get_wine_environment_from_game(self.game))
         process.startDetached()
 
-    def choose_game_dir(self):
+    def choose_game_dir(self) -> None:
         gameDirLineEdit = self.ui.gameDirLineEdit.text()
 
         if gameDirLineEdit == "":
             if os.name == "nt":
-                starting_dir = Path(os.environ.get("ProgramFiles"))
+                starting_dir = Path(
+                    os.environ.get("PROGRAMFILES") or "C:/Program Files"
+                )
             else:
                 starting_dir = Path("~").expanduser()
         else:
@@ -276,7 +277,7 @@ class SettingsWindow(QtWidgets.QDialog):
             self,
             "Game Directory",
             str(starting_dir),
-            options=QtWidgets.QFileDialog.ShowDirsOnly,
+            options=QtWidgets.QFileDialog.Option.ShowDirsOnly,
         )
 
         if filename != "":
@@ -290,10 +291,10 @@ class SettingsWindow(QtWidgets.QDialog):
                     self,
                 )
 
-    def manage_games(self):
+    def manage_games(self) -> None:
         self.start_setup_wizard(games_managing=True)
 
-    def start_setup_wizard(self, games_managing=False):
+    def start_setup_wizard(self, games_managing: bool = False) -> None:
         self.hide()
         if games_managing:
             setup_wizard = SetupWizard(
@@ -308,7 +309,7 @@ class SettingsWindow(QtWidgets.QDialog):
         setup_wizard.exec()
         self.accept()
 
-    def add_languages_to_combobox(self, combobox: QtWidgets.QComboBox):
+    def add_languages_to_combobox(self, combobox: QtWidgets.QComboBox) -> None:
         for locale in available_locales.values():
             combobox.addItem(QtGui.QPixmap(str(locale.flag_icon)), locale.display_name)
             combobox.model().sort(0)
@@ -330,7 +331,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.wine_env.debug_level = self.ui.wineDebugLineEdit.text() or None
         save_wine_environment(self.game, self.wine_env)
 
-    def save_config(self):
+    def save_config(self) -> None:
         available_locales_display_names_mapping = {
             locale.display_name: locale for locale in available_locales.values()
         }
