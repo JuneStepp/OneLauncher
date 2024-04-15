@@ -496,6 +496,15 @@ class ConfigManager:
         game_config_path.parent.mkdir(exist_ok=True)
         update_config_file(config=config, config_file_path=game_config_path)
 
+    def delete_game_config(self, game_uuid: UUID) -> None:
+        """Delete game config including all files and saved accounts"""
+        account_configs = self.read_game_accounts_config_file(game_uuid)
+        for account_config in account_configs:
+            self.delete_game_account_keyring_info(
+                game_uuid=game_uuid, game_account=account_config
+            )
+        rmtree(self.get_game_config_dir(game_uuid=game_uuid))
+
     # def update_game_config_file_section(
     #         self,
     #         game_uuid: UUID,
