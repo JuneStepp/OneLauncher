@@ -57,7 +57,8 @@ def get_converter() -> cattrs.Converter:
 
 
 def convert_to_toml(
-    data_dict: dict[str, Any], container: tomlkit.TOMLDocument | Table
+    data_dict: dict[str, Any | ConfigValWithMetadata],
+    container: tomlkit.TOMLDocument | Table,
 ) -> None:
     """
     Convert unstructured config data to toml. None values are commented out.
@@ -490,9 +491,7 @@ class ConfigManager:
         """
         game_config_path = self.get_game_config_path(game_uuid)
         game_config_path.parent.mkdir(exist_ok=True)
-        update_config_file(
-            config=config, config_file_path=game_config_path
-        )
+        update_config_file(config=config, config_file_path=game_config_path)
 
     # def update_game_config_file_section(
     #         self,
