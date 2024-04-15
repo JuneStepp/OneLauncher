@@ -1,7 +1,7 @@
 import logging
 import sys
 import tomllib
-from functools import cached_property
+from functools import cache, cached_property
 from pathlib import Path
 from typing import Self
 
@@ -61,7 +61,7 @@ class OneLauncherLocale:
         return babel.Locale.parse(self.lang_tag, sep="-")
 
 
-def _get_data_dir() -> Path:
+def get_data_dir() -> Path:
     """Returns location equivalent to OneLauncher folder of source code."""
     if getattr(sys, "frozen", False):
         # Data location for frozen programs
@@ -98,7 +98,9 @@ def get_resource(relative_path: Path, locale: OneLauncherLocale) -> Path:
         )
 
 
-def _get_available_locales(data_dir: Path) -> dict[str, OneLauncherLocale]:
+@cache
+def get_available_locales() -> dict[str, OneLauncherLocale]:
+    data_dir = get_data_dir()
     locales: dict[str, OneLauncherLocale] = {}
 
     for path in (data_dir / "locale").glob("*/"):
@@ -109,13 +111,13 @@ def _get_available_locales(data_dir: Path) -> dict[str, OneLauncherLocale]:
     return locales
 
 
-def _get_system_locale(
-    available_locales: dict[str, OneLauncherLocale],
-) -> OneLauncherLocale | None:
+@cache
+def get_system_locale() -> OneLauncherLocale | None:
     """
     Return locale from available_locales that matches the system.
     None will be returned if none match.
     """
+    available_locales = get_available_locales()
 
     system_lang_tag = QLocale.system().bcp47Name()
 
@@ -132,6 +134,10 @@ def _get_system_locale(
         return matching_langs[0]
     else:
         return None
+
+
+def get_default_locale() -> OneLauncherLocale:
+    return get_system_locale() or get_available_locales()["en-US"]
 
 
 def get_game_dir_available_locales(game_dir: Path) -> list[OneLauncherLocale]:
@@ -160,6 +166,6 @@ def get_game_dir_available_locales(game_dir: Path) -> list[OneLauncherLocale]:
 
 logger = logging.getLogger("main")
 
-data_dir = _get_data_dir()
-available_locales = _get_available_locales(data_dir)
-system_locale = _get_system_locale(available_locales)
+data_dir = get_data_dir()
+available_locales = get_available_locales()
+system_locale = get_system_locale()
