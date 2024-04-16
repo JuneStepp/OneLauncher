@@ -504,11 +504,12 @@ class ConfigManager:
 
     def delete_game_config(self, game_uuid: UUID) -> None:
         """Delete game config including all files and saved accounts"""
-        account_configs = self.read_game_accounts_config_file(game_uuid)
-        for account_config in account_configs:
-            self.delete_game_account_keyring_info(
-                game_uuid=game_uuid, game_account=account_config
-            )
+        with suppress(FileNotFoundError):
+            account_configs = self.read_game_accounts_config_file(game_uuid)
+            for account_config in account_configs:
+                self.delete_game_account_keyring_info(
+                    game_uuid=game_uuid, game_account=account_config
+                )
         rmtree(self.get_game_config_dir(game_uuid=game_uuid))
         read_config_file.clear_cache()
 

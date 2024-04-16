@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from collections.abc import Iterator
 from enum import StrEnum
 from functools import partial
@@ -13,6 +14,7 @@ import attrs
 import click
 import rich
 import typer
+from PySide6 import QtCore, QtWidgets
 from typer.core import TyperGroup as TyperGroupBase
 
 from .__about__ import __title__, __version__
@@ -21,10 +23,16 @@ from .config_manager import ConfigManager, get_converter
 from .game_account_config import GameAccountConfig, GameAccountsConfig
 from .game_config import ClientType, GameConfig, GameType
 from .game_utilities import GamesSortingMode
+from .logs import setup_application_logging
 from .program_config import ProgramConfig
+from .qtapp import setup_qtapplication
 from .resources import OneLauncherLocale
+from .setup_wizard import SetupWizard
+from .ui_utilities import AsyncHelper
 from .utilities import CaseInsensitiveAbsolutePath
 from .wine.config import WineConfigSection
+
+setup_application_logging()
 
 
 class TyperGroup(TyperGroupBase):
@@ -276,30 +284,6 @@ def _complete_game_arg(incomplete: str) -> Iterator[str]:
             yield option
 
 
-def _get_starting_game_uuid(
-    game_arg: str | None, config_manager: ConfigManager
-) -> UUID:
-    try:
-        program_config = config_manager.get_program_config()
-    except FileNotFoundError:
-        return  # TODO: Start setup wizard
-        # return _get_starting_game_uuid(
-        #     game_arg=game_arg, config_manager=config_manager)
-
-    if game_arg:
-        return _parse_game_arg(game_arg, config_manager)
-    elif game_uuids := config_manager.get_game_uuids():
-        # TODO: Choose game config using games_sorted stuff
-        # program_config.games_sorting_mode
-        return game_uuids[0]
-    else:
-        # TODO: Launch the games management window. Maybe a version with
-        # an explanation that no games were found. Then re-run the function
-        # return _get_starting_game_uuid(
-        #     game_arg=game_arg, config_manager=config_manager)
-        pass
-
-
 def _complete_username_arg(incomplete: str, context: typer.Context) -> Iterator[str]:
     game_arg: str | None = context.params.get("game")
     if not game_arg:
@@ -487,8 +471,33 @@ def main(
         get_merged_game_config=get_merged_game_config,
         get_merged_game_accounts_config=get_merged_game_accounts_config,
     )
+    game_uuid = _parse_game_arg(game, config_manager) if game else None
 
-    game_uuid = _get_starting_game_uuid(game_arg=game, config_manager=config_manager)
+    qapp = setup_qtapplication()
+    async_helper = AsyncHelper(
+        partial(_start_ui, config_manager=config_manager, game_uuid=game_uuid)
+    )
+    QtCore.QTimer.singleShot(0, async_helper.launch_guest_run)
+    # qapp.exec() won't return until trio event loop finishes
+    sys.exit(qapp.exec())
+
+
+async def _start_ui(config_manager: ConfigManager, game_uuid: UUID | None) -> None:
+    try:
+        config_manager.get_program_config()
+    except FileNotFoundError:
+        setup_wizard = SetupWizard(config_manager)
+        if setup_wizard.exec() == QtWidgets.QDialog.DialogCode.Rejected:
+            # Close program if the user left the setup wizard
+            # without generating the game
+            return None
+        return await _start_ui(config_manager=config_manager, game_uuid=game_uuid)
+
+    if not config_manager.get_game_uuids():
+        # TODO: Launch the games management window. Maybe a version with
+        # an explanation that no games were found. Then re-run the function
+        # return _get_starting_game_uuid(
+        #     game_arg=game_arg, config_manager=config_manager)
+        pass
 
     # TODO: Start main window
-    print(config_manager.get_game_config(game_uuid))

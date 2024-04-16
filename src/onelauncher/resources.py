@@ -10,7 +10,7 @@ import babel
 from PySide6.QtCore import QLocale
 
 
-@attrs.define
+@attrs.frozen
 class OneLauncherLocale:
     """
     Args:

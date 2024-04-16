@@ -1,8 +1,8 @@
 import contextlib
+from collections.abc import Iterable
 from enum import Enum
-from uuid import UUID, uuid4
 
-from .game import Game, GameType
+from .game_config import GameConfig, GameType
 from .game_launcher_local_config import (
     GameLauncherLocalConfig,
     GameLauncherLocalConfigParseError,
@@ -22,76 +22,69 @@ class GamesSortingMode(Enum):
     ALPHABETICAL = "alphabetical"
 
 
-class GamesSorted:
-    def __init__(
-        self,
-        games: list[Game],
-    ) -> None:
-        self.games = {game.uuid: game for game in games}
+def get_games_by_game_type(
+    game_configs: Iterable[GameConfig], game_type: GameType
+) -> list[GameConfig]:
+    return [game for game in game_configs if game.game_type == game_type]
 
-    def get_games_by_game_type(self, game_type: GameType) -> list[Game]:
-        return [game for game in self.games.values() if game.game_type == game_type]
 
-    def get_games_sorted_by_priority(
-        self, game_type: GameType | None = None
-    ) -> list[Game]:
-        games = (
-            self.get_games_by_game_type(game_type) if game_type else self.games.values()
-        )
-        # Sort games by sorting_priority. Games with sorting_priority of -1 are
-        # put at end of list
-        return sorted(
-            games,
-            key=lambda game: "Z"
-            if game.sorting_priority == -1
-            else str(game.sorting_priority),
-        )
+def get_games_sorted_by_priority(
+    game_configs: Iterable[GameConfig], game_type: GameType | None = None
+) -> list[GameConfig]:
+    games = (
+        get_games_by_game_type(game_configs, game_type) if game_type else game_configs
+    )
+    # Sort games by sorting_priority. Games with sorting_priority of -1 are
+    # put at end of list
+    return sorted(
+        games,
+        key=lambda game: "Z"
+        if game.sorting_priority == -1
+        else str(game.sorting_priority),
+    )
 
-    def get_games_sorted_by_last_played(
-        self, game_type: GameType | None = None
-    ) -> list[Game]:
-        games = (
-            set(self.get_games_by_game_type(game_type))
-            if game_type
-            else set(self.games.values())
-        )
-        games_never_played = {game for game in games if game.last_played is None}
-        games_played = games - games_never_played
-        # Get list of played games sorted by when they were last played
-        games_played_sorted = sorted(
-            games_played,
-            key=lambda game: game.last_played,  # type: ignore
-            reverse=True,
-        )
-        # Games never played should be at end of list
-        return games_played_sorted + list(games_never_played)
 
-    def get_sorted_games_list(
-        self, sorting_mode: GamesSortingMode, game_type: GameType | None = None
-    ) -> list[Game]:
-        match sorting_mode:
-            case GamesSortingMode.PRIORITY:
-                return self.get_games_sorted_by_priority(game_type)
-            case GamesSortingMode.LAST_USED:
-                return self.get_games_sorted_by_last_played(game_type)
-            case GamesSortingMode.ALPHABETICAL:
-                return self.get_games_sorted_alphabetically(game_type)
+def get_games_sorted_by_last_played(
+    game_configs: Iterable[GameConfig], game_type: GameType | None = None
+) -> list[GameConfig]:
+    games = (
+        set(get_games_by_game_type(game_configs, game_type))
+        if game_type
+        else set(game_configs)
+    )
+    games_never_played = {game for game in games if game.last_played is None}
+    games_played = games - games_never_played
+    # Get list of played games sorted by when they were last played
+    games_played_sorted = sorted(
+        games_played,
+        key=lambda game: game.last_played,  # type: ignore
+        reverse=True,
+    )
+    # Games never played should be at end of list
+    return games_played_sorted + list(games_never_played)
 
-    def get_games_sorted_alphabetically(self, game_type: GameType | None) -> list[Game]:
-        games = (
-            self.get_games_by_game_type(game_type) if game_type else self.games.values()
-        )
-        return sorted(games, key=lambda game: game.name)
 
-    def get_new_uuid(self) -> UUID:
-        """Return UUID that doesn't already exist in `self.games.values()`"""
-        current_uuids = list(self.games)
+def get_sorted_games_list(
+    game_configs: Iterable[GameConfig],
+    sorting_mode: GamesSortingMode,
+    game_type: GameType | None = None,
+) -> list[GameConfig]:
+    match sorting_mode:
+        case GamesSortingMode.PRIORITY:
+            return get_games_sorted_by_priority(game_configs, game_type)
+        case GamesSortingMode.LAST_USED:
+            return get_games_sorted_by_last_played(game_configs, game_type)
+        case GamesSortingMode.ALPHABETICAL:
+            return get_games_sorted_alphabetically(game_configs, game_type)
 
-        uuid = None
-        while uuid in current_uuids or not uuid:
-            uuid = uuid4()
 
-        return uuid
+def get_games_sorted_alphabetically(
+    game_configs: Iterable[GameConfig], game_type: GameType | None
+) -> list[GameConfig]:
+    games = (
+        get_games_by_game_type(game_configs, game_type) if game_type else game_configs
+    )
+    return sorted(games, key=lambda game: game.name)
 
 
 def get_launcher_config_paths(
@@ -134,6 +127,10 @@ def get_launcher_config_paths(
             return 3
 
     return tuple(sorted(config_files, key=config_files_sorting_key))
+
+
+class InvalidGameDirError(ValueError):
+    """Path is not a valid game directory"""
 
 
 def find_game_dir_game_type(game_dir: CaseInsensitiveAbsolutePath) -> GameType | None:

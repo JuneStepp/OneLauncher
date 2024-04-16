@@ -34,7 +34,7 @@ class GameConfig(Config):
     game_directory: CaseInsensitiveAbsolutePath = config_field(
         help="The game's install directory"
     )
-    locale: OneLauncherLocale = config_field(help="Language used for game")
+    locale: OneLauncherLocale | None = config_field(default=None, help="Language used for game")
     client_type: ClientType = config_field(
         default=ClientType.WIN64, help="Which version of the game client to use"
     )
