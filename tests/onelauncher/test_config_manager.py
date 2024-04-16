@@ -102,7 +102,7 @@ test_val_types_params: list[tuple[dict[str, Any], str]] = [
 
 
 @pytest.mark.parametrize(
-    ["data_dict", "final_toml_output"],
+    ("data_dict", "final_toml_output"),
     test_key_val_params + test_table_params + test_val_types_params,
 )
 def test_convert_to_toml(
