@@ -185,9 +185,11 @@ class SetupWizard(QtWidgets.QWizard):
             if (start_dir / "Program Files (x86)").exists():
                 self.find_game_dirs(start_dir / "Program Files (x86)")
         else:
-            home_dir = CaseInsensitiveAbsolutePath(Path("~").expanduser())
+            home_dir = CaseInsensitiveAbsolutePath.home()
             for prefix_search_start_dir, glob_pattern in [
                 (home_dir, "*wine*/"),
+                # Can't just check steamapps/common because of non-steam games managed
+                # with Steam.
                 (home_dir / ".steam/steam/steamapps/compatdata", "*/"),
                 (home_dir / ".steam/steamapps/compatdata", "*/"),
                 (
@@ -199,7 +201,7 @@ class SetupWizard(QtWidgets.QWizard):
                 for path in prefix_search_start_dir.glob(glob_pattern):
                     # Handle both default WINE and Valve Proton paths
                     prefix_drive_c_path = (
-                        "drive_c/pfx" if (path / "pfx").exists() else "drive_c"
+                        "pfx/drive_c" if (path / "pfx").exists() else "drive_c"
                     )
                     if (path / prefix_drive_c_path).exists():
                         self.find_game_dirs(
