@@ -42,12 +42,24 @@ if TYPE_CHECKING:
 
 
 class CaseInsensitiveAbsolutePath(Path):
+    """
+    `pathlib.Path` subclass that automatically converts from the provided
+    case-insensitive path a path that exists, if any. This is used for compatibility
+    with Windows programs. Windows filesystems are case-insensitive by default, so
+    paths of many different capitalization patterns may be encountered. Multiple paths
+    that differ only in case should be avoided if they will interact with the Windows
+    programs.
+
+    LOTRO and DDO treat both patchclient.dll and PatchClient.dll the same, and both have
+    been encountered in real game folders before. There are similar concerns regarding
+    addon folders or anything else used by the games or in the WINE prefixes.
+    """
+
     _flavour = (
-        pathlib._windows_flavour
-        if os.name  # type: ignore
-        == "nt"
-        else pathlib._posix_flavour
-    )  # type: ignore
+        pathlib._windows_flavour  # type: ignore
+        if os.name == "nt"
+        else pathlib._posix_flavour  # type: ignore
+    )
 
     def __new__(cls, *pathsegments: StrPath) -> Self:
         normal_path = Path(*pathsegments)
@@ -57,58 +69,70 @@ class CaseInsensitiveAbsolutePath(Path):
         return super().__new__(cls, path)
 
     @classmethod
-    def _get_real_path_from_fully_case_insensitive_path(cls, base_path: Path) -> Path:
+    def _get_real_path_from_fully_case_insensitive_path(
+        cls: type[Self], start_path: Path, known_to_exist_base_path: Path | None = None
+    ) -> Path:
         """Return any found path that matches base_path when ignoring case"""
-        # Base version already exists
-        if base_path.exists():
-            return base_path
-
-        parts = list(base_path.parts)
-        if not Path(parts[0]).exists():
+        parts = list(start_path.parts)
+        if known_to_exist_base_path is None and not os.path.exists(parts[0]):
             # If root doesn't exist, nothing else can be checked
-            return base_path
+            return start_path
 
-        # Range starts at 1 to ingore root which has already been checked
-        for i in range(1, len(parts)):
-            current_path = Path(*(parts if i == len(parts) - 1 else parts[: i + 1]))
-            real_path = cls._get_real_path_from_name_case_insensitive_path(current_path)
-            # Second check is for if there is a file or broken symlink before
-            # the end of the path. Without the check it would raise and
-            # exception in cls._get_real_path_from_name_case_insensitive_path
-            if real_path is None or (i < len(parts) - 1 and not real_path.is_dir()):
-                # No version exists, so the original is just returned
-                return base_path
+        if known_to_exist_base_path is not None:
+            start_index = len(known_to_exist_base_path.parts)
+        else:
+            # Range starts at 1 to ingore root which has already been checked
+            start_index = 1
 
-            parts[i] = real_path.name
+        for i in range(start_index, len(parts)):
+            current_path_parts = parts if i == len(parts) - 1 else parts[: i + 1]
+            real_path_name = cls._get_real_path_name_from_case_insensitive_path_name(
+                case_insensitive_name=current_path_parts[-1],
+                parent_dir=os.path.sep.join(current_path_parts[:-1]),
+            )
+            # No version exists, so the original is just returned
+            if real_path_name is None:
+                return start_path
+
+            parts[i] = real_path_name
 
         return Path(*parts)
 
     @staticmethod
-    def _get_real_path_from_name_case_insensitive_path(base_path: Path) -> Path | None:
+    def _get_real_path_name_from_case_insensitive_path_name(
+        case_insensitive_name: str, parent_dir: str
+    ) -> str | None:
         """
-        Return any found path where path.name == base_path.name ignoring case.
-        base_path.parent has to exist. Use _get_case_sensitive_full_path if
-        this is not the case.
+        Return any found path where the path name == `case_insensitive_name` ignoring
+        case. `parent_dir` has to exist. Use _get_case_sensitive_full_path if this may
+        not be the case.
         """
-        if not base_path.parent.exists():
-            raise FileNotFoundError(f"`{base_path.parent}` parent path does not exist")
+        if os.path.exists(parent_dir + os.path.sep + case_insensitive_name):
+            return case_insensitive_name
 
-        if base_path.exists():
-            return base_path
+        base_path_name_lower = case_insensitive_name.lower()
+        try:
+            return next(
+                (
+                    path_name
+                    for path_name in os.listdir(parent_dir)
+                    if path_name.lower() == base_path_name_lower
+                ),
+                None,
+            )
+        except OSError:
+            return None
 
-        return next(
-            (
-                path
-                for path in base_path.parent.iterdir()
-                if path.name.lower() == base_path.name.lower()
-            ),
-            None,
+    def _make_child(self, args: tuple[StrPath, ...]) -> Path:
+        joined_path = super()._make_child(args)  # type: ignore
+        return self._get_real_path_from_fully_case_insensitive_path(
+            start_path=joined_path,
+            known_to_exist_base_path=self if self.exists() else None,
         )
 
-    def _make_child(self, args) -> Path:
-        _, _, parts = super()._parse_args(args)  # type: ignore
-        joined_path = super()._make_child((Path(*parts),))  # type: ignore
-        return self._get_real_path_from_fully_case_insensitive_path(joined_path)
+    @classmethod
+    def home(cls: type[Self]) -> Self:
+        return cls(os.path.expanduser("~"))
 
     def _get_case_insensitive_glob_pattern(self, pattern: str) -> str:
         return "".join(
