@@ -268,15 +268,14 @@ class SetupWizard(QtWidgets.QWizard):
         Raises:
             InvalidGameDirError: `game_dir` is not a valid game directory
         """
-        game_type = find_game_dir_game_type(game_dir)
-        if not game_type:
-            raise InvalidGameDirError("")
+        game_type = find_game_dir_game_type(game_dir=game_dir)
 
         launcher_config_paths = get_launcher_config_paths(
             search_dir=game_dir, game_type=game_type
         )
         if not launcher_config_paths:
             raise InvalidGameDirError("")
+
         try:
             launcher_config = GameLauncherLocalConfig.from_config_xml(
                 config_xml=launcher_config_paths[0].read_text()
@@ -300,6 +299,7 @@ class SetupWizard(QtWidgets.QWizard):
             search_depth <= 0
             or search_dir.name.startswith(".")
             or search_dir.name == "dosdevices"
+            or search_dir.name.upper() == "BACKUP"
         ):
             return
 
@@ -308,8 +308,7 @@ class SetupWizard(QtWidgets.QWizard):
             self.add_game(game_config)
 
         for path in search_dir.glob("*/"):
-            if path.name.upper() != "BACKUP":
-                self.find_game_dirs(path, search_depth=search_depth - 1)
+            self.find_game_dirs(path, search_depth=search_depth - 1)
 
     def browse_for_game_dir(self) -> None:
         if os.name == "nt":

@@ -39,10 +39,15 @@ from . import __about__, games_sorted
 from .addon_manager import AddonManagerWindow
 from .config_old.games.game import save_game
 from .config_old.program_config import program_config
-from .game import Game, GameType
+from .game import Game
 from .game_account import GameAccount
+from .game_config import GameType
 from .game_launcher_local_config import GameLauncherLocalConfig
-from .game_utilities import find_game_dir_game_type, get_launcher_config_paths
+from .game_utilities import (
+    InvalidGameDirError,
+    find_game_dir_game_type,
+    get_launcher_config_paths,
+)
 from .network import login_account
 from .network.game_launcher_config import (
     GameLauncherConfig,
@@ -609,9 +614,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.AddLog("[E13] Game directory not found", is_error=True)
             return False
 
-        if find_game_dir_game_type(self.game.game_directory) != self.game.game_type:
-            self.AddLog("Game directory is not valid", is_error=True)
-            return False
+        with contextlib.suppress(InvalidGameDirError):
+            if find_game_dir_game_type(self.game.game_directory) != self.game.game_type:
+                self.AddLog("Game directory is not valid", is_error=True)
+                return False
 
         return True
 

@@ -133,19 +133,21 @@ class InvalidGameDirError(ValueError):
     """Path is not a valid game directory"""
 
 
-def find_game_dir_game_type(game_dir: CaseInsensitiveAbsolutePath) -> GameType | None:
+def find_game_dir_game_type(game_dir: CaseInsensitiveAbsolutePath) -> GameType:
     """Attempt to find the game type associated with a given folder.
        Will return None, if `game_dir` appears to not be a valid game directory.
 
+    Raises:
+        InvalidGameDirError: `game_dir` is not a valid game directory
+
     Returns:
-        GameType | None: Game type of `game_dir` or `None`,
-                         if `game_dir` isn't a valid game directory.
+        GameType: Game type of `game_dir`
     """
     # Find any launcher config files. One is required for a game folder to be
     # valid.
     launcher_config_paths = get_launcher_config_paths(game_dir, None)
     if not launcher_config_paths:
-        return None
+        raise InvalidGameDirError("Game dir has no valid launcher config files")
     launcher_config_path = launcher_config_paths[0]
 
     # Try determining game type from launcher config filename
@@ -158,5 +160,5 @@ def find_game_dir_game_type(game_dir: CaseInsensitiveAbsolutePath) -> GameType |
             launcher_config_path.read_text()
         )
         return GameType(launcher_config.datacenter_game_name)
-    except (GameLauncherLocalConfigParseError, ValueError):
-        return None
+    except (GameLauncherLocalConfigParseError, ValueError) as e:
+        raise InvalidGameDirError("Game dir launcher config file wasn't valid") from e

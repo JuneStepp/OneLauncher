@@ -27,6 +27,7 @@
 ###########################################################################
 import os
 import re
+from contextlib import suppress
 from pathlib import Path
 
 import trio
@@ -38,7 +39,11 @@ from .config_old.games.game import save_game
 from .config_old.games.wine import get_wine_environment_from_game, save_wine_environment
 from .config_old.program_config import program_config
 from .game import ClientType, Game
-from .game_utilities import GamesSortingMode, find_game_dir_game_type
+from .game_utilities import (
+    GamesSortingMode,
+    InvalidGameDirError,
+    find_game_dir_game_type,
+)
 from .network.game_launcher_config import GameLauncherConfig
 from .resources import available_locales
 from .setup_wizard import SetupWizard
@@ -280,8 +285,11 @@ class SettingsWindow(QtWidgets.QDialog):
             options=QtWidgets.QFileDialog.Option.ShowDirsOnly,
         )
 
-        if filename != "":
-            folder = CaseInsensitiveAbsolutePath(filename)
+        if filename == "":
+            return None
+
+        folder = CaseInsensitiveAbsolutePath(filename)
+        with suppress(InvalidGameDirError):
             if find_game_dir_game_type(folder) == self.game.game_type:
                 self.ui.gameDirLineEdit.setText(str(folder))
             else:
