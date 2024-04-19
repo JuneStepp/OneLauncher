@@ -245,12 +245,6 @@ class SetupWizard(QtWidgets.QWizard):
         selected: bool = False,
     ) -> None:
         if item := self.get_game_dir_list_item(game_config.game_directory):
-            messageBox = QtWidgets.QMessageBox(self)
-            messageBox.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
-            messageBox.setIcon(QtWidgets.QMessageBox.Icon.Information)
-            messageBox.setStandardButtons(messageBox.StandardButton.Ok)
-            messageBox.setInformativeText("Directory already added")
-            messageBox.exec()
             if selected:
                 self.ui.gamesListWidget.setCurrentItem(item)
             return
@@ -330,6 +324,16 @@ class SetupWizard(QtWidgets.QWizard):
         if not game_dir_string:
             return
         game_dir = CaseInsensitiveAbsolutePath(game_dir_string)
+        # Warn user if they try to add a game that's already in the list
+        if item := self.get_game_dir_list_item(game_dir):
+            messageBox = QtWidgets.QMessageBox(self)
+            messageBox.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
+            messageBox.setIcon(QtWidgets.QMessageBox.Icon.Information)
+            messageBox.setStandardButtons(messageBox.StandardButton.Ok)
+            messageBox.setInformativeText("Directory already added")
+            messageBox.exec()
+            self.ui.gamesListWidget.setCurrentItem(item)
+            return
         try:
             game_config = self.get_game_config_from_game_dir(game_dir)
             self.add_game(game_config, selected=True)
