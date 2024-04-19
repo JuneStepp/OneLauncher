@@ -30,7 +30,7 @@ from datetime import datetime
 
 from PySide6 import QtCore, QtWidgets
 
-from ..cli import app_cancel_scope
+from ..async_utils import app_cancel_scope
 from ..config_old import platform_dirs
 from ..config_old.games.addons import get_addons_manager_from_game
 from ..config_old.games.game import save_game
