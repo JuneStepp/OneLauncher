@@ -107,20 +107,32 @@ class CaseInsensitiveAbsolutePath(Path):
         case. `parent_dir` has to exist. Use _get_case_sensitive_full_path if this may
         not be the case.
         """
-        if os.path.exists(parent_dir + os.path.sep + case_insensitive_name):
-            return case_insensitive_name
-
-        base_path_name_lower = case_insensitive_name.lower()
         try:
-            return next(
-                (
-                    path_name
-                    for path_name in os.listdir(parent_dir)
-                    if path_name.lower() == base_path_name_lower
-                ),
-                None,
+            matches = tuple(
+                path_name
+                for path_name in os.listdir(parent_dir)
+                if path_name.lower() == case_insensitive_name.lower()
             )
         except OSError:
+            return None
+        if len(matches) == 1:
+            return matches[0]
+        elif len(matches) > 1:
+            try:
+                exact_match_index = matches.index(case_insensitive_name)
+                logger.warning(
+                    "Multiple matches found for case-insensitive path name. One exact "
+                    "match found. Using exact match.",
+                )
+                return matches[exact_match_index]
+            except ValueError:
+                logger.warn(
+                    "Multiple matches found for case-insensitive path name with no exact "
+                    "match. Using first one found."
+                )
+                return matches[0]
+        else:
+            # No matches
             return None
 
     def _make_child(self, args: tuple[StrPath, ...]) -> Path:

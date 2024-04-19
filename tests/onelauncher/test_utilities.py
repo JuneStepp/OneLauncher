@@ -1,5 +1,7 @@
+import logging
 from pathlib import Path
 
+import pytest
 from onelauncher.utilities import CaseInsensitiveAbsolutePath
 
 
@@ -28,7 +30,9 @@ class TestCaseInsensitiveAbsolutePath:
         test_path = tmp_path / "AFOLDER" / "TOP_SECRET"
         assert (CaseInsensitiveAbsolutePath(test_path)) == (test_path)
 
-    def test_multiple_matches(self, tmp_path: Path) -> None:
+    def test_multiple_matches(
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """
         Return first found when there are multiple matches of different case than the
         original path.
@@ -36,15 +40,33 @@ class TestCaseInsensitiveAbsolutePath:
         (tmp_path / "file").touch()
         (tmp_path / "File").touch()
         assert CaseInsensitiveAbsolutePath(tmp_path / "FILE").name in ["file", "File"]
+        assert caplog.record_tuples == [
+            (
+                "main",
+                logging.WARNING,
+                "Multiple matches found for case-insensitive path name with no exact "
+                "match. Using first one found.",
+            )
+        ]
+        caplog.clear()
 
-    def test_multiple_matches_with_one_exact_match(self, tmp_path: Path) -> None:
+    def test_multiple_matches_with_one_exact_match(
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """Return exact match when there are multiple matches"""
         (tmp_path / "file").touch()
         (tmp_path / "File").touch()
         (tmp_path / "fIlE").touch()
         (tmp_path / "FILE").touch()
         assert CaseInsensitiveAbsolutePath(tmp_path / "fIlE") == tmp_path / "fIlE"
-
+        assert caplog.record_tuples == [
+            (
+                "main",
+                logging.WARNING,
+                "Multiple matches found for case-insensitive path name. One exact "
+                "match found. Using exact match.",
+            )
+        ]
 
     def test_symlink(self, tmp_path: Path) -> None:
         folder = tmp_path / "folder"
