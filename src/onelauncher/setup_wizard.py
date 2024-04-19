@@ -74,6 +74,8 @@ class SetupWizard(QtWidgets.QWizard):
         self.ui.setupUi(self)  # type: ignore
         self.setWindowTitle(f"{__title__} Setup Wizard")
 
+        self.ui.gamesDiscoveryStatusLabel.hide()
+
         self.load_current_configs()
 
         self.add_available_languages_to_ui()
@@ -176,6 +178,9 @@ class SetupWizard(QtWidgets.QWizard):
             self.find_games()
 
     def find_games(self) -> None:
+        self.ui.gamesDiscoveryStatusLabel.setText("Finding game directories...")
+        self.ui.gamesDiscoveryStatusLabel.show()
+
         if self.show_existing_games:
             self.add_existing_games()
 
@@ -224,6 +229,14 @@ class SetupWizard(QtWidgets.QWizard):
                     self.find_game_dirs(search_dir)
 
         self.games_found = True
+
+        if self.existing_unloadable_game_uuids:
+            self.ui.gamesDiscoveryStatusLabel.setText(
+                f"Failed to load {len(self.existing_unloadable_game_uuids)} existing game "
+                f"{'configs' if len(self.existing_unloadable_game_uuids) > 1 else 'config'}."
+            )
+        else:
+            self.ui.gamesDiscoveryStatusLabel.hide()
 
     def add_existing_games(self) -> None:
         sorted_game_configs = get_games_sorted_by_priority(self.existing_games.keys())
