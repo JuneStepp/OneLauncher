@@ -126,7 +126,7 @@ class CaseInsensitiveAbsolutePath(Path):
                 )
                 return matches[exact_match_index]
             except ValueError:
-                logger.warn(
+                logger.warning(
                     "Multiple matches found for case-insensitive path name with no exact "
                     "match. Using first one found."
                 )
