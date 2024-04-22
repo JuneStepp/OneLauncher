@@ -35,7 +35,7 @@ from PySide6 import QtCore, QtGui, QtWidgets
 
 from .__about__ import __title__
 from .config_manager import ConfigFileParseError, ConfigManager
-from .game_config import GameConfig
+from .game_config import GameConfig, GameType
 from .game_launcher_local_config import (
     GameLauncherLocalConfig,
     GameLauncherLocalConfigParseError,
@@ -184,6 +184,8 @@ class SetupWizard(QtWidgets.QWizard):
         if self.show_existing_games:
             self.add_existing_games()
 
+        self.found_games: list[GameConfig] = []
+
         if os.name == "nt":
             start_dir = CaseInsensitiveAbsolutePath("C:/")
             self.find_game_dirs(start_dir / "Program Files")
@@ -228,7 +230,17 @@ class SetupWizard(QtWidgets.QWizard):
                 if search_dir.exists():
                     self.find_game_dirs(search_dir)
 
-        self.games_found = True
+        def sort_games(key: GameConfig) -> str:
+            priority = 0
+            if key.game_type == GameType.DDO:
+                priority += 2
+            if key.is_preview_client:
+                priority += 1
+            return f"{priority}{key.game_directory}"
+
+        for game in sorted(self.found_games, key=sort_games):
+            self.add_game(game_config=game)
+        self.ui.gamesListWidget.setCurrentRow(0)
 
         if self.existing_unloadable_game_uuids:
             self.ui.gamesDiscoveryStatusLabel.setText(
@@ -318,7 +330,7 @@ class SetupWizard(QtWidgets.QWizard):
 
         with suppress(InvalidGameDirError):
             game_config = self.get_game_config_from_game_dir(search_dir)
-            self.add_game(game_config)
+            self.found_games.append(game_config)
 
         for path in search_dir.glob("*/"):
             self.find_game_dirs(path, search_depth=search_depth - 1)
