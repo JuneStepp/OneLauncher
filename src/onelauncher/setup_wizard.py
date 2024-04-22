@@ -61,7 +61,7 @@ class SetupWizard(QtWidgets.QWizard):
         self,
         config_manager: ConfigManager,
         game_selection_only: bool = False,
-        show_existing_games: bool = False,
+        show_existing_games: bool = True,
         select_existing_games: bool = True,
     ):
         super().__init__()
@@ -270,7 +270,7 @@ class SetupWizard(QtWidgets.QWizard):
         item.setCheckState(
             QtCore.Qt.CheckState.Checked if checked else QtCore.Qt.CheckState.Unchecked
         )
-        self.ui.gamesListWidget.insertItem(0, item)
+        self.ui.gamesListWidget.addItem(item)
         if selected:
             self.ui.gamesListWidget.setCurrentItem(item)
 
