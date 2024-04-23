@@ -241,6 +241,7 @@ class SetupWizard(QtWidgets.QWizard):
         for game in sorted(self.found_games, key=sort_games):
             self.add_game(game_config=game)
         self.ui.gamesListWidget.setCurrentRow(0)
+        self.games_found = True
 
         if self.existing_unloadable_game_uuids:
             self.ui.gamesDiscoveryStatusLabel.setText(
