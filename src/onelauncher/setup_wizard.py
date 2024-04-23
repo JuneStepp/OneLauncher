@@ -61,13 +61,11 @@ class SetupWizard(QtWidgets.QWizard):
         self,
         config_manager: ConfigManager,
         game_selection_only: bool = False,
-        show_existing_games: bool = True,
         select_existing_games: bool = True,
     ):
         super().__init__()
         self.config_manager = config_manager
         self.game_selection_only = game_selection_only
-        self.show_existing_games = show_existing_games
         self.select_existing_games = select_existing_games
 
         self.ui = Ui_Wizard()
@@ -182,7 +180,7 @@ class SetupWizard(QtWidgets.QWizard):
         self.ui.gamesDiscoveryStatusLabel.show()
 
         if self.show_existing_games:
-            self.add_existing_games()
+        self.add_existing_games()
 
         self.found_games: list[GameConfig] = []
 
