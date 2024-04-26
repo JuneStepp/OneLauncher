@@ -3,14 +3,14 @@ import logging
 from PySide6 import QtCore, QtWidgets
 
 
-def show_warning_message(message: str, parent: QtWidgets.QWidget) -> None:
-    messageBox = QtWidgets.QMessageBox(parent)
-    messageBox.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
-    messageBox.setIcon(QtWidgets.QMessageBox.Icon.Warning)
-    messageBox.setStandardButtons(messageBox.StandardButton.Ok)
-    messageBox.setInformativeText(message)
+def show_warning_message(message: str, parent: QtWidgets.QWidget | None) -> None:
+    message_box = QtWidgets.QMessageBox(parent)
+    message_box.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
+    message_box.setIcon(QtWidgets.QMessageBox.Icon.Warning)
+    message_box.setStandardButtons(message_box.StandardButton.Ok)
+    message_box.setInformativeText(message)
 
-    messageBox.exec()
+    message_box.exec()
 
 
 def show_message_box_details_as_markdown(messageBox: QtWidgets.QMessageBox) -> None:
