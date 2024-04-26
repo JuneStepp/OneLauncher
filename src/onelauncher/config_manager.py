@@ -378,11 +378,13 @@ def update_config_file(
 class ConfigManagerNotSetupError(Exception):
     """Config manager hasn't been setup."""
 
+
 @attrs.define
 class ConfigManager:
     """
     Before use, configs must be verified with `verify_configs` method.
     """
+
     get_merged_program_config: Callable[[ProgramConfig], ProgramConfig]
     get_merged_game_config: Callable[[GameConfig], GameConfig]
     get_merged_game_accounts_config: Callable[[GameAccountsConfig], GameAccountsConfig]
@@ -396,7 +398,7 @@ class ConfigManager:
     def __attrs_post_init__(self) -> None:
         self.program_config_path.parent.mkdir(parents=True, exist_ok=True)
         self.games_dir_path.mkdir(parents=True, exist_ok=True)
-    
+
     def verify_configs(self) -> None:
         """
         Verify that all config files are present and can be parsed.
@@ -404,13 +406,9 @@ class ConfigManager:
         Raises:
             ConfigFileParseError: Error parsing a config file
         """
-        try:
-            # ConfigFileParseError is handled by caller
-            self._read_program_config_file()
-        except FileNotFoundError:
-            # There should always be a program config
-            self.update_program_config_file(ProgramConfig())
-            
+        # ConfigFileParseError is handled by caller
+        self._read_program_config_file()
+
         # Verify game configs
         game_uuids = self._get_game_uuids()
         for game_uuid in game_uuids:
@@ -425,7 +423,6 @@ class ConfigManager:
 
         self.verified_game_uuids.extend(game_uuids)
         self.configs_are_verified = True
-        
 
     def get_game_config_dir(self, game_uuid: UUID) -> Path:
         return self.games_dir_path / str(game_uuid)
@@ -452,12 +449,18 @@ class ConfigManager:
         Read and parse program config file into `ProgramConfig` object.
 
         Raises:
-            FileNotFoundError: Config file not found
             ConfigFileParseError: Error parsing config file
         """
-        return read_config_file(
-            config_class=ProgramConfig, config_file_path=self.program_config_path
-        )
+        try:
+            return read_config_file(
+                config_class=ProgramConfig, config_file_path=self.program_config_path
+            )
+        except FileNotFoundError:
+            # There should always be a program config. 
+            # Just returning an object, allows there to be no config written to disk
+            # until a change is made. This is mainly useful for knowing when to run
+            # the setup wizard
+            return ProgramConfig()
 
     def update_program_config_file(self, config: ProgramConfig) -> None:
         """

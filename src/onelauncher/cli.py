@@ -503,10 +503,7 @@ async def _start_ui(config_manager: ConfigManager, game_arg: str | None) -> None
     if not program_config_exists:
         setup_wizard = SetupWizard(config_manager)
         if setup_wizard.exec() == QtWidgets.QDialog.DialogCode.Rejected:
-            # So setup wizard will open again
-            config_manager.delete_program_config()
-            # Close program if the user left the setup wizard
-            # without generating the game
+            # Close program if the user left the setup wizard without finishing
             return
         return await _start_ui(config_manager=config_manager, game_arg=game_arg)
 
