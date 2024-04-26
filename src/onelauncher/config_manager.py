@@ -391,6 +391,7 @@ class ConfigManager:
 
     GAME_CONFIG_FILE_NAME: Final[str] = attrs.field(default="config1.toml", init=False)
     configs_are_verified: bool = attrs.field(default=False, init=False)
+    verified_game_uuids: list[UUID] = attrs.field(default=[], init=False)
 
     def __attrs_post_init__(self) -> None:
         self.program_config_path.parent.mkdir(parents=True, exist_ok=True)
@@ -411,7 +412,8 @@ class ConfigManager:
             self.update_program_config_file(ProgramConfig())
             
         # Verify game configs
-        for game_uuid in self.get_game_uuids():
+        game_uuids = self._get_game_uuids()
+        for game_uuid in game_uuids:
             # FileNotFoundError is handled by using known to exist UUIDs
             # ConfigFileParseError is handled by caller
             self._read_game_config_file(game_uuid)
@@ -421,6 +423,7 @@ class ConfigManager:
             except FileNotFoundError:
                 self.update_game_accounts_config_file(game_uuid=game_uuid, accounts=())
 
+        self.verified_game_uuids.extend(game_uuids)
         self.configs_are_verified = True
         
 
@@ -468,6 +471,12 @@ class ConfigManager:
         read_config_file.clear_cache()
 
     def get_game_uuids(self) -> tuple[UUID, ...]:
+        if self.configs_are_verified:
+            return tuple(self.verified_game_uuids)
+        else:
+            raise ConfigManagerNotSetupError("")
+
+    def _get_game_uuids(self) -> tuple[UUID, ...]:
         return tuple(
             UUID(config_file.parent.name)
             for config_file in self.games_dir_path.glob(
