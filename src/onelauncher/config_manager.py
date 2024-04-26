@@ -24,7 +24,7 @@ from .program_config import GamesSortingMode, ProgramConfig
 from .resources import OneLauncherLocale, available_locales
 
 PROGRAM_CONFIG_DEFAULT_PATH: Path = (
-    platform_dirs.user_config_path / f"{__title__.lower()}1.toml"
+    platform_dirs.user_config_path / f"{__title__.lower()}.toml"
 )
 GAMES_DIR_DEFAULT_PATH: Path = platform_dirs.user_data_path / "games"
 
@@ -392,7 +392,7 @@ class ConfigManager:
     program_config_path: Path = PROGRAM_CONFIG_DEFAULT_PATH
     games_dir_path: Path = GAMES_DIR_DEFAULT_PATH
 
-    GAME_CONFIG_FILE_NAME: Final[str] = attrs.field(default="config1.toml", init=False)
+    GAME_CONFIG_FILE_NAME: Final[str] = attrs.field(default="config.toml", init=False)
     configs_are_verified: bool = attrs.field(default=False, init=False)
     verified_game_uuids: list[UUID] = attrs.field(default=[], init=False)
 
