@@ -515,6 +515,7 @@ async def _start_ui(config_manager: ConfigManager, game_arg: str | None) -> None
         dialog.exec()
         return
 
+    # Run setup wizard
     if not program_config_exists:
         setup_wizard = SetupWizard(config_manager)
         if setup_wizard.exec() == QtWidgets.QDialog.DialogCode.Rejected:
@@ -522,11 +523,18 @@ async def _start_ui(config_manager: ConfigManager, game_arg: str | None) -> None
             return
         return await _start_ui(config_manager=config_manager, game_arg=game_arg)
 
+    # Just run the games selection portion of the setup wizard
     if not config_manager.get_game_uuids():
-        # TODO: Launch the games management window. Maybe a version with
-        # an explanation that no games were found.
-        # return await _start_ui(config_manager=config_manager, game_arg=game_arg)
-        return
+        QtWidgets.QMessageBox.information( # type: ignore[call-overload]
+            None,
+            "No Games Found",
+            f"No games have been registered with {__title__}.\n Opening games management wizard.",
+        )
+        setup_wizard = SetupWizard(config_manager, game_selection_only=True)
+        if setup_wizard.exec() == QtWidgets.QDialog.DialogCode.Rejected:
+            # Close program if the user left the setup wizard without finishing
+            return
+        return await _start_ui(config_manager=config_manager, game_arg=game_arg)
 
     game_uuid = _parse_game_arg(game_arg, config_manager) if game_arg else None
     # TODO: Start main window
