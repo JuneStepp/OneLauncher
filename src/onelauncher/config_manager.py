@@ -407,12 +407,13 @@ class ConfigManager:
         Raises:
             ConfigFileParseError: Error parsing a config file
         """
+        self.verified_game_uuids.clear()
+
         # ConfigFileParseError is handled by caller
         self._read_program_config_file()
 
         # Verify game configs
-        game_uuids = self._get_game_uuids()
-        for game_uuid in game_uuids:
+        for game_uuid in self._get_game_uuids():
             # FileNotFoundError is handled by using known to exist UUIDs
             # ConfigFileParseError is handled by caller
             self._read_game_config_file(game_uuid)
@@ -422,7 +423,7 @@ class ConfigManager:
             except FileNotFoundError:
                 self.update_game_accounts_config_file(game_uuid=game_uuid, accounts=())
 
-        self.verified_game_uuids.extend(game_uuids)
+            self.verified_game_uuids.append(game_uuid)
         self.configs_are_verified = True
 
     def get_game_config_dir(self, game_uuid: UUID) -> Path:
