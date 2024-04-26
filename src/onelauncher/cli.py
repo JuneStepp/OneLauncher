@@ -1,8 +1,10 @@
 # ruff: noqa: UP007
 from __future__ import annotations
 
+import logging
 import os
 import sys
+import traceback
 from collections.abc import Awaitable, Callable, Iterator
 from enum import StrEnum
 from functools import partial
@@ -32,10 +34,12 @@ from .program_config import GamesSortingMode, ProgramConfig
 from .qtapp import setup_qtapplication
 from .resources import OneLauncherLocale
 from .setup_wizard import SetupWizard
+from .ui.error_message_uic import Ui_errorDialog
 from .utilities import CaseInsensitiveAbsolutePath
 from .wine.config import WineConfigSection
 
 setup_application_logging()
+logger = logging.getLogger("main")
 
 
 class TyperGroup(TyperGroupBase):
@@ -502,7 +506,13 @@ async def _start_ui(config_manager: ConfigManager, game_arg: str | None) -> None
     try:
         config_manager.verify_configs()
     except ConfigFileParseError:
-        # TODO: Open logs/error window and return
+        logger.exception("")
+        dialog = QtWidgets.QDialog()
+        ui = Ui_errorDialog()
+        ui.setupUi(dialog)  # type: ignore
+        ui.textLabel.setText("Error parsing config file:")
+        ui.detailsTextEdit.setPlainText(traceback.format_exc())
+        dialog.exec()
         return
 
     if not program_config_exists:
