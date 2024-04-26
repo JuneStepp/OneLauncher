@@ -115,8 +115,10 @@ class SetupWizard(QtWidgets.QWizard):
 
         self.add_available_languages_to_ui()
 
-        self.currentIdChanged.connect(self.current_id_changed)
         # Games discovery page
+        self.ui.gamesSelectionWizardPage.initializePage = (  # type: ignore[method-assign]
+            self.initialize_games_selection_page
+        )
         self.ui.gamesSelectionWizardPage.validatePage = self.validateGamesSelectionPage  # type: ignore[method-assign]
         self.ui.addGameButton.clicked.connect(self.browse_for_game_dir)
         self.ui.upPriorityButton.clicked.connect(self.raise_selected_game_priority)
@@ -202,20 +204,18 @@ class SetupWizard(QtWidgets.QWizard):
         self.ui.gamesDeletionStatusListView.setEnabled(True)
         self.ui.dataDeletionWizardPage.completeChanged.emit()
 
-    def current_id_changed(self, new_id: int) -> None:
-        if new_id == -1:
-            return
+    def initialize_games_selection_page(self) -> None:
+        if not self.games_found:
 
-        if (
-            self.currentPage() == self.ui.gamesSelectionWizardPage
-            and not self.games_found
-        ):
-            self.find_games()
+            def find_games_and_hide_status_label() -> None:
+                self.find_games()
+                self.ui.gamesDiscoveryStatusLabel.hide()
+
+            self.ui.gamesDiscoveryStatusLabel.setText("Finding game directories...")
+            self.ui.gamesDiscoveryStatusLabel.show()
+            QtCore.QTimer.singleShot(1, find_games_and_hide_status_label)
 
     def find_games(self) -> None:
-        self.ui.gamesDiscoveryStatusLabel.setText("Finding game directories...")
-        self.ui.gamesDiscoveryStatusLabel.show()
-
         self.add_existing_games()
 
         self.found_games: list[GameConfig] = []
@@ -276,8 +276,6 @@ class SetupWizard(QtWidgets.QWizard):
             self.add_game(game_uuid=uuid4(), game_config=game)
         self.ui.gamesListWidget.setCurrentRow(0)
         self.games_found = True
-
-        self.ui.gamesDiscoveryStatusLabel.hide()
 
     def add_existing_games(self) -> None:
         for game_uuid in self.config_manager.get_games_sorted_by_priority():
