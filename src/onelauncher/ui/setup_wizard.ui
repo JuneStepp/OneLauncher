@@ -211,6 +211,80 @@
     </item>
    </layout>
   </widget>
+  <widget class="QWizardPage" name="dataDeletionWizardPage">
+   <property name="title">
+    <string>Exisiting Games Data</string>
+   </property>
+   <property name="subTitle">
+    <string>Some of your game installations are already registered with OneLauncher. You can choose to have their settings and accounts either kept or reset. Unselected games are always removed.</string>
+   </property>
+   <attribute name="pageId">
+    <string notr="true">2</string>
+   </attribute>
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <item>
+     <widget class="QGroupBox" name="groupBox">
+      <property name="title">
+       <string>What should happen to existing game data?</string>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QRadioButton" name="keepDataRadioButton">
+         <property name="text">
+          <string>Keep it</string>
+         </property>
+         <property name="icon">
+          <iconset theme="document-save"/>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">gamesDataButtonGroup</string>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="resetDataRadioButton">
+         <property name="text">
+          <string>Reset it</string>
+         </property>
+         <property name="icon">
+          <iconset theme="edit-clear"/>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">gamesDataButtonGroup</string>
+         </attribute>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <spacer name="horizontalSpacer">
+      <property name="orientation">
+       <enum>Qt::Orientation::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <widget class="QListView" name="gamesDeletionStatusListView">
+      <property name="showDropIndicator" stdset="0">
+       <bool>false</bool>
+      </property>
+      <property name="alternatingRowColors">
+       <bool>true</bool>
+      </property>
+      <property name="selectionMode">
+       <enum>QAbstractItemView::SelectionMode::NoSelection</enum>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
   <widget class="QWizardPage" name="finishedWizardPage">
    <property name="title">
     <string>Setup Finished</string>
@@ -225,4 +299,7 @@
  </widget>
  <resources/>
  <connections/>
+ <buttongroups>
+  <buttongroup name="gamesDataButtonGroup"/>
+ </buttongroups>
 </ui>

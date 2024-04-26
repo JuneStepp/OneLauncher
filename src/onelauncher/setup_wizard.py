@@ -26,34 +26,69 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import os
+from collections.abc import Iterable
 from contextlib import suppress
 from pathlib import Path
+from typing import Final
 from uuid import UUID, uuid4
 
 import attrs
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from .__about__ import __title__
-from .config_manager import ConfigFileParseError, ConfigManager
+from .config_manager import ConfigManager
 from .game_config import GameConfig, GameType
 from .game_launcher_local_config import (
     GameLauncherLocalConfig,
     GameLauncherLocalConfigParseError,
 )
 from .game_utilities import (
-    GamesSortingMode,
     InvalidGameDirError,
     find_game_dir_game_type,
-    get_games_sorted_by_priority,
     get_launcher_config_paths,
 )
 from .official_clients import is_gls_url_for_preview_client
-from .program_config import ProgramConfig
-from .resources import available_locales, get_default_locale
+from .program_config import GamesSortingMode, ProgramConfig
+from .resources import available_locales
 from .ui.setup_wizard_uic import Ui_Wizard
 from .ui_utilities import show_warning_message
 from .utilities import CaseInsensitiveAbsolutePath
 from .wine.config import WineConfigSection
+
+GameUUIDRole: Final[int] = QtCore.Qt.ItemDataRole.UserRole + 1001
+GameConfigRole: Final[int] = QtCore.Qt.ItemDataRole.UserRole + 1000
+
+
+class GamesDeletionStatusItemDelegate(QtWidgets.QStyledItemDelegate):
+    def __init__(
+        self,
+        item_checked_icon: QtGui.QIcon,
+        existing_game_uuids: Iterable[UUID],
+        parent: QtCore.QObject | None = None,
+    ) -> None:
+        super().__init__(parent)
+        self.item_checked_icon = item_checked_icon
+        self.existing_game_uuids = existing_game_uuids
+
+    def initStyleOption(
+        self,
+        option: QtWidgets.QStyleOptionViewItem,
+        index: QtCore.QModelIndex | QtCore.QPersistentModelIndex,
+    ) -> None:
+        super().initStyleOption(option, index)
+        game_uuid: UUID = index.data(GameUUIDRole)
+        if option.checkState == QtCore.Qt.CheckState.Checked:  # type: ignore[attr-defined]
+            option.icon = (  # type: ignore[attr-defined]
+                self.item_checked_icon
+                if game_uuid in self.existing_game_uuids
+                else QtGui.QIcon.fromTheme(QtGui.QIcon.ThemeIcon.ListAdd)
+            )
+        else:
+            option.icon = (  # type: ignore[attr-defined]
+                QtGui.QIcon.fromTheme(QtGui.QIcon.ThemeIcon.EditDelete)
+                if game_uuid in self.existing_game_uuids
+                else QtGui.QIcon()
+            )
 
 
 class SetupWizard(QtWidgets.QWizard):
@@ -74,51 +109,39 @@ class SetupWizard(QtWidgets.QWizard):
 
         self.ui.gamesDiscoveryStatusLabel.hide()
 
-        self.load_current_configs()
+        # Only show data deletion page if there is existing game data
+        if not self.config_manager.get_game_uuids():
+            self.ui.gamesSelectionWizardPage.nextId = lambda: self.currentId() + 2  # type: ignore[method-assign]
 
         self.add_available_languages_to_ui()
 
+        self.currentIdChanged.connect(self.current_id_changed)
+        # Games discovery page
         self.ui.gamesSelectionWizardPage.validatePage = self.validateGamesSelectionPage  # type: ignore[method-assign]
         self.ui.addGameButton.clicked.connect(self.browse_for_game_dir)
         self.ui.upPriorityButton.clicked.connect(self.raise_selected_game_priority)
         self.ui.downPriorityButton.clicked.connect(self.lower_selected_game_priority)
         self.games_found = False
-        self.currentIdChanged.connect(self.current_id_changed)
-        self.button(QtWidgets.QWizard.WizardButton.FinishButton).clicked.connect(
-            self.save_settings
-        )
+        # Existing game data page
+        self.ui.dataDeletionWizardPage.setCommitPage(True)
+        self.ui.gamesDeletionStatusListView.setModel(self.ui.gamesListWidget.model())
+        self.ui.gamesDeletionStatusListView.setEnabled(False)
+        self.ui.gamesDataButtonGroup.buttonToggled.connect(self.gamesDataButtonToggled)
+        self.ui.dataDeletionWizardPage.isComplete = self.dataDeletionPageIsComplete  # type: ignore[method-assign]
+        if self.game_selection_only:
+            self.ui.keepDataRadioButton.setChecked(True)
+        # Finished page
         self.accepted.connect(self.save_settings)
 
         if self.game_selection_only:
             for page_id in self.pageIds():
                 self.removePage(page_id)
-
             self.addPage(self.ui.gamesSelectionWizardPage)
-            self.setOption(QtWidgets.QWizard.WizardOption.NoBackButtonOnLastPage, True)
+            self.addPage(self.ui.dataDeletionWizardPage)
             self.find_games()
 
-    def load_current_configs(self) -> None:
-        self.program_config: ProgramConfig | None
-        try:
-            self.program_config = self.config_manager.read_program_config_file()
-        except (FileNotFoundError, ConfigFileParseError):
-            self.program_config = None
-
-        self.existing_games: dict[GameConfig, UUID] = {}
-        existing_unloadable_game_uuids = []
-        for game_uuid in self.config_manager.get_game_uuids():
-            try:
-                self.existing_games[
-                    self.config_manager.read_game_config_file(game_uuid)
-                ] = game_uuid
-            except (FileNotFoundError, ConfigFileParseError):
-                existing_unloadable_game_uuids.append(game_uuid)
-        self.existing_unloadable_game_uuids: tuple[UUID, ...] = tuple(
-            existing_unloadable_game_uuids
-        )
-
     def add_available_languages_to_ui(self) -> None:
-        default_locale = get_default_locale()
+        program_config = self.config_manager.read_program_config_file()
         for locale in available_locales.values():
             item = QtWidgets.QListWidgetItem(
                 QtGui.QPixmap(str(locale.flag_icon)), locale.display_name
@@ -126,12 +149,7 @@ class SetupWizard(QtWidgets.QWizard):
             self.ui.languagesListWidget.addItem(item)
 
             # Default locale should be selected in the list by default.
-            if (
-                self.program_config
-                and locale == self.program_config.default_locale
-                or not self.program_config
-                and locale == default_locale
-            ):
+            if locale == program_config.default_locale:
                 self.ui.languagesListWidget.setCurrentItem(item)
 
     def raise_selected_game_priority(self) -> None:
@@ -165,6 +183,25 @@ class SetupWizard(QtWidgets.QWizard):
 
         return True
 
+    def dataDeletionPageIsComplete(self) -> bool:
+        return bool(self.ui.gamesDataButtonGroup.checkedButton())
+
+    def gamesDataButtonToggled(
+        self, button: QtWidgets.QAbstractButton, checked: bool
+    ) -> None:
+        if self.ui.keepDataRadioButton.isChecked():
+            icon = QtGui.QIcon.fromTheme(QtGui.QIcon.ThemeIcon.DocumentSave)
+        else:
+            icon = QtGui.QIcon.fromTheme(QtGui.QIcon.ThemeIcon.EditClear)
+        self.ui.gamesDeletionStatusListView.setItemDelegate(
+            GamesDeletionStatusItemDelegate(
+                item_checked_icon=icon,
+                existing_game_uuids=self.config_manager.get_game_uuids(),
+            )
+        )
+        self.ui.gamesDeletionStatusListView.setEnabled(True)
+        self.ui.dataDeletionWizardPage.completeChanged.emit()
+
     def current_id_changed(self, new_id: int) -> None:
         if new_id == -1:
             return
@@ -179,7 +216,6 @@ class SetupWizard(QtWidgets.QWizard):
         self.ui.gamesDiscoveryStatusLabel.setText("Finding game directories...")
         self.ui.gamesDiscoveryStatusLabel.show()
 
-        if self.show_existing_games:
         self.add_existing_games()
 
         self.found_games: list[GameConfig] = []
@@ -237,22 +273,19 @@ class SetupWizard(QtWidgets.QWizard):
             return f"{priority}{key.game_directory}"
 
         for game in sorted(self.found_games, key=sort_games):
-            self.add_game(game_config=game)
+            self.add_game(game_uuid=uuid4(), game_config=game)
         self.ui.gamesListWidget.setCurrentRow(0)
         self.games_found = True
 
-        if self.existing_unloadable_game_uuids:
-            self.ui.gamesDiscoveryStatusLabel.setText(
-                f"Failed to load {len(self.existing_unloadable_game_uuids)} existing game "
-                f"{'configs' if len(self.existing_unloadable_game_uuids) > 1 else 'config'}."
-            )
-        else:
-            self.ui.gamesDiscoveryStatusLabel.hide()
+        self.ui.gamesDiscoveryStatusLabel.hide()
 
     def add_existing_games(self) -> None:
-        sorted_game_configs = get_games_sorted_by_priority(self.existing_games.keys())
-        for game_config in sorted_game_configs[::-1]:
-            self.add_game(game_config, checked=self.select_existing_games)
+        for game_uuid in self.config_manager.get_games_sorted_by_priority():
+            self.add_game(
+                game_uuid=game_uuid,
+                game_config=self.config_manager.read_game_config_file(game_uuid),
+                checked=self.select_existing_games,
+            )
 
     def get_game_dir_list_item(
         self, game_dir: CaseInsensitiveAbsolutePath
@@ -266,6 +299,7 @@ class SetupWizard(QtWidgets.QWizard):
 
     def add_game(
         self,
+        game_uuid: UUID,
         game_config: GameConfig,
         checked: bool = False,
         selected: bool = False,
@@ -276,7 +310,8 @@ class SetupWizard(QtWidgets.QWizard):
             return
 
         item = QtWidgets.QListWidgetItem(str(game_config.game_directory))
-        item.setData(QtCore.Qt.ItemDataRole.UserRole, game_config)
+        item.setData(GameUUIDRole, game_uuid)
+        item.setData(GameConfigRole, game_config)
         item.setIcon(QtGui.QIcon(str(game_config.game_directory / "icon.ico")))
         item.setCheckState(
             QtCore.Qt.CheckState.Checked if checked else QtCore.Qt.CheckState.Unchecked
@@ -361,7 +396,7 @@ class SetupWizard(QtWidgets.QWizard):
             return
         try:
             game_config = self.get_game_config_from_game_dir(game_dir)
-            self.add_game(game_config, selected=True)
+            self.add_game(game_uuid=uuid4(), game_config=game_config, selected=True)
         except InvalidGameDirError:
             show_warning_message("Not a valid game installation folder.", self)
 
@@ -380,44 +415,8 @@ class SetupWizard(QtWidgets.QWizard):
         items_dict = {item.listWidget().row(item): item for item in items}
         return [items_dict[key] for key in sorted(items_dict)]
 
-    def reset_config(self) -> None:
-        for game_uuid in self.existing_games.values():
-            self.config_manager.delete_game_config(game_uuid=game_uuid)
-        self.config_manager.delete_program_config()
-        self.load_current_configs()
-
-    def get_games_config_reset_confirmation(self) -> bool:
-        """
-        Ask user if they want to reset existing games config/data.
-        Will do nothing and return True if there is no existing data.
-
-        Returns:
-            bool: If the user wants settings to be reset.
-        """
-        # Return True if there is no existing games data.
-        if not self.existing_games:
-            return True
-
-        message_box = QtWidgets.QMessageBox(self)
-        message_box.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
-        message_box.setIcon(QtWidgets.QMessageBox.Icon.Warning)
-        message_box.setStandardButtons(
-            message_box.StandardButton.Cancel | message_box.StandardButton.Yes
-        )
-        message_box.setDefaultButton(message_box.StandardButton.Cancel)
-        message_box.setInformativeText(
-            "Existing game data will be deleted. (settings, saved "
-            "accounts, ect). Do you wish to continue?"
-        )
-
-        return message_box.exec() == message_box.StandardButton.Yes
-
     def save_settings(self) -> None:
         if not self.game_selection_only:
-            if self.get_games_config_reset_confirmation() is False:
-                return
-            self.reset_config()
-
             selected_locale_display_name = (
                 self.ui.languagesListWidget.currentItem().text()
             )
@@ -430,8 +429,8 @@ class SetupWizard(QtWidgets.QWizard):
                 always_use_default_locale_for_ui=self.ui.alwaysUseDefaultLangForUICheckBox.isChecked(),
                 games_sorting_mode=GamesSortingMode.PRIORITY,
             )
+            self.config_manager.update_program_config_file(program_config)
         self.add_games_to_settings()
-        self.config_manager.update_program_config_file(program_config)
 
     def add_games_to_settings(self) -> None:
         """
@@ -439,33 +438,39 @@ class SetupWizard(QtWidgets.QWizard):
         are set.
         """
         selected_items = self.sort_list_widget_items(self.get_selected_game_items())
-        selected_games: list[GameConfig] = []
+        selected_games: dict[UUID, GameConfig] = {}
         for i, game_item in enumerate(selected_items):
-            item_data: GameConfig = game_item.data(QtCore.Qt.ItemDataRole.UserRole)
-            selected_games.append(attrs.evolve(item_data, sorting_priority=i))
+            game_uuid: UUID = game_item.data(GameUUIDRole)
+            game_config: GameConfig = game_item.data(GameConfigRole)
+            # Update sorting priority
+            selected_games[game_uuid] = attrs.evolve(game_config, sorting_priority=i)
 
-        # Remove any games that were not selected by the user.
-        not_selected_games: list[GameConfig] = [
-            game_config
-            for game_config in self.existing_games
-            if game_config not in selected_games
-        ]
-        # Warn user that the games they didn't select will have their data
-        # deleted.
-        if (
-            self.game_selection_only
-            and not_selected_games
-            and not self.get_games_config_reset_confirmation()
-        ):
-            return
-        for game_config in not_selected_games:
-            self.config_manager.delete_game_config(
-                game_uuid=self.existing_games[game_config]
-            )
+        if existing_game_uuids := self.config_manager.get_game_uuids():
+            if self.ui.resetDataRadioButton.isChecked():
+                # Reset existing selected games
+                for game_uuid, game_config in selected_games.items():
+                    if game_uuid not in existing_game_uuids:
+                        continue
+
+                    self.config_manager.delete_game_config(game_uuid)
+                    reset_game_config = self.get_game_config_from_game_dir(
+                        game_config.game_directory
+                    )
+                    selected_games[game_uuid] = attrs.evolve(
+                        reset_game_config, sorting_priority=game_config.sorting_priority
+                    )
+
+            # Remove any games that were not selected by the user.
+            not_selected_existing_games: list[UUID] = [
+                game_uuid
+                for game_uuid in existing_game_uuids
+                if game_uuid not in selected_games
+            ]
+            for game_uuid in not_selected_existing_games:
+                self.config_manager.delete_game_config(game_uuid=game_uuid)
 
         # Save games
-        for game_config in selected_games:
-            game_uuid = self.existing_games.get(game_config, uuid4())
+        for game_uuid, game_config in selected_games.items():
             self.config_manager.update_game_config_file(
                 game_uuid=game_uuid, config=game_config
             )

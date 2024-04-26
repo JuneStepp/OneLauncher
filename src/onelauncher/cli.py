@@ -509,7 +509,8 @@ async def _start_ui(config_manager: ConfigManager, game_arg: str | None) -> None
     if not config_manager.get_game_uuids():
         # TODO: Launch the games management window. Maybe a version with
         # an explanation that no games were found.
-        return await _start_ui(config_manager=config_manager, game_arg=game_arg)
+        # return await _start_ui(config_manager=config_manager, game_arg=game_arg)
+        return
 
     game_uuid = _parse_game_arg(game_arg, config_manager) if game_arg else None
     # TODO: Start main window

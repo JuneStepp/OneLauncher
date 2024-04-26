@@ -15,9 +15,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox, QFormLayout,
-    QFrame, QHBoxLayout, QLabel, QListWidget,
-    QListWidgetItem, QPushButton, QSizePolicy, QSpacerItem,
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QButtonGroup, QCheckBox,
+    QFormLayout, QFrame, QGroupBox, QHBoxLayout,
+    QLabel, QListView, QListWidget, QListWidgetItem,
+    QPushButton, QRadioButton, QSizePolicy, QSpacerItem,
     QVBoxLayout, QWidget, QWizard, QWizardPage)
 
 class Ui_Wizard(object):
@@ -130,6 +131,48 @@ class Ui_Wizard(object):
         self.gamesSelectionPageLayout.addLayout(self.horizontalLayout)
 
         Wizard.setPage(1, self.gamesSelectionWizardPage)
+        self.dataDeletionWizardPage = QWizardPage()
+        self.dataDeletionWizardPage.setObjectName(u"dataDeletionWizardPage")
+        self.verticalLayout_2 = QVBoxLayout(self.dataDeletionWizardPage)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.groupBox = QGroupBox(self.dataDeletionWizardPage)
+        self.groupBox.setObjectName(u"groupBox")
+        self.horizontalLayout_3 = QHBoxLayout(self.groupBox)
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.keepDataRadioButton = QRadioButton(self.groupBox)
+        self.gamesDataButtonGroup = QButtonGroup(Wizard)
+        self.gamesDataButtonGroup.setObjectName(u"gamesDataButtonGroup")
+        self.gamesDataButtonGroup.addButton(self.keepDataRadioButton)
+        self.keepDataRadioButton.setObjectName(u"keepDataRadioButton")
+        icon = QIcon(QIcon.fromTheme(u"document-save"))
+        self.keepDataRadioButton.setIcon(icon)
+
+        self.horizontalLayout_3.addWidget(self.keepDataRadioButton)
+
+        self.resetDataRadioButton = QRadioButton(self.groupBox)
+        self.gamesDataButtonGroup.addButton(self.resetDataRadioButton)
+        self.resetDataRadioButton.setObjectName(u"resetDataRadioButton")
+        icon1 = QIcon(QIcon.fromTheme(u"edit-clear"))
+        self.resetDataRadioButton.setIcon(icon1)
+
+        self.horizontalLayout_3.addWidget(self.resetDataRadioButton)
+
+
+        self.verticalLayout_2.addWidget(self.groupBox)
+
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.verticalLayout_2.addItem(self.horizontalSpacer)
+
+        self.gamesDeletionStatusListView = QListView(self.dataDeletionWizardPage)
+        self.gamesDeletionStatusListView.setObjectName(u"gamesDeletionStatusListView")
+        self.gamesDeletionStatusListView.setProperty("showDropIndicator", False)
+        self.gamesDeletionStatusListView.setAlternatingRowColors(True)
+        self.gamesDeletionStatusListView.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
+
+        self.verticalLayout_2.addWidget(self.gamesDeletionStatusListView)
+
+        Wizard.setPage(2, self.dataDeletionWizardPage)
         self.finishedWizardPage = QWizardPage()
         self.finishedWizardPage.setObjectName(u"finishedWizardPage")
         Wizard.setPage(3, self.finishedWizardPage)
@@ -166,6 +209,11 @@ class Ui_Wizard(object):
 #endif // QT_CONFIG(tooltip)
         self.upPriorityButton.setText(QCoreApplication.translate("Wizard", u"\u2191", None))
         self.addGameButton.setText(QCoreApplication.translate("Wizard", u"Add Game", None))
+        self.dataDeletionWizardPage.setTitle(QCoreApplication.translate("Wizard", u"Exisiting Games Data", None))
+        self.dataDeletionWizardPage.setSubTitle(QCoreApplication.translate("Wizard", u"Some of your game installations are already registered with OneLauncher. You can choose to have their settings and accounts either kept or reset. Unselected games are always removed.", None))
+        self.groupBox.setTitle(QCoreApplication.translate("Wizard", u"What should happen to existing game data?", None))
+        self.keepDataRadioButton.setText(QCoreApplication.translate("Wizard", u"Keep it", None))
+        self.resetDataRadioButton.setText(QCoreApplication.translate("Wizard", u"Reset it", None))
         self.finishedWizardPage.setTitle(QCoreApplication.translate("Wizard", u"Setup Finished", None))
         self.finishedWizardPage.setSubTitle(QCoreApplication.translate("Wizard", u"That's it! You can always check out the settings menu or addons manager for extra customization.", None))
     # retranslateUi
