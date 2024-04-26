@@ -281,7 +281,11 @@ def _parse_game_arg(game_arg: str, config_manager: ConfigManager) -> UUID:
 
 def _complete_game_arg(incomplete: str) -> Iterator[str]:
     config_manager = ConfigManager(lambda c: c, lambda c: c, lambda c: c)
-    game_uuids = tuple(str(uuid) for uuid in config_manager.get_game_uuids())
+    try:
+        config_manager.verify_configs()
+        game_uuids = tuple(str(uuid) for uuid in config_manager.get_game_uuids())
+    except ConfigFileParseError:
+        game_uuids = ()
     for option in tuple(GameOptions) + game_uuids:
         if option.startswith(incomplete):
             yield option
