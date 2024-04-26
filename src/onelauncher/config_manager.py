@@ -592,10 +592,14 @@ class ConfigManager:
 
     def read_game_config_file(self, game_uuid: UUID) -> GameConfig:
         """Read and parse game config file into `GameConfig` object."""
-        if self.configs_are_verified:
-            return self._read_game_config_file(game_uuid)
-        else:
+        if not self.configs_are_verified:
             raise ConfigManagerNotSetupError("")
+        if game_uuid not in self.verified_game_uuids:
+            raise ValueError(
+                f"Game UUID: {game_uuid} has not been verified."
+            )
+
+        return self._read_game_config_file(game_uuid)
 
     def _read_game_config_file(self, game_uuid: UUID) -> GameConfig:
         """
@@ -674,12 +678,15 @@ class ConfigManager:
             FileNotFoundError: Config file not found
             ConfigFileParseError: Error parsing config file
         """
-        if self.configs_are_verified:
-            return self.get_merged_game_accounts_config(
-                self._read_game_accounts_config_file_full(game_uuid)
-            ).accounts
-        else:
+        if not self.configs_are_verified:
             raise ConfigManagerNotSetupError("")
+        if game_uuid not in self.verified_game_uuids:
+            raise ValueError(f"Game UUID: {game_uuid} has not been verified.")
+
+        return self.get_merged_game_accounts_config(
+            self._read_game_accounts_config_file_full(game_uuid)
+        ).accounts
+
 
     def _read_game_accounts_config_file_full(
         self, game_uuid: UUID
@@ -721,10 +728,12 @@ class ConfigManager:
         Read and parse game accounts config file into tuple of
         `GameAccountConfig` objects.
         """
-        if self.configs_are_verified:
-            return self._read_game_accounts_config_file(game_uuid)
-        else:
+        if not self.configs_are_verified:
             raise ConfigManagerNotSetupError("")
+        if game_uuid not in self.verified_game_uuids:
+            raise ValueError(f"Game UUID: {game_uuid} has not been verified.")
+    
+        return self._read_game_accounts_config_file(game_uuid)
 
     def update_game_accounts_config_file(
         self, game_uuid: UUID, accounts: tuple[GameAccountConfig, ...]
