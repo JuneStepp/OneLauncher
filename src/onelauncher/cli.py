@@ -27,9 +27,8 @@ from .config_manager import (
 )
 from .game_account_config import GameAccountConfig, GameAccountsConfig
 from .game_config import ClientType, GameConfig, GameType
-from .game_utilities import GamesSortingMode
 from .logs import setup_application_logging
-from .program_config import ProgramConfig
+from .program_config import GamesSortingMode, ProgramConfig
 from .qtapp import setup_qtapplication
 from .resources import OneLauncherLocale
 from .setup_wizard import SetupWizard

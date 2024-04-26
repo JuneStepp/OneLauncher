@@ -1,14 +1,27 @@
+from enum import Enum
+
 import attrs
 from packaging.version import Version
 from typing_extensions import override
 
 from .__about__ import __title__
 from .config import Config, config_field
-from .game_utilities import GamesSortingMode
 from .resources import (
     OneLauncherLocale,
     get_default_locale,
 )
+
+
+class GamesSortingMode(Enum):
+    """
+    - priority: The manual order the user set in the setup wizard.
+    - alphabetical: Alphabetical order.
+    - last_used: Order of the most recently played games.
+    """
+
+    PRIORITY = "priority"
+    LAST_USED = "last_used"
+    ALPHABETICAL = "alphabetical"
 
 
 @attrs.frozen

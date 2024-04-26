@@ -4,7 +4,7 @@ import rtoml
 
 from ..__about__ import __title__, __version__
 from ..game import Game
-from ..game_utilities import GamesSortingMode
+from ..program_config import GamesSortingMode
 from ..resources import OneLauncherLocale, available_locales, system_locale
 from . import platform_dirs
 

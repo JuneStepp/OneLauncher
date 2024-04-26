@@ -1,90 +1,11 @@
 import contextlib
-from collections.abc import Iterable
-from enum import Enum
 
-from .game_config import GameConfig, GameType
+from .game_config import GameType
 from .game_launcher_local_config import (
     GameLauncherLocalConfig,
     GameLauncherLocalConfigParseError,
 )
 from .utilities import CaseInsensitiveAbsolutePath
-
-
-class GamesSortingMode(Enum):
-    """
-    - priority: The manual order the user set in the setup wizard.
-    - alphabetical: Alphabetical order.
-    - last_used: Order of the most recently played games.
-    """
-
-    PRIORITY = "priority"
-    LAST_USED = "last_used"
-    ALPHABETICAL = "alphabetical"
-
-
-def get_games_by_game_type(
-    game_configs: Iterable[GameConfig], game_type: GameType
-) -> list[GameConfig]:
-    return [game for game in game_configs if game.game_type == game_type]
-
-
-def get_games_sorted_by_priority(
-    game_configs: Iterable[GameConfig], game_type: GameType | None = None
-) -> list[GameConfig]:
-    games = (
-        get_games_by_game_type(game_configs, game_type) if game_type else game_configs
-    )
-    # Sort games by sorting_priority. Games with sorting_priority of -1 are
-    # put at end of list
-    return sorted(
-        games,
-        key=lambda game: "Z"
-        if game.sorting_priority == -1
-        else str(game.sorting_priority),
-    )
-
-
-def get_games_sorted_by_last_played(
-    game_configs: Iterable[GameConfig], game_type: GameType | None = None
-) -> list[GameConfig]:
-    games = (
-        set(get_games_by_game_type(game_configs, game_type))
-        if game_type
-        else set(game_configs)
-    )
-    games_never_played = {game for game in games if game.last_played is None}
-    games_played = games - games_never_played
-    # Get list of played games sorted by when they were last played
-    games_played_sorted = sorted(
-        games_played,
-        key=lambda game: game.last_played,  # type: ignore
-        reverse=True,
-    )
-    # Games never played should be at end of list
-    return games_played_sorted + list(games_never_played)
-
-
-def get_sorted_games_list(
-    game_configs: Iterable[GameConfig],
-    sorting_mode: GamesSortingMode,
-    game_type: GameType | None = None,
-) -> list[GameConfig]:
-    match sorting_mode:
-        case GamesSortingMode.PRIORITY:
-            return get_games_sorted_by_priority(game_configs, game_type)
-        case GamesSortingMode.LAST_USED:
-            return get_games_sorted_by_last_played(game_configs, game_type)
-        case GamesSortingMode.ALPHABETICAL:
-            return get_games_sorted_alphabetically(game_configs, game_type)
-
-
-def get_games_sorted_alphabetically(
-    game_configs: Iterable[GameConfig], game_type: GameType | None
-) -> list[GameConfig]:
-    games = (
-        get_games_by_game_type(game_configs, game_type) if game_type else game_configs
-    )
-    return sorted(games, key=lambda game: game.name)
 
 
 def get_launcher_config_paths(

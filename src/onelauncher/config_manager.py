@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from collections.abc import Callable
 from contextlib import suppress
+from datetime import datetime
 from functools import cache, partial, update_wrapper
 from pathlib import Path
 from shutil import rmtree
@@ -18,8 +19,8 @@ from .__about__ import __title__
 from .config import Config, ConfigValWithMetadata, unstructure_config
 from .config_old import platform_dirs
 from .game_account_config import GameAccountConfig, GameAccountsConfig
-from .game_config import GameConfig
-from .program_config import ProgramConfig
+from .game_config import GameConfig, GameType
+from .program_config import GamesSortingMode, ProgramConfig
 from .resources import OneLauncherLocale, available_locales
 
 PROGRAM_CONFIG_DEFAULT_PATH: Path = (
@@ -456,7 +457,7 @@ class ConfigManager:
                 config_class=ProgramConfig, config_file_path=self.program_config_path
             )
         except FileNotFoundError:
-            # There should always be a program config. 
+            # There should always be a program config.
             # Just returning an object, allows there to be no config written to disk
             # until a change is made. This is mainly useful for knowing when to run
             # the setup wizard
@@ -484,6 +485,87 @@ class ConfigManager:
             UUID(config_file.parent.name)
             for config_file in self.games_dir_path.glob(
                 f"*/{self.GAME_CONFIG_FILE_NAME}"
+            )
+        )
+
+    def get_games_by_game_type(self, game_type: GameType) -> tuple[UUID, ...]:
+        return tuple(
+            game_uuid
+            for game_uuid in self.get_game_uuids()
+            if self.get_game_config(game_uuid).game_type == game_type
+        )
+
+    def get_games_sorted_by_priority(
+        self, game_type: GameType | None = None
+    ) -> tuple[UUID, ...]:
+        game_uuids = (
+            self.get_games_by_game_type(game_type)
+            if game_type
+            else self.get_game_uuids()
+        )
+
+        def sorter(game_uuid: UUID) -> str:
+            game_config = self.get_game_config(game_uuid)
+            return (
+                "Z"
+                if game_config.sorting_priority == -1
+                else str(game_config.sorting_priority)
+            )
+
+        # Sort games by sorting_priority. Games with sorting_priority of -1 are
+        # put at the end
+        return tuple(sorted(game_uuids, key=sorter))
+
+    def get_games_sorted_by_last_played(
+        self, game_type: GameType | None = None
+    ) -> tuple[UUID, ...]:
+        game_uuids = (
+            self.get_games_by_game_type(game_type)
+            if game_type
+            else self.get_game_uuids()
+        )
+
+        def sorter(game_uuid: UUID) -> datetime:
+            game_config = self.get_game_config(game_uuid)
+            return (
+                datetime.max
+                if game_config.last_played is None
+                else game_config.last_played
+            )
+
+        # Get list of played games sorted by when they were last played
+        return tuple(
+            sorted(
+                game_uuids,
+                key=sorter,
+                reverse=True,
+            )
+        )
+
+    def get_sorted_games_list(
+        self,
+        sorting_mode: GamesSortingMode,
+        game_type: GameType | None = None,
+    ) -> tuple[UUID, ...]:
+        match sorting_mode:
+            case GamesSortingMode.PRIORITY:
+                return self.get_games_sorted_by_priority(game_type)
+            case GamesSortingMode.LAST_USED:
+                return self.get_games_sorted_by_last_played(game_type)
+            case GamesSortingMode.ALPHABETICAL:
+                return self.get_games_sorted_alphabetically(game_type)
+
+    def get_games_sorted_alphabetically(
+        self, game_type: GameType | None
+    ) -> tuple[UUID, ...]:
+        game_uuids = (
+            self.get_games_by_game_type(game_type)
+            if game_type
+            else self.get_game_uuids()
+        )
+        return tuple(
+            sorted(
+                game_uuids, key=lambda game_uuid: self.get_game_config(game_uuid).name
             )
         )
 

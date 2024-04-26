@@ -40,11 +40,11 @@ from .config_old.games.wine import get_wine_environment_from_game, save_wine_env
 from .config_old.program_config import program_config
 from .game import ClientType, Game
 from .game_utilities import (
-    GamesSortingMode,
     InvalidGameDirError,
     find_game_dir_game_type,
 )
 from .network.game_launcher_config import GameLauncherConfig
+from .program_config import GamesSortingMode
 from .resources import available_locales
 from .setup_wizard import SetupWizard
 from .standard_game_launcher import get_standard_game_launcher_path
