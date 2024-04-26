@@ -375,8 +375,14 @@ def update_config_file(
 #     update_config_file(updated_config, config_file_path)
 
 
-@attrs.frozen
+class ConfigManagerNotSetupError(Exception):
+    """Config manager hasn't been setup."""
+
+@attrs.define
 class ConfigManager:
+    """
+    Before use, configs must be verified with `verify_configs` method.
+    """
     get_merged_program_config: Callable[[ProgramConfig], ProgramConfig]
     get_merged_game_config: Callable[[GameConfig], GameConfig]
     get_merged_game_accounts_config: Callable[[GameAccountsConfig], GameAccountsConfig]
@@ -384,10 +390,39 @@ class ConfigManager:
     games_dir_path: Path = GAMES_DIR_DEFAULT_PATH
 
     GAME_CONFIG_FILE_NAME: Final[str] = attrs.field(default="config1.toml", init=False)
+    configs_are_verified: bool = attrs.field(default=False, init=False)
 
     def __attrs_post_init__(self) -> None:
         self.program_config_path.parent.mkdir(parents=True, exist_ok=True)
         self.games_dir_path.mkdir(parents=True, exist_ok=True)
+    
+    def verify_configs(self) -> None:
+        """
+        Verify that all config files are present and can be parsed.
+
+        Raises:
+            ConfigFileParseError: Error parsing a config file
+        """
+        try:
+            # ConfigFileParseError is handled by caller
+            self._read_program_config_file()
+        except FileNotFoundError:
+            # There should always be a program config
+            self.update_program_config_file(ProgramConfig())
+            
+        # Verify game configs
+        for game_uuid in self.get_game_uuids():
+            # FileNotFoundError is handled by using known to exist UUIDs
+            # ConfigFileParseError is handled by caller
+            self._read_game_config_file(game_uuid)
+            try:
+                # ConfigFileParseError is handled by caller
+                self._read_game_accounts_config_file_full(game_uuid)
+            except FileNotFoundError:
+                self.update_game_accounts_config_file(game_uuid=game_uuid, accounts=())
+
+        self.configs_are_verified = True
+        
 
     def get_game_config_dir(self, game_uuid: UUID) -> Path:
         return self.games_dir_path / str(game_uuid)
@@ -399,16 +434,17 @@ class ConfigManager:
         return self.get_game_config_dir(game_uuid) / "accounts.toml"
 
     def get_program_config(self) -> ProgramConfig:
-        """
-        Get merged program config object.
-
-        Raises:
-            FileNotFoundError: Config file not found
-            ConfigFileParseError: Error parsing config file
-        """
+        """Get merged program config object."""
         return self.get_merged_program_config(self.read_program_config_file())
 
     def read_program_config_file(self) -> ProgramConfig:
+        """Read and parse program config file into `ProgramConfig` object."""
+        if self.configs_are_verified:
+            return self._read_program_config_file()
+        else:
+            raise ConfigManagerNotSetupError("")
+
+    def _read_program_config_file(self) -> ProgramConfig:
         """
         Read and parse program config file into `ProgramConfig` object.
 
@@ -442,10 +478,6 @@ class ConfigManager:
     def get_game_config(self, game_uuid: UUID) -> GameConfig:
         """
         Get merged game config object.
-
-        Raises:
-            FileNotFoundError: Config file not found
-            ConfigFileParseError: Error parsing config file
         """
         return self.get_merged_game_config(self.read_game_config_file(game_uuid))
 
@@ -464,6 +496,13 @@ class ConfigManager:
     #     return self.read_game_config_file_section(game_uuid, config_section)
 
     def read_game_config_file(self, game_uuid: UUID) -> GameConfig:
+        """Read and parse game config file into `GameConfig` object."""
+        if self.configs_are_verified:
+            return self._read_game_config_file(game_uuid)
+        else:
+            raise ConfigManagerNotSetupError("")
+
+    def _read_game_config_file(self, game_uuid: UUID) -> GameConfig:
         """
         Read and parse game config file into `GameConfig` object.
 
@@ -540,9 +579,12 @@ class ConfigManager:
             FileNotFoundError: Config file not found
             ConfigFileParseError: Error parsing config file
         """
-        return self.get_merged_game_accounts_config(
-            self._read_game_accounts_config_file_full(game_uuid)
-        ).accounts
+        if self.configs_are_verified:
+            return self.get_merged_game_accounts_config(
+                self._read_game_accounts_config_file_full(game_uuid)
+            ).accounts
+        else:
+            raise ConfigManagerNotSetupError("")
 
     def _read_game_accounts_config_file_full(
         self, game_uuid: UUID
@@ -565,7 +607,7 @@ class ConfigManager:
             ),
         )
 
-    def read_game_accounts_config_file(
+    def _read_game_accounts_config_file(
         self, game_uuid: UUID
     ) -> tuple[GameAccountConfig, ...]:
         """
@@ -576,6 +618,18 @@ class ConfigManager:
             ConfigFileParseError: Error parsing config file
         """
         return self._read_game_accounts_config_file_full(game_uuid).accounts
+
+    def read_game_accounts_config_file(
+        self, game_uuid: UUID
+    ) -> tuple[GameAccountConfig, ...]:
+        """
+        Read and parse game accounts config file into tuple of
+        `GameAccountConfig` objects.
+        """
+        if self.configs_are_verified:
+            return self._read_game_accounts_config_file(game_uuid)
+        else:
+            raise ConfigManagerNotSetupError("")
 
     def update_game_accounts_config_file(
         self, game_uuid: UUID, accounts: tuple[GameAccountConfig, ...]
