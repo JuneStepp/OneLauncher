@@ -543,7 +543,7 @@ class ConfigManager:
             )
         )
 
-    def get_sorted_games_list(
+    def get_games_sorted(
         self,
         sorting_mode: GamesSortingMode,
         game_type: GameType | None = None,
@@ -595,9 +595,7 @@ class ConfigManager:
         if not self.configs_are_verified:
             raise ConfigManagerNotSetupError("")
         if game_uuid not in self.verified_game_uuids:
-            raise ValueError(
-                f"Game UUID: {game_uuid} has not been verified."
-            )
+            raise ValueError(f"Game UUID: {game_uuid} has not been verified.")
 
         return self._read_game_config_file(game_uuid)
 
@@ -687,7 +685,6 @@ class ConfigManager:
             self._read_game_accounts_config_file_full(game_uuid)
         ).accounts
 
-
     def _read_game_accounts_config_file_full(
         self, game_uuid: UUID
     ) -> GameAccountsConfig:
@@ -732,7 +729,7 @@ class ConfigManager:
             raise ConfigManagerNotSetupError("")
         if game_uuid not in self.verified_game_uuids:
             raise ValueError(f"Game UUID: {game_uuid} has not been verified.")
-    
+
         return self._read_game_accounts_config_file(game_uuid)
 
     def update_game_accounts_config_file(

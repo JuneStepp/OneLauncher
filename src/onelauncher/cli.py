@@ -245,7 +245,9 @@ def _parse_game_arg(game_arg: str, config_manager: ConfigManager) -> UUID:
     Raises:
         typer.BadParameter
     """
-    game_uuids = config_manager.get_game_uuids()
+    game_uuids = config_manager.get_games_sorted(
+        config_manager.get_program_config().games_sorting_mode
+    )
 
     # Handle UUID game arg
     if game_arg not in tuple(GameOptions):
