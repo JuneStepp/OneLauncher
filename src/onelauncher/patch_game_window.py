@@ -31,7 +31,7 @@ import os
 
 from PySide6 import QtCore, QtWidgets
 
-from .config_old import platform_dirs
+from .config import platform_dirs
 from .config_old.games.wine import get_wine_environment_from_game
 from .game import Game
 from .patching_progress_monitor import ProgressMonitor

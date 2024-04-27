@@ -9,6 +9,11 @@ import attrs
 import cattrs
 from cattrs.dispatch import StructuredValue, UnstructuredValue
 from packaging.version import Version
+from platformdirs import PlatformDirs
+
+from .__about__ import __title__
+
+platform_dirs = PlatformDirs(__title__.lower(), ensure_exists=True)
 
 
 @attrs.frozen

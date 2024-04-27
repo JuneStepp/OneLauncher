@@ -16,8 +16,7 @@ from cattrs.preconf.tomlkit import make_converter
 from tomlkit.items import Table
 
 from .__about__ import __title__
-from .config import Config, ConfigValWithMetadata, unstructure_config
-from .config_old import platform_dirs
+from .config import Config, ConfigValWithMetadata, platform_dirs, unstructure_config
 from .game_account_config import GameAccountConfig, GameAccountsConfig
 from .game_config import GameConfig, GameType
 from .program_config import GamesSortingMode, ProgramConfig
@@ -671,9 +670,7 @@ class ConfigManager:
     #         config_section=config_section,
     #         config_file_path=self.get_game_config_path(game_uuid))
 
-    def get_game_accounts(
-        self, game_uuid: UUID
-    ) -> tuple[GameAccountConfig, ...]:
+    def get_game_accounts(self, game_uuid: UUID) -> tuple[GameAccountConfig, ...]:
         if not self.configs_are_verified:
             raise ConfigManagerNotSetupError("")
         if game_uuid not in self.verified_game_uuids:

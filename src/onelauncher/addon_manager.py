@@ -46,7 +46,7 @@ from vkbeautify import xml as prettify_xml
 
 from .__about__ import __title__
 from .addons.startup_script import StartupScript
-from .config_old import platform_dirs
+from .config import platform_dirs
 from .config_old.games.addons import get_addons_manager_from_game, save_addons_manager
 from .game import Game, GameType
 from .ui.addon_manager_uic import Ui_winAddonManager

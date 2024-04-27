@@ -6,7 +6,7 @@ from platform import platform
 from types import TracebackType
 
 from .__about__ import __title__, __version__
-from .config_old import platform_dirs
+from .config import platform_dirs
 
 
 class Logger:

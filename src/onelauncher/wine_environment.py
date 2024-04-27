@@ -37,7 +37,7 @@ from urllib.error import HTTPError, URLError
 import attrs
 from PySide6 import QtCore, QtWidgets
 
-from .config_old import platform_dirs
+from .config import platform_dirs
 from .ui_utilities import show_warning_message
 from .wine.config import WineConfigSection
 
