@@ -849,3 +849,12 @@ class ConfigManager:
         self.delete_game_account_last_used_subscription_name(
             game_uuid=game_uuid, game_account=game_account
         )
+
+    def get_ui_locale(self, game_uuid: UUID) -> OneLauncherLocale:
+        program_config = self.get_program_config()
+        game_config = self.get_game_config(game_uuid)
+        return (
+            program_config.default_locale
+            if program_config.always_use_default_locale_for_ui or not game_config.locale
+            else game_config.locale
+        )
