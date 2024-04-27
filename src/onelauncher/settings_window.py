@@ -33,7 +33,6 @@ from pathlib import Path
 import trio
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from . import games_sorted
 from .config_old.games import games_config
 from .config_old.games.game import save_game
 from .config_old.games.wine import get_wine_environment_from_game, save_wine_environment

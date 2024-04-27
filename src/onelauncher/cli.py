@@ -527,7 +527,7 @@ async def _start_ui(config_manager: ConfigManager, game_arg: str | None) -> None
 
     # Just run the games selection portion of the setup wizard
     if not config_manager.get_game_uuids():
-        QtWidgets.QMessageBox.information( # type: ignore[call-overload]
+        QtWidgets.QMessageBox.information(  # type: ignore[call-overload]
             None,
             "No Games Found",
             f"No games have been registered with {__title__}.\n Opening games management wizard.",
@@ -538,5 +538,12 @@ async def _start_ui(config_manager: ConfigManager, game_arg: str | None) -> None
             return
         return await _start_ui(config_manager=config_manager, game_arg=game_arg)
 
+    # Import has to be done here, because some code run when
+    # main_window.py imports requires the QApplication to exist.
+    from .main_window import MainWindow
+
     game_uuid = _parse_game_arg(game_arg, config_manager) if game_arg else None
-    # TODO: Start main window
+    main_window = MainWindow(
+        config_manager=config_manager, starting_game_uuid=game_uuid
+    )
+    await main_window.run()
