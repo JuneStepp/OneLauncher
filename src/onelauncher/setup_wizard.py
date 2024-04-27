@@ -109,10 +109,6 @@ class SetupWizard(QtWidgets.QWizard):
 
         self.ui.gamesDiscoveryStatusLabel.hide()
 
-        # Only show data deletion page if there is existing game data
-        if not self.config_manager.get_game_uuids():
-            self.ui.gamesSelectionWizardPage.nextId = lambda: self.currentId() + 2  # type: ignore[method-assign]
-
         self.add_available_languages_to_ui()
 
         # Games discovery page
@@ -139,8 +135,13 @@ class SetupWizard(QtWidgets.QWizard):
             for page_id in self.pageIds():
                 self.removePage(page_id)
             self.addPage(self.ui.gamesSelectionWizardPage)
-            self.addPage(self.ui.dataDeletionWizardPage)
+            # Existing data page isn't needed, if there's no existing data
+            if self.config_manager.get_game_uuids():
+                self.addPage(self.ui.dataDeletionWizardPage)
             self.find_games()
+        # Only show data deletion page if there is existing game data
+        elif not self.config_manager.get_game_uuids():
+            self.ui.gamesSelectionWizardPage.nextId = lambda: self.currentId() + 2  # type: ignore[method-assign]
 
     def add_available_languages_to_ui(self) -> None:
         program_config = self.config_manager.read_program_config_file()
