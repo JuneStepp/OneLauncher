@@ -637,6 +637,8 @@ class ConfigManager:
         game_config_path = self.get_game_config_path(game_uuid)
         game_config_path.parent.mkdir(exist_ok=True)
         update_config_file(config=config, config_file_path=game_config_path)
+        if game_uuid not in self.verified_game_uuids:
+            self.verified_game_uuids.append(game_uuid)
 
     def delete_game_config(self, game_uuid: UUID) -> None:
         """Delete game config including all files and saved accounts"""
@@ -648,6 +650,7 @@ class ConfigManager:
                 )
         rmtree(self.get_game_config_dir(game_uuid=game_uuid))
         read_config_file.clear_cache()
+        self.verified_game_uuids.remove(game_uuid)
 
     # def update_game_config_file_section(
     #         self,
