@@ -199,7 +199,9 @@ def merge_accounts_config(
     will override the existing values in `game_accounts_config`.
     """
     accounts = list(game_accounts_config.accounts)
-    if not username:
+    if not username and not accounts:
+        return game_accounts_config
+    elif not username:
         account = accounts[0]
         accounts.remove(account)
     elif matching_accounts := tuple(
