@@ -671,14 +671,9 @@ class ConfigManager:
     #         config_section=config_section,
     #         config_file_path=self.get_game_config_path(game_uuid))
 
-    def get_game_accounts_config(
+    def get_game_accounts(
         self, game_uuid: UUID
     ) -> tuple[GameAccountConfig, ...]:
-        """
-        Raises:
-            FileNotFoundError: Config file not found
-            ConfigFileParseError: Error parsing config file
-        """
         if not self.configs_are_verified:
             raise ConfigManagerNotSetupError("")
         if game_uuid not in self.verified_game_uuids:
