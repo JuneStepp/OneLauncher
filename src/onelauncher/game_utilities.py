@@ -4,50 +4,9 @@ from .game_config import GameType
 from .game_launcher_local_config import (
     GameLauncherLocalConfig,
     GameLauncherLocalConfigParseError,
+    get_launcher_config_paths,
 )
 from .utilities import CaseInsensitiveAbsolutePath
-
-
-def get_launcher_config_paths(
-    search_dir: CaseInsensitiveAbsolutePath, game_type: GameType | None = None
-) -> tuple[CaseInsensitiveAbsolutePath, ...]:
-    """
-    Return all launcher config files from search_dir sorted by relevance.
-    File names matching a different game type from `game_type` won't be
-    returned.
-    """
-    config_files = list(search_dir.glob("*.launcherconfig"))
-
-    if game_type is not None:
-        # Remove launcher config files that are for other game types
-        other_game_types = set(GameType) - {game_type}
-        for file in config_files:
-            for other_game_type in other_game_types:
-                if file.name.lower() == f"{other_game_type.lower()}.launcherconfig":
-                    config_files.remove(file)
-
-    # Add legacy launcher config files to `config_files`
-    legacy_config_names = ["TurbineLauncher.exe.config"]
-    if game_type == GameType.DDO or game_type is None:
-        legacy_config_names.append("DNDLauncher.exe.config")
-    for config_name in legacy_config_names:
-        legacy_path = search_dir / config_name
-        if legacy_path.exists():
-            config_files.append(legacy_path)
-
-    def config_files_sorting_key(file: CaseInsensitiveAbsolutePath) -> int:
-        if game_type is not None and (
-            file.name.lower() == f"{game_type.lower()}.launcherconfig"
-        ):
-            return 0
-        elif file.suffix.lower() == ".launcherconfig":
-            return 1
-        elif file.name.lower() == "TurbineLauncher.exe.config".lower():
-            return 2
-        else:
-            return 3
-
-    return tuple(sorted(config_files, key=config_files_sorting_key))
 
 
 class InvalidGameDirError(ValueError):

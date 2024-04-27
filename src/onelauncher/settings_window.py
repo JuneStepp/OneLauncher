@@ -29,15 +29,14 @@ import os
 import re
 from contextlib import suppress
 from pathlib import Path
+from uuid import UUID
 
+import attrs
 import trio
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from .config_old.games import games_config
-from .config_old.games.game import save_game
-from .config_old.games.wine import get_wine_environment_from_game, save_wine_environment
-from .config_old.program_config import program_config
-from .game import ClientType, Game
+from .config_manager import ConfigManager
+from .game_config import ClientType
 from .game_utilities import (
     InvalidGameDirError,
     find_game_dir_game_type,
@@ -54,14 +53,15 @@ from .wine_environment import edit_qprocess_to_use_wine
 
 
 class SettingsWindow(QtWidgets.QDialog):
-    def __init__(self, game: Game):
+    def __init__(self, config_manager: ConfigManager, game_uuid: UUID):
         super().__init__(
-            QtCore.QCoreApplication.instance().activeWindow(),
+            QtCore.QCoreApplication.instance().activeWindow(),  # type: ignore[union-attr]
             QtCore.Qt.WindowType.FramelessWindowHint,
         )
-        self.game = game
+        self.config_manager = config_manager
+        self.game_uuid = game_uuid
         self.ui = Ui_dlgSettings()
-        self.ui.setupUi(self)
+        self.ui.setupUi(self)  # type: ignore[no-untyped-call]
 
     async def setup_ui(self) -> None:
         self.finished.connect(self.cleanup)
@@ -71,11 +71,12 @@ class SettingsWindow(QtWidgets.QDialog):
         )
         self.ui.showAdvancedSettingsCheckbox.setChecked(False)
 
-        self.ui.gameNameLineEdit.setText(self.game.name)
+        game_config = self.config_manager.read_game_config_file(self.game_uuid)
+        self.ui.gameNameLineEdit.setText(game_config.name)
         escaped_other_game_names = [
-            re.escape(game.name)
-            for game in games_sorted.games.values()
-            if game != self.game
+            re.escape(self.config_manager.read_game_config_file(game_uuid).name)
+            for game_uuid in self.config_manager.get_game_uuids()
+            if game_uuid != self.game_uuid
         ]
         self.ui.gameNameLineEdit.setValidator(
             QtGui.QRegularExpressionValidator(
@@ -84,32 +85,31 @@ class SettingsWindow(QtWidgets.QDialog):
                 )
             )
         )
-        self.ui.gameUUIDLineEdit.setText(str(self.game.uuid))
-        self.ui.gameDescriptionLineEdit.setText(self.game.description)
-        self.ui.gameDirLineEdit.setText(str(self.game.game_directory))
+        self.ui.gameUUIDLineEdit.setText(str(self.game_uuid))
+        self.ui.gameDescriptionLineEdit.setText(game_config.description)
+        self.ui.gameDirLineEdit.setText(str(game_config.game_directory))
         self.ui.browseGameConfigDirButton.clicked.connect(
             lambda: QtGui.QDesktopServices.openUrl(
                 QtCore.QUrl.fromLocalFile(
-                    games_config.get_game_config_dir(self.game.uuid)
+                    self.config_manager.get_game_config_dir(self.game_uuid)
                 )
             )
         )
 
         if os.name != "nt":
-            self.wine_env = get_wine_environment_from_game(self.game)
             self.ui.autoManageWineCheckBox.toggled.connect(
                 self.auto_manage_wine_checkbox_toggled
             )
             self.ui.autoManageWineCheckBox.setChecked(
-                self.wine_env.builtin_prefix_enabled
+                game_config.wine.builtin_prefix_enabled
             )
             self.ui.winePrefixLineEdit.setText(
-                str(self.wine_env.user_prefix_path or "")
+                str(game_config.wine.user_prefix_path or "")
             )
             self.ui.wineExecutableLineEdit.setText(
-                str(self.wine_env.user_wine_executable_path or "")
+                str(game_config.wine.user_wine_executable_path or "")
             )
-            self.ui.wineDebugLineEdit.setText(self.wine_env.debug_level or "")
+            self.ui.wineDebugLineEdit.setText(game_config.wine.debug_level or "")
         else:
             # WINE isn't used on Windows
             self.ui.tabWidget.setTabVisible(
@@ -118,9 +118,9 @@ class SettingsWindow(QtWidgets.QDialog):
 
         await self.setup_client_type_combo_box()
         self.ui.standardLauncherLineEdit.setText(
-            self.game.standard_game_launcher_filename or ""
+            game_config.standard_game_launcher_filename or ""
         )
-        self.ui.patchClientLineEdit.setText(self.game.patch_client_filename)
+        self.ui.patchClientLineEdit.setText(game_config.patch_client_filename)
         self.ui.standardGameLauncherButton.clicked.connect(
             lambda: self.nursery.start_soon(self.run_standard_game_launcher)
         )
@@ -131,16 +131,21 @@ class SettingsWindow(QtWidgets.QDialog):
             self.ui.actionRunStandardGameLauncherWithPatchingDisabled
         )
 
-        self.ui.highResCheckBox.setChecked(self.game.high_res_enabled)
+        self.ui.highResCheckBox.setChecked(game_config.high_res_enabled)
 
+        program_config = self.config_manager.get_program_config()
         self.add_languages_to_combobox(self.ui.gameLanguageComboBox)
-        self.ui.gameLanguageComboBox.setCurrentText(self.game.locale.display_name)
+        self.ui.gameLanguageComboBox.setCurrentText(
+            game_config.locale.display_name
+            if game_config.locale
+            else program_config.default_locale.display_name
+        )
         self.add_languages_to_combobox(self.ui.defaultLanguageComboBox)
         self.ui.defaultLanguageComboBox.setCurrentText(
             program_config.default_locale.display_name
         )
         self.ui.defaultLanguageForUICheckBox.setChecked(
-            program_config.always_use_default_language_for_ui
+            program_config.always_use_default_locale_for_ui
         )
 
         self.ui.gamesSortingModeComboBox.addItem(
@@ -157,7 +162,9 @@ class SettingsWindow(QtWidgets.QDialog):
         )
 
         self.ui.setupWizardButton.clicked.connect(self.start_setup_wizard)
-        self.ui.gamesManagementButton.clicked.connect(self.manage_games)
+        self.ui.gamesManagementButton.clicked.connect(
+            lambda: self.start_setup_wizard(games_managing=True)
+        )
         self.ui.gameDirButton.clicked.connect(self.choose_game_dir)
         self.ui.showAdvancedSettingsCheckbox.clicked.connect(
             self.toggle_advanced_settings
@@ -181,17 +188,22 @@ class SettingsWindow(QtWidgets.QDialog):
         event.accept()
 
     async def setup_newsfeed_option(self) -> None:
+        game_config = self.config_manager.read_game_config_file(self.game_uuid)
         # Attempt to set placeholder text to default newsfeed URL
-        if self.game.newsfeed is None:
-            game_launcher_config = await GameLauncherConfig.from_game(self.game)
+        if game_config.newsfeed is None:
+            game_launcher_config = await GameLauncherConfig.from_game_config(
+                game_config=game_config
+            )
             if game_launcher_config is not None:
                 self.ui.gameNewsfeedLineEdit.setPlaceholderText(
                     game_launcher_config.get_newfeed_url(
-                        program_config.get_ui_locale(self.game)
+                        locale=self.config_manager.get_ui_locale(
+                            game_uuid=self.game_uuid
+                        )
                     )
                 )
 
-        self.ui.gameNewsfeedLineEdit.setText(self.game.newsfeed)
+        self.ui.gameNewsfeedLineEdit.setText(game_config.newsfeed or "")
 
     def auto_manage_wine_checkbox_toggled(self, is_checked: bool) -> None:
         self.ui.winePrefixLabel.setEnabled(not is_checked)
@@ -225,7 +237,8 @@ class SettingsWindow(QtWidgets.QDialog):
             ClientType.WIN32: "32-bit",
             ClientType.WIN32_LEGACY: "32-bit Legacy",
         }
-        game_launcher_config = await GameLauncherConfig.from_game(self.game)
+        game_config = self.config_manager.read_game_config_file(self.game_uuid)
+        game_launcher_config = await GameLauncherConfig.from_game_config(game_config)
         if game_launcher_config is not None:
             # Mark all unavailable client types as not found.
             for (
@@ -246,22 +259,23 @@ class SettingsWindow(QtWidgets.QDialog):
             userData=ClientType.WIN32_LEGACY,
         )
         self.ui.clientTypeComboBox.setCurrentIndex(
-            self.ui.clientTypeComboBox.findData(self.game.client_type)
+            self.ui.clientTypeComboBox.findData(game_config.client_type)
         )
 
     async def run_standard_game_launcher(self, disable_patching: bool = False) -> None:
-        launcher_path = await get_standard_game_launcher_path(self.game)
+        game_config = self.config_manager.get_game_config(self.game_uuid)
+        launcher_path = await get_standard_game_launcher_path(game_config=game_config)
 
         if launcher_path is None:
             show_warning_message("No valid launcher executable found", self)
             return
 
         process = QtCore.QProcess()
-        process.setWorkingDirectory(str(self.game.game_directory))
+        process.setWorkingDirectory(str(game_config.game_directory))
         process.setProgram(str(launcher_path))
         if disable_patching:
             process.setArguments(["-skiprawdownload", "-disablepatch"])
-        edit_qprocess_to_use_wine(process, get_wine_environment_from_game(self.game))
+        edit_qprocess_to_use_wine(qprocess=process, wine_config=game_config.wine)
         process.startDetached()
 
     def choose_game_dir(self) -> None:
@@ -288,30 +302,28 @@ class SettingsWindow(QtWidgets.QDialog):
             return None
 
         folder = CaseInsensitiveAbsolutePath(filename)
+        game_config = self.config_manager.read_game_config_file(self.game_uuid)
         with suppress(InvalidGameDirError):
-            if find_game_dir_game_type(folder) == self.game.game_type:
+            if find_game_dir_game_type(folder) == game_config.game_type:
                 self.ui.gameDirLineEdit.setText(str(folder))
             else:
                 show_warning_message(
                     f"The folder selected isn't a valid installation folder for "
-                    f"{self.game.game_type}.",
+                    f"{game_config.game_type}.",
                     self,
                 )
-
-    def manage_games(self) -> None:
-        self.start_setup_wizard(games_managing=True)
 
     def start_setup_wizard(self, games_managing: bool = False) -> None:
         self.hide()
         if games_managing:
             setup_wizard = SetupWizard(
+                config_manager=self.config_manager,
                 game_selection_only=True,
-                show_existing_games=True,
                 select_existing_games=True,
             )
         else:
             setup_wizard = SetupWizard(
-                show_existing_games=True, select_existing_games=False
+                config_manager=self.config_manager, select_existing_games=False
             )
         setup_wizard.exec()
         self.accept()
@@ -322,21 +334,26 @@ class SettingsWindow(QtWidgets.QDialog):
             combobox.model().sort(0)
 
     def save_wine_config(self) -> None:
-        self.wine_env.builtin_prefix_enabled = (
-            self.ui.autoManageWineCheckBox.isChecked()
+        game_config = self.config_manager.read_game_config_file(self.game_uuid)
+        updated_wine_config = attrs.evolve(
+            game_config.wine,
+            builtin_prefix_enabled=self.ui.autoManageWineCheckBox.isChecked(),
+            user_prefix_path=(
+                Path(self.ui.winePrefixLineEdit.text())
+                if self.ui.winePrefixLineEdit.text()
+                else None
+            ),
+            user_wine_executable_path=(
+                Path(self.ui.wineExecutableLineEdit.text())
+                if self.ui.wineExecutableLineEdit.text()
+                else None
+            ),
+            debug_level=self.ui.wineDebugLineEdit.text() or None,
         )
-        self.wine_env.user_prefix_path = (
-            Path(self.ui.winePrefixLineEdit.text())
-            if self.ui.winePrefixLineEdit.text()
-            else None
+        self.config_manager.update_game_config_file(
+            self.game_uuid,
+            attrs.evolve(game_config, wine=updated_wine_config),
         )
-        self.wine_env.user_wine_executable_path = (
-            Path(self.ui.wineExecutableLineEdit.text())
-            if self.ui.wineExecutableLineEdit.text()
-            else None
-        )
-        self.wine_env.debug_level = self.ui.wineDebugLineEdit.text() or None
-        save_wine_environment(self.game, self.wine_env)
 
     def save_config(self) -> None:
         available_locales_display_names_mapping = {
@@ -348,37 +365,42 @@ class SettingsWindow(QtWidgets.QDialog):
                 "The game name you've chosen is already in use by another game.", self
             )
             return
-        self.game.name = self.ui.gameNameLineEdit.text()
-        self.game.description = self.ui.gameDescriptionLineEdit.text()
-        self.game.newsfeed = self.ui.gameNewsfeedLineEdit.text() or None
-
-        self.game.locale = available_locales_display_names_mapping[
-            self.ui.gameLanguageComboBox.currentText()
-        ]
-        self.game.game_directory = CaseInsensitiveAbsolutePath(
-            self.ui.gameDirLineEdit.text()
+        self.config_manager.update_game_config_file(
+            self.game_uuid,
+            attrs.evolve(
+                self.config_manager.read_game_config_file(self.game_uuid),
+                name=self.ui.gameNameLineEdit.text(),
+                description=self.ui.gameDescriptionLineEdit.text(),
+                newsfeed=self.ui.gameNewsfeedLineEdit.text() or None,
+                locale=available_locales_display_names_mapping[
+                    self.ui.gameLanguageComboBox.currentText()
+                ],
+                game_directory=CaseInsensitiveAbsolutePath(
+                    self.ui.gameDirLineEdit.text()
+                ),
+                high_res_enabled=self.ui.highResCheckBox.isChecked(),
+                client_type=self.ui.clientTypeComboBox.currentData(),
+                standard_game_launcher_filename=(
+                    self.ui.standardLauncherLineEdit.text() or None
+                ),
+                patch_client_filename=self.ui.patchClientLineEdit.text(),
+            ),
         )
-        self.game.high_res_enabled = self.ui.highResCheckBox.isChecked()
-        self.game.client_type = self.ui.clientTypeComboBox.currentData()
-        self.game.standard_game_launcher_filename = (
-            self.ui.standardLauncherLineEdit.text() or None
-        )
-        self.game.patch_client_filename = self.ui.patchClientLineEdit.text()
 
         if os.name != "nt":
             self.save_wine_config()
 
-        program_config.default_locale = available_locales_display_names_mapping[
-            self.ui.defaultLanguageComboBox.currentText()
-        ]
-        program_config.always_use_default_language_for_ui = (
-            self.ui.defaultLanguageForUICheckBox.isChecked()
+        self.config_manager.update_program_config_file(
+            attrs.evolve(
+                self.config_manager.read_program_config_file(),
+                default_locale=available_locales_display_names_mapping[
+                    self.ui.defaultLanguageComboBox.currentText()
+                ],
+                always_use_default_locale_for_ui=(
+                    self.ui.defaultLanguageForUICheckBox.isChecked()
+                ),
+                games_sorting_mode=(self.ui.gamesSortingModeComboBox.currentData()),
+            )
         )
-        program_config.games_sorting_mode = (
-            self.ui.gamesSortingModeComboBox.currentData()
-        )
-
-        save_game(self.game)
-        program_config.save()
 
         self.accept()

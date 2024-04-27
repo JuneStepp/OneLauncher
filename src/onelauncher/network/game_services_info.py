@@ -1,12 +1,13 @@
 import logging
-from typing import Self
+from typing import Any, Self
 
 import zeep.exceptions
 from asyncache import cached
 from cachetools import TTLCache
 from httpx import HTTPError
 
-from ..game import Game
+from ..game_config import GameConfig
+from ..game_launcher_local_config import GameLauncherLocalConfig
 from .soap import GLSServiceError, get_soap_client
 from .world import World
 
@@ -56,12 +57,18 @@ class GameServicesInfo:
             ) from e
 
     @classmethod
-    async def from_game(cls: type[Self], game: Game) -> Self | None:
+    async def from_game_config(cls: type[Self], game_config: GameConfig) -> Self | None:
         """Simplified shortcut for getting `GameServicesInfo` object.
         Will return `None` if any exceptions are raised."""
+        game_launcher_local_config = GameLauncherLocalConfig.from_game_dir(
+            game_directory=game_config.game_directory, game_type=game_config.game_type
+        )
+        if game_launcher_local_config is None:
+            return None
         try:
             return await cls.from_url(
-                game.gls_datacenter_service, game.datacenter_game_name
+                gls_datacenter_service=game_launcher_local_config.gls_datacenter_service,
+                game_datacenter_name=game_launcher_local_config.datacenter_game_name,
             )
         except (HTTPError, GLSServiceError, AttributeError):
             return None
@@ -92,7 +99,7 @@ class GameServicesInfo:
 
     @staticmethod
     def _get_worlds(
-        datacenter_dict: dict, gls_datacenter_service: str | None
+        datacenter_dict: dict[str, Any], gls_datacenter_service: str | None
     ) -> set[World]:
         """Return set of game `World` objects
 
@@ -113,7 +120,7 @@ class GameServicesInfo:
     @staticmethod
     async def _get_datacenter_dict(
         gls_datacenter_service: str, game_datacenter_name: str
-    ) -> dict:
+    ) -> dict[str, Any]:
         """Return dictionary of GetDatacenters SOAP operation response.
 
         Raises:

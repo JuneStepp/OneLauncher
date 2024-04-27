@@ -1,14 +1,59 @@
+from functools import cache
 from typing import Self, cast
 from xml.etree.ElementTree import Element
 
 import vkbeautify
 from defusedxml import ElementTree
 
+from .game_config import GameType
 from .utilities import (
     AppSettingsParseError,
+    CaseInsensitiveAbsolutePath,
     parse_app_settings_config,
     verify_app_settings_config,
 )
+
+
+def get_launcher_config_paths(
+    search_dir: CaseInsensitiveAbsolutePath, game_type: GameType | None = None
+) -> tuple[CaseInsensitiveAbsolutePath, ...]:
+    """
+    Return all launcher config files from search_dir sorted by relevance.
+    File names matching a different game type from `game_type` won't be
+    returned.
+    """
+    config_files = list(search_dir.glob("*.launcherconfig"))
+
+    if game_type is not None:
+        # Remove launcher config files that are for other game types
+        other_game_types = set(GameType) - {game_type}
+        for file in config_files:
+            for other_game_type in other_game_types:
+                if file.name.lower() == f"{other_game_type.lower()}.launcherconfig":
+                    config_files.remove(file)
+
+    # Add legacy launcher config files to `config_files`
+    legacy_config_names = ["TurbineLauncher.exe.config"]
+    if game_type == GameType.DDO or game_type is None:
+        legacy_config_names.append("DNDLauncher.exe.config")
+    for config_name in legacy_config_names:
+        legacy_path = search_dir / config_name
+        if legacy_path.exists():
+            config_files.append(legacy_path)
+
+    def config_files_sorting_key(file: CaseInsensitiveAbsolutePath) -> int:
+        if game_type is not None and (
+            file.name.lower() == f"{game_type.lower()}.launcherconfig"
+        ):
+            return 0
+        elif file.suffix.lower() == ".launcherconfig":
+            return 1
+        elif file.name.lower() == "TurbineLauncher.exe.config".lower():
+            return 2
+        else:
+            return 3
+
+    return tuple(sorted(config_files, key=config_files_sorting_key))
 
 
 class GameLauncherLocalConfigParseError(KeyError):
@@ -52,6 +97,25 @@ class GameLauncherLocalConfig:
             raise GameLauncherLocalConfigParseError(
                 "Config doesn't include a required value"
             ) from e
+
+    @classmethod
+    @cache
+    def from_game_dir(
+        cls: type[Self], *, game_directory: CaseInsensitiveAbsolutePath, game_type: GameType
+    ) -> Self | None:
+        """
+        Simplified shortcut for getting GameLauncherLocalConfig object.
+        Will return None if any exceptions are raised.
+        """
+        launcher_config_paths = get_launcher_config_paths(
+            search_dir=game_directory, game_type=game_type
+        )
+        if not launcher_config_paths:
+            return None
+        try:
+            return cls.from_config_xml(launcher_config_paths[0].read_text())
+        except GameLauncherLocalConfigParseError:
+            return None
 
     def _edit_config_xml_app_setting(
         self, app_settings_element: Element, key: str, val: str
@@ -103,6 +167,7 @@ class GameLauncherLocalConfig:
             app_settings, "Product.DocumentFolder", self.documents_config_dir_name
         )
 
+        GameLauncherLocalConfig.from_game_dir.cache_clear()
         return vkbeautify.xml(
             ElementTree.tostring(root, "utf-8", xml_declaration=True).decode()
         )

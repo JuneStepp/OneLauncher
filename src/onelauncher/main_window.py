@@ -42,11 +42,14 @@ from .addon_manager import AddonManagerWindow
 from .config_manager import ConfigManager
 from .game_account_config import GameAccountConfig
 from .game_config import GameType
-from .game_launcher_local_config import GameLauncherLocalConfig
+from .game_launcher_local_config import (
+    GameLauncherLocalConfig,
+    GameLauncherLocalConfigParseError,
+    get_launcher_config_paths,
+)
 from .game_utilities import (
     InvalidGameDirError,
     find_game_dir_game_type,
-    get_launcher_config_paths,
 )
 from .network import login_account
 from .network.game_launcher_config import (
@@ -283,7 +286,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.resetFocus()
 
     async def actionPatchSelected(self) -> None:
-        game_services_info = await GameServicesInfo.from_game(self.game)
+        game_services_info = await GameServicesInfo.from_game_config(self.game)
         if game_services_info is None:
             return
 
@@ -292,7 +295,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.resetFocus()
 
     async def btnOptionsSelected(self) -> None:
-        winSettings = SettingsWindow(self.game)
+        winSettings = SettingsWindow(
+            config_manager=self.config_manager, game_uuid=self.game_uuid
+        )
         await winSettings.run()
         if winSettings.result() == QtWidgets.QDialog.DialogCode.Accepted:
             await self.InitialSetup()
@@ -459,7 +464,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 last_used_world_name=current_world.name,
             )
 
-        game_services_info = await GameServicesInfo.from_game(self.game)
+        game_services_info = await GameServicesInfo.from_game_config(self.game)
         if game_services_info is None:
             return
 
@@ -694,7 +699,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.game_launcher_local_config = GameLauncherLocalConfig.from_config_xml(
                 launcher_config_paths[0].read_text()
             )
-        except GameLauncherConfigParseError:
+        except GameLauncherLocalConfigParseError:
             self.AddLog("Error parsing local launcher config", is_error=True)
             logger.exception("")
             return False

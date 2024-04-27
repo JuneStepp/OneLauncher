@@ -5,7 +5,7 @@ from asyncache import cached
 from cachetools import TTLCache
 from httpx import HTTPError
 
-from ..game import ClientType, Game
+from ..game_config import ClientType, GameConfig
 from ..official_clients import (
     DDO_PREVIEW_BROKEN_NEWS_URL_TEMPLATE,
     DDO_PREVIEW_NEWS_URL_TEMPLATE,
@@ -164,11 +164,11 @@ class GameLauncherConfig:
         return cls.from_xml(config_xml)
 
     @classmethod
-    async def from_game(cls: type[Self], game: Game) -> Self | None:
+    async def from_game_config(cls: type[Self], game_config: GameConfig) -> Self | None:
         """Simplified shortcut for getting `GameLauncherConfig` object.
         Will return `None` if any exceptions are raised."""
         try:
-            game_services_info = await GameServicesInfo.from_game(game)
+            game_services_info = await GameServicesInfo.from_game_config(game_config)
             if game_services_info is None:
                 return None
             return await cls.from_url(game_services_info.launcher_config_url)

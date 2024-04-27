@@ -41,11 +41,11 @@ from .game_config import GameConfig, GameType
 from .game_launcher_local_config import (
     GameLauncherLocalConfig,
     GameLauncherLocalConfigParseError,
+    get_launcher_config_paths,
 )
 from .game_utilities import (
     InvalidGameDirError,
     find_game_dir_game_type,
-    get_launcher_config_paths,
 )
 from .official_clients import is_gls_url_for_preview_client
 from .program_config import GamesSortingMode, ProgramConfig

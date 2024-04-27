@@ -39,6 +39,7 @@ from PySide6 import QtCore, QtWidgets
 
 from .config_old import platform_dirs
 from .ui_utilities import show_warning_message
+from .wine.config import WineConfigSection
 
 # To use Proton, replace link with Proton build and uncomment
 # `self.proton_documents_symlinker()` in wine_setup in wine_management
@@ -163,7 +164,7 @@ class WineManagement:
             show_warning_message(
                 f"There was an error downloading '{url}'. "
                 "You may want to check your network connection.",
-                self,
+                QtWidgets.QApplication.instance().activeWindow(),
             )
             return False
 
@@ -284,12 +285,12 @@ wine_management = None
 
 
 def edit_qprocess_to_use_wine(
-    qprocess: QtCore.QProcess, wine_env: WineEnvironment
+    qprocess: QtCore.QProcess, wine_config: WineConfigSection
 ) -> None:
     """Reconfigures QProcess to use WINE. The program and arguments must be pre-set!"""
     processEnvironment = QtCore.QProcessEnvironment.systemEnvironment()
 
-    if wine_env.builtin_prefix_enabled:
+    if wine_config.builtin_prefix_enabled:
         global wine_management
         if wine_management is None:
             wine_management = WineManagement()
@@ -315,13 +316,13 @@ def edit_qprocess_to_use_wine(
         # Adds dll overrides for DirectX, so DXVK is used instead of wine3d
         processEnvironment.insert("WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10=n")
     else:
-        prefix_path = wine_env.user_prefix_path
-        wine_path = wine_env.user_wine_executable_path
+        prefix_path = wine_config.user_prefix_path
+        wine_path = wine_config.user_wine_executable_path
 
     processEnvironment.insert("WINEPREFIX", str(prefix_path))
 
-    if wine_env.debug_level:
-        processEnvironment.insert("WINEDEBUG", wine_env.debug_level)
+    if wine_config.debug_level:
+        processEnvironment.insert("WINEDEBUG", wine_config.debug_level)
 
     # Move current program to arguments and replace it with WINE.
     qprocess.setArguments([qprocess.program(), *qprocess.arguments()])
