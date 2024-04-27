@@ -369,9 +369,7 @@ class MainWindow(QtWidgets.QMainWindow):
         ):
             return
 
-        # Accounts are read backwards, so they
-        # are in order of most recentally played
-        for account in accounts[::-1]:
+        for account in accounts:
             self.ui.cboAccount.addItem(
                 account.display_name or account.username, userData=account
             )
