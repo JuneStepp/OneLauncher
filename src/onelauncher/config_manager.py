@@ -247,71 +247,6 @@ def read_config_file(
         raise ConfigFileParseError("Error structuring config") from e
 
 
-# class MissingConfigSectionError(Exception):
-#     """`Config` doesn't have the requested `ConfigSection`"""
-
-
-# class MultipleConfigSectionsError(Exception):
-#     """
-#     `Config` has multiple sections matching the type of the requested
-#     `ConfigSection`
-#     """
-
-
-# ConfigSectionTypeVar = TypeVar("ConfigSectionTypeVar", bound=ConfigSection)
-
-
-# def _get_config_section_attr_name(
-#         config_class: type[Config],
-#         config_section_class: type[ConfigSectionTypeVar]) -> str:
-#     """
-#     Return the attribute name of the config section in the config class.
-
-#     Raises:
-#         MissingConfigSectionError: `Config` doesn't have the requested
-#             `ConfigSection`
-#         MultipleConfigSectionsError: `Config` has multiple sections matching
-#             the type of the requested `ConfigSection`
-#     """
-#     matching_sections: list[attrs.Attribute] = [
-#         field for field in attrs.fields(config_class)
-#         if field.type == config_section_class]
-#     if not matching_sections:
-#         raise MissingConfigSectionError(
-#             f"{config_class} doesn't have {config_section_class} config section"
-#         )
-#     elif len(matching_sections) > 1:
-#         raise MultipleConfigSectionsError(
-#             f"{config_class}  has multiple sections matching the type of "
-#             f"{config_section_class} config section")
-#     return matching_sections[0].name
-
-
-# def read_config_file_section(
-#         config_class: type[Config],
-#         config_section_class: type[ConfigSectionTypeVar],
-#         config_file_path: Path) -> ConfigSectionTypeVar:
-#     """
-#     Return a config section with values from a config file.
-#     `get_config_section` should be used for general config access.
-
-#     Raises:
-#         MissingConfigSectionError: `Config` doesn't have the requested
-#             `ConfigSection`
-#         MultipleConfigSectionsError: `Config` has multiple sections matching
-#             the type of the requested `ConfigSection`
-#         ConfigFileParseError: Error parsing config file
-#     """
-#     attr_name = _get_config_section_attr_name(
-#         config_class, config_section_class)
-
-#     config = read_config_file(
-#         config_class=config_class,
-#         config_file_path=config_file_path)
-#     config_section: ConfigSectionTypeVar = getattr(config, attr_name)
-#     return config_section
-
-
 def update_config_file(
     config: Config,
     config_file_path: Path,
@@ -350,29 +285,6 @@ def update_config_file(
     read_config_file.cache_replace(
         config, config_class=type(config), config_file_path=config_file_path
     )
-
-
-# def update_config_file_section(
-#         config_class: type[Config],
-#         config_section: ConfigSection,
-#         config_file_path: Path) -> None:
-#     """
-#     Replace contents of a config file section with `config_section`
-
-#     Raises:
-#         ConfigFileParseError: Error parsing config file
-#         MissingConfigSectionError: Config doesn't have the requested
-#             ConfigSection
-#         MultipleConfigSectionsError: Config has multiple sections matching
-#             the type of the requested ConfigSection
-#     """
-#     config = read_config_file(
-#         config_class=config_class,
-#         config_file_path=config_file_path)
-#     section_attr = _get_config_section_attr_name(
-#         config_class, type(config_section))
-#     updated_config = attrs.evolve(config, **{section_attr: config_section})
-#     update_config_file(updated_config, config_file_path)
 
 
 class ConfigManagerNotSetupError(Exception):
@@ -575,20 +487,6 @@ class ConfigManager:
         """
         return self.get_merged_game_config(self.read_game_config_file(game_uuid))
 
-    # def get_game_config_section(
-    #         self,
-    #         game_uuid: UUID,
-    #         config_section: type[ConfigSectionTypeVar]
-    # ) -> ConfigSectionTypeVar:
-    #     """
-    #     Raises:
-    #         MissingConfigSectionError: `Config` doesn't have the requested
-    #             `ConfigSection`_description_
-    #         MultipleConfigSectionsError: `Config` has multiple sections
-    #             matching the type of the requested `ConfigSection`
-    #     """
-    #     return self.read_game_config_file_section(game_uuid, config_section)
-
     def read_game_config_file(self, game_uuid: UUID) -> GameConfig:
         """Read and parse game config file into `GameConfig` object."""
         if not self.configs_are_verified:
@@ -611,24 +509,6 @@ class ConfigManager:
             config_file_path=self.get_game_config_path(game_uuid),
         )
 
-    # def read_game_config_file_section(
-    #         self,
-    #         game_uuid: UUID,
-    #         config_section: type[ConfigSectionTypeVar]
-    # ) -> ConfigSectionTypeVar:
-    #     """
-    #     Raises:
-    #         MissingConfigSectionError: Config doesn't have the requested
-    #             ConfigSection
-    #         MultipleConfigSectionsError: Config has multiple sections matching
-    #             the type of the requested ConfigSection
-    #         ConfigFileParseError: Error parsing config file
-    #     """
-    #     return read_config_file_section(
-    #         config_class=GameConfig,
-    #         config_section_class=config_section,
-    #         config_file_path=self.get_game_config_path(game_uuid))
-
     def update_game_config_file(self, game_uuid: UUID, config: GameConfig) -> None:
         """
         Replace contents of game config file with `config`.
@@ -650,25 +530,6 @@ class ConfigManager:
         rmtree(self.get_game_config_dir(game_uuid=game_uuid))
         read_config_file.clear_cache()
         self.verified_game_uuids.remove(game_uuid)
-
-    # def update_game_config_file_section(
-    #         self,
-    #         game_uuid: UUID,
-    #         config_section: ConfigSection) -> None:
-    #     """
-    #     Replace contents of game config file section with `config_section`.
-
-    #     Raises:
-    #         ConfigFileParseError: Error parsing config file
-    #         MissingConfigSectionError: Config doesn't have the requested
-    #             ConfigSection
-    #         MultipleConfigSectionsError: Config has multiple sections matching
-    #             the type of the requested ConfigSection
-    #     """
-    #     update_config_file_section(
-    #         config_class=GameConfig,
-    #         config_section=config_section,
-    #         config_file_path=self.get_game_config_path(game_uuid))
 
     def get_game_accounts(self, game_uuid: UUID) -> tuple[GameAccountConfig, ...]:
         if not self.configs_are_verified:

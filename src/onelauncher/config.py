@@ -32,10 +32,6 @@ class Config(ABC):
         """
 
 
-@attrs.frozen
-class ConfigSection: ...
-
-
 # The typing for the `config_field` overloads is based on
 # https://github.com/python-attrs/attrs/blob/main/src/attrs/__init__.pyi
 # field types.

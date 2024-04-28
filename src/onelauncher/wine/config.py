@@ -2,11 +2,11 @@ from pathlib import Path
 
 import attrs
 
-from ..config import ConfigSection, config_field
+from ..config import config_field
 
 
 @attrs.frozen
-class WineConfigSection(ConfigSection):
+class WineConfigSection:
     builtin_prefix_enabled: bool = config_field(
         default=True, help="If WINE should be automatically managed"
     )
