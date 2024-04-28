@@ -173,7 +173,11 @@ def verify_app_settings_config(config_text: str) -> None:
     Raises:
         AppSettingsParseError: config_text doesn't follow the appSettings format.
     """
-    root: Element = ElementTree.fromstring(config_text)
+    try:
+        root: Element = ElementTree.fromstring(config_text)
+    except ElementTree.ParseError as e:
+        raise AppSettingsParseError("Config is not valid XML") from e
+
     # Verify basic document structure
     if root.tag != "configuration":
         raise AppSettingsParseError("Root element is not 'configuration'")
