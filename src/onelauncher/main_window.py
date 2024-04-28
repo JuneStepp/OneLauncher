@@ -474,7 +474,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 last_used_world_name=current_world.name,
             )
 
-        game_services_info = await GameServicesInfo.from_game_config(self.game)
+        game_config = self.config_manager.get_game_config(self.game_uuid)
+        game_services_info = await GameServicesInfo.from_game_config(
+            game_config=game_config
+        )
         if game_services_info is None:
             return
 
@@ -511,7 +514,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.AddLog("Account authenticated")
 
         game_subscriptions = login_response.get_game_subscriptions(
-            self.game.datacenter_game_name
+            datacenter_game_name=self.game_launcher_local_config.datacenter_game_name
         )
         if len(game_subscriptions) > 1:
             subscription = self.get_game_subscription_selection(
@@ -616,12 +619,14 @@ class MainWindow(QtWidgets.QMainWindow):
         login_response: login_account.AccountLoginResponse,
     ) -> None:
         game = StartGame(
-            self.game,
-            self.game_launcher_config,
-            world,
-            login_server,
-            account_number,
-            login_response.session_ticket,
+            game_uuid=self.game_uuid,
+            config_manager=self.config_manager,
+            game_launcher_local_config=self.game_launcher_local_config,
+            game_launcher_config=self.game_launcher_config,
+            world=world,
+            login_server=login_server,
+            account_number=account_number,
+            ticket=login_response.session_ticket,
         )
         await game.start_game()
 

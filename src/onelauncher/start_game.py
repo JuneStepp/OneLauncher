@@ -29,7 +29,7 @@ async def get_launch_args(
     Raises:
         MissingLaunchArgumentError
     """
-    launch_args_template_mapping = {
+    launch_args_template_mapping: dict[str, str | None] = {
         "{SUBSCRIPTION}": account_number,
         "{LOGIN}": login_server,
         "{GLS}": ticket,
@@ -49,12 +49,11 @@ async def get_launch_args(
     launch_args_template = game_launcher_config.client_launch_args_template
     for arg_key, arg_val in launch_args_template_mapping.items():
         if arg_key in launch_args_template:
-            try:
-                launch_args_template = launch_args_template.replace(arg_key, arg_val)
-            except TypeError as e:
+            if arg_val is None:
                 raise MissingLaunchArgumentError(
                     f"{arg_key} launch argument is in template, " "but has None value"
-                ) from e
+                )
+            launch_args_template = launch_args_template.replace(arg_key, arg_val)
 
     if "{" in launch_args_template:
         raise MissingLaunchArgumentError(
@@ -108,7 +107,7 @@ async def get_qprocess(
     process.setProgram(str(client_relative_path))
     process.setArguments(launch_args.split(" "))
     if os.name != "nt":
-        edit_qprocess_to_use_wine(process, get_wine_environment_from_game(game_config))
+        edit_qprocess_to_use_wine(qprocess=process, wine_config=game_config.wine)
 
     process.setWorkingDirectory(str(game_config.game_directory))
 
