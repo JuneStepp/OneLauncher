@@ -36,6 +36,7 @@ import attrs
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from .__about__ import __title__
+from .addons.config import AddonsConfigSection
 from .config_manager import ConfigManager
 from .game_config import GameConfig, GameType
 from .game_launcher_local_config import (
@@ -347,6 +348,7 @@ class SetupWizard(QtWidgets.QWizard):
             is_preview_client=is_gls_url_for_preview_client(
                 launcher_config.gls_datacenter_service
             ),
+            addons=AddonsConfigSection(),
             wine=WineConfigSection(),
         )
 

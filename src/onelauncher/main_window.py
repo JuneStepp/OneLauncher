@@ -303,10 +303,12 @@ class MainWindow(QtWidgets.QMainWindow):
             await self.InitialSetup()
 
     def btnAddonManagerSelected(self) -> None:
-        winAddonManager = AddonManagerWindow(self.game)
+        winAddonManager = AddonManagerWindow(
+            config_manager=self.config_manager,
+            game_uuid=self.game_uuid,
+            launcher_local_config=self.game_launcher_local_config,
+        )
         winAddonManager.Run()
-        save_game(self.game)
-
         self.resetFocus()
 
     async def btnSwitchGameClicked(self) -> None:
