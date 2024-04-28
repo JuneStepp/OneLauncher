@@ -26,7 +26,7 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import UUID
 
 import attrs
@@ -192,7 +192,7 @@ class StartGame(QtWidgets.QDialog):
             game_uuid=self.game_uuid,
             config=attrs.evolve(
                 self.config_manager.read_game_config_file(self.game_uuid),
-                last_played=datetime.now(),
+                last_played=datetime.now(UTC),
             ),
         )
 

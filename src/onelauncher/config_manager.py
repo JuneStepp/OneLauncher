@@ -1,7 +1,7 @@
+import datetime
 from collections import OrderedDict
 from collections.abc import Callable
 from contextlib import suppress
-from datetime import datetime
 from functools import cache, partial, update_wrapper
 from pathlib import Path
 from shutil import rmtree
@@ -93,7 +93,11 @@ def convert_to_toml(
             table = tomlkit.table()
             convert_to_toml(val, table)
             container.add(key, table)
-        elif isinstance(val, list) and len(val) and all(isinstance(item, dict) for item in val):
+        elif (
+            isinstance(val, list)
+            and len(val)
+            and all(isinstance(item, dict) for item in val)
+        ):
             table_array = tomlkit.aot()
             for item in val:
                 table = tomlkit.table()
@@ -456,10 +460,12 @@ class ConfigManager:
             else self.get_game_uuids()
         )
 
-        def sorter(game_uuid: UUID) -> datetime:
+        def sorter(game_uuid: UUID) -> datetime.datetime:
             game_config = self.get_game_config(game_uuid)
             return (
-                datetime.max
+                datetime.datetime(
+                    datetime.MAXYEAR, 12, 31, 23, 59, 59, 999999, tzinfo=datetime.UTC
+                )
                 if game_config.last_played is None
                 else game_config.last_played
             )
