@@ -58,7 +58,9 @@ test_val_types_params: list[tuple[dict[str, Any], str]] = [
     ({"key": True}, "key = true\n"),
     ({"key": False}, "key = false\n"),
     ({"key": ["a", 2, True]}, 'key = ["a", 2, true]\n'),
-    ({"table": {}}, "[table]\n"),
+    ({"empty_table": {}}, "[empty_table]\n"),
+    ({"array": [1, 2]}, "array = [1, 2]\n"),
+    ({"empty_array": []}, "empty_array = []\n"),
     (
         {
             "key": datetime(

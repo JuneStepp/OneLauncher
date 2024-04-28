@@ -93,13 +93,18 @@ def convert_to_toml(
             table = tomlkit.table()
             convert_to_toml(val, table)
             container.add(key, table)
-        elif isinstance(val, list) and all(isinstance(item, dict) for item in val):
+        elif isinstance(val, list) and len(val) and all(isinstance(item, dict) for item in val):
             table_array = tomlkit.aot()
             for item in val:
                 table = tomlkit.table()
                 convert_to_toml(item, table)
                 table_array.append(table)
             container.add(key, table_array)
+        elif isinstance(val, list):
+            array = tomlkit.array()
+            for item in val:
+                array.append(item)
+            container.add(key, array)
         elif val is None:
             container.add(tomlkit.comment(f"{key} = "))
         elif isinstance(val, str):
