@@ -1,7 +1,7 @@
 from functools import partial
 
 import pytest
-from onelauncher.game import ClientType
+from onelauncher.game_config import ClientType
 from onelauncher.network.game_launcher_config import GameLauncherConfig
 
 

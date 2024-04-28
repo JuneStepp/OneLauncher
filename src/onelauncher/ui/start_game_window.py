@@ -27,14 +27,13 @@
 ###########################################################################
 import logging
 from datetime import datetime
+from uuid import UUID
 
 from PySide6 import QtCore, QtWidgets
 
 from ..async_utils import app_cancel_scope
-from ..config_old import platform_dirs
-from ..config_old.games.addons import get_addons_manager_from_game
-from ..config_old.games.game import save_game
-from ..game import Game
+from ..config import platform_dirs
+from ..config_manager import ConfigManager
 from ..network.game_launcher_config import GameLauncherConfig
 from ..network.world import World
 from ..start_game import MissingLaunchArgumentError, get_qprocess
@@ -45,7 +44,8 @@ from .start_game_uic import Ui_startGameDialog
 class StartGame(QtWidgets.QDialog):
     def __init__(
         self,
-        game: Game,
+        game_uuid: UUID,
+        config_manager: ConfigManager,
         game_launcher_config: GameLauncherConfig,
         world: World,
         login_server: str,

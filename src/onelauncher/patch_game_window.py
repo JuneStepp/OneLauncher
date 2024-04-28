@@ -28,12 +28,12 @@
 ###########################################################################
 import logging
 import os
+from typing import cast
+from uuid import UUID
 
 from PySide6 import QtCore, QtWidgets
 
 from .config import platform_dirs
-from .config_old.games.wine import get_wine_environment_from_game
-from .game import Game
 from .patching_progress_monitor import ProgressMonitor
 from .ui.patching_window_uic import Ui_patchingWindow
 from .ui_utilities import QByteArray2str
@@ -44,11 +44,11 @@ from .wine_environment import edit_qprocess_to_use_wine
 class PatchWindow(QtWidgets.QDialog):
     def __init__(
         self,
-        game: Game,
+        game_uuid: UUID,
         urlPatchServer: str,
     ):
         super().__init__(
-            QtCore.QCoreApplication.instance().activeWindow(),
+            qApp.activeWindow(), # type: ignore  # noqa: F821
             QtCore.Qt.WindowType.FramelessWindowHint,
         )
 
