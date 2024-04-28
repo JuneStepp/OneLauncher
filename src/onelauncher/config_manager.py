@@ -16,6 +16,7 @@ from cattrs.preconf.tomlkit import make_converter
 from tomlkit.items import Table
 
 from .__about__ import __title__
+from .addons.startup_script import StartupScript
 from .config import Config, ConfigValWithMetadata, platform_dirs, unstructure_config
 from .game_account_config import GameAccountConfig, GameAccountsConfig
 from .game_config import GameConfig, GameType
@@ -34,6 +35,16 @@ def _structure_onelauncher_locale(
     return available_locales[lang_tag]
 
 
+def _unstructure_startup_script(startup_scirpt: StartupScript) -> str:
+    return str(startup_scirpt.relative_path)
+
+
+def _structure_startup_script(
+    relative_path: Path, conversion_type: type[StartupScript]
+) -> StartupScript:
+    return StartupScript(relative_path=Path(relative_path))
+
+
 def _unstructure_uuid(uuid: UUID) -> str:
     return str(uuid)
 
@@ -47,6 +58,9 @@ def get_converter() -> cattrs.Converter:
     converter = make_converter()
 
     converter.register_structure_hook(OneLauncherLocale, _structure_onelauncher_locale)
+
+    converter.register_unstructure_hook(StartupScript, _unstructure_startup_script)
+    converter.register_structure_hook(StartupScript, _structure_startup_script)
 
     converter.register_unstructure_hook(UUID, _unstructure_uuid)
     converter.register_unstructure_hook(
