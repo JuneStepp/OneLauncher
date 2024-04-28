@@ -82,8 +82,8 @@ class GameLauncherLocalConfig:
             GameLauncherLocalConfigParseError: config_xml doesn't match expected
             .launcherconfig format.
         """
-        config_dict = parse_app_settings_config(config_xml)
         try:
+            config_dict = parse_app_settings_config(config_xml)
             return cls(
                 config_dict["Launcher.DataCenterService.GLS"],
                 config_dict["DataCenter.GameName"],
@@ -101,7 +101,10 @@ class GameLauncherLocalConfig:
     @classmethod
     @cache
     def from_game_dir(
-        cls: type[Self], *, game_directory: CaseInsensitiveAbsolutePath, game_type: GameType
+        cls: type[Self],
+        *,
+        game_directory: CaseInsensitiveAbsolutePath,
+        game_type: GameType,
     ) -> Self | None:
         """
         Simplified shortcut for getting GameLauncherLocalConfig object.
