@@ -28,12 +28,14 @@
 ###########################################################################
 import logging
 import os
-from typing import cast
 from uuid import UUID
 
 from PySide6 import QtCore, QtWidgets
 
 from .config import platform_dirs
+from .config_manager import ConfigManager
+from .game_launcher_local_config import GameLauncherLocalConfig
+from .game_utilities import get_documents_config_dir
 from .patching_progress_monitor import ProgressMonitor
 from .ui.patching_window_uic import Ui_patchingWindow
 from .ui_utilities import QByteArray2str
@@ -45,10 +47,12 @@ class PatchWindow(QtWidgets.QDialog):
     def __init__(
         self,
         game_uuid: UUID,
+        config_manager: ConfigManager,
+        launcher_local_config: GameLauncherLocalConfig,
         urlPatchServer: str,
     ):
         super().__init__(
-            qApp.activeWindow(), # type: ignore  # noqa: F821
+            qApp.activeWindow(),  # type: ignore  # noqa: F821
             QtCore.Qt.WindowType.FramelessWindowHint,
         )
 
@@ -76,14 +80,15 @@ class PatchWindow(QtWidgets.QDialog):
         self.process_status_timer = QtCore.QTimer()
         self.process_status_timer.timeout.connect(self.activelyShowProcessStatus)
 
-        patch_client = game.game_directory / game.patch_client_filename
+        game_config = config_manager.get_game_config(game_uuid=game_uuid)
+        patch_client = game_config.game_directory / game_config.patch_client_filename
 
         # Make sure patch_client exists
         if not patch_client.exists():
             self.ui.txtLog.append(
-                '<font color="Khaki">Patch client %s not found</font>' % (patch_client)
+                f'<font color="Khaki">Patch client {patch_client} not found</font>'
             )
-            logger.error("Patch client %s not found" % (patch_client))
+            logger.error(f"Patch client {patch_client} not found")
             return
 
         self.progressMonitor = ProgressMonitor(self.ui)
@@ -92,12 +97,14 @@ class PatchWindow(QtWidgets.QDialog):
         self.process.readyReadStandardOutput.connect(self.readOutput)
         self.process.readyReadStandardError.connect(self.readErrors)
         self.process.finished.connect(self.processFinished)
-        self.process.setWorkingDirectory(str(game.game_directory))
+        self.process.setWorkingDirectory(str(game_config.game_directory))
 
         if os.name == "nt":
             # Get log file to read patching details from, since
             # rundll32 doesn't provide output on Windows
-            log_folder_name = game.documents_config_dir.name
+            log_folder_name = get_documents_config_dir(
+                launcher_local_config=launcher_local_config
+            ).name
 
             game_logs_folder = (
                 CaseInsensitiveAbsolutePath(os.environ.get("APPDATA")).parent
@@ -116,13 +123,15 @@ class PatchWindow(QtWidgets.QDialog):
             "Patch",
             urlPatchServer,
             "--language",
-            game.locale.game_language_name,
+            game_config.locale.game_language_name
+            if game_config.locale
+            else config_manager.get_program_config().default_locale.game_language_name,
         ]
 
-        if game.high_res_enabled:
+        if game_config.high_res_enabled:
             arguments.append("--highres")
         self.process.setArguments(arguments)
-        edit_qprocess_to_use_wine(self.process, get_wine_environment_from_game(game))
+        edit_qprocess_to_use_wine(qprocess=self.process, wine_config=game_config.wine)
 
         # Arguments have to be gotten from self.process, because
         # they mey have been changed by edit_qprocess_to_use_wine().

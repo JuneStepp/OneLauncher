@@ -286,11 +286,19 @@ class MainWindow(QtWidgets.QMainWindow):
         self.resetFocus()
 
     async def actionPatchSelected(self) -> None:
-        game_services_info = await GameServicesInfo.from_game_config(self.game)
+        game_config = self.config_manager.get_game_config(game_uuid=self.game_uuid)
+        game_services_info = await GameServicesInfo.from_game_config(
+            game_config=game_config
+        )
         if game_services_info is None:
             return
 
-        winPatch = PatchWindow(self.game, game_services_info.patch_server)
+        winPatch = PatchWindow(
+            game_uuid=self.game_uuid,
+            config_manager=self.config_manager,
+            launcher_local_config=self.game_launcher_local_config,
+            urlPatchServer=game_services_info.patch_server,
+        )
         winPatch.Run()
         self.resetFocus()
 
