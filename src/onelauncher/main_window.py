@@ -776,7 +776,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.set_banner_image()
         self.setWindowTitle(
-            f"{__about__.__title__} - {self.config_manager.get_game_config(self.game_uuid).name}"
+            self.config_manager.get_game_config(self.game_uuid).name
         )
 
         # Setup btnSwitchGame for current game

@@ -106,7 +106,7 @@ class SetupWizard(QtWidgets.QWizard):
 
         self.ui = Ui_Wizard()
         self.ui.setupUi(self)  # type: ignore
-        self.setWindowTitle(f"{__title__} Setup Wizard")
+        self.setWindowTitle("Setup Wizard")
 
         self.ui.gamesDiscoveryStatusLabel.hide()
 

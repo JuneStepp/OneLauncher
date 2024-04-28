@@ -62,7 +62,7 @@ class PatchWindow(QtWidgets.QDialog):
         if os.name == "nt":
             self.setWindowTitle("Patching Output")
         else:
-            self.setWindowTitle("Patching - Wine output")
+            self.setWindowTitle("Patching WINE Output")
 
         self.ui.btnSave.setText("Save Log")
         self.ui.btnSave.setEnabled(False)
