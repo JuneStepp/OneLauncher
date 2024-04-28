@@ -20,6 +20,8 @@ from PySide6 import QtCore, QtWidgets
 from typer.core import TyperGroup as TyperGroupBase
 
 from .__about__ import __title__, __version__
+from .addons.config import AddonsConfigSection
+from .addons.startup_script import StartupScript
 from .async_utils import AsyncHelper, app_cancel_scope
 from .config import ConfigFieldMetadata
 from .config_manager import (
@@ -116,6 +118,8 @@ def merge_game_config(
     standard_game_launcher_filename: str | None,
     patch_client_filename: str | None,
     newsfeed: str | None,
+    # Addons Section
+    enabled_startup_scripts: list[Path] | None,
     # WINE section
     builtin_prefix_enabled: bool | None,
     user_wine_executable_path: Path | None,
@@ -129,6 +133,23 @@ def merge_game_config(
     converter = get_converter()
     locale_structured = (
         converter.structure(locale, OneLauncherLocale) if locale else None
+    )
+
+    startup_scripts_structured = (
+        tuple(
+            converter.structure(script, StartupScript)
+            for script in enabled_startup_scripts
+        )
+        if enabled_startup_scripts
+        else None
+    )
+    addons_section = attrs.evolve(
+        game_config.addons,
+        enabled_startup_scripts=(
+            startup_scripts_structured
+            if startup_scripts_structured is not None
+            else game_config.addons.enabled_startup_scripts
+        ),
     )
 
     wine_section = attrs.evolve(
@@ -183,6 +204,7 @@ def merge_game_config(
             else game_config.patch_client_filename
         ),
         newsfeed=(newsfeed if newsfeed is not None else game_config.newsfeed),
+        addons=addons_section,
         wine=wine_section,
     )
 
@@ -321,18 +343,18 @@ def _complete_username_arg(incomplete: str, context: typer.Context) -> Iterator[
 ProgramOption = partial(
     typer.Option, show_default=False, rich_help_panel="Program Options"
 )
-
 GameOption = partial(typer.Option, show_default=False, rich_help_panel="Game Options")
-
+AccountOption = partial(
+    typer.Option, show_default=False, rich_help_panel="Game Account Options"
+)
+AddonsOption = partial(
+    typer.Option, show_default=False, rich_help_panel="Game Addons Options"
+)
 WineOption = partial(
     typer.Option,
     show_default=False,
     rich_help_panel="Game WINE Options",
     hidden=os.name == "nt",
-)
-
-AccountOption = partial(
-    typer.Option, show_default=False, rich_help_panel="Game Account Options"
 )
 
 
@@ -344,8 +366,9 @@ def get_help(field_name: str, /, attrs_class: type[attrs.AttrsInstance]) -> str 
 
 prog_help = partial(get_help, attrs_class=ProgramConfig)
 game_help = partial(get_help, attrs_class=GameConfig)
-wine_help = partial(get_help, attrs_class=WineConfigSection)
 account_help = partial(get_help, attrs_class=GameAccountConfig)
+addons_help = partial(get_help, attrs_class=AddonsConfigSection)
+wine_help = partial(get_help, attrs_class=WineConfigSection)
 
 
 @app.callback(invoke_without_command=True)
@@ -413,6 +436,30 @@ def main(
         Optional[str], GameOption(help=game_help("patch_client_filename"))
     ] = None,
     newsfeed: Annotated[Optional[str], GameOption(help=game_help("newsfeed"))] = None,
+    # Account options
+    username: Annotated[
+        Optional[str],
+        AccountOption(
+            help=account_help("username"), autocompletion=_complete_username_arg
+        ),
+    ] = None,
+    display_name: Annotated[
+        Optional[str], AccountOption(help=account_help("display_name"))
+    ] = None,
+    last_used_world_name: Annotated[
+        Optional[str], AccountOption(help=account_help("last_used_world_name"))
+    ] = None,
+    # Addons options
+    startup_script: Annotated[
+        Optional[list[Path]],
+        AddonsOption(
+            help=addons_help("enabled_startup_scripts"),
+            file_okay=True,
+            dir_okay=False,
+            resolve_path=False,
+            exists=False,
+        ),
+    ] = None,
     # Game WINE options
     builtin_prefix_enabled: Annotated[
         Optional[bool], WineOption(help=wine_help("builtin_prefix_enabled"))
@@ -440,19 +487,6 @@ def main(
     wine_debug_level: Annotated[
         Optional[str], WineOption(help=wine_help("debug_level"))
     ] = None,
-    # Account options
-    username: Annotated[
-        Optional[str],
-        AccountOption(
-            help=account_help("username"), autocompletion=_complete_username_arg
-        ),
-    ] = None,
-    display_name: Annotated[
-        Optional[str], AccountOption(help=account_help("display_name"))
-    ] = None,
-    last_used_world_name: Annotated[
-        Optional[str], AccountOption(help=account_help("last_used_world_name"))
-    ] = None,
 ) -> None:
     get_merged_program_config = partial(
         merge_program_config,
@@ -471,6 +505,9 @@ def main(
         standard_game_launcher_filename=standard_game_launcher_filename,
         patch_client_filename=patch_client_filename,
         newsfeed=newsfeed,
+        # Addons Section
+        enabled_startup_scripts=startup_script,
+        # WINE Section
         builtin_prefix_enabled=builtin_prefix_enabled,
         user_wine_executable_path=user_wine_executable_path,
         user_prefix_path=user_prefix_path,

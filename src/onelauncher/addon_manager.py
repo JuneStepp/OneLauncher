@@ -1841,7 +1841,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
                         # If startup script is enabled
                         relative_script_paths = [
                             script.relative_path
-                            for script in self.config_manager.get_game_config(
+                            for script in self.config_manager.read_game_config_file(
                                 self.game_uuid
                             ).addons.enabled_startup_scripts
                         ]
