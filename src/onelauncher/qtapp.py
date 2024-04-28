@@ -32,8 +32,7 @@ from pathlib import Path
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from .__about__ import __title__, __version__
-from .config_old.program_config import program_config
-from .resources import get_resource
+from .resources import OneLauncherLocale, data_dir
 
 
 def setup_qtapplication() -> QtWidgets.QApplication:
@@ -49,10 +48,7 @@ def setup_qtapplication() -> QtWidgets.QApplication:
     application.setWindowIcon(
         QtGui.QIcon(
             str(
-                get_resource(
-                    Path("images/OneLauncherIcon.png"),
-                    program_config.get_ui_locale(None),
-                )
+                data_dir / Path("images/OneLauncherIcon.png"),
             )
         )
     )

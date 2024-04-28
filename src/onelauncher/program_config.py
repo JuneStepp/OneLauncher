@@ -1,17 +1,33 @@
+from enum import Enum
+
 import attrs
 from packaging.version import Version
 from typing_extensions import override
 
 from .__about__ import __title__
 from .config import Config, config_field
-from .game_utilities import GamesSortingMode
-from .resources import OneLauncherLocale, available_locales, system_locale
+from .resources import (
+    OneLauncherLocale,
+    get_default_locale,
+)
+
+
+class GamesSortingMode(Enum):
+    """
+    - priority: The manual order the user set in the setup wizard.
+    - alphabetical: Alphabetical order.
+    - last_used: Order of the most recently played games.
+    """
+
+    PRIORITY = "priority"
+    LAST_USED = "last_used"
+    ALPHABETICAL = "alphabetical"
 
 
 @attrs.frozen
 class ProgramConfig(Config):
     default_locale: OneLauncherLocale = config_field(
-        default=system_locale or available_locales["en-US"],
+        default=get_default_locale(),
         help="The default language for games and UI.",
     )
     always_use_default_locale_for_ui: bool = config_field(

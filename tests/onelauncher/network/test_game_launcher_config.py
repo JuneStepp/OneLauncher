@@ -1,8 +1,7 @@
-from collections.abc import Iterator
 from functools import partial
 
 import pytest
-from onelauncher.game import ClientType
+from onelauncher.game_config import ClientType
 from onelauncher.network.game_launcher_config import GameLauncherConfig
 
 
@@ -28,9 +27,9 @@ def get_mock_game_launcher_config_partial() -> partial[GameLauncherConfig]:
     )
 
 
-@pytest.fixture
-def mock_game_launcher_config() -> Iterator[GameLauncherConfig]:
-    yield get_mock_game_launcher_config_partial()()
+@pytest.fixture()
+def mock_game_launcher_config() -> GameLauncherConfig:
+    return get_mock_game_launcher_config_partial()()
 
 
 class TestGameLauncherConfig:
@@ -44,13 +43,13 @@ class TestGameLauncherConfig:
         ) in [None, str]
 
     @pytest.mark.parametrize(
-        [
+        (
             "client_win64_filename",
             "client_win32_filename",
             "client_win32_legacy_filename",
             "input_client_type",
             "expected_output_client_type",
-        ],
+        ),
         [
             (
                 None,

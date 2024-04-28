@@ -27,14 +27,17 @@
 ###########################################################################
 import logging
 from datetime import datetime
+from uuid import UUID
 
+import attrs
 from PySide6 import QtCore, QtWidgets
 
-from ..cli import app_cancel_scope
-from ..config_old import platform_dirs
-from ..config_old.games.addons import get_addons_manager_from_game
-from ..config_old.games.game import save_game
-from ..game import Game
+from ..addons.startup_script import run_startup_script
+from ..async_utils import app_cancel_scope
+from ..config import platform_dirs
+from ..config_manager import ConfigManager
+from ..game_launcher_local_config import GameLauncherLocalConfig
+from ..game_utilities import get_documents_config_dir
 from ..network.game_launcher_config import GameLauncherConfig
 from ..network.world import World
 from ..start_game import MissingLaunchArgumentError, get_qprocess
@@ -45,14 +48,18 @@ from .start_game_uic import Ui_startGameDialog
 class StartGame(QtWidgets.QDialog):
     def __init__(
         self,
-        game: Game,
+        game_uuid: UUID,
+        config_manager: ConfigManager,
+        game_launcher_local_config: GameLauncherLocalConfig,
         game_launcher_config: GameLauncherConfig,
         world: World,
         login_server: str,
         account_number: str,
         ticket: str,
     ) -> None:
-        self.game = game
+        self.game_uuid = game_uuid
+        self.config_manager = config_manager
+        self.game_launcher_local_config = game_launcher_local_config
         self.game_launcher_config = game_launcher_config
         self.world = world
         self.login_server = login_server
@@ -60,7 +67,7 @@ class StartGame(QtWidgets.QDialog):
         self.ticket = ticket
 
         super().__init__(
-            QtCore.QCoreApplication.instance().activeWindow(),
+            qApp.activeWindow(),  # type: ignore  # noqa: F821
             QtCore.Qt.WindowType.FramelessWindowHint,
         )
 
@@ -85,12 +92,13 @@ class StartGame(QtWidgets.QDialog):
         """Return setup qprocess with connected signals"""
         try:
             process = await get_qprocess(
-                self.game_launcher_config,
-                self.game,
-                self.world,
-                self.login_server,
-                self.account_number,
-                self.ticket,
+                game_launcher_config=self.game_launcher_config,
+                game_config=self.config_manager.get_game_config(self.game_uuid),
+                default_locale=self.config_manager.get_program_config().default_locale,
+                world=self.world,
+                login_server=self.login_server,
+                account_number=self.account_number,
+                ticket=self.ticket,
             )
         except MissingLaunchArgumentError:
             # TODO: Easy bug report
@@ -157,13 +165,19 @@ class StartGame(QtWidgets.QDialog):
 
     def run_startup_scripts(self) -> None:
         """Runs Python scripts from add-ons with one that is approved by user"""
-        addons_manager = get_addons_manager_from_game(self.game)
-        for script in addons_manager.enabled_startup_scripts:
+        game_config = self.config_manager.get_game_config(self.game_uuid)
+        for script in game_config.addons.enabled_startup_scripts:
             try:
                 self.ui.txtLog.append(
                     f"Running '{script.relative_path}' startup script..."
                 )
-                script.run()
+                run_startup_script(
+                    script=script,
+                    game_directory=game_config.game_directory,
+                    documents_config_dir=get_documents_config_dir(
+                        launcher_local_config=self.game_launcher_local_config
+                    ),
+                )
             except FileNotFoundError:
                 self.ui.txtLog.append(
                     f"'{script.relative_path}' startup script does not exist"
@@ -174,8 +188,13 @@ class StartGame(QtWidgets.QDialog):
                 )
 
     async def start_game(self) -> None:
-        self.game.last_played = datetime.now()
-        save_game(self.game)
+        self.config_manager.update_game_config_file(
+            game_uuid=self.game_uuid,
+            config=attrs.evolve(
+                self.config_manager.read_game_config_file(self.game_uuid),
+                last_played=datetime.now(),
+            ),
+        )
 
         self.process = await self.get_qprocess()
         if self.process is None:

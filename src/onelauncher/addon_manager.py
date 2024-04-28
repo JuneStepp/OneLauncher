@@ -35,6 +35,7 @@ from shutil import copy, copytree, move, rmtree
 from tempfile import TemporaryDirectory
 from time import localtime, strftime
 from typing import Final, Literal, NamedTuple, overload
+from uuid import UUID
 from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minicompat import NodeList
 from xml.dom.minidom import Document, Element
@@ -46,9 +47,11 @@ from vkbeautify import xml as prettify_xml
 
 from .__about__ import __title__
 from .addons.startup_script import StartupScript
-from .config_old import platform_dirs
-from .config_old.games.addons import get_addons_manager_from_game, save_addons_manager
-from .game import Game, GameType
+from .config import platform_dirs
+from .config_manager import ConfigManager
+from .game_config import GameType
+from .game_launcher_local_config import GameLauncherLocalConfig
+from .game_utilities import get_documents_config_dir
 from .ui.addon_manager_uic import Ui_winAddonManager
 from .ui_resources import icon_font
 from .utilities import CaseInsensitiveAbsolutePath
@@ -132,19 +135,24 @@ class AddonManagerWindow(QtWidgets.QDialog):
     MUSIC_URL = "https://api.lotrointerface.com/fav/OneLauncher-Music.xml"
     SKINS_DDO_URL = "https://api.lotrointerface.com/fav/OneLauncher-Themes-DDO.xml"
 
-    def __init__(self, game: Game):
+    def __init__(
+        self,
+        config_manager: ConfigManager,
+        game_uuid: UUID,
+        launcher_local_config: GameLauncherLocalConfig,
+    ):
         super().__init__(
             QtCore.QCoreApplication.instance().activeWindow(),  # type: ignore
             QtCore.Qt.WindowType.FramelessWindowHint,
         )
-
-        self.game = game
-        self.addons_manager = get_addons_manager_from_game(self.game)
+        self.config_manager = config_manager
+        self.game_uuid: UUID = game_uuid
         self.ui = Ui_winAddonManager()
-        self.ui.setupUi(self)
+        self.ui.setupUi(self)  # type: ignore[no-untyped-call]
 
-        if self.game.game_type == GameType.DDO:
-            # Removes plugin and music tabs when using DDO.
+        game_config = self.config_manager.get_game_config(self.game_uuid)
+        if game_config.game_type == GameType.DDO:
+            # Remove plugin and music tabs when using DDO.
             # This has to be done before the tab switching signals are
             # connected.
             self.ui.tabWidgetRemote.removeTab(0)
@@ -152,7 +160,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             self.ui.tabWidgetInstalled.removeTab(0)
             self.ui.tabWidgetInstalled.removeTab(1)
 
-        # Creates backround color for addons that are installed already in
+        # Create backround color for addons that are installed already in
         # remote tables
         self.installed_addons_color = QtGui.QColor()
         self.installed_addons_color.setRgb(63, 73, 83)
@@ -241,8 +249,10 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
         self.openDB()
 
-        self.data_folder = self.game.documents_config_dir
-        if self.game.game_type == GameType.DDO:
+        self.data_folder = get_documents_config_dir(
+            launcher_local_config=launcher_local_config
+        )
+        if game_config.game_type == GameType.DDO:
             self.data_folder_skins = self.data_folder / "ui/skins"
 
             self.ui.tableSkinsInstalled.setObjectName("tableSkinsDDOInstalled")
@@ -607,7 +617,10 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
     def actionAddonImportSelected(self) -> None:
         # DDO doesn't support playing music from .abc files
-        if self.game.game_type == GameType.DDO:
+        if (
+            self.config_manager.get_game_config(self.game_uuid).game_type
+            == GameType.DDO
+        ):
             addon_formats = "*.zip *.rar"
         else:
             addon_formats = "*.zip *.rar *.abc"
@@ -639,7 +652,10 @@ class AddonManagerWindow(QtWidgets.QDialog):
             self.installZipAddon(addon_path, interface_id)
 
     def installAbcFile(self, addon_path: Path) -> None:
-        if self.game.game_type == GameType.DDO:
+        if (
+            self.config_manager.get_game_config(self.game_uuid).game_type
+            == GameType.DDO
+        ):
             self.addLog("DDO does not support .abc/music files")
             return
 
@@ -682,7 +698,10 @@ class AddonManagerWindow(QtWidgets.QDialog):
         self, tmp_dir: CaseInsensitiveAbsolutePath, interface_id: str
     ) -> None:
         """Install plugin from temporary directory"""
-        if self.game.game_type == GameType.DDO:
+        if (
+            self.config_manager.get_game_config(self.game_uuid).game_type
+            == GameType.DDO
+        ):
             self.addLog("DDO does not support plugins")
             return
 
@@ -807,7 +826,10 @@ class AddonManagerWindow(QtWidgets.QDialog):
     def install_music(
         self, tmp_dir: CaseInsensitiveAbsolutePath, interface_id: str, addon_name: str
     ) -> None | Literal[False]:
-        if self.game.game_type == GameType.DDO:
+        if (
+            self.config_manager.get_game_config(self.game_uuid).game_type
+            == GameType.DDO
+        ):
             self.addLog("DDO does not support .abc/music files")
             return None
 
@@ -1129,7 +1151,10 @@ class AddonManagerWindow(QtWidgets.QDialog):
         return download_url.replace("/downloads/download", "/downloads/info")
 
     def txtSearchBarTextChanged(self, text: str) -> None:
-        if self.game.game_type == GameType.LOTRO:
+        if (
+            self.config_manager.get_game_config(self.game_uuid).game_type
+            == GameType.LOTRO
+        ):
             # If in Installed tab
             if self.ui.tabWidget.currentIndex() == 0:
                 index_installed = self.ui.tabWidgetInstalled.currentIndex()
@@ -1155,13 +1180,11 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 # If in Music tab
                 elif index_remote == 2:
                     self.searchDB(self.ui.tableMusic, text)
-        else:
-            # If in Installed tab
-            if self.ui.tabWidget.currentIndex() == 0:
-                self.searchDB(self.ui.tableSkinsInstalled, text)
-            # If in Find More tab
-            elif self.ui.tabWidget.currentIndex() == 1:
-                self.searchDB(self.ui.tableSkins, text)
+        elif self.ui.tabWidget.currentIndex() == 0:
+            self.searchDB(self.ui.tableSkinsInstalled, text)
+        # If in Find More tab
+        elif self.ui.tabWidget.currentIndex() == 1:
+            self.searchDB(self.ui.tableSkins, text)
 
     def searchDB(self, table: QtWidgets.QTableWidget, text: str) -> None:
         table.clearContents()
@@ -1169,7 +1192,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
         if text:
             for word in text.split():
-                search_word = "%" + word + "%"
+                search_word = f"%{word}%"
 
                 for row in self.c.execute(
                     # nosec
@@ -1356,8 +1379,9 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
     def getCurrentTable(self) -> QtWidgets.QTableWidget:
         """Return the table that the user currently sees based on what tabs they are in"""
+        game_config = self.config_manager.get_game_config(self.game_uuid)
         if self.ui.tabWidget.currentIndex() == 0:
-            if self.game.game_type == GameType.LOTRO:
+            if game_config.game_type == GameType.LOTRO:
                 index_installed = self.ui.tabWidgetInstalled.currentIndex()
 
                 if index_installed == 0:
@@ -1369,7 +1393,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             else:
                 table = self.ui.tableSkinsInstalled
         elif self.ui.tabWidget.currentIndex() == 1:
-            if self.game.game_type == GameType.LOTRO:
+            if game_config.game_type == GameType.LOTRO:
                 table = self.ui.tableSkins
             else:
                 index_remote = self.ui.tabWidgetRemote.currentIndex()
@@ -1643,7 +1667,10 @@ class AddonManagerWindow(QtWidgets.QDialog):
         self.searchSearchBarContents()
 
     def loadRemoteAddons(self) -> bool:
-        if self.game.game_type == GameType.LOTRO:
+        if (
+            self.config_manager.get_game_config(self.game_uuid).game_type
+            == GameType.LOTRO
+        ):
             # Only keep loading remote add-ons if the first load doesn't run
             # into issues
             if self.getRemoteAddons(self.PLUGINS_URL, self.ui.tablePlugins):
@@ -1766,7 +1793,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
     ) -> QtWidgets.QMenu | None:
         menu = QtWidgets.QMenu()
 
-        qapp: QtWidgets.QApplication = QtWidgets.QApplication.instance()
+        qapp: QtWidgets.QApplication = qApp  # type: ignore[name-defined]  # noqa: F821
         selected_widget = qapp.widgetAt(global_cursor_position)
 
         parent_widget = selected_widget.parent()
@@ -1814,7 +1841,9 @@ class AddonManagerWindow(QtWidgets.QDialog):
                         # If startup script is enabled
                         relative_script_paths = [
                             script.relative_path
-                            for script in self.addons_manager.enabled_startup_scripts
+                            for script in self.config_manager.read_game_config_file(
+                                self.game_uuid
+                            ).addons.enabled_startup_scripts
                         ]
                         if relative_script_path in relative_script_paths:
                             menu.addAction(self.ui.actionDisableStartupScript)
@@ -1848,9 +1877,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         else:
             return
 
-        url = self.getAddonUrlFromInterfaceID(interface_ID, table)
-
-        if url:
+        if url := self.getAddonUrlFromInterfaceID(interface_ID, table):
             QtGui.QDesktopServices.openUrl(url)
 
     def getAddonUrlFromInterfaceID(
@@ -1863,6 +1890,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         # URL is only in remote version of table
         table = self.getRemoteOrLocalTableFromOne(table, remote=True)
 
+        addon_url: tuple[str]
         for addon_url in self.c.execute(
             "SELECT File FROM {table} WHERE InterfaceID = ?".format(  # nosec
                 table=table.objectName()
@@ -1884,6 +1912,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         # has the download url in the remote tables.
         table = self.getRemoteOrLocalTableFromOne(table, remote=False)
 
+        file: tuple[str]
         for file in self.c.execute(
             "SELECT File FROM {table} WHERE InterfaceID = ?".format(  # nosec
                 table=table.objectName()
@@ -2024,7 +2053,11 @@ class AddonManagerWindow(QtWidgets.QDialog):
         Makes action for opening addon folder associated with
         current tab the only addon folder opening action visible.
         """
-        if self.game.game_type == GameType.DDO or index == 1:
+        if (
+            self.config_manager.get_game_config(self.game_uuid).game_type
+            == GameType.DDO
+            or index == 1
+        ):
             self.ui.actionShowPluginsFolderInFileManager.setVisible(False)
             self.ui.actionShowSkinsFolderInFileManager.setVisible(True)
             self.ui.actionShowMusicFolderInFileManager.setVisible(False)
@@ -2051,11 +2084,12 @@ class AddonManagerWindow(QtWidgets.QDialog):
         if not self.loadRemoteDataIfNotDone():
             return
 
-        if self.game.game_type != GameType.DDO:
+        game_config = self.config_manager.get_game_config(self.game_uuid)
+        if game_config.game_type != GameType.DDO:
             self.loadSkinsIfNotDone()
             self.loadMusicIfNotDone()
 
-        if self.game.game_type == GameType.LOTRO:
+        if game_config.game_type == GameType.LOTRO:
             tables = self.TABLE_LIST[:3]
         else:
             tables = ("tableSkinsInstalled",)
@@ -2127,7 +2161,10 @@ class AddonManagerWindow(QtWidgets.QDialog):
         if not self.loadRemoteDataIfNotDone():
             return None
 
-        if self.game.game_type == GameType.LOTRO:
+        if (
+            self.config_manager.get_game_config(self.game_uuid).game_type
+            == GameType.LOTRO
+        ):
             tables = self.TABLE_LIST[:3]
         else:
             tables = ("tableSkinsInstalled",)
@@ -2223,10 +2260,18 @@ class AddonManagerWindow(QtWidgets.QDialog):
         )
         full_script_path = self.data_folder / script
         if full_script_path.exists():
-            self.addons_manager.enabled_startup_scripts.append(
-                StartupScript(script, self.game)
+            game_config = self.config_manager.read_game_config_file(self.game_uuid)
+            updated_addons_section = attrs.evolve(
+                game_config.addons,
+                enabled_startup_scripts=(
+                    *game_config.addons.enabled_startup_scripts,
+                    StartupScript(script),
+                ),
             )
-            save_addons_manager(self.addons_manager)
+            self.config_manager.update_game_config_file(
+                self.game_uuid,
+                attrs.evolve(game_config, addons=updated_addons_section),
+            )
         else:
             self.addLog(
                 f"'{full_script_path}' startup script does not exist, so it could not be enabled."
@@ -2238,16 +2283,26 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 self.context_menu_selected_table,
                 self.context_menu_selected_interface_ID,
             )
-            for startup_script in self.addons_manager.enabled_startup_scripts:
-                if startup_script.relative_path == relative_script_path:
-                    self.addons_manager.enabled_startup_scripts.remove(startup_script)
-            save_addons_manager(self.addons_manager)
+            game_config = self.config_manager.read_game_config_file(self.game_uuid)
+            updated_addons_section = attrs.evolve(
+                game_config.addons,
+                enabled_startup_scripts=tuple(
+                    script
+                    for script in game_config.addons.enabled_startup_scripts
+                    if script.relative_path != relative_script_path
+                ),
+            )
+            self.config_manager.update_game_config_file(
+                game_uuid=self.game_uuid,
+                config=attrs.evolve(game_config, addons=updated_addons_section),
+            )
 
     def getRelativeStartupScriptFromInterfaceID(
         self, table: QtWidgets.QTableWidget, interface_ID: str
     ) -> Path:
         """Returns path of startup script relative to game documents settings directory"""
         table_local = self.getRemoteOrLocalTableFromOne(table, remote=False)
+        entry: tuple[str]
         for entry in self.c.execute(
             f"SELECT StartupScript FROM {table_local.objectName()} WHERE InterfaceID = ?",  # noqa: S608
             (interface_ID,),
@@ -2293,10 +2348,18 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 " box below to make sure it's safe.",
                 script_contents,
             ):
-                self.addons_manager.enabled_startup_scripts.append(
-                    StartupScript(script, self.game)
+                game_config = self.config_manager.read_game_config_file(self.game_uuid)
+                updated_addons_section = attrs.evolve(
+                    game_config.addons,
+                    enabled_startup_scripts=(
+                        *game_config.addons.enabled_startup_scripts,
+                        StartupScript(script),
+                    ),
                 )
-                save_addons_manager(self.addons_manager)
+                self.config_manager.update_game_config_file(
+                    self.game_uuid,
+                    attrs.evolve(game_config, addons=updated_addons_section),
+                )
 
     def uninstallStartupScript(self, script: str, addon_data_folder: Path) -> None:
         if script:
@@ -2306,14 +2369,19 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 self.data_folder
             )
 
-            for startup_script in self.addons_manager.enabled_startup_scripts:
-                if (
-                    startup_script.relative_path
-                    == relative_to_game_documents_dir_script
-                ):
-                    self.addons_manager.enabled_startup_scripts.remove(startup_script)
-                    save_addons_manager(self.addons_manager)
-
+            game_config = self.config_manager.read_game_config_file(self.game_uuid)
+            updated_addons_section = attrs.evolve(
+                game_config.addons,
+                enabled_startup_scripts=tuple(
+                    script
+                    for script in game_config.addons.enabled_startup_scripts
+                    if script.relative_path != relative_to_game_documents_dir_script
+                ),
+            )
+            self.config_manager.update_game_config_file(
+                game_uuid=self.game_uuid,
+                config=attrs.evolve(game_config, addons=updated_addons_section),
+            )
             script_path.unlink(missing_ok=True)
 
 

@@ -3,11 +3,11 @@ from packaging.version import Version
 from typing_extensions import override
 
 from .__about__ import __title__
-from .config import Config, ConfigSection, config_field
+from .config import Config, config_field
 
 
 @attrs.frozen
-class GameAccountConfig(ConfigSection):
+class GameAccountConfig:
     username: str = config_field(help="Login username")
     display_name: str | None = config_field(
         default=None, help="Name shown instead of account name"

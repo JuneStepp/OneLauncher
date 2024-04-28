@@ -6,6 +6,7 @@ from packaging.version import Version
 from typing_extensions import override
 
 from .__about__ import __title__
+from .addons.config import AddonsConfigSection
 from .config import Config, config_field
 from .resources import OneLauncherLocale
 from .utilities import CaseInsensitiveAbsolutePath
@@ -34,7 +35,9 @@ class GameConfig(Config):
     game_directory: CaseInsensitiveAbsolutePath = config_field(
         help="The game's install directory"
     )
-    locale: OneLauncherLocale = config_field(help="Language used for game")
+    locale: OneLauncherLocale | None = config_field(
+        default=None, help="Language used for game"
+    )
     client_type: ClientType = config_field(
         default=ClientType.WIN64, help="Which version of the game client to use"
     )
@@ -56,6 +59,9 @@ class GameConfig(Config):
         default=None, help="URL of the feed (RSS, ATOM, ect) to show in the launcher"
     )
     last_played: datetime | None = None
+    addons: AddonsConfigSection = config_field(
+        help="Configuration related to game addons"
+    )
     wine: WineConfigSection = config_field(help="WINE is not used on Windows")
 
     @name.default

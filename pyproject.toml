@@ -30,7 +30,6 @@ dbus-python = { version = "^1.3.2", markers = "sys_platform == 'linux'", optiona
 
 defusedxml = "^0.7.1"
 vkbeautify = "^0.3.0"
-rtoml = "^0.9.0"
 platformdirs = "^4.2.0"
 xmlschema = "^3.2.0"
 feedparser = "^6.0.10"
@@ -51,10 +50,11 @@ pytest = "^8.1.1"
 mypy = "^1.9.0"
 types-cachetools = "^5.3.0"
 trio-typing = { extras = ["mypy"], version = "^0.10.0" }
-ruff = "^0.3.7"
+ruff = "^0.4.2"
+pytest-randomly = "^3.15.0"
 
 [tool.poetry.scripts]
-onelauncher = "onelauncher.new_cli:app"
+onelauncher = "onelauncher.cli:app"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -86,6 +86,7 @@ select = [
     "FIX",   # flake8-fixme
     "ERA",   # eradicate
     "PL",    # Pylint
+    "PT",    # flake8-pytest-style
 ]
 ignore = [
     "ANN101",  # missing-type-self
@@ -106,9 +107,9 @@ docstring-code-format = true
 addopts = ["--import-mode=importlib"]
 
 [tool.mypy]
-plugins = "trio_typing.plugin"
+plugins = ["trio_typing.plugin", "onelauncher.mypy_plugin"]
 strict = true
-exclude = ["_uic\\.py"]
+exclude = ["_uic\\.py", "\\.mypy_test_data\\.py"]
 
 
 [[tool.mypy.overrides]]

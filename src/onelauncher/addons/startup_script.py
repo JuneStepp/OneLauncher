@@ -1,44 +1,52 @@
 from pathlib import Path
 
-from ..game import Game
+import attrs
+
 from ..utilities import CaseInsensitiveAbsolutePath
 
 
+@attrs.frozen
 class StartupScript:
-    def __init__(self, relative_path: Path, game: Game) -> None:
-        """Python script that runs whenever a game is started
+    """Python script that runs whenever a game is started
 
-        Args:
-            relative_path (Path): Path from the game documents config dir to
-                                  the startup script.
-            game (Game): The `Game` object associated with this startup script.
-        """
-        self.relative_path = relative_path
-        self.game = game
+    Args:
+        relative_path (Path): Path from the game documents config dir to
+                              the startup script.
+    """
 
-    def run(self) -> None:
-        """
-        Run Python startup script file.
-        Script is given access to globals with game information
+    relative_path: Path
 
-        Raises:
-            FileNotFoundError: Startup script does not exist.
-            SyntaxError: Startup script has a syntax error.
-        """
-        with self.absolute_path.open() as file:
-            code = file.read()
-
-        exec(
-            code, {
-                "__file__": str(self.absolute_path),
-                "__game_dir__": str(self.game.game_directory),
-                "__game_config_dir__": str(
-                    self.game.documents_config_dir)
-            }
-        )
-
-    @property
-    def absolute_path(self) -> CaseInsensitiveAbsolutePath:
+    def get_absolute_path(
+        self, documents_config_dir: CaseInsensitiveAbsolutePath
+    ) -> CaseInsensitiveAbsolutePath:
         return CaseInsensitiveAbsolutePath(
-            self.relative_path.relative_to(self.game.documents_config_dir)
+            self.relative_path.relative_to(documents_config_dir)
         )
+
+
+def run_startup_script(
+    script: StartupScript,
+    game_directory: CaseInsensitiveAbsolutePath,
+    documents_config_dir: CaseInsensitiveAbsolutePath,
+) -> None:
+    """
+    Run Python startup script file.
+    Script is given access to globals with game information
+
+    Raises:
+        FileNotFoundError: Startup script does not exist.
+        SyntaxError: Startup script has a syntax error.
+    """
+    with script.get_absolute_path(
+        documents_config_dir=documents_config_dir
+    ).open() as file:
+        code = file.read()
+
+    exec(  # noqa: S102
+        code,
+        {
+            "__file__": str(script.get_absolute_path),
+            "__game_dir__": str(game_directory),
+            "__game_config_dir__": str(documents_config_dir),
+        },
+    )

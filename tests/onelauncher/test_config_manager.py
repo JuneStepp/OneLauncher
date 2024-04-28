@@ -58,7 +58,9 @@ test_val_types_params: list[tuple[dict[str, Any], str]] = [
     ({"key": True}, "key = true\n"),
     ({"key": False}, "key = false\n"),
     ({"key": ["a", 2, True]}, 'key = ["a", 2, true]\n'),
-    ({"table": {}}, "[table]\n"),
+    ({"empty_table": {}}, "[empty_table]\n"),
+    ({"array": [1, 2]}, "array = [1, 2]\n"),
+    ({"empty_array": []}, "empty_array = []\n"),
     (
         {
             "key": datetime(
@@ -102,7 +104,7 @@ test_val_types_params: list[tuple[dict[str, Any], str]] = [
 
 
 @pytest.mark.parametrize(
-    ["data_dict", "final_toml_output"],
+    ("data_dict", "final_toml_output"),
     test_key_val_params + test_table_params + test_val_types_params,
 )
 def test_convert_to_toml(

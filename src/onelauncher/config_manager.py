@@ -1,26 +1,30 @@
 from collections import OrderedDict
 from collections.abc import Callable
+from contextlib import suppress
+from datetime import datetime
 from functools import cache, partial, update_wrapper
 from pathlib import Path
+from shutil import rmtree
 from typing import Any, Final, Generic, ParamSpec, TypeVar
 from uuid import UUID
 
 import attrs
 import cattrs
+import keyring
 import tomlkit
 from cattrs.preconf.tomlkit import make_converter
 from tomlkit.items import Table
 
 from .__about__ import __title__
-from .config import Config, ConfigValWithMetadata, unstructure_config
-from .config_old import platform_dirs
+from .addons.startup_script import StartupScript
+from .config import Config, ConfigValWithMetadata, platform_dirs, unstructure_config
 from .game_account_config import GameAccountConfig, GameAccountsConfig
-from .game_config import GameConfig
-from .program_config import ProgramConfig
+from .game_config import GameConfig, GameType
+from .program_config import GamesSortingMode, ProgramConfig
 from .resources import OneLauncherLocale, available_locales
 
 PROGRAM_CONFIG_DEFAULT_PATH: Path = (
-    platform_dirs.user_config_path / f"{__title__.lower()}1.toml"
+    platform_dirs.user_config_path / f"{__title__.lower()}.toml"
 )
 GAMES_DIR_DEFAULT_PATH: Path = platform_dirs.user_data_path / "games"
 
@@ -29,6 +33,16 @@ def _structure_onelauncher_locale(
     lang_tag: str, conversion_type: type[OneLauncherLocale]
 ) -> OneLauncherLocale:
     return available_locales[lang_tag]
+
+
+def _unstructure_startup_script(startup_scirpt: StartupScript) -> str:
+    return str(startup_scirpt.relative_path)
+
+
+def _structure_startup_script(
+    relative_path: Path, conversion_type: type[StartupScript]
+) -> StartupScript:
+    return StartupScript(relative_path=Path(relative_path))
 
 
 def _unstructure_uuid(uuid: UUID) -> str:
@@ -44,6 +58,9 @@ def get_converter() -> cattrs.Converter:
     converter = make_converter()
 
     converter.register_structure_hook(OneLauncherLocale, _structure_onelauncher_locale)
+
+    converter.register_unstructure_hook(StartupScript, _unstructure_startup_script)
+    converter.register_structure_hook(StartupScript, _structure_startup_script)
 
     converter.register_unstructure_hook(UUID, _unstructure_uuid)
     converter.register_unstructure_hook(
@@ -76,13 +93,18 @@ def convert_to_toml(
             table = tomlkit.table()
             convert_to_toml(val, table)
             container.add(key, table)
-        elif isinstance(val, list) and all(isinstance(item, dict) for item in val):
+        elif isinstance(val, list) and len(val) and all(isinstance(item, dict) for item in val):
             table_array = tomlkit.aot()
             for item in val:
                 table = tomlkit.table()
                 convert_to_toml(item, table)
                 table_array.append(table)
             container.add(key, table_array)
+        elif isinstance(val, list):
+            array = tomlkit.array()
+            for item in val:
+                array.append(item)
+            container.add(key, array)
         elif val is None:
             container.add(tomlkit.comment(f"{key} = "))
         elif isinstance(val, str):
@@ -244,71 +266,6 @@ def read_config_file(
         raise ConfigFileParseError("Error structuring config") from e
 
 
-# class MissingConfigSectionError(Exception):
-#     """`Config` doesn't have the requested `ConfigSection`"""
-
-
-# class MultipleConfigSectionsError(Exception):
-#     """
-#     `Config` has multiple sections matching the type of the requested
-#     `ConfigSection`
-#     """
-
-
-# ConfigSectionTypeVar = TypeVar("ConfigSectionTypeVar", bound=ConfigSection)
-
-
-# def _get_config_section_attr_name(
-#         config_class: type[Config],
-#         config_section_class: type[ConfigSectionTypeVar]) -> str:
-#     """
-#     Return the attribute name of the config section in the config class.
-
-#     Raises:
-#         MissingConfigSectionError: `Config` doesn't have the requested
-#             `ConfigSection`
-#         MultipleConfigSectionsError: `Config` has multiple sections matching
-#             the type of the requested `ConfigSection`
-#     """
-#     matching_sections: list[attrs.Attribute] = [
-#         field for field in attrs.fields(config_class)
-#         if field.type == config_section_class]
-#     if not matching_sections:
-#         raise MissingConfigSectionError(
-#             f"{config_class} doesn't have {config_section_class} config section"
-#         )
-#     elif len(matching_sections) > 1:
-#         raise MultipleConfigSectionsError(
-#             f"{config_class}  has multiple sections matching the type of "
-#             f"{config_section_class} config section")
-#     return matching_sections[0].name
-
-
-# def read_config_file_section(
-#         config_class: type[Config],
-#         config_section_class: type[ConfigSectionTypeVar],
-#         config_file_path: Path) -> ConfigSectionTypeVar:
-#     """
-#     Return a config section with values from a config file.
-#     `get_config_section` should be used for general config access.
-
-#     Raises:
-#         MissingConfigSectionError: `Config` doesn't have the requested
-#             `ConfigSection`
-#         MultipleConfigSectionsError: `Config` has multiple sections matching
-#             the type of the requested `ConfigSection`
-#         ConfigFileParseError: Error parsing config file
-#     """
-#     attr_name = _get_config_section_attr_name(
-#         config_class, config_section_class)
-
-#     config = read_config_file(
-#         config_class=config_class,
-#         config_file_path=config_file_path)
-#     config_section: ConfigSectionTypeVar = getattr(config, attr_name)
-#     return config_section
-
-
 def update_config_file(
     config: Config,
     config_file_path: Path,
@@ -342,48 +299,62 @@ def update_config_file(
     )
 
     convert_to_toml(postconverted_unstructured, doc)
+    config_file_path.touch(exist_ok=True)
     config_file_path.write_text(doc.as_string())
     read_config_file.cache_replace(
         config, config_class=type(config), config_file_path=config_file_path
     )
 
 
-# def update_config_file_section(
-#         config_class: type[Config],
-#         config_section: ConfigSection,
-#         config_file_path: Path) -> None:
-#     """
-#     Replace contents of a config file section with `config_section`
-
-#     Raises:
-#         ConfigFileParseError: Error parsing config file
-#         MissingConfigSectionError: Config doesn't have the requested
-#             ConfigSection
-#         MultipleConfigSectionsError: Config has multiple sections matching
-#             the type of the requested ConfigSection
-#     """
-#     config = read_config_file(
-#         config_class=config_class,
-#         config_file_path=config_file_path)
-#     section_attr = _get_config_section_attr_name(
-#         config_class, type(config_section))
-#     updated_config = attrs.evolve(config, **{section_attr: config_section})
-#     update_config_file(updated_config, config_file_path)
+class ConfigManagerNotSetupError(Exception):
+    """Config manager hasn't been setup."""
 
 
-@attrs.frozen
+@attrs.define
 class ConfigManager:
+    """
+    Before use, configs must be verified with `verify_configs` method.
+    """
+
     get_merged_program_config: Callable[[ProgramConfig], ProgramConfig]
     get_merged_game_config: Callable[[GameConfig], GameConfig]
     get_merged_game_accounts_config: Callable[[GameAccountsConfig], GameAccountsConfig]
     program_config_path: Path = PROGRAM_CONFIG_DEFAULT_PATH
     games_dir_path: Path = GAMES_DIR_DEFAULT_PATH
 
-    GAME_CONFIG_FILE_NAME: Final[str] = attrs.field(default="config1.toml", init=False)
+    GAME_CONFIG_FILE_NAME: Final[str] = attrs.field(default="config.toml", init=False)
+    configs_are_verified: bool = attrs.field(default=False, init=False)
+    verified_game_uuids: list[UUID] = attrs.field(default=[], init=False)
 
     def __attrs_post_init__(self) -> None:
         self.program_config_path.parent.mkdir(parents=True, exist_ok=True)
         self.games_dir_path.mkdir(parents=True, exist_ok=True)
+
+    def verify_configs(self) -> None:
+        """
+        Verify that all config files are present and can be parsed.
+
+        Raises:
+            ConfigFileParseError: Error parsing a config file
+        """
+        self.verified_game_uuids.clear()
+
+        # ConfigFileParseError is handled by caller
+        self._read_program_config_file()
+
+        # Verify game configs
+        for game_uuid in self._get_game_uuids():
+            # FileNotFoundError is handled by using known to exist UUIDs
+            # ConfigFileParseError is handled by caller
+            self._read_game_config_file(game_uuid)
+            try:
+                # ConfigFileParseError is handled by caller
+                self._read_game_accounts_config_file_full(game_uuid)
+            except FileNotFoundError:
+                self.update_game_accounts_config_file(game_uuid=game_uuid, accounts=())
+
+            self.verified_game_uuids.append(game_uuid)
+        self.configs_are_verified = True
 
     def get_game_config_dir(self, game_uuid: UUID) -> Path:
         return self.games_dir_path / str(game_uuid)
@@ -395,34 +366,52 @@ class ConfigManager:
         return self.get_game_config_dir(game_uuid) / "accounts.toml"
 
     def get_program_config(self) -> ProgramConfig:
-        """
-        Get merged program config object.
-
-        Raises:
-            FileNotFoundError: Config file not found
-            ConfigFileParseError: Error parsing config file
-        """
+        """Get merged program config object."""
         return self.get_merged_program_config(self.read_program_config_file())
 
     def read_program_config_file(self) -> ProgramConfig:
+        """Read and parse program config file into `ProgramConfig` object."""
+        if self.configs_are_verified:
+            return self._read_program_config_file()
+        else:
+            raise ConfigManagerNotSetupError("")
+
+    def _read_program_config_file(self) -> ProgramConfig:
         """
         Read and parse program config file into `ProgramConfig` object.
 
         Raises:
-            FileNotFoundError: Config file not found
             ConfigFileParseError: Error parsing config file
         """
-        return read_config_file(
-            config_class=ProgramConfig, config_file_path=self.program_config_path
-        )
+        try:
+            return read_config_file(
+                config_class=ProgramConfig, config_file_path=self.program_config_path
+            )
+        except FileNotFoundError:
+            # There should always be a program config.
+            # Just returning an object, allows there to be no config written to disk
+            # until a change is made. This is mainly useful for knowing when to run
+            # the setup wizard
+            return ProgramConfig()
 
     def update_program_config_file(self, config: ProgramConfig) -> None:
         """
         Replace contents of program config file with `config`.
         """
-        update_config_file(config, self.program_config_path)
+        update_config_file(config=config, config_file_path=self.program_config_path)
+
+    def delete_program_config(self) -> None:
+        """Delete program config"""
+        self.program_config_path.unlink(missing_ok=True)
+        read_config_file.clear_cache()
 
     def get_game_uuids(self) -> tuple[UUID, ...]:
+        if self.configs_are_verified:
+            return tuple(self.verified_game_uuids)
+        else:
+            raise ConfigManagerNotSetupError("")
+
+    def _get_game_uuids(self) -> tuple[UUID, ...]:
         return tuple(
             UUID(config_file.parent.name)
             for config_file in self.games_dir_path.glob(
@@ -430,31 +419,103 @@ class ConfigManager:
             )
         )
 
+    def get_games_by_game_type(self, game_type: GameType) -> tuple[UUID, ...]:
+        return tuple(
+            game_uuid
+            for game_uuid in self.get_game_uuids()
+            if self.get_game_config(game_uuid).game_type == game_type
+        )
+
+    def get_games_sorted_by_priority(
+        self, game_type: GameType | None = None
+    ) -> tuple[UUID, ...]:
+        game_uuids = (
+            self.get_games_by_game_type(game_type)
+            if game_type
+            else self.get_game_uuids()
+        )
+
+        def sorter(game_uuid: UUID) -> str:
+            game_config = self.get_game_config(game_uuid)
+            return (
+                "Z"
+                if game_config.sorting_priority == -1
+                else str(game_config.sorting_priority)
+            )
+
+        # Sort games by sorting_priority. Games with sorting_priority of -1 are
+        # put at the end
+        return tuple(sorted(game_uuids, key=sorter))
+
+    def get_games_sorted_by_last_played(
+        self, game_type: GameType | None = None
+    ) -> tuple[UUID, ...]:
+        game_uuids = (
+            self.get_games_by_game_type(game_type)
+            if game_type
+            else self.get_game_uuids()
+        )
+
+        def sorter(game_uuid: UUID) -> datetime:
+            game_config = self.get_game_config(game_uuid)
+            return (
+                datetime.max
+                if game_config.last_played is None
+                else game_config.last_played
+            )
+
+        # Get list of played games sorted by when they were last played
+        return tuple(
+            sorted(
+                game_uuids,
+                key=sorter,
+                reverse=True,
+            )
+        )
+
+    def get_games_sorted(
+        self,
+        sorting_mode: GamesSortingMode,
+        game_type: GameType | None = None,
+    ) -> tuple[UUID, ...]:
+        match sorting_mode:
+            case GamesSortingMode.PRIORITY:
+                return self.get_games_sorted_by_priority(game_type)
+            case GamesSortingMode.LAST_USED:
+                return self.get_games_sorted_by_last_played(game_type)
+            case GamesSortingMode.ALPHABETICAL:
+                return self.get_games_sorted_alphabetically(game_type)
+
+    def get_games_sorted_alphabetically(
+        self, game_type: GameType | None
+    ) -> tuple[UUID, ...]:
+        game_uuids = (
+            self.get_games_by_game_type(game_type)
+            if game_type
+            else self.get_game_uuids()
+        )
+        return tuple(
+            sorted(
+                game_uuids, key=lambda game_uuid: self.get_game_config(game_uuid).name
+            )
+        )
+
     def get_game_config(self, game_uuid: UUID) -> GameConfig:
         """
         Get merged game config object.
-
-        Raises:
-            FileNotFoundError: Config file not found
-            ConfigFileParseError: Error parsing config file
         """
         return self.get_merged_game_config(self.read_game_config_file(game_uuid))
 
-    # def get_game_config_section(
-    #         self,
-    #         game_uuid: UUID,
-    #         config_section: type[ConfigSectionTypeVar]
-    # ) -> ConfigSectionTypeVar:
-    #     """
-    #     Raises:
-    #         MissingConfigSectionError: `Config` doesn't have the requested
-    #             `ConfigSection`_description_
-    #         MultipleConfigSectionsError: `Config` has multiple sections
-    #             matching the type of the requested `ConfigSection`
-    #     """
-    #     return self.read_game_config_file_section(game_uuid, config_section)
-
     def read_game_config_file(self, game_uuid: UUID) -> GameConfig:
+        """Read and parse game config file into `GameConfig` object."""
+        if not self.configs_are_verified:
+            raise ConfigManagerNotSetupError("")
+        if game_uuid not in self.verified_game_uuids:
+            raise ValueError(f"Game UUID: {game_uuid} has not been verified.")
+
+        return self._read_game_config_file(game_uuid)
+
+    def _read_game_config_file(self, game_uuid: UUID) -> GameConfig:
         """
         Read and parse game config file into `GameConfig` object.
 
@@ -467,24 +528,6 @@ class ConfigManager:
             config_file_path=self.get_game_config_path(game_uuid),
         )
 
-    # def read_game_config_file_section(
-    #         self,
-    #         game_uuid: UUID,
-    #         config_section: type[ConfigSectionTypeVar]
-    # ) -> ConfigSectionTypeVar:
-    #     """
-    #     Raises:
-    #         MissingConfigSectionError: Config doesn't have the requested
-    #             ConfigSection
-    #         MultipleConfigSectionsError: Config has multiple sections matching
-    #             the type of the requested ConfigSection
-    #         ConfigFileParseError: Error parsing config file
-    #     """
-    #     return read_config_file_section(
-    #         config_class=GameConfig,
-    #         config_section_class=config_section,
-    #         config_file_path=self.get_game_config_path(game_uuid))
-
     def update_game_config_file(self, game_uuid: UUID, config: GameConfig) -> None:
         """
         Replace contents of game config file with `config`.
@@ -492,34 +535,27 @@ class ConfigManager:
         game_config_path = self.get_game_config_path(game_uuid)
         game_config_path.parent.mkdir(exist_ok=True)
         update_config_file(config=config, config_file_path=game_config_path)
+        if game_uuid not in self.verified_game_uuids:
+            self.verified_game_uuids.append(game_uuid)
 
-    # def update_game_config_file_section(
-    #         self,
-    #         game_uuid: UUID,
-    #         config_section: ConfigSection) -> None:
-    #     """
-    #     Replace contents of game config file section with `config_section`.
+    def delete_game_config(self, game_uuid: UUID) -> None:
+        """Delete game config including all files and saved accounts"""
+        with suppress(FileNotFoundError):
+            account_configs = self.read_game_accounts_config_file(game_uuid)
+            for account_config in account_configs:
+                self.delete_game_account_keyring_info(
+                    game_uuid=game_uuid, game_account=account_config
+                )
+        rmtree(self.get_game_config_dir(game_uuid=game_uuid))
+        read_config_file.clear_cache()
+        self.verified_game_uuids.remove(game_uuid)
 
-    #     Raises:
-    #         ConfigFileParseError: Error parsing config file
-    #         MissingConfigSectionError: Config doesn't have the requested
-    #             ConfigSection
-    #         MultipleConfigSectionsError: Config has multiple sections matching
-    #             the type of the requested ConfigSection
-    #     """
-    #     update_config_file_section(
-    #         config_class=GameConfig,
-    #         config_section=config_section,
-    #         config_file_path=self.get_game_config_path(game_uuid))
+    def get_game_accounts(self, game_uuid: UUID) -> tuple[GameAccountConfig, ...]:
+        if not self.configs_are_verified:
+            raise ConfigManagerNotSetupError("")
+        if game_uuid not in self.verified_game_uuids:
+            raise ValueError(f"Game UUID: {game_uuid} has not been verified.")
 
-    def get_game_accounts_config(
-        self, game_uuid: UUID
-    ) -> tuple[GameAccountConfig, ...]:
-        """
-        Raises:
-            FileNotFoundError: Config file not found
-            ConfigFileParseError: Error parsing config file
-        """
         return self.get_merged_game_accounts_config(
             self._read_game_accounts_config_file_full(game_uuid)
         ).accounts
@@ -545,7 +581,7 @@ class ConfigManager:
             ),
         )
 
-    def read_game_accounts_config_file(
+    def _read_game_accounts_config_file(
         self, game_uuid: UUID
     ) -> tuple[GameAccountConfig, ...]:
         """
@@ -556,6 +592,20 @@ class ConfigManager:
             ConfigFileParseError: Error parsing config file
         """
         return self._read_game_accounts_config_file_full(game_uuid).accounts
+
+    def read_game_accounts_config_file(
+        self, game_uuid: UUID
+    ) -> tuple[GameAccountConfig, ...]:
+        """
+        Read and parse game accounts config file into tuple of
+        `GameAccountConfig` objects.
+        """
+        if not self.configs_are_verified:
+            raise ConfigManagerNotSetupError("")
+        if game_uuid not in self.verified_game_uuids:
+            raise ValueError(f"Game UUID: {game_uuid} has not been verified.")
+
+        return self._read_game_accounts_config_file(game_uuid)
 
     def update_game_accounts_config_file(
         self, game_uuid: UUID, accounts: tuple[GameAccountConfig, ...]
@@ -571,4 +621,117 @@ class ConfigManager:
                 array_name="accounts",
                 table_name_key_name="username",
             ),
+        )
+
+    def _get_account_keyring_username(
+        self, game_uuid: UUID, game_account: GameAccountConfig
+    ) -> str:
+        return f"{game_uuid}{game_account.username}"
+
+    def get_game_account_password(
+        self, game_uuid: UUID, game_account: GameAccountConfig
+    ) -> str | None:
+        """
+        Get account password that is saved in keyring.
+        Will return `None` if no saved passwords are found
+        """
+        return keyring.get_password(
+            service_name=__title__,
+            username=self._get_account_keyring_username(
+                game_uuid=game_uuid, game_account=game_account
+            ),
+        )
+
+    def save_game_account_password(
+        self, game_uuid: UUID, game_account: GameAccountConfig, password: str
+    ) -> None:
+        """Save account password with keyring"""
+        keyring.set_password(
+            service_name=__title__,
+            username=self._get_account_keyring_username(
+                game_uuid=game_uuid, game_account=game_account
+            ),
+            password=password,
+        )
+
+    def delete_game_account_password(
+        self, game_uuid: UUID, game_account: GameAccountConfig
+    ) -> None:
+        """Delete account password saved with keyring"""
+        with suppress(keyring.errors.PasswordDeleteError):
+            keyring.delete_password(
+                service_name=__title__,
+                username=self._get_account_keyring_username(
+                    game_uuid=game_uuid, game_account=game_account
+                ),
+            )
+
+    def _get_account_last_used_subscription_keyring_username(
+        self, game_uuid: UUID, game_account: GameAccountConfig
+    ) -> str:
+        base_keyring_username = self._get_account_keyring_username(
+            game_uuid=game_uuid, game_account=game_account
+        )
+        return f"{base_keyring_username}LastUsedSubscription"
+
+    def get_game_account_last_used_subscription_name(
+        self, game_uuid: UUID, game_account: GameAccountConfig
+    ) -> str | None:
+        """
+        Get name of the subscription that was last played with from keyring.
+        See `login_account.py`
+        """
+        return keyring.get_password(
+            service_name=__title__,
+            username=self._get_account_last_used_subscription_keyring_username(
+                game_uuid=game_uuid, game_account=game_account
+            ),
+        )
+
+    def save_game_account_last_used_subscription_name(
+        self, game_uuid: UUID, game_account: GameAccountConfig, subscription_name: str
+    ) -> None:
+        """Save last used subscription name with keyring"""
+        keyring.set_password(
+            service_name=__title__,
+            username=self._get_account_last_used_subscription_keyring_username(
+                game_uuid=game_uuid, game_account=game_account
+            ),
+            password=subscription_name,
+        )
+
+    def delete_game_account_last_used_subscription_name(
+        self,
+        game_uuid: UUID,
+        game_account: GameAccountConfig,
+    ) -> None:
+        """Delete last used subscription name saved with keyring"""
+        with suppress(keyring.errors.PasswordDeleteError):
+            keyring.delete_password(
+                service_name=__title__,
+                username=self._get_account_last_used_subscription_keyring_username(
+                    game_uuid=game_uuid, game_account=game_account
+                ),
+            )
+
+    def delete_game_account_keyring_info(
+        self, game_uuid: UUID, game_account: GameAccountConfig
+    ) -> None:
+        """
+        Delete all information for account saved with keyring. ex. password
+        """
+        self.delete_game_account_password(
+            game_uuid=game_uuid, game_account=game_account
+        )
+        self.delete_game_account_last_used_subscription_name(
+            game_uuid=game_uuid, game_account=game_account
+        )
+
+    def get_ui_locale(self, game_uuid: UUID) -> OneLauncherLocale:
+        program_config = self.get_program_config()
+        game_config = self.get_game_config(game_uuid)
+        return (
+            program_config.default_locale
+            if program_config.always_use_default_locale_for_ui or not game_config.locale
+            else game_config.locale
         )
