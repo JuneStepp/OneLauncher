@@ -34,7 +34,9 @@ platformdirs = "^4.2.0"
 xmlschema = "^3.2.0"
 feedparser = "^6.0.10"
 Babel = "^2.12.1"
-zeep = "^4.2.1"
+# Be careful updating this. Some hacky code is currently being used to make it fully
+# async.
+zeep = "4.2.1"
 cachetools = "^5.3.1"
 trio = "^0.25.0"
 httpx = "^0.26.0"
