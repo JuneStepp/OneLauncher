@@ -56,7 +56,8 @@ class FullyAsyncTransport(AsyncTransport):
 
             return content
         else:
-            return await trio.Path(url).read_bytes()
+            path = await trio.Path(url).expanduser()
+            return await path.read_bytes()
 
     async def _async_load_remote_data(self, url: str) -> bytes:
         response = await self.client.get(url)
