@@ -63,7 +63,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.ui = Ui_dlgSettings()
         self.ui.setupUi(self)  # type: ignore[no-untyped-call]
 
-    async def setup_ui(self) -> None:
+    def setup_ui(self) -> None:
         self.finished.connect(self.cleanup)
 
         self.ui.showAdvancedSettingsCheckbox.toggled.connect(
@@ -116,7 +116,7 @@ class SettingsWindow(QtWidgets.QDialog):
                 self.ui.tabWidget.indexOf(self.ui.winePage), False
             )
 
-        await self.setup_client_type_combo_box()
+        self.setup_client_type_combo_box()
         self.ui.standardLauncherLineEdit.setText(
             game_config.standard_game_launcher_filename or ""
         )
@@ -174,8 +174,9 @@ class SettingsWindow(QtWidgets.QDialog):
         self.open()
 
     async def run(self) -> None:
+        self.setup_ui()
         async with trio.open_nursery() as self.nursery:
-            self.nursery.start_soon(self.setup_ui)
+            self.nursery.start_soon(self.indicate_unavailable_client_types)
             self.nursery.start_soon(self.setup_newsfeed_option)
             # Will be canceled when the winddow is closed
             self.nursery.start_soon(trio.sleep_forever)
@@ -231,23 +232,13 @@ class SettingsWindow(QtWidgets.QDialog):
                 self.ui.tabWidget.indexOf(self.ui.winePage), is_checked
             )
 
-    async def setup_client_type_combo_box(self) -> None:
+    def setup_client_type_combo_box(self) -> None:
         combo_box_item_names = {
             ClientType.WIN64: "64-bit",
             ClientType.WIN32: "32-bit",
             ClientType.WIN32_LEGACY: "32-bit Legacy",
         }
         game_config = self.config_manager.read_game_config_file(self.game_uuid)
-        game_launcher_config = await GameLauncherConfig.from_game_config(game_config)
-        if game_launcher_config is not None:
-            # Mark all unavailable client types as not found.
-            for (
-                client_type,
-                client_filename,
-            ) in game_launcher_config.client_type_mapping.items():
-                if client_filename is None:
-                    combo_box_item_names[client_type] += " (Not found)"
-
         self.ui.clientTypeComboBox.addItem(
             combo_box_item_names[ClientType.WIN64], userData=ClientType.WIN64
         )
@@ -261,6 +252,26 @@ class SettingsWindow(QtWidgets.QDialog):
         self.ui.clientTypeComboBox.setCurrentIndex(
             self.ui.clientTypeComboBox.findData(game_config.client_type)
         )
+
+    async def indicate_unavailable_client_types(self) -> None:
+        """Mark all unavailable client types as not found."""
+        game_config = self.config_manager.read_game_config_file(self.game_uuid)
+        game_launcher_config = await GameLauncherConfig.from_game_config(game_config)
+        if game_launcher_config is not None:
+            for (
+                client_type,
+                client_filename,
+            ) in game_launcher_config.client_type_mapping.items():
+                if client_filename is None:
+                    item_index = self.ui.clientTypeComboBox.findData(
+                        client_type,
+                        QtCore.Qt.ItemDataRole.UserRole,
+                        QtCore.Qt.MatchFlag.MatchExactly,
+                    )
+                    current_item_text = self.ui.clientTypeComboBox.itemText(item_index)
+                    self.ui.clientTypeComboBox.setItemText(
+                        item_index, f"{current_item_text} (Not found)"
+                    )
 
     async def run_standard_game_launcher(self, disable_patching: bool = False) -> None:
         game_config = self.config_manager.get_game_config(self.game_uuid)
