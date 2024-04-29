@@ -15,6 +15,12 @@ class OneLauncherLocale:
     """
     Args:
         lang_tag (str): An IETF BCP 47 language tag for the locale.
+        data_dir:
+        display_name (str): Text displayed in language switching UI. This should be in the
+            target language.
+        game_language_name (str): Name that the game uses for this language.
+            The most obvious example of where this is used is in the
+            client_local_{game_language_name}.dat file in the game directory.
     """
 
     lang_tag: str
@@ -26,7 +32,7 @@ class OneLauncherLocale:
         return self.lang_tag
 
     @classmethod
-    def from_data_dir(cls, data_dir: Path) -> Self:
+    def from_data_dir(cls: type[Self], data_dir: Path) -> Self:
         file = data_dir / "language_info.toml"
         if not file.exists():
             raise FileNotFoundError(
