@@ -130,7 +130,7 @@ class GameServicesInfo:
         Returns:
             dict: Parsed GetDatacenters response
         """
-        client = get_soap_client(gls_datacenter_service)
+        client = await get_soap_client(gls_datacenter_service)
 
         try:
             return (await client.service.GetDatacenters(game=game_datacenter_name))[0]

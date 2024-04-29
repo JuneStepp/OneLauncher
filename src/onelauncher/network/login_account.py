@@ -130,7 +130,7 @@ async def login_account(
     Returns:
         AccountLoginResponse
     """
-    client = get_soap_client(auth_server)
+    client = await get_soap_client(auth_server)
 
     try:
         return AccountLoginResponse.from_soap_response_dict(
