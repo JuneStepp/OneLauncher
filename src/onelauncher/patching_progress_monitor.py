@@ -27,143 +27,78 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-import re
+from typing import Literal
 
-from .ui.patching_window_uic import Ui_patchingWindow
+import attrs
 
 
-class ProgressMonitor:
-    def __init__(self, ui_patching_window: Ui_patchingWindow | None = None) -> None:
-        self.ui_patch = ui_patching_window
-        self._re_filestat = re.compile(
-            r"^.*?files to patch: ([\d]+) bytes to download: ([\d]+)"
-        )
-        self._re_datastat = re.compile(
-            r"^.*?data patches: ([\d]+) bytes to download: ([\d]+)"
-        )
+@attrs.frozen
+class PatchingProgress:
+    total_iterations: int
+    current_iterations: int
+
+
+class PatchingProgressMonitor:
+    def __init__(self) -> None:
         self.reset()
 
     def reset(self) -> None:
-        self.stateFunc = self.handlePatchMain
+        self.patching_type = None
 
-        self.fileCount = -1
-        self.fileBytes = -1
-        self.dataCount = -1
-        self.dataBytes = -1
-        self.currentLine = ""
-        self.currentPos = 0
-        self.currentFileNum = 0
-        self.currentIterNum = 0
-        self._fileTotalDots = 0
-        self._fileDots = 0
-        self._dataTotalDots = 0
+    @property
+    def patching_type(self) -> Literal["file", "data"] | None:
+        return self._patching_type
 
-        if self.ui_patch:
-            self.ui_patch.progressBar.reset()
+    @patching_type.setter
+    def patching_type(self, patching_type: Literal["file", "data"] | None) -> None:
+        self._patching_type = patching_type
+        self.total_iterations: int = 0
+        self.current_iterations: int = 0
+        self.applying_forward_iterations: bool = False
 
-    def parseOutput(self, text: str) -> None:
-        # split the output in lines
-        text_lines = (self.currentLine + text).splitlines()
-        linePos = -1
-        for line in text_lines:
-            linePos = self.currentPos if linePos < 0 else 0
-            newPos = self.stateFunc(line, linePos)
+    def get_patching_progress(self) -> PatchingProgress:
+        return PatchingProgress(
+            total_iterations=self.total_iterations,
+            current_iterations=self.current_iterations,
+        )
 
-            # if nothing is returned, assume the whole line has been parsed or discarded
-            linePos = newPos if newPos else len(line)
-            # print(line, linePos)
+    def feed_line(self, line: str) -> PatchingProgress:
+        cleaned_line = line.strip().lower()
 
-        # copy current line to buffer unless input ends with newline char
-        if text[-1] == "\n":
-            self.currentLine = ""
-            self.currentPos = 0
-        else:
-            self.currentLine = text_lines[-1]
-            self.currentPos = linePos
+        # Beginning of a patching type
+        if cleaned_line.startswith("checking files"):
+            self.patching_type = "file"
+            return self.get_patching_progress()
+        elif cleaned_line.startswith("checking data"):
+            self.patching_type = "data"
+            return self.get_patching_progress()
+        # Right after a patching type begins. Find out how many iterations there will be.
+        if cleaned_line.startswith("files to patch:"):
+            self.total_iterations = int(
+                cleaned_line.split("files to patch:")[1].strip().split()[0]
+            )
+        elif cleaned_line.startswith("data patches:"):
+            self.total_iterations = int(
+                cleaned_line.split("data patches:")[1].strip().split()[0]
+            )
+        # Data patching has two parts.
+        # "Applying x forward iterations....(continues for x dots)" and the actual file
+        # downloading which is the originally set `self.total_iterations`
+        elif (
+            self.patching_type == "data"
+            and cleaned_line.startswith("applying")
+            and "forward iterations" in cleaned_line
+        ):
+            self.applying_forward_iterations = True
+            self.total_iterations += int(
+                cleaned_line.split("applying")[1].strip().split("forward iterations")[0]
+            )
 
-    def handlePatchMain(self, text: str, offset: int) -> None:
-        res = self._re_filestat.match(text)
-        if res:
-            # file patching is checked again before data patching starts, don't overwrite
-            if self.fileCount < 0:
-                self.fileCount = int(res.group(1))
-                self.fileBytes = int(res.group(2))
-                # print("Files: %d, Bytes: %d"%(self.fileCount, self.fileBytes))
-                if self.ui_patch and self.fileCount > 1:
-                    self.ui_patch.progressBar.setMaximum(self.fileCount)
-                    self.ui_patch.progressBar.setValue(0)
-            self.stateFunc = self.handlePatchFiles
+        if cleaned_line.startswith("downloading"):
+            self.applying_forward_iterations = False
+            self.current_iterations += 1
+        # During forward iterations, each "." represents one iteration
+        elif self.applying_forward_iterations and "." in cleaned_line:
+            self.current_iterations += len(cleaned_line.split("."))
 
-        res = self._re_datastat.match(text)
-        if res:
-            self.dataCount = int(res.group(1))
-            self.dataBytes = int(res.group(2))
-            # print("Iterations: %d, Bytes: %d"%(self.dataCount, self.dataBytes))
-            if self.ui_patch and self.dataCount > 1:
-                self.ui_patch.progressBar.setMaximum(self.dataCount)
-                self.ui_patch.progressBar.setValue(0)
-            self.stateFunc = self.handlePatchData
-
-    def handlePatchFiles(self, text: str, offset: int) -> int | None:
-        if text.startswith("Downloading "):
-            self.currentFileNum += 1
-            filename = text.split()[1].strip(".")
-            # print('Downloading %s (%d/%d)'%(filename, self.currentFileNum, self.fileCount))
-            pos = len("Downloading ") + len(filename)
-            # print('text[%d] = %s'%(pos, text[pos]))
-            self.stateFunc = self.handleFileDownload
-            return self.stateFunc(text, pos)
-
-        elif text.startswith("File patching complete"):
-            self.stateFunc = self.handlePatchMain
-
-        return None
-
-    def handlePatchData(self, text: str, offset: int) -> int | None:
-        if text.startswith("Downloading "):
-            self.currentIterNum += 1
-            filename = text.split()[1].strip(".")
-            # print('Patching %s (%d/%d)'%(filename, self.currentIterNum, self.dataCount))
-            pos = len("Downloading ") + len(filename)
-            # print('text[%d] = %s'%(pos, text[pos]))
-            self.stateFunc = self.handleDataDownload
-            return self.stateFunc(text, pos)
-
-        elif text.startswith("Data patching complete"):
-            self.stateFunc = self.handlePatchMain
-
-        return None
-
-    def handleFileDownload(self, text: str, offset: int) -> int | None:
-        idx = offset
-        while idx < len(text):
-            if text[idx] == ".":
-                self._fileTotalDots += 1
-                self._fileDots += 1
-            else:
-                self.stateFunc = self.handlePatchFiles
-                if self.ui_patch:
-                    self.ui_patch.progressBar.setValue(self.currentFileNum)
-                # print('%d dots' % self._fileDots)
-                self._fileDots = 0
-                return self.stateFunc(text, idx)
-            idx += 1
-
-        return idx
-
-    def handleDataDownload(self, text: str, offset: int) -> int | None:
-        idx = offset
-        while idx < len(text):
-            if text[idx] == ".":
-                self._dataTotalDots += 1
-                # self._fileDots += 1
-            else:
-                self.stateFunc = self.handlePatchData
-                if self.ui_patch:
-                    self.ui_patch.progressBar.setValue(self.currentIterNum)
-                return self.stateFunc(text, idx)
-                # print('%d dots' % self._fileDots)
-                # self._fileDots = 0
-            idx += 1
-
-        return idx
+        return self.get_patching_progress()

@@ -36,7 +36,7 @@ from .config import platform_dirs
 from .config_manager import ConfigManager
 from .game_launcher_local_config import GameLauncherLocalConfig
 from .game_utilities import get_documents_config_dir
-from .patching_progress_monitor import ProgressMonitor
+from .patching_progress_monitor import PatchingProgressMonitor
 from .ui.patching_window_uic import Ui_patchingWindow
 from .ui_utilities import QByteArray2str
 from .utilities import CaseInsensitiveAbsolutePath
@@ -77,8 +77,9 @@ class PatchWindow(QtWidgets.QDialog):
         self.patching_finished = True
         self.lastRun = False
 
-        self.process_status_timer = QtCore.QTimer()
-        self.process_status_timer.timeout.connect(self.activelyShowProcessStatus)
+        if os.name == "nt":
+            self.process_status_timer = QtCore.QTimer()
+            self.process_status_timer.timeout.connect(self.activelyShowProcessStatus)
 
         game_config = config_manager.get_game_config(game_uuid=game_uuid)
         patch_client = game_config.game_directory / game_config.patch_client_filename
@@ -91,7 +92,7 @@ class PatchWindow(QtWidgets.QDialog):
             logger.error(f"Patch client {patch_client} not found")
             return
 
-        self.progressMonitor = ProgressMonitor(self.ui)
+        self.progress_monitor = PatchingProgressMonitor()
 
         self.process = QtCore.QProcess()
         self.process.readyReadStandardOutput.connect(self.readOutput)
@@ -143,7 +144,10 @@ class PatchWindow(QtWidgets.QDialog):
     def readOutput(self) -> None:
         line = QByteArray2str(self.process.readAllStandardOutput())
         self.ui.txtLog.append(line)
-        self.progressMonitor.parseOutput(line)
+
+        progress = self.progress_monitor.feed_line(line)
+        self.ui.progressBar.setMaximum(progress.total_iterations)
+        self.ui.progressBar.setValue(progress.current_iterations)
         logger.debug(f"Patcher: {line}")
 
     def readErrors(self) -> None:
@@ -156,7 +160,11 @@ class PatchWindow(QtWidgets.QDialog):
         self.ui.btnStop.setText("Close")
         self.ui.btnSave.setEnabled(True)
         self.ui.btnStart.setEnabled(True)
-        self.progressMonitor.reset()
+        self.progress_monitor.reset()
+        # Make sure it's not showing a busy indicator
+        self.ui.progressBar.setMinimum(1)
+        self.ui.progressBar.setMaximum(1)
+        self.ui.progressBar.reset()
         if self.aborted:
             self.ui.txtLog.append("<b>***  Aborted  ***</b>")
         elif self.lastRun:
@@ -231,7 +239,6 @@ class PatchWindow(QtWidgets.QDialog):
                 line = line.split(": ")[1]
 
                 self.ui.txtLog.append(line)
-                self.progressMonitor.parseOutput(line)
                 logger.debug(f"Patcher: {line}")
         else:
             # Add "..." if log is not giving indicator of patching progress

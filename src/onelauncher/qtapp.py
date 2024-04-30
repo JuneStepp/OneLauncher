@@ -32,7 +32,7 @@ from pathlib import Path
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from .__about__ import __title__, __version__
-from .resources import OneLauncherLocale, data_dir
+from .resources import data_dir
 
 
 def setup_qtapplication() -> QtWidgets.QApplication:
