@@ -117,3 +117,14 @@ class TestCaseInsensitiveAbsolutePath:
         assert (
             next(CaseInsensitiveAbsolutePath(tmp_path).rglob("filE*.txt")) == file_path
         )
+
+    def test_truediv_returns_case_insensitive_path(self, tmp_path: Path) -> None:
+        (tmp_path / "exists").touch()
+        assert isinstance(
+            (CaseInsensitiveAbsolutePath(tmp_path) / "exists"),
+            CaseInsensitiveAbsolutePath,
+        )
+        assert isinstance(
+            (CaseInsensitiveAbsolutePath(tmp_path) / "does_not_exist"),
+            CaseInsensitiveAbsolutePath,
+        )

@@ -135,11 +135,14 @@ class CaseInsensitiveAbsolutePath(Path):
             # No matches
             return None
 
-    def _make_child(self, args: tuple[StrPath, ...]) -> Path:
+    def _make_child(self, args: tuple[StrPath, ...]) -> Self:
         joined_path = super()._make_child(args)  # type: ignore
-        return self._get_real_path_from_fully_case_insensitive_path(
-            start_path=joined_path,
-            known_to_exist_base_path=self if self.exists() else None,
+        return super().__new__(
+            type(self),
+            self._get_real_path_from_fully_case_insensitive_path(
+                start_path=joined_path,
+                known_to_exist_base_path=self if self.exists() else None,
+            ),
         )
 
     @classmethod
