@@ -1,11 +1,10 @@
 import datetime
-from collections import OrderedDict
 from collections.abc import Callable
 from contextlib import suppress
-from functools import cache, partial, update_wrapper
+from functools import cache, partial
 from pathlib import Path
 from shutil import rmtree
-from typing import Any, Final, Generic, ParamSpec, TypeVar
+from typing import Any, Final, TypeVar
 from uuid import UUID
 
 import attrs
@@ -173,58 +172,6 @@ def _array_of_tables_to_tables(
     return final_dict
 
 
-_R = TypeVar("_R")
-_P = ParamSpec("_P")
-
-
-class RemovableKeysLRUCache(Generic[_P, _R]):
-    """
-    LRU Cache implementation with methods for removing or replacing specific
-    cached calls.
-
-    This is an edited version of Tim Child's code from
-    [stackoverflow](https://stackoverflow.com/a/64816003).
-    """
-
-    def __init__(self, func: Callable[_P, _R], maxsize: int = 128):
-        update_wrapper(self, func)
-        self.cache: OrderedDict[int, _R] = OrderedDict()
-        self.func = func
-        self.maxsize = maxsize
-
-    def __call__(self, *args: _P.args, **kwargs: _P.kwargs) -> _R:
-        cache = self.cache
-        key = self._generate_hash_key(*args, **kwargs)
-        if key in cache:
-            cache.move_to_end(key)
-            return cache[key]
-        result = self.func(*args, **kwargs)
-        cache[key] = result
-        if len(cache) > self.maxsize:
-            cache.popitem(last=False)
-        return result
-
-    def __repr__(self) -> str:
-        return self.func.__repr__()
-
-    def clear_cache(self) -> None:
-        self.cache.clear()
-
-    def cache_remove(self, *args: _P.args, **kwargs: _P.kwargs) -> None:
-        """Remove an item from the cache by passing the same args and kwargs"""
-        key = self._generate_hash_key(*args, **kwargs)
-        if key in self.cache:
-            self.cache.pop(key)
-
-    def cache_replace(self, value: _R, *args: _P.args, **kwargs: _P.kwargs) -> None:
-        key = self._generate_hash_key(*args, **kwargs)
-        self.cache[key] = value
-
-    @staticmethod
-    def _generate_hash_key(*args: _P.args, **kwargs: _P.kwargs) -> int:
-        return hash((args, frozenset(sorted(kwargs.items()))))
-
-
 class ConfigFileParseError(Exception):
     """Error parsing config file"""
 
@@ -232,7 +179,6 @@ class ConfigFileParseError(Exception):
 ConfigTypeVar = TypeVar("ConfigTypeVar", bound=Config)
 
 
-@RemovableKeysLRUCache
 def read_config_file(
     *,  # Paremeters are keyword only for cache entry clearing
     config_class: type[ConfigTypeVar],
@@ -305,9 +251,6 @@ def update_config_file(
     convert_to_toml(postconverted_unstructured, doc)
     config_file_path.touch(exist_ok=True)
     config_file_path.write_text(doc.as_string())
-    read_config_file.cache_replace(
-        config, config_class=type(config), config_file_path=config_file_path
-    )
 
 
 class ConfigManagerNotSetupError(Exception):
@@ -329,6 +272,11 @@ class ConfigManager:
     GAME_CONFIG_FILE_NAME: Final[str] = attrs.field(default="config.toml", init=False)
     configs_are_verified: bool = attrs.field(default=False, init=False)
     verified_game_uuids: list[UUID] = attrs.field(default=[], init=False)
+    _cached_program_config: ProgramConfig | None = attrs.field(default=None, init=False)
+    _cached_game_configs: dict[UUID, GameConfig] = attrs.field(default={}, init=False)
+    _cached_game_accounts_configs: dict[UUID, GameAccountsConfig] = attrs.field(
+        default={}, init=False
+    )
 
     def __attrs_post_init__(self) -> None:
         self.program_config_path.parent.mkdir(parents=True, exist_ok=True)
@@ -350,6 +298,7 @@ class ConfigManager:
         for game_uuid in self._get_game_uuids():
             # FileNotFoundError is handled by using known to exist UUIDs
             # ConfigFileParseError is handled by caller
+
             self._read_game_config_file(game_uuid)
             try:
                 # ConfigFileParseError is handled by caller
@@ -375,8 +324,8 @@ class ConfigManager:
 
     def read_program_config_file(self) -> ProgramConfig:
         """Read and parse program config file into `ProgramConfig` object."""
-        if self.configs_are_verified:
-            return self._read_program_config_file()
+        if self.configs_are_verified and self._cached_program_config:
+            return self._cached_program_config
         else:
             raise ConfigManagerNotSetupError("")
 
@@ -388,7 +337,7 @@ class ConfigManager:
             ConfigFileParseError: Error parsing config file
         """
         try:
-            return read_config_file(
+            config = read_config_file(
                 config_class=ProgramConfig, config_file_path=self.program_config_path
             )
         except FileNotFoundError:
@@ -396,18 +345,22 @@ class ConfigManager:
             # Just returning an object, allows there to be no config written to disk
             # until a change is made. This is mainly useful for knowing when to run
             # the setup wizard
-            return ProgramConfig()
+            config = ProgramConfig()
+        self._cached_program_config = config
+        return config
 
     def update_program_config_file(self, config: ProgramConfig) -> None:
         """
         Replace contents of program config file with `config`.
         """
         update_config_file(config=config, config_file_path=self.program_config_path)
+        self._cached_program_config = config
 
     def delete_program_config(self) -> None:
         """Delete program config"""
         self.program_config_path.unlink(missing_ok=True)
-        read_config_file.clear_cache()
+        # Update the cache. Parse error is handled, because there is no file to parse.
+        self._read_program_config_file()
 
     def get_game_uuids(self) -> tuple[UUID, ...]:
         if self.configs_are_verified:
@@ -519,7 +472,7 @@ class ConfigManager:
         if game_uuid not in self.verified_game_uuids:
             raise ValueError(f"Game UUID: {game_uuid} has not been verified.")
 
-        return self._read_game_config_file(game_uuid)
+        return self._cached_game_configs[game_uuid]
 
     def _read_game_config_file(self, game_uuid: UUID) -> GameConfig:
         """
@@ -529,10 +482,12 @@ class ConfigManager:
             FileNotFoundError: Config file not found
             ConfigFileParseError: Error parsing config file
         """
-        return read_config_file(
+        config = read_config_file(
             config_class=GameConfig,
             config_file_path=self.get_game_config_path(game_uuid),
         )
+        self._cached_game_configs[game_uuid] = config
+        return config
 
     def update_game_config_file(self, game_uuid: UUID, config: GameConfig) -> None:
         """
@@ -543,6 +498,7 @@ class ConfigManager:
         update_config_file(config=config, config_file_path=game_config_path)
         if game_uuid not in self.verified_game_uuids:
             self.verified_game_uuids.append(game_uuid)
+        self._cached_game_configs[game_uuid] = config
 
     def delete_game_config(self, game_uuid: UUID) -> None:
         """Delete game config including all files and saved accounts"""
@@ -553,8 +509,10 @@ class ConfigManager:
                     game_uuid=game_uuid, game_account=account_config
                 )
         rmtree(self.get_game_config_dir(game_uuid=game_uuid))
-        read_config_file.clear_cache()
-        self.verified_game_uuids.remove(game_uuid)
+        if game_uuid in self.verified_game_uuids:
+            self.verified_game_uuids.remove(game_uuid)
+            del self._cached_game_configs[game_uuid]
+            del self._cached_game_accounts_configs[game_uuid]
 
     def get_game_accounts(self, game_uuid: UUID) -> tuple[GameAccountConfig, ...]:
         if not self.configs_are_verified:
@@ -563,7 +521,7 @@ class ConfigManager:
             raise ValueError(f"Game UUID: {game_uuid} has not been verified.")
 
         return self.get_merged_game_accounts_config(
-            self._read_game_accounts_config_file_full(game_uuid)
+            self._cached_game_accounts_configs[game_uuid]
         ).accounts
 
     def _read_game_accounts_config_file_full(
@@ -577,7 +535,7 @@ class ConfigManager:
             FileNotFoundError: Config file not found
             ConfigFileParseError: Error parsing config file
         """
-        return read_config_file(
+        config = read_config_file(
             config_class=GameAccountsConfig,
             config_file_path=self.get_game_accounts_config_path(game_uuid),
             preconverter=partial(
@@ -586,18 +544,8 @@ class ConfigManager:
                 table_name_key_name="username",
             ),
         )
-
-    def _read_game_accounts_config_file(
-        self, game_uuid: UUID
-    ) -> tuple[GameAccountConfig, ...]:
-        """
-        Read and parse game accounts config file into tuple of
-        `GameAccountConfig` objects.
-
-        Raises:
-            ConfigFileParseError: Error parsing config file
-        """
-        return self._read_game_accounts_config_file_full(game_uuid).accounts
+        self._cached_game_accounts_configs[game_uuid] = config
+        return config
 
     def read_game_accounts_config_file(
         self, game_uuid: UUID
@@ -611,7 +559,7 @@ class ConfigManager:
         if game_uuid not in self.verified_game_uuids:
             raise ValueError(f"Game UUID: {game_uuid} has not been verified.")
 
-        return self._read_game_accounts_config_file(game_uuid)
+        return self._cached_game_accounts_configs[game_uuid].accounts
 
     def update_game_accounts_config_file(
         self, game_uuid: UUID, accounts: tuple[GameAccountConfig, ...]
@@ -619,8 +567,20 @@ class ConfigManager:
         """
         Replace contents of game accounts config file with `accounts`.
         """
+        # Delete keyring info for any removed accounts
+        with suppress(FileNotFoundError, ConfigFileParseError):
+            existing_accounts = self._read_game_accounts_config_file_full(
+                game_uuid=game_uuid
+            ).accounts
+            updated_accounts_usernames = [account.username for account in accounts]
+            for existing_account in existing_accounts:
+                if existing_account.username not in updated_accounts_usernames:
+                    self.delete_game_account_keyring_info(
+                        game_uuid=game_uuid, game_account=existing_account
+                    )
+        config = GameAccountsConfig(accounts)
         update_config_file(
-            config=GameAccountsConfig(accounts),
+            config=config,
             config_file_path=self.get_game_accounts_config_path(game_uuid),
             postconverter=partial(
                 _array_of_tables_to_tables,
@@ -628,6 +588,7 @@ class ConfigManager:
                 table_name_key_name="username",
             ),
         )
+        self._cached_game_accounts_configs[game_uuid] = config
 
     def _get_account_keyring_username(
         self, game_uuid: UUID, game_account: GameAccountConfig

@@ -378,17 +378,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.cboAccount.setCurrentText("")
 
         accounts = self.config_manager.get_game_accounts(self.game_uuid)
-        if (
-            self.config_manager.get_program_config().save_accounts is False
-            or not accounts
-        ):
-            return
-
         for account in accounts:
             self.ui.cboAccount.addItem(
                 account.display_name or account.username, userData=account
             )
         self.ui.cboAccount.setCurrentIndex(0)
+        # Make sure information gets reset, since accounts may be different, but same
+        # index.
+        self.accounts_index_changed(0)
 
     def get_current_game_account(self) -> GameAccountConfig | None:
         current_data = self.ui.cboAccount.currentData()
@@ -401,20 +398,21 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.cboWorld.setCurrentText(account.last_used_world_name)
 
     def set_current_account_placeholder_password(self) -> None:
-        if not self.config_manager.get_program_config().save_accounts_passwords:
-            self.ui.txtPassword.setFocus()
-            return
+        if account := self.get_current_game_account():
+            password = self.config_manager.get_game_account_password(
+                self.game_uuid, account
+            )
+            if password is not None:
+                password_length = len(password)
+                del password
+                self.ui.txtPassword.setPlaceholderText("*" * password_length)
+                return
 
-        account = self.get_current_game_account()
-        if account is None:
-            return
-        password = self.config_manager.get_game_account_password(
-            self.game_uuid, account
-        )
-        password_length = 0 if password is None else len(password)
-        del password
-
-        self.ui.txtPassword.setPlaceholderText("*" * password_length)
+        self.ui.txtPassword.setPlaceholderText("")
+        # Focus on the password field, so user can easily type password, since none are
+        # saved.
+        self.ui.txtPassword.setFocus()
+        return
 
     def get_game_subscription_selection(
         self,
@@ -551,20 +549,18 @@ class MainWindow(QtWidgets.QMainWindow):
             accounts = list(
                 self.config_manager.read_game_accounts_config_file(self.game_uuid)
             )
-            # Account is deleted first, because accounts are in order of
-            # the most recently played at the end.
-            with contextlib.suppress(ValueError):
-                accounts.remove(current_account)
-
-            accounts.append(current_account)
+            # Account is deleted first, so it can be inserted back at the beginning.
+            # Accounts are sorted with the most recently played first.
+            for account in accounts:
+                if account.username == current_account.username:
+                    accounts.remove(account)
+            accounts.insert(0, current_account)
             self.config_manager.update_game_accounts_config_file(
                 game_uuid=self.game_uuid, accounts=tuple(accounts)
             )
-
-            self.ui.cboAccount.setItemData(
-                self.ui.cboAccount.currentIndex(), current_account
-            )
-            self.loadAllSavedAccounts()
+        else:
+            self.config_manager.update_game_accounts_config_file(self.game_uuid, ())
+        self.loadAllSavedAccounts()
         self.config_manager.update_program_config_file(
             attrs.evolve(
                 self.config_manager.read_program_config_file(),
@@ -772,12 +768,9 @@ class MainWindow(QtWidgets.QMainWindow):
             return
 
         self.loadAllSavedAccounts()
-        self.set_current_account_placeholder_password()
 
         self.set_banner_image()
-        self.setWindowTitle(
-            self.config_manager.get_game_config(self.game_uuid).name
-        )
+        self.setWindowTitle(self.config_manager.get_game_config(self.game_uuid).name)
 
         # Setup btnSwitchGame for current game
         self.setup_switch_game_button()
