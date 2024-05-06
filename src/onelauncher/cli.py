@@ -25,8 +25,10 @@ from .addons.startup_script import StartupScript
 from .async_utils import AsyncHelper, app_cancel_scope
 from .config import ConfigFieldMetadata
 from .config_manager import (
+    ConfigFileError,
     ConfigFileParseError,
     ConfigManager,
+    WrongConfigVersionError,
     get_converter,
 )
 from .game_account_config import GameAccountConfig, GameAccountsConfig
@@ -314,7 +316,7 @@ def _complete_game_arg(incomplete: str) -> Iterator[str]:
     try:
         config_manager.verify_configs()
         game_uuids = tuple(str(uuid) for uuid in config_manager.get_game_uuids())
-    except ConfigFileParseError:
+    except ConfigFileError:
         game_uuids = ()
     for option in tuple(GameOptions) + game_uuids:
         if option.startswith(incomplete):
@@ -537,25 +539,39 @@ async def _main(entry: Callable[[], Awaitable[None]]) -> None:
         await entry()
 
 
-async def _start_ui(config_manager: ConfigManager, game_arg: str | None) -> None:
-    # Check before verifying configs, because the config manager will make a new config,
-    # if one doesn't exist.
-    program_config_exists = config_manager.program_config_path.exists()
-
+async def _start_ui(config_manager: ConfigManager, game_arg: str | None) -> None:  # noqa: PLR0911
     try:
         config_manager.verify_configs()
-    except ConfigFileParseError:
+    except ConfigFileError as e:
+        if (
+            isinstance(e, WrongConfigVersionError)
+            and e.config_file_version < e.config_class.get_config_version()
+        ):
+            return
+            # TODO: migration stuffs
+            return await _start_ui(config_manager=config_manager, game_arg=game_arg)
         logger.exception("")
         dialog = QtWidgets.QDialog()
         ui = Ui_errorDialog()
         ui.setupUi(dialog)  # type: ignore
-        ui.textLabel.setText("Error parsing config file:")
+        ui.textLabel.setText(e.msg)
         ui.detailsTextEdit.setPlainText(traceback.format_exc())
-        dialog.exec()
+        config_backup_path = config_manager.get_config_backup_path(
+            config_path=e.config_file_path
+        )
+        if config_backup_path.exists():
+            ui.buttonBox.addButton("Load Backup", ui.buttonBox.ButtonRole.AcceptRole)
+            # Replace config with backup, if the user clicks the "Load Backup" button
+            if dialog.exec() == dialog.DialogCode.Accepted:
+                e.config_file_path.unlink()
+                config_backup_path.rename(e.config_file_path)
+                return await _start_ui(config_manager=config_manager, game_arg=game_arg)
+        else:
+            dialog.exec()
         return
 
     # Run setup wizard
-    if not program_config_exists:
+    if not config_manager.program_config_path.exists():
         setup_wizard = SetupWizard(config_manager)
         if setup_wizard.exec() == QtWidgets.QDialog.DialogCode.Rejected:
             # Close program if the user left the setup wizard without finishing

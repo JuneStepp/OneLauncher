@@ -12,7 +12,8 @@ import cattrs
 import keyring
 import tomlkit
 from cattrs.preconf.tomlkit import make_converter
-from tomlkit.items import Table
+from packaging.version import InvalidVersion, Version
+from tomlkit.items import Comment, Table, Whitespace
 
 from .__about__ import __title__
 from .addons.startup_script import StartupScript
@@ -172,8 +173,39 @@ def _array_of_tables_to_tables(
     return final_dict
 
 
-class ConfigFileParseError(Exception):
+def get_toml_doc_config_version(document: tomlkit.TOMLDocument) -> Version | None:
+    for _key, val in document.body:
+        if isinstance(val, Whitespace):
+            continue
+        if not isinstance(val, Comment):
+            return None
+
+        if val.as_string().startswith("#:version "):
+            try:
+                return Version(val.as_string().split("#:version ")[1].strip())
+            except InvalidVersion:
+                continue
+    return None
+
+
+@attrs.frozen(kw_only=True)
+class ConfigFileError(Exception):
+    msg: str = "Config file error"
+    config_class: type[Config]
+    config_file_path: Path
+
+
+@attrs.frozen(kw_only=True)
+class ConfigFileParseError(ConfigFileError):
     """Error parsing config file"""
+
+    msg: str = "Error parsing config file"
+
+
+@attrs.frozen(kw_only=True)
+class WrongConfigVersionError(ConfigFileError):
+    msg: str = "Config file has wrong config version"
+    config_file_version: Version
 
 
 ConfigTypeVar = TypeVar("ConfigTypeVar", bound=Config)
@@ -198,13 +230,34 @@ def read_config_file(
     Raises:
         FileNotFoundError: Config file not found
         ConfigFileParseError: Error parsing config file
+        WrongConfigVersionError: Config file has wrong config version
     """
     try:
         unstructured_config: tomlkit.TOMLDocument = tomlkit.parse(
             config_file_path.read_text()
         )
     except tomlkit.exceptions.ParseError as e:
-        raise ConfigFileParseError("Error parsing config TOML") from e
+        raise ConfigFileParseError(
+            msg="Error parsing config TOML",
+            config_class=config_class,
+            config_file_path=config_file_path,
+        ) from e
+
+    config_file_version = get_toml_doc_config_version(unstructured_config)
+    if config_file_version is None:
+        raise ConfigFileParseError(
+            msg="Config has no version specified.",
+            config_class=config_class,
+            config_file_path=config_file_path,
+        )
+    elif config_file_version != config_class.get_config_version():
+        raise WrongConfigVersionError(
+            msg=f"Config file's version is too "
+            f"{'low' if config_file_version < config_class.get_config_version() else'high'}.",
+            config_class=config_class,
+            config_file_path=config_file_path,
+            config_file_version=config_file_version,
+        )
 
     preconverted_config = (
         preconverter(unstructured_config) if preconverter else unstructured_config
@@ -213,7 +266,11 @@ def read_config_file(
     try:
         return get_converter().structure(preconverted_config, config_class)
     except cattrs.ClassValidationError as e:
-        raise ConfigFileParseError("Error structuring config") from e
+        raise ConfigFileParseError(
+            msg="Error structuring config",
+            config_class=config_class,
+            config_file_path=config_file_path,
+        ) from e
 
 
 def update_config_file(
@@ -288,20 +345,20 @@ class ConfigManager:
 
         Raises:
             ConfigFileParseError: Error parsing a config file
+            WrongConfigVersionError: Config file has wrong config version
         """
         self.verified_game_uuids.clear()
 
-        # ConfigFileParseError is handled by caller
+        # ConfigFileParseError and WrongConfigVersionError are handled by caller
         self._read_program_config_file()
 
         # Verify game configs
         for game_uuid in self._get_game_uuids():
             # FileNotFoundError is handled by using known to exist UUIDs
-            # ConfigFileParseError is handled by caller
-
+            # ConfigFileParseError and WrongConfigVersionError are handled by caller
             self._read_game_config_file(game_uuid)
             try:
-                # ConfigFileParseError is handled by caller
+                # ConfigFileParseError and WrongConfigVersionError are handled by caller
                 self._read_game_accounts_config_file_full(game_uuid)
             except FileNotFoundError:
                 self.update_game_accounts_config_file(game_uuid=game_uuid, accounts=())
@@ -317,6 +374,10 @@ class ConfigManager:
 
     def get_game_accounts_config_path(self, game_uuid: UUID) -> Path:
         return self.get_game_config_dir(game_uuid) / "accounts.toml"
+
+    def get_config_backup_path(self, config_path: Path) -> Path:
+        """Get config backup file path"""
+        return config_path.with_suffix("".join([*config_path.suffixes, ".backup"]))
 
     def get_program_config(self) -> ProgramConfig:
         """Get merged program config object."""
@@ -335,6 +396,7 @@ class ConfigManager:
 
         Raises:
             ConfigFileParseError: Error parsing config file
+            WrongConfigVersionError: Config file has wrong config version
         """
         try:
             config = read_config_file(
@@ -359,7 +421,9 @@ class ConfigManager:
     def delete_program_config(self) -> None:
         """Delete program config"""
         self.program_config_path.unlink(missing_ok=True)
-        # Update the cache. Parse error is handled, because there is no file to parse.
+        # Update the cache.
+        # Parse error and config version errors are handled, because there is no file
+        # to parse.
         self._read_program_config_file()
 
     def get_game_uuids(self) -> tuple[UUID, ...]:
@@ -481,6 +545,7 @@ class ConfigManager:
         Raises:
             FileNotFoundError: Config file not found
             ConfigFileParseError: Error parsing config file
+            WrongConfigVersionError: Config file has wrong config version
         """
         config = read_config_file(
             config_class=GameConfig,
@@ -534,6 +599,7 @@ class ConfigManager:
         Raises:
             FileNotFoundError: Config file not found
             ConfigFileParseError: Error parsing config file
+            WrongConfigVersionError: Config file has wrong config version
         """
         config = read_config_file(
             config_class=GameAccountsConfig,
@@ -568,7 +634,7 @@ class ConfigManager:
         Replace contents of game accounts config file with `accounts`.
         """
         # Delete keyring info for any removed accounts
-        with suppress(FileNotFoundError, ConfigFileParseError):
+        with suppress(FileNotFoundError, ConfigFileError):
             existing_accounts = self._read_game_accounts_config_file_full(
                 game_uuid=game_uuid
             ).accounts
