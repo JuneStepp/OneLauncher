@@ -275,9 +275,12 @@ class MainWindow(QtWidgets.QMainWindow):
         ui.setupUi(dlgAbout)  # type: ignore
 
         ui.lblDescription.setText(__about__.__description__)
-        ui.lblRepoWebsite.setText(
-            f"<a href='{__about__.__project_url__}'>" f"{__about__.__project_url__}</a>"
-        )
+        if __about__.__project_url__:
+            ui.lblRepoWebsite.setText(
+                f"<a href='{__about__.__project_url__}'>" f"{__about__.__project_url__}</a>"
+            )
+        else:
+            ui.lblRepoWebsite.hide()
         ui.lblCopyright.setText(__about__.__copyright__)
         ui.lblVersion.setText(f"<b>Version:</b> {__about__.__version__}")
         ui.lblCopyrightHistory.setText(__about__.__copyright_history__)
@@ -908,10 +911,12 @@ async def check_for_update() -> None:
     """Notifies user if their copy of OneLauncher is out of date"""
     current_version = packaging.version.parse(__about__.__version__)
     repository_url = __about__.__project_url__
+    if not repository_url:
+        logger.warning("No repository URL available. Will not check for updates.")
+        return
     if "github.com" not in repository_url.lower():
         logger.warning(
-            "Repository URL set in Information.py is not "
-            "at github.com. The system for update notifications"
+            "Repository URL is not at github.com. The system for update notifications"
             " only supports this site."
         )
         return
