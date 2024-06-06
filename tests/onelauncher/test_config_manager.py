@@ -1,7 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from textwrap import dedent
 from typing import Any
-from zoneinfo import ZoneInfo
 
 import onelauncher.config_manager
 import pytest
@@ -70,7 +69,7 @@ test_val_types_params: list[tuple[dict[str, Any], str]] = [
                 hour=2,
                 minute=24,
                 second=19,
-                tzinfo=ZoneInfo("Asia/Bangkok"),
+                tzinfo=timezone(timedelta(hours=7)),
             )
         },
         "key = 2000-02-12T02:24:19+07:00\n",
