@@ -743,7 +743,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             ]:
                 author_folder = author_folders_plugin[0]
             else:
-                self.addLog("Plugin doesn't have an author folder with a .plugin file.")
+                self.addLog("Plugin doesn't have an author folder with a .plugin file")
                 return
         else:
             author_folder = author_folders[0]
@@ -817,7 +817,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         """
         existing_compendium_files = list(tmp_search_dir.glob("*.*compendium"))
         if len(existing_compendium_files) > 1:
-            self.addLog("Addon has multiple compendium files.")
+            self.addLog("Addon has multiple compendium files")
             return False
         elif len(existing_compendium_files) == 1:
             return existing_compendium_files[0]
@@ -1140,7 +1140,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
                 return compendium_file
 
-        raise KeyError(f"No DB entry for Interface ID {interface_id} found.")
+        raise KeyError(f"No DB entry for Interface ID {interface_id} found")
 
     def getInterfaceInfoUrl(self, download_url: str) -> str:
         """Replaces "download" with "info" in download url to make info url

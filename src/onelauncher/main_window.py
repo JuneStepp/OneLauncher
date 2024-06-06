@@ -728,7 +728,7 @@ class MainWindow(QtWidgets.QMainWindow):
         ).exists():
             self.AddLog(
                 "[E20] There is no game language data for "  # noqa: S608
-                f"{locale.display_name} installed "
+                f"{locale.display_name} installed. "
                 f"You may have to select {locale.display_name}"
                 " in the standard game launcher and wait for the data to download."
                 " The standard game launcher can be opened from the settings menu.",
@@ -801,7 +801,7 @@ class MainWindow(QtWidgets.QMainWindow):
             logger.exception("")
             # TODO: load anything else that can be, provide option to retry, and
             # don't lock up the whole UI
-            self.AddLog("Network error while fetching game services info.", True)
+            self.AddLog("Network error while fetching game services info", True)
             return
         except GLSServiceError:
             logger.exception("")
@@ -814,7 +814,7 @@ class MainWindow(QtWidgets.QMainWindow):
             )
             return
 
-        self.AddLog("Fetched game services info.", False)
+        self.AddLog("Fetched game services info", False)
 
         self.load_worlds_list(game_services_info)
         self.game_launcher_config = await self.get_game_launcher_config(
@@ -841,7 +841,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.cboWorld.addItem(world.name, userData=world)
 
         self.setCurrentAccountWorld()
-        self.AddLog("World list obtained.", False)
+        self.AddLog("World list obtained", False)
 
     async def get_game_launcher_config(
         self, game_launcher_config_url: str
@@ -854,7 +854,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return game_launcher_config
         except httpx.HTTPError:
             logger.exception("")
-            self.AddLog("Network error while retrieving game launcher config.", True)
+            self.AddLog("Network error while retrieving game launcher config", True)
             return None
         except GameLauncherConfigParseError:
             logger.exception("")
@@ -878,7 +878,7 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         except httpx.HTTPError:
             self.AddLog("Network error while downloading newsfeed", True)
-            logger.exception("Network error while downloading newsfeed.")
+            logger.exception("Network error while downloading newsfeed")
 
     def ClearLog(self) -> None:
         self.ui.txtStatus.setText("")
@@ -956,7 +956,7 @@ async def check_for_update() -> None:
         show_message_box_details_as_markdown(messageBox)
         messageBox.exec()
     else:
-        logger.info(f"{__about__.__title__} is up to date.")
+        logger.info(f"{__about__.__title__} is up to date")
 
 
 logger = logging.getLogger("main")

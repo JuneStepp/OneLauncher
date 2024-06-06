@@ -534,7 +534,7 @@ class ConfigManager:
         if not self.configs_are_verified:
             raise ConfigManagerNotSetupError("")
         if game_uuid not in self.verified_game_uuids:
-            raise ValueError(f"Game UUID: {game_uuid} has not been verified.")
+            raise ValueError(f"Game UUID: {game_uuid} has not been verified")
 
         return self._cached_game_configs[game_uuid]
 
@@ -583,7 +583,7 @@ class ConfigManager:
         if not self.configs_are_verified:
             raise ConfigManagerNotSetupError("")
         if game_uuid not in self.verified_game_uuids:
-            raise ValueError(f"Game UUID: {game_uuid} has not been verified.")
+            raise ValueError(f"Game UUID: {game_uuid} has not been verified")
 
         return self.get_merged_game_accounts_config(
             self._cached_game_accounts_configs[game_uuid]
@@ -623,7 +623,7 @@ class ConfigManager:
         if not self.configs_are_verified:
             raise ConfigManagerNotSetupError("")
         if game_uuid not in self.verified_game_uuids:
-            raise ValueError(f"Game UUID: {game_uuid} has not been verified.")
+            raise ValueError(f"Game UUID: {game_uuid} has not been verified")
 
         return self._cached_game_accounts_configs[game_uuid].accounts
 

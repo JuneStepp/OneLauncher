@@ -399,7 +399,7 @@ class SetupWizard(QtWidgets.QWizard):
             game_config = self.get_game_config_from_game_dir(game_dir)
             self.add_game(game_uuid=uuid4(), game_config=game_config, selected=True)
         except InvalidGameDirError:
-            show_warning_message("Not a valid game installation folder.", self)
+            show_warning_message("Not a valid game installation folder", self)
 
     def get_selected_game_items(self) -> list[QtWidgets.QListWidgetItem]:
         items = []

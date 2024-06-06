@@ -106,7 +106,7 @@ class StartGame(QtWidgets.QDialog):
                 '<font color="red">Game launch argument missing. '
                 "Please report this error if using a supported server.< /font >"
             )
-            logger.exception("Launch argument missing.")
+            logger.exception("Launch argument missing")
             self.reset_buttons()
             return None
 

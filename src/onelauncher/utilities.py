@@ -64,7 +64,7 @@ class CaseInsensitiveAbsolutePath(Path):
     def __new__(cls, *pathsegments: StrPath) -> Self:
         normal_path = Path(*pathsegments)
         if not normal_path.is_absolute():
-            raise ValueError("Path is not absolute.")
+            raise ValueError("Path is not absolute")
         path = cls._get_real_path_from_fully_case_insensitive_path(normal_path)
         return super().__new__(cls, path)
 

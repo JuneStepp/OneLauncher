@@ -373,7 +373,7 @@ class SettingsWindow(QtWidgets.QDialog):
 
         if not self.ui.gameNameLineEdit.hasAcceptableInput():
             show_warning_message(
-                "The game name you've chosen is already in use by another game.", self
+                "The game name you've chosen is already in use by another game", self
             )
             return
         self.config_manager.update_game_config_file(
