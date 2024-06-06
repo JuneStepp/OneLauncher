@@ -116,7 +116,9 @@ class GameLauncherLocalConfig:
         if not launcher_config_paths:
             return None
         try:
-            return cls.from_config_xml(launcher_config_paths[0].read_text())
+            return cls.from_config_xml(
+                launcher_config_paths[0].read_text(encoding="UTF-8")
+            )
         except GameLauncherLocalConfigParseError:
             return None
 

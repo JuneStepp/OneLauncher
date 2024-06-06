@@ -39,7 +39,7 @@ class OneLauncherLocale:
                 f"The language_info.toml file is missing for {data_dir.name}"
             )
 
-        settings_dict = tomllib.loads(file.read_text())
+        settings_dict = tomllib.loads(file.read_text(encoding="UTF-8"))
 
         display_name = settings_dict["display_name"]
         game_language_name = settings_dict["game_language_name"]

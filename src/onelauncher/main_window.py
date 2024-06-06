@@ -708,7 +708,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return False
         try:
             self.game_launcher_local_config = GameLauncherLocalConfig.from_config_xml(
-                launcher_config_paths[0].read_text()
+                launcher_config_paths[0].read_text(encoding="UTF-8")
             )
         except GameLauncherLocalConfigParseError:
             self.AddLog("Error parsing local launcher config", is_error=True)

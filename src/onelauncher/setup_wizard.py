@@ -337,7 +337,7 @@ class SetupWizard(QtWidgets.QWizard):
 
         try:
             launcher_config = GameLauncherLocalConfig.from_config_xml(
-                config_xml=launcher_config_paths[0].read_text()
+                config_xml=launcher_config_paths[0].read_text(encoding="UTF-8")
             )
         except GameLauncherLocalConfigParseError as e:
             raise InvalidGameDirError("") from e

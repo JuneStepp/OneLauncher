@@ -234,7 +234,7 @@ def read_config_file(
     """
     try:
         unstructured_config: tomlkit.TOMLDocument = tomlkit.parse(
-            config_file_path.read_text()
+            config_file_path.read_text(encoding="UTF-8")
         )
     except tomlkit.exceptions.ParseError as e:
         raise ConfigFileParseError(

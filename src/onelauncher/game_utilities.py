@@ -38,7 +38,7 @@ def find_game_dir_game_type(game_dir: CaseInsensitiveAbsolutePath) -> GameType:
     # Try determing game type from datacenter game name
     try:
         launcher_config = GameLauncherLocalConfig.from_config_xml(
-            launcher_config_path.read_text()
+            launcher_config_path.read_text(encoding="UTF-8")
         )
         return GameType(launcher_config.datacenter_game_name)
     except (GameLauncherLocalConfigParseError, ValueError) as e:
