@@ -326,10 +326,14 @@ class MainWindow(QtWidgets.QMainWindow):
             == GameType.DDO
             else GameType.DDO
         )
-        self.game_uuid = self.config_manager.get_games_sorted(
+        new_type_game_uuids = self.config_manager.get_games_sorted(
             sorting_mode=self.config_manager.get_program_config().games_sorting_mode,
             game_type=new_game_type,
-        )[0]
+        )
+        if not new_type_game_uuids:
+            self.AddLog(f"<font color='Khaki'>No {new_game_type} games found</font>")
+            return
+        self.game_uuid = new_type_game_uuids[0]
         await self.InitialSetup()
 
     async def game_switch_action_triggered(self, action: QtGui.QAction) -> None:
