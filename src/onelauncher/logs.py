@@ -1,9 +1,12 @@
 import logging
 import sys
+from functools import partial
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from platform import platform
 from types import TracebackType
+
+from packaging.version import Version
 
 from .__about__ import __title__, __version__
 from .config import platform_dirs
@@ -16,7 +19,19 @@ class Logger:
             logs_dir (Path): Directory to put log in.
             log_name (str): Name of log. Should not include file extension.
         """
-        self.logger = self.setup_logging(logs_dir, log_name)
+        setup_logging = partial(
+            self.setup_logging, logs_dir=logs_dir, log_name=log_name
+        )
+        if Version(__version__).is_devrelease:
+            self.logger = setup_logging(
+                file_logging_level=logging.INFO, stream_logging_level=logging.DEBUG
+            )
+        elif Version(__version__).is_prerelease:
+            self.logger = setup_logging(
+                file_logging_level=logging.DEBUG, stream_logging_level=logging.WARNING
+            )
+        else:
+            self.logger = setup_logging()
         self.log_basic_info()
 
     def handle_uncaught_exceptions(
