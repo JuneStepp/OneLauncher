@@ -111,6 +111,9 @@ docstring-code-format = true
 
 [tool.pytest.ini_options]
 addopts = ["--import-mode=importlib"]
+testpaths = [
+    "tests",
+]
 
 [tool.mypy]
 plugins = ["trio_typing.plugin", "onelauncher.mypy_plugin"]
