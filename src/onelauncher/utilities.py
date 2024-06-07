@@ -65,6 +65,9 @@ class CaseInsensitiveAbsolutePath(Path):
         normal_path = Path(*pathsegments)
         if not normal_path.is_absolute():
             raise ValueError("Path is not absolute")
+        # Windows filesystems are already case-insensitive
+        if os.name == "nt":
+            return super().__new__(cls, *pathsegments)
         path = cls._get_real_path_from_fully_case_insensitive_path(normal_path)
         return super().__new__(cls, path)
 
