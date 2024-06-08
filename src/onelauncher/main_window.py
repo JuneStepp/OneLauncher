@@ -334,7 +334,7 @@ class MainWindow(QtWidgets.QMainWindow):
             game_type=new_game_type,
         )
         if not new_type_game_uuids:
-            self.AddLog(f"<font color='Khaki'>No {new_game_type} games found</font>")
+            self.AddLog(f"<font color='#958e55'>No {new_game_type} games found</font>")
             return
         self.game_uuid = new_type_game_uuids[0]
         await self.InitialSetup()
@@ -350,7 +350,7 @@ class MainWindow(QtWidgets.QMainWindow):
             and self.ui.txtPassword.placeholderText() == ""
         ):
             self.AddLog(
-                '<font color="Khaki">Please enter account name and password</font>'
+                '<font color="#958e55">Please enter account name and password</font>'
             )
             return
 

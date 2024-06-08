@@ -87,7 +87,7 @@ class PatchWindow(QtWidgets.QDialog):
         # Make sure patch_client exists
         if not patch_client.exists():
             self.ui.txtLog.append(
-                f'<font color="Khaki">Patch client {patch_client} not found</font>'
+                f'<font color="Red">Patch client {patch_client} not found</font>'
             )
             logger.error(f"Patch client {patch_client} not found")
             return
