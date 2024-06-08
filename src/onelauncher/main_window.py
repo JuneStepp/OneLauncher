@@ -277,7 +277,8 @@ class MainWindow(QtWidgets.QMainWindow):
         ui.lblDescription.setText(__about__.__description__)
         if __about__.__project_url__:
             ui.lblRepoWebsite.setText(
-                f"<a href='{__about__.__project_url__}'>" f"{__about__.__project_url__}</a>"
+                f"<a href='{__about__.__project_url__}'>"
+                f"{__about__.__project_url__}</a>"
             )
         else:
             ui.lblRepoWebsite.hide()
@@ -690,7 +691,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def check_game_dir(self) -> bool:
         game_config = self.config_manager.get_game_config(self.game_uuid)
         if not game_config.game_directory.exists():
-            self.AddLog("[E13] Game directory not found", is_error=True)
+            self.AddLog("Game directory not found", is_error=True)
             return False
 
         with contextlib.suppress(InvalidGameDirError):
@@ -730,7 +731,7 @@ class MainWindow(QtWidgets.QMainWindow):
             game_config.game_directory / f"client_local_{locale.game_language_name}.dat"
         ).exists():
             self.AddLog(
-                "[E20] There is no game language data for "  # noqa: S608
+                "There is no game language data for "  # noqa: S608
                 f"{locale.display_name} installed. "
                 f"You may have to select {locale.display_name}"
                 " in the standard game launcher and wait for the data to download."
@@ -892,7 +893,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def AddLog(self, message: str, is_error: bool = False) -> None:
         for line in message.splitlines():
             # Make line red if it is an error
-            if line.startswith("[E") or is_error:
+            if is_error:
                 logger.error(line)
 
                 line = f'<font color="red">{message}</font>'
