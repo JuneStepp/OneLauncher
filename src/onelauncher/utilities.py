@@ -163,6 +163,9 @@ class CaseInsensitiveAbsolutePath(Path):
     def rglob(self, pattern: str) -> Generator[Self, None, None]:
         return super().rglob(self._get_case_insensitive_glob_pattern(pattern))
 
+    def relative_to(self, *other: StrPath) -> Path: # type: ignore[override]
+        return Path(self).relative_to(*other)
+
 
 class AppSettingsParseError(KeyError):
     """Config doesn't follow the appSettings format"""

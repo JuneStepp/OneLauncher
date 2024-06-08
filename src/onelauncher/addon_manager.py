@@ -782,11 +782,11 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
         # Make plugin and compendium file paths point to their new location
         plugin_files = [
-            self.data_folder_plugins / str(file).replace(str(tmp_dir), "").strip("/")
+            self.data_folder_plugins / file.relative_to(tmp_dir)
             for file in plugin_files
         ]
         compendium_files = [
-            self.data_folder_plugins / str(file).replace(str(tmp_dir), "").strip("/")
+            self.data_folder_plugins / file.relative_to(tmp_dir)
             for file in compendium_files
         ]
 
@@ -2309,17 +2309,14 @@ class AddonManagerWindow(QtWidgets.QDialog):
         ):
             if entry[0]:
                 script = entry[0].replace("\\", "/")
-                addon_data_folder_relative = Path(
-                    str(self.getAddonTypeDataFolderFromTable(table_local))
-                    .split(str(self.data_folder))[1]
-                    .strip("/\\")
-                )
-
+                addon_data_folder_relative = self.getAddonTypeDataFolderFromTable(
+                    table_local
+                ).relative_to(self.data_folder)
                 return addon_data_folder_relative / script
 
     def getAddonTypeDataFolderFromTable(
         self, table: QtWidgets.QTableWidget
-    ) -> CaseInsensitiveAbsolutePath | None:
+    ) -> CaseInsensitiveAbsolutePath:
         table_name = table.objectName()
         if "Plugins" in table_name:
             return self.data_folder_plugins
@@ -2328,7 +2325,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         elif "Music" in table_name:
             return self.data_folder_music
         else:
-            return None
+            raise ValueError("Addons table not recognized")
 
     def handleStartupScriptActivationPrompt(
         self, table: QtWidgets.QTableWidget, interface_ID: str
@@ -2361,7 +2358,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
                     attrs.evolve(game_config, addons=updated_addons_section),
                 )
 
-    def uninstallStartupScript(self, script: str, addon_data_folder: Path) -> None:
+    def uninstallStartupScript(self, script: str, addon_data_folder: CaseInsensitiveAbsolutePath) -> None:
         if script:
             script_path = addon_data_folder / (script.replace("\\", "/"))
 

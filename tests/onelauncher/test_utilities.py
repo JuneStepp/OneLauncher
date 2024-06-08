@@ -145,3 +145,19 @@ class TestCaseInsensitiveAbsolutePath:
             (CaseInsensitiveAbsolutePath(tmp_path) / "does_not_exist"),
             CaseInsensitiveAbsolutePath,
         )
+
+    def test_relative_to(self, tmp_path: Path) -> None:
+        assert CaseInsensitiveAbsolutePath(tmp_path / "somepath").relative_to(
+            CaseInsensitiveAbsolutePath(tmp_path)
+        ) == Path("somepath")
+
+    def test_relative_to_is_normal_path(self, tmp_path: Path) -> None:
+        """
+        `PurePath.relative_to` by its nature generates non-absolute paths.
+        Thus, `CaseInsenstivieAbsolutePath.relative_to` should a regular path
+        """
+        relative_to_path = CaseInsensitiveAbsolutePath(
+            tmp_path / "somepath"
+        ).relative_to(CaseInsensitiveAbsolutePath(tmp_path))
+        assert isinstance(relative_to_path, Path)
+        assert not isinstance(relative_to_path, CaseInsensitiveAbsolutePath)
