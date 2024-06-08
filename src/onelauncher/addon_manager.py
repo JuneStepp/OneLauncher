@@ -1393,7 +1393,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             else:
                 table = self.ui.tableSkinsInstalled
         elif self.ui.tabWidget.currentIndex() == 1:
-            if game_config.game_type == GameType.LOTRO:
+            if game_config.game_type == GameType.DDO:
                 table = self.ui.tableSkins
             else:
                 index_remote = self.ui.tabWidgetRemote.currentIndex()
