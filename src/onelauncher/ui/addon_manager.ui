@@ -1,803 +1,818 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
-    <class>winAddonManager</class>
-    <widget class="QDialog" name="winAddonManager">
-        <property name="windowModality">
-            <enum>Qt::ApplicationModal</enum>
+ <class>winAddonManager</class>
+ <widget class="QDialog" name="winAddonManager">
+  <property name="windowModality">
+   <enum>Qt::WindowModality::ApplicationModal</enum>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>720</width>
+    <height>400</height>
+   </rect>
+  </property>
+  <property name="font">
+   <font>
+    <family>Verdana</family>
+    <pointsize>12</pointsize>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
+  <widget class="QDialogButtonBox" name="btnBox">
+   <property name="geometry">
+    <rect>
+     <x>541</x>
+     <y>367</y>
+     <width>169</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="standardButtons">
+    <set>QDialogButtonBox::StandardButton::Close</set>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="txtSearchBar">
+   <property name="geometry">
+    <rect>
+     <x>260</x>
+     <y>17</y>
+     <width>371</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="placeholderText">
+    <string>Search here</string>
+   </property>
+   <property name="clearButtonEnabled">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QToolButton" name="btnAddons">
+   <property name="geometry">
+    <rect>
+     <x>650</x>
+     <y>12</y>
+     <width>52</width>
+     <height>36</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove addons&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="text">
+    <string>-</string>
+   </property>
+   <property name="popupMode">
+    <enum>QToolButton::ToolButtonPopupMode::MenuButtonPopup</enum>
+   </property>
+  </widget>
+  <widget class="QTabWidget" name="tabWidget">
+   <property name="geometry">
+    <rect>
+     <x>-4</x>
+     <y>29</y>
+     <width>731</width>
+     <height>331</height>
+    </rect>
+   </property>
+   <property name="currentIndex">
+    <number>0</number>
+   </property>
+   <widget class="QWidget" name="tabInstalled">
+    <attribute name="title">
+     <string>Installed</string>
+    </attribute>
+    <widget class="QTabWidget" name="tabWidgetInstalled">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>721</width>
+       <height>301</height>
+      </rect>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="tabPluginsInstalled">
+      <attribute name="title">
+       <string>Plugins</string>
+      </attribute>
+      <widget class="QTableWidget" name="tablePluginsInstalled">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>721</width>
+         <height>271</height>
+        </rect>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::Shape::NoFrame</enum>
+       </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+       </property>
+       <property name="dragEnabled">
+        <bool>false</bool>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::SelectionMode::MultiSelection</enum>
+       </property>
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+       </property>
+       <property name="sortingEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="cornerButtonEnabled">
+        <bool>true</bool>
+       </property>
+       <attribute name="horizontalHeaderVisible">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="horizontalHeaderCascadingSectionResizes">
+        <bool>false</bool>
+       </attribute>
+       <attribute name="horizontalHeaderStretchLastSection">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="verticalHeaderVisible">
+        <bool>false</bool>
+       </attribute>
+       <column>
+        <property name="text">
+         <string>ID</string>
         </property>
-        <property name="geometry">
-            <rect>
-                <x>0</x>
-                <y>0</y>
-                <width>720</width>
-                <height>400</height>
-            </rect>
+       </column>
+       <column>
+        <property name="text">
+         <string>Name</string>
         </property>
-        <property name="font">
-            <font>
-                <family>Verdana</family>
-                <pointsize>12</pointsize>
-            </font>
+       </column>
+       <column>
+        <property name="text">
+         <string>Category</string>
         </property>
-        <property name="windowTitle">
-            <string>MainWindow</string>
+       </column>
+       <column>
+        <property name="text">
+         <string>Version</string>
         </property>
-        <property name="modal">
-            <bool>true</bool>
+       </column>
+       <column>
+        <property name="text">
+         <string>Author</string>
         </property>
-        <widget class="QDialogButtonBox" name="btnBox">
-            <property name="geometry">
-                <rect>
-                    <x>541</x>
-                    <y>367</y>
-                    <width>169</width>
-                    <height>27</height>
-                </rect>
-            </property>
-            <property name="standardButtons">
-                <set>QDialogButtonBox::Close</set>
-            </property>
-        </widget>
-        <widget class="QLineEdit" name="txtSearchBar">
-            <property name="geometry">
-                <rect>
-                    <x>260</x>
-                    <y>17</y>
-                    <width>371</width>
-                    <height>27</height>
-                </rect>
-            </property>
-            <property name="placeholderText">
-                <string>Search here</string>
-            </property>
-            <property name="clearButtonEnabled">
-                <bool>true</bool>
-            </property>
-        </widget>
-        <widget class="QToolButton" name="btnAddons">
-            <property name="geometry">
-                <rect>
-                    <x>650</x>
-                    <y>12</y>
-                    <width>52</width>
-                    <height>36</height>
-                </rect>
-            </property>
-            <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove addons&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-                <string>-</string>
-            </property>
-            <property name="popupMode">
-                <enum>QToolButton::MenuButtonPopup</enum>
-            </property>
-        </widget>
-        <widget class="QTabWidget" name="tabWidget">
-            <property name="geometry">
-                <rect>
-                    <x>-4</x>
-                    <y>29</y>
-                    <width>731</width>
-                    <height>331</height>
-                </rect>
-            </property>
-            <property name="currentIndex">
-                <number>0</number>
-            </property>
-            <widget class="QWidget" name="tabInstalled">
-                <attribute name="title">
-                    <string>Installed</string>
-                </attribute>
-                <widget class="QTabWidget" name="tabWidgetInstalled">
-                    <property name="geometry">
-                        <rect>
-                            <x>0</x>
-                            <y>0</y>
-                            <width>721</width>
-                            <height>301</height>
-                        </rect>
-                    </property>
-                    <property name="currentIndex">
-                        <number>0</number>
-                    </property>
-                    <widget class="QWidget" name="tabPluginsInstalled">
-                        <attribute name="title">
-                            <string>Plugins</string>
-                        </attribute>
-                        <widget class="QTableWidget" name="tablePluginsInstalled">
-                            <property name="geometry">
-                                <rect>
-                                    <x>0</x>
-                                    <y>0</y>
-                                    <width>721</width>
-                                    <height>271</height>
-                                </rect>
-                            </property>
-                            <property name="frameShape">
-                                <enum>QFrame::NoFrame</enum>
-                            </property>
-                            <property name="sizeAdjustPolicy">
-                                <enum>QAbstractScrollArea::AdjustToContents</enum>
-                            </property>
-                            <property name="editTriggers">
-                                <set>QAbstractItemView::NoEditTriggers</set>
-                            </property>
-                            <property name="dragEnabled">
-                                <bool>false</bool>
-                            </property>
-                            <property name="selectionMode">
-                                <enum>QAbstractItemView::MultiSelection</enum>
-                            </property>
-                            <property name="selectionBehavior">
-                                <enum>QAbstractItemView::SelectRows</enum>
-                            </property>
-                            <property name="sortingEnabled">
-                                <bool>true</bool>
-                            </property>
-                            <property name="cornerButtonEnabled">
-                                <bool>true</bool>
-                            </property>
-                            <attribute name="horizontalHeaderVisible">
-                                <bool>true</bool>
-                            </attribute>
-                            <attribute name="horizontalHeaderCascadingSectionResizes">
-                                <bool>false</bool>
-                            </attribute>
-                            <attribute name="horizontalHeaderStretchLastSection">
-                                <bool>true</bool>
-                            </attribute>
-                            <attribute name="verticalHeaderVisible">
-                                <bool>false</bool>
-                            </attribute>
-                            <column>
-                                <property name="text">
-                                    <string>ID</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Name</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Category</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Version</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Author</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Latest Release</string>
-                                </property>
-                            </column>
-                        </widget>
-                    </widget>
-                    <widget class="QWidget" name="tabSkinsInstalled">
-                        <attribute name="title">
-                            <string>Skins</string>
-                        </attribute>
-                        <widget class="QTableWidget" name="tableSkinsInstalled">
-                            <property name="geometry">
-                                <rect>
-                                    <x>0</x>
-                                    <y>0</y>
-                                    <width>721</width>
-                                    <height>271</height>
-                                </rect>
-                            </property>
-                            <property name="frameShape">
-                                <enum>QFrame::NoFrame</enum>
-                            </property>
-                            <property name="sizeAdjustPolicy">
-                                <enum>QAbstractScrollArea::AdjustToContents</enum>
-                            </property>
-                            <property name="editTriggers">
-                                <set>QAbstractItemView::NoEditTriggers</set>
-                            </property>
-                            <property name="dragEnabled">
-                                <bool>false</bool>
-                            </property>
-                            <property name="selectionMode">
-                                <enum>QAbstractItemView::MultiSelection</enum>
-                            </property>
-                            <property name="selectionBehavior">
-                                <enum>QAbstractItemView::SelectRows</enum>
-                            </property>
-                            <property name="sortingEnabled">
-                                <bool>true</bool>
-                            </property>
-                            <property name="cornerButtonEnabled">
-                                <bool>true</bool>
-                            </property>
-                            <attribute name="horizontalHeaderVisible">
-                                <bool>true</bool>
-                            </attribute>
-                            <attribute name="horizontalHeaderCascadingSectionResizes">
-                                <bool>false</bool>
-                            </attribute>
-                            <attribute name="horizontalHeaderStretchLastSection">
-                                <bool>true</bool>
-                            </attribute>
-                            <attribute name="verticalHeaderVisible">
-                                <bool>false</bool>
-                            </attribute>
-                            <column>
-                                <property name="text">
-                                    <string>ID</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Name</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Category</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Version</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Author</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Latest Release</string>
-                                </property>
-                            </column>
-                        </widget>
-                    </widget>
-                    <widget class="QWidget" name="tabMusicInstalled">
-                        <attribute name="title">
-                            <string>Music</string>
-                        </attribute>
-                        <attribute name="toolTip">
-                            <string>ABC Files</string>
-                        </attribute>
-                        <widget class="QTableWidget" name="tableMusicInstalled">
-                            <property name="geometry">
-                                <rect>
-                                    <x>0</x>
-                                    <y>0</y>
-                                    <width>721</width>
-                                    <height>271</height>
-                                </rect>
-                            </property>
-                            <property name="frameShape">
-                                <enum>QFrame::NoFrame</enum>
-                            </property>
-                            <property name="sizeAdjustPolicy">
-                                <enum>QAbstractScrollArea::AdjustToContents</enum>
-                            </property>
-                            <property name="editTriggers">
-                                <set>QAbstractItemView::NoEditTriggers</set>
-                            </property>
-                            <property name="dragEnabled">
-                                <bool>false</bool>
-                            </property>
-                            <property name="selectionMode">
-                                <enum>QAbstractItemView::MultiSelection</enum>
-                            </property>
-                            <property name="selectionBehavior">
-                                <enum>QAbstractItemView::SelectRows</enum>
-                            </property>
-                            <property name="sortingEnabled">
-                                <bool>true</bool>
-                            </property>
-                            <property name="cornerButtonEnabled">
-                                <bool>true</bool>
-                            </property>
-                            <attribute name="horizontalHeaderVisible">
-                                <bool>true</bool>
-                            </attribute>
-                            <attribute name="horizontalHeaderCascadingSectionResizes">
-                                <bool>false</bool>
-                            </attribute>
-                            <attribute name="horizontalHeaderStretchLastSection">
-                                <bool>true</bool>
-                            </attribute>
-                            <attribute name="verticalHeaderVisible">
-                                <bool>false</bool>
-                            </attribute>
-                            <column>
-                                <property name="text">
-                                    <string>ID</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Name</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Category</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Version</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Author</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Latest Release</string>
-                                </property>
-                            </column>
-                        </widget>
-                    </widget>
-                </widget>
-            </widget>
-            <widget class="QWidget" name="tabFindMore">
-                <attribute name="title">
-                    <string>Find More</string>
-                </attribute>
-                <widget class="QTabWidget" name="tabWidgetRemote">
-                    <property name="geometry">
-                        <rect>
-                            <x>0</x>
-                            <y>0</y>
-                            <width>721</width>
-                            <height>301</height>
-                        </rect>
-                    </property>
-                    <property name="currentIndex">
-                        <number>0</number>
-                    </property>
-                    <widget class="QWidget" name="tabPlugins">
-                        <attribute name="title">
-                            <string>Plugins</string>
-                        </attribute>
-                        <widget class="QTableWidget" name="tablePlugins">
-                            <property name="geometry">
-                                <rect>
-                                    <x>0</x>
-                                    <y>0</y>
-                                    <width>721</width>
-                                    <height>271</height>
-                                </rect>
-                            </property>
-                            <property name="frameShape">
-                                <enum>QFrame::NoFrame</enum>
-                            </property>
-                            <property name="sizeAdjustPolicy">
-                                <enum>QAbstractScrollArea::AdjustToContents</enum>
-                            </property>
-                            <property name="editTriggers">
-                                <set>QAbstractItemView::NoEditTriggers</set>
-                            </property>
-                            <property name="dragEnabled">
-                                <bool>false</bool>
-                            </property>
-                            <property name="selectionMode">
-                                <enum>QAbstractItemView::MultiSelection</enum>
-                            </property>
-                            <property name="selectionBehavior">
-                                <enum>QAbstractItemView::SelectRows</enum>
-                            </property>
-                            <property name="sortingEnabled">
-                                <bool>true</bool>
-                            </property>
-                            <property name="cornerButtonEnabled">
-                                <bool>true</bool>
-                            </property>
-                            <attribute name="horizontalHeaderVisible">
-                                <bool>true</bool>
-                            </attribute>
-                            <attribute name="horizontalHeaderCascadingSectionResizes">
-                                <bool>false</bool>
-                            </attribute>
-                            <attribute name="horizontalHeaderStretchLastSection">
-                                <bool>true</bool>
-                            </attribute>
-                            <attribute name="verticalHeaderVisible">
-                                <bool>false</bool>
-                            </attribute>
-                            <column>
-                                <property name="text">
-                                    <string>ID</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Name</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Category</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Version</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Author</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Latest Release</string>
-                                </property>
-                            </column>
-                        </widget>
-                    </widget>
-                    <widget class="QWidget" name="tabSkins">
-                        <attribute name="title">
-                            <string>Skins</string>
-                        </attribute>
-                        <widget class="QTableWidget" name="tableSkins">
-                            <property name="geometry">
-                                <rect>
-                                    <x>0</x>
-                                    <y>0</y>
-                                    <width>721</width>
-                                    <height>271</height>
-                                </rect>
-                            </property>
-                            <property name="frameShape">
-                                <enum>QFrame::NoFrame</enum>
-                            </property>
-                            <property name="sizeAdjustPolicy">
-                                <enum>QAbstractScrollArea::AdjustToContents</enum>
-                            </property>
-                            <property name="editTriggers">
-                                <set>QAbstractItemView::NoEditTriggers</set>
-                            </property>
-                            <property name="dragEnabled">
-                                <bool>false</bool>
-                            </property>
-                            <property name="selectionMode">
-                                <enum>QAbstractItemView::MultiSelection</enum>
-                            </property>
-                            <property name="selectionBehavior">
-                                <enum>QAbstractItemView::SelectRows</enum>
-                            </property>
-                            <property name="sortingEnabled">
-                                <bool>true</bool>
-                            </property>
-                            <property name="cornerButtonEnabled">
-                                <bool>true</bool>
-                            </property>
-                            <attribute name="horizontalHeaderVisible">
-                                <bool>true</bool>
-                            </attribute>
-                            <attribute name="horizontalHeaderCascadingSectionResizes">
-                                <bool>false</bool>
-                            </attribute>
-                            <attribute name="horizontalHeaderStretchLastSection">
-                                <bool>true</bool>
-                            </attribute>
-                            <attribute name="verticalHeaderVisible">
-                                <bool>false</bool>
-                            </attribute>
-                            <column>
-                                <property name="text">
-                                    <string>ID</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Name</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Category</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Version</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Author</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Latest Release</string>
-                                </property>
-                            </column>
-                        </widget>
-                    </widget>
-                    <widget class="QWidget" name="tabMusic">
-                        <attribute name="title">
-                            <string>Music</string>
-                        </attribute>
-                        <attribute name="toolTip">
-                            <string>ABC Files</string>
-                        </attribute>
-                        <widget class="QTableWidget" name="tableMusic">
-                            <property name="geometry">
-                                <rect>
-                                    <x>0</x>
-                                    <y>0</y>
-                                    <width>721</width>
-                                    <height>271</height>
-                                </rect>
-                            </property>
-                            <property name="frameShape">
-                                <enum>QFrame::NoFrame</enum>
-                            </property>
-                            <property name="sizeAdjustPolicy">
-                                <enum>QAbstractScrollArea::AdjustToContents</enum>
-                            </property>
-                            <property name="editTriggers">
-                                <set>QAbstractItemView::NoEditTriggers</set>
-                            </property>
-                            <property name="dragEnabled">
-                                <bool>false</bool>
-                            </property>
-                            <property name="selectionMode">
-                                <enum>QAbstractItemView::MultiSelection</enum>
-                            </property>
-                            <property name="selectionBehavior">
-                                <enum>QAbstractItemView::SelectRows</enum>
-                            </property>
-                            <property name="sortingEnabled">
-                                <bool>true</bool>
-                            </property>
-                            <property name="cornerButtonEnabled">
-                                <bool>true</bool>
-                            </property>
-                            <attribute name="horizontalHeaderVisible">
-                                <bool>true</bool>
-                            </attribute>
-                            <attribute name="horizontalHeaderCascadingSectionResizes">
-                                <bool>false</bool>
-                            </attribute>
-                            <attribute name="horizontalHeaderStretchLastSection">
-                                <bool>true</bool>
-                            </attribute>
-                            <attribute name="verticalHeaderVisible">
-                                <bool>false</bool>
-                            </attribute>
-                            <column>
-                                <property name="text">
-                                    <string>ID</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Name</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Category</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Version</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Author</string>
-                                </property>
-                            </column>
-                            <column>
-                                <property name="text">
-                                    <string>Latest Release</string>
-                                </property>
-                            </column>
-                        </widget>
-                    </widget>
-                </widget>
-            </widget>
-        </widget>
-        <widget class="QProgressBar" name="progressBar">
-            <property name="geometry">
-                <rect>
-                    <x>12</x>
-                    <y>369</y>
-                    <width>441</width>
-                    <height>23</height>
-                </rect>
-            </property>
-            <property name="value">
-                <number>0</number>
-            </property>
-            <property name="textVisible">
-                <bool>false</bool>
-            </property>
-        </widget>
-        <widget class="QLabel" name="lblErrors">
-            <property name="geometry">
-                <rect>
-                    <x>467</x>
-                    <y>370</y>
-                    <width>81</width>
-                    <height>21</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>Errors: 0</string>
-            </property>
-        </widget>
-        <widget class="QToolButton" name="btnLog">
-            <property name="geometry">
-                <rect>
-                    <x>550</x>
-                    <y>369</y>
-                    <width>51</width>
-                    <height>24</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>Log</string>
-            </property>
-            <property name="flat" stdset="0">
-                <bool>true</bool>
-            </property>
-        </widget>
-        <widget class="QTextEdit" name="txtLog">
-            <property name="enabled">
-                <bool>true</bool>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>10</x>
-                    <y>10</y>
-                    <width>701</width>
-                    <height>341</height>
-                </rect>
-            </property>
-            <property name="undoRedoEnabled">
-                <bool>false</bool>
-            </property>
-            <property name="readOnly">
-                <bool>true</bool>
-            </property>
-        </widget>
-        <widget class="QToolButton" name="btnCheckForUpdates">
-            <property name="geometry">
-                <rect>
-                    <x>684</x>
-                    <y>66</y>
-                    <width>23</width>
-                    <height>20</height>
-                </rect>
-            </property>
-            <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check for updates&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-                <string/>
-            </property>
-            <property name="popupMode">
-                <enum>QToolButton::DelayedPopup</enum>
-            </property>
-            <property name="autoRaise">
-                <bool>false</bool>
-            </property>
-        </widget>
-        <widget class="QPushButton" name="btnUpdateAll">
-            <property name="geometry">
-                <rect>
-                    <x>576</x>
-                    <y>67</y>
-                    <width>97</width>
-                    <height>18</height>
-                </rect>
-            </property>
-            <property name="toolTip">
-                <string>Update all addons</string>
-            </property>
-            <property name="text">
-                <string>Update All</string>
-            </property>
-        </widget>
-        <action name="actionAddonImport">
-            <property name="text">
-                <string>Import Addons</string>
-            </property>
-            <property name="toolTip">
-                <string>Import addons from files/archives</string>
-            </property>
-            <property name="shortcut">
-                <string>Ctrl+I</string>
-            </property>
-        </action>
-        <action name="actionShowOnLotrointerface">
-            <property name="text">
-                <string>Show on lotrointerface.com</string>
-            </property>
-        </action>
-        <action name="actionShowSelectedOnLotrointerface">
-            <property name="text">
-                <string>Show selected addons on lotrointerface.com</string>
-            </property>
-        </action>
-        <action name="actionInstallAddon">
-            <property name="text">
-                <string>Install</string>
-            </property>
-        </action>
-        <action name="actionUninstallAddon">
-            <property name="text">
-                <string>Uninstall</string>
-            </property>
-        </action>
-        <action name="actionShowAddonInFileManager">
-            <property name="text">
-                <string>Show in file manager</string>
-            </property>
-        </action>
-        <action name="actionShowPluginsFolderInFileManager">
-            <property name="text">
-                <string>Show plugins folder in file manager</string>
-            </property>
-        </action>
-        <action name="actionShowSkinsFolderInFileManager">
-            <property name="text">
-                <string>Show skins folder in file manager</string>
-            </property>
-        </action>
-        <action name="actionShowMusicFolderInFileManager">
-            <property name="text">
-                <string>Show music folder in file manager</string>
-            </property>
-        </action>
-        <action name="actionUpdateAllSelectedAddons">
-            <property name="text">
-                <string>Update all selected addons</string>
-            </property>
-        </action>
-        <action name="actionUpdateAddon">
-            <property name="text">
-                <string>Update</string>
-            </property>
-        </action>
-        <action name="actionEnableStartupScript">
-            <property name="text">
-                <string>Enable startup script</string>
-            </property>
-        </action>
-        <action name="actionDisableStartupScript">
-            <property name="text">
-                <string>Disable startup script</string>
-            </property>
-        </action>
-        <zorder>btnBox</zorder>
-        <zorder>tabWidget</zorder>
-        <zorder>txtSearchBar</zorder>
-        <zorder>btnAddons</zorder>
-        <zorder>progressBar</zorder>
-        <zorder>lblErrors</zorder>
-        <zorder>btnLog</zorder>
-        <zorder>btnCheckForUpdates</zorder>
-        <zorder>btnUpdateAll</zorder>
-        <zorder>txtLog</zorder>
+       </column>
+       <column>
+        <property name="text">
+         <string>Latest Release</string>
+        </property>
+       </column>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="tabSkinsInstalled">
+      <attribute name="title">
+       <string>Skins</string>
+      </attribute>
+      <widget class="QTableWidget" name="tableSkinsInstalled">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>721</width>
+         <height>271</height>
+        </rect>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::Shape::NoFrame</enum>
+       </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+       </property>
+       <property name="dragEnabled">
+        <bool>false</bool>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::SelectionMode::MultiSelection</enum>
+       </property>
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+       </property>
+       <property name="sortingEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="cornerButtonEnabled">
+        <bool>true</bool>
+       </property>
+       <attribute name="horizontalHeaderVisible">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="horizontalHeaderCascadingSectionResizes">
+        <bool>false</bool>
+       </attribute>
+       <attribute name="horizontalHeaderStretchLastSection">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="verticalHeaderVisible">
+        <bool>false</bool>
+       </attribute>
+       <column>
+        <property name="text">
+         <string>ID</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Name</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Category</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Version</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Author</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Latest Release</string>
+        </property>
+       </column>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="tabMusicInstalled">
+      <attribute name="title">
+       <string>Music</string>
+      </attribute>
+      <attribute name="toolTip">
+       <string>ABC Files</string>
+      </attribute>
+      <widget class="QTableWidget" name="tableMusicInstalled">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>721</width>
+         <height>271</height>
+        </rect>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::Shape::NoFrame</enum>
+       </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+       </property>
+       <property name="dragEnabled">
+        <bool>false</bool>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::SelectionMode::MultiSelection</enum>
+       </property>
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+       </property>
+       <property name="sortingEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="cornerButtonEnabled">
+        <bool>true</bool>
+       </property>
+       <attribute name="horizontalHeaderVisible">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="horizontalHeaderCascadingSectionResizes">
+        <bool>false</bool>
+       </attribute>
+       <attribute name="horizontalHeaderStretchLastSection">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="verticalHeaderVisible">
+        <bool>false</bool>
+       </attribute>
+       <column>
+        <property name="text">
+         <string>ID</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Name</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Category</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Version</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Author</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Latest Release</string>
+        </property>
+       </column>
+      </widget>
+     </widget>
     </widget>
-    <resources/>
-    <connections/>
+   </widget>
+   <widget class="QWidget" name="tabFindMore">
+    <attribute name="title">
+     <string>Find More</string>
+    </attribute>
+    <widget class="QTabWidget" name="tabWidgetRemote">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>721</width>
+       <height>301</height>
+      </rect>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="tabPlugins">
+      <attribute name="title">
+       <string>Plugins</string>
+      </attribute>
+      <widget class="QTableWidget" name="tablePlugins">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>721</width>
+         <height>271</height>
+        </rect>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::Shape::NoFrame</enum>
+       </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+       </property>
+       <property name="dragEnabled">
+        <bool>false</bool>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::SelectionMode::MultiSelection</enum>
+       </property>
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+       </property>
+       <property name="sortingEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="cornerButtonEnabled">
+        <bool>true</bool>
+       </property>
+       <attribute name="horizontalHeaderVisible">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="horizontalHeaderCascadingSectionResizes">
+        <bool>false</bool>
+       </attribute>
+       <attribute name="horizontalHeaderStretchLastSection">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="verticalHeaderVisible">
+        <bool>false</bool>
+       </attribute>
+       <column>
+        <property name="text">
+         <string>ID</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Name</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Category</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Version</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Author</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Latest Release</string>
+        </property>
+       </column>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="tabSkins">
+      <attribute name="title">
+       <string>Skins</string>
+      </attribute>
+      <widget class="QTableWidget" name="tableSkins">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>721</width>
+         <height>271</height>
+        </rect>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::Shape::NoFrame</enum>
+       </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+       </property>
+       <property name="dragEnabled">
+        <bool>false</bool>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::SelectionMode::MultiSelection</enum>
+       </property>
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+       </property>
+       <property name="sortingEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="cornerButtonEnabled">
+        <bool>true</bool>
+       </property>
+       <attribute name="horizontalHeaderVisible">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="horizontalHeaderCascadingSectionResizes">
+        <bool>false</bool>
+       </attribute>
+       <attribute name="horizontalHeaderStretchLastSection">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="verticalHeaderVisible">
+        <bool>false</bool>
+       </attribute>
+       <column>
+        <property name="text">
+         <string>ID</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Name</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Category</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Version</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Author</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Latest Release</string>
+        </property>
+       </column>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="tabMusic">
+      <attribute name="title">
+       <string>Music</string>
+      </attribute>
+      <attribute name="toolTip">
+       <string>ABC Files</string>
+      </attribute>
+      <widget class="QTableWidget" name="tableMusic">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>721</width>
+         <height>271</height>
+        </rect>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::Shape::NoFrame</enum>
+       </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+       </property>
+       <property name="dragEnabled">
+        <bool>false</bool>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::SelectionMode::MultiSelection</enum>
+       </property>
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+       </property>
+       <property name="sortingEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="cornerButtonEnabled">
+        <bool>true</bool>
+       </property>
+       <attribute name="horizontalHeaderVisible">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="horizontalHeaderCascadingSectionResizes">
+        <bool>false</bool>
+       </attribute>
+       <attribute name="horizontalHeaderStretchLastSection">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="verticalHeaderVisible">
+        <bool>false</bool>
+       </attribute>
+       <column>
+        <property name="text">
+         <string>ID</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Name</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Category</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Version</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Author</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Latest Release</string>
+        </property>
+       </column>
+      </widget>
+     </widget>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QProgressBar" name="progressBar">
+   <property name="geometry">
+    <rect>
+     <x>12</x>
+     <y>369</y>
+     <width>441</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="value">
+    <number>0</number>
+   </property>
+   <property name="textVisible">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lblErrors">
+   <property name="geometry">
+    <rect>
+     <x>467</x>
+     <y>370</y>
+     <width>81</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Errors: 0</string>
+   </property>
+  </widget>
+  <widget class="QToolButton" name="btnLog">
+   <property name="geometry">
+    <rect>
+     <x>550</x>
+     <y>369</y>
+     <width>51</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Log</string>
+   </property>
+   <property name="flat" stdset="0">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QTextEdit" name="txtLog">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>701</width>
+     <height>341</height>
+    </rect>
+   </property>
+   <property name="undoRedoEnabled">
+    <bool>false</bool>
+   </property>
+   <property name="readOnly">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QWidget" name="widget" native="true">
+   <property name="geometry">
+    <rect>
+     <x>530</x>
+     <y>55</y>
+     <width>181</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <widget class="QWidget" name="layoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>8</x>
+      <y>10</y>
+      <width>161</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="btnUpdateAll">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="toolTip">
+        <string>Update all addons</string>
+       </property>
+       <property name="text">
+        <string>Update All</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="btnCheckForUpdates">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check for updates&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="popupMode">
+        <enum>QToolButton::ToolButtonPopupMode::DelayedPopup</enum>
+       </property>
+       <property name="autoRaise">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <action name="actionAddonImport">
+   <property name="text">
+    <string>Import Addons</string>
+   </property>
+   <property name="toolTip">
+    <string>Import addons from files/archives</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="actionShowOnLotrointerface">
+   <property name="text">
+    <string>Show on lotrointerface.com</string>
+   </property>
+  </action>
+  <action name="actionShowSelectedOnLotrointerface">
+   <property name="text">
+    <string>Show selected addons on lotrointerface.com</string>
+   </property>
+  </action>
+  <action name="actionInstallAddon">
+   <property name="text">
+    <string>Install</string>
+   </property>
+  </action>
+  <action name="actionUninstallAddon">
+   <property name="text">
+    <string>Uninstall</string>
+   </property>
+  </action>
+  <action name="actionShowAddonInFileManager">
+   <property name="text">
+    <string>Show in file manager</string>
+   </property>
+  </action>
+  <action name="actionShowPluginsFolderInFileManager">
+   <property name="text">
+    <string>Show plugins folder in file manager</string>
+   </property>
+  </action>
+  <action name="actionShowSkinsFolderInFileManager">
+   <property name="text">
+    <string>Show skins folder in file manager</string>
+   </property>
+  </action>
+  <action name="actionShowMusicFolderInFileManager">
+   <property name="text">
+    <string>Show music folder in file manager</string>
+   </property>
+  </action>
+  <action name="actionUpdateAllSelectedAddons">
+   <property name="text">
+    <string>Update all selected addons</string>
+   </property>
+  </action>
+  <action name="actionUpdateAddon">
+   <property name="text">
+    <string>Update</string>
+   </property>
+  </action>
+  <action name="actionEnableStartupScript">
+   <property name="text">
+    <string>Enable startup script</string>
+   </property>
+  </action>
+  <action name="actionDisableStartupScript">
+   <property name="text">
+    <string>Disable startup script</string>
+   </property>
+  </action>
+  <zorder>btnBox</zorder>
+  <zorder>tabWidget</zorder>
+  <zorder>txtSearchBar</zorder>
+  <zorder>btnAddons</zorder>
+  <zorder>progressBar</zorder>
+  <zorder>lblErrors</zorder>
+  <zorder>btnLog</zorder>
+  <zorder>widget</zorder>
+  <zorder>txtLog</zorder>
+ </widget>
+ <resources/>
+ <connections/>
 </ui>
