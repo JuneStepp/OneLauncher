@@ -562,6 +562,8 @@ class ConfigManager:
         game_config_path.parent.mkdir(exist_ok=True)
         update_config_file(config=config, config_file_path=game_config_path)
         if game_uuid not in self.verified_game_uuids:
+            # Veriefed game UUIDs are expected to have an accounts config file
+            self.update_game_accounts_config_file(game_uuid=game_uuid, accounts=())
             self.verified_game_uuids.append(game_uuid)
         self._cached_game_configs[game_uuid] = config
 
