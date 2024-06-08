@@ -107,6 +107,9 @@ class SetupWizard(QtWidgets.QWizard):
         self.ui = Ui_Wizard()
         self.ui.setupUi(self)  # type: ignore
         self.setWindowTitle("Setup Wizard")
+        # As of PySide 6.1, other styles don't have right spacing or work with the dark
+        # theme on Windows. Sticking with this known look on all platforms for now.
+        self.setWizardStyle(self.WizardStyle.ClassicStyle)
 
         self.ui.gamesDiscoveryStatusLabel.hide()
 
