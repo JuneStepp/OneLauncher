@@ -28,6 +28,7 @@
 ###########################################################################
 import logging
 import lzma
+import os
 import tarfile
 from pathlib import Path
 from shutil import move, rmtree
@@ -288,6 +289,9 @@ def edit_qprocess_to_use_wine(
     qprocess: QtCore.QProcess, wine_config: WineConfigSection
 ) -> None:
     """Reconfigures QProcess to use WINE. The program and arguments must be pre-set!"""
+    if os.name == "nt":
+        logger.warning("Attempt to edit QProcess to use WINE on Windows. No changes were made.")
+        return
     processEnvironment = QtCore.QProcessEnvironment.systemEnvironment()
 
     if wine_config.builtin_prefix_enabled:

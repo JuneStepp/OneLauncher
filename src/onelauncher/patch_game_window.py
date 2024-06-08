@@ -132,7 +132,8 @@ class PatchWindow(QtWidgets.QDialog):
         if game_config.high_res_enabled:
             arguments.append("--highres")
         self.process.setArguments(arguments)
-        edit_qprocess_to_use_wine(qprocess=self.process, wine_config=game_config.wine)
+        if os.name != "nt":
+            edit_qprocess_to_use_wine(qprocess=self.process, wine_config=game_config.wine)
 
         # Arguments have to be gotten from self.process, because
         # they mey have been changed by edit_qprocess_to_use_wine().

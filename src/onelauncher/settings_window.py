@@ -286,7 +286,8 @@ class SettingsWindow(QtWidgets.QDialog):
         process.setProgram(str(launcher_path))
         if disable_patching:
             process.setArguments(["-skiprawdownload", "-disablepatch"])
-        edit_qprocess_to_use_wine(qprocess=process, wine_config=game_config.wine)
+        if os.name != "nt":
+            edit_qprocess_to_use_wine(qprocess=process, wine_config=game_config.wine)
         process.startDetached()
 
     def choose_game_dir(self) -> None:
