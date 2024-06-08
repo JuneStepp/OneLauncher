@@ -7,6 +7,7 @@ from io import StringIO
 import feedparser
 from babel import Locale
 from babel.dates import format_datetime
+from PySide6 import QtCore, QtWidgets
 
 from .httpx_client import get_httpx_client
 
@@ -61,22 +62,27 @@ def newsfeed_xml_to_html(
             date = ""
         entry_url = entry.get("link", "")
 
+        # Make sure description doesn't have extra padding
+        description = description.strip()
+        description = description.removeprefix("<p>")
+        description = description.removesuffix("</p>")
+
+        qapp: QtWidgets.QApplication = qApp  # type: ignore[name-defined]  # noqa: F821
         entries_html += f"""
         <div>
-            <a href="{entry_url}" style="text-decoration:none">
-                <font color="gold">
-                    <div>{title}</div>
-                </font>
-            </a>
-            <small>
-                <i>
-                    <div align="right">{date}</div>
-                </i>
+            <h4 style="margin: 0; margin-bottom: 0.2em; font-weight: 600">
+                <a href="{entry_url}" style="color: {"#ffd100" if qapp.styleHints().colorScheme() == QtCore.Qt.ColorScheme.Dark else "#be9b00"}; text-decoration: none">
+                    {title}
+                </a>
+            </h4>
+            
+            <small align="right">
+                <i>{date}</i>
             </small>
 
-            <div><p>{description}</p></div>
+            <p style="margin: 0; margin-top:0.25em">{description}</p>
         </div>
-        <hr>
+        <hr style="margin: 0; margin-top: 0.35em"/>
         """
 
     feed_url = feed_dict.feed.get("link") or original_feed_url
