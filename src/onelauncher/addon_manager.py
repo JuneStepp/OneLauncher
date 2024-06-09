@@ -30,6 +30,7 @@ import sqlite3
 import urllib
 import zipfile
 from collections.abc import Callable, Iterator, Sequence
+from functools import partial
 from pathlib import Path
 from shutil import copy, copytree, move, rmtree
 from tempfile import TemporaryDirectory
@@ -165,12 +166,6 @@ class AddonManagerWindow(QtWidgets.QDialog):
         self.installed_addons_color = QtGui.QColor()
         self.installed_addons_color.setRgb(63, 73, 83)
 
-        self.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.contextMenuRequested)
-        self.ui.actionShowOnLotrointerface.triggered.connect(
-            self.actionShowOnLotrointerfaceSelected
-        )
-
         self.ui.btnBox.rejected.connect(self.btnBoxActivated)
 
         self.btnAddonsMenu = QtWidgets.QMenu()
@@ -239,13 +234,21 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
         for table_name in self.TABLE_LIST[:-2]:
             # Gets callable form from the string
-            table = getattr(self.ui, table_name)
+            table: QtWidgets.QTableWidget = getattr(self.ui, table_name)
 
             # Hides ID column
             table.hideColumn(0)
 
             # Sort tables by addon name
             table.sortItems(1)
+
+            table.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
+            table.customContextMenuRequested.connect(
+                partial(self.contextMenuRequested, table=table)
+            )
+        self.ui.actionShowOnLotrointerface.triggered.connect(
+            self.actionShowOnLotrointerfaceSelected
+        )
 
         self.openDB()
 
@@ -1780,78 +1783,66 @@ class AddonManagerWindow(QtWidgets.QDialog):
         self.exec()
         self.closeDB()
 
-    def contextMenuRequested(self, cursor_position: QtCore.QPoint) -> None:
-        global_cursor_position = self.mapToGlobal(cursor_position)
-
-        # It is not a local variable, because of garbage collection
-        self.contextMenu = self.getContextMenu(global_cursor_position)
-        if self.contextMenu:
-            self.contextMenu.popup(global_cursor_position)
-
-    def getContextMenu(
-        self, global_cursor_position: QtCore.QPoint
-    ) -> QtWidgets.QMenu | None:
+    def contextMenuRequested(
+        self, cursor_position: QtCore.QPoint, table: QtWidgets.QTableWidget
+    ) -> None:
+        self.context_menu_selected_table = table
+        selected_item = self.context_menu_selected_table.itemAt(cursor_position)
+        if not selected_item:
+            self.contextMenu = None
+            return
+        self.context_menu_selected_row = selected_item.row()
         menu = QtWidgets.QMenu()
 
-        qapp: QtWidgets.QApplication = qApp  # type: ignore[name-defined]  # noqa: F821
-        selected_widget = qapp.widgetAt(global_cursor_position)
+        # If addon has online page
+        self.context_menu_selected_interface_ID = self.getTableRowInterfaceID(
+            table=self.context_menu_selected_table,
+            row=self.context_menu_selected_row,
+        )
+        if self.context_menu_selected_interface_ID:
+            menu.addAction(self.ui.actionShowOnLotrointerface)
 
-        parent_widget = selected_widget.parent()
-        if isinstance(
-            parent_widget, QtWidgets.QTableWidget
-        ) and parent_widget.objectName().startswith("table"):
-            self.context_menu_selected_table = parent_widget
-            if selected_item := self.context_menu_selected_table.itemAt(
-                selected_widget.mapFromGlobal(global_cursor_position)
-            ):
-                self.context_menu_selected_row = selected_item.row()
+        # If addon is installed
+        if (
+            self.context_menu_selected_table.objectName().endswith("Installed")
+            or selected_item.background().color() == self.installed_addons_color
+        ):
+            menu.addAction(self.ui.actionUninstallAddon)
+            menu.addAction(self.ui.actionShowAddonInFileManager)
+        else:
+            menu.addAction(self.ui.actionInstallAddon)
 
-                # If addon has online page
-                self.context_menu_selected_interface_ID = self.getTableRowInterfaceID(
-                    self.context_menu_selected_table, self.context_menu_selected_row
-                )
-                if self.context_menu_selected_interface_ID:
-                    menu.addAction(self.ui.actionShowOnLotrointerface)
+        # If addon has a new version available
+        version_item = self.context_menu_selected_table.item(
+            self.context_menu_selected_row, 3
+        )
+        version_color = version_item.foreground().color()
+        if version_color in [QtGui.QColor("crimson"), QtGui.QColor("green")]:
+            menu.addAction(self.ui.actionUpdateAddon)
 
-                # If addon is installed
-                if (
-                    self.context_menu_selected_table.objectName().endswith("Installed")
-                    or selected_item.background().color() == self.installed_addons_color
-                ):
-                    menu.addAction(self.ui.actionUninstallAddon)
-                    menu.addAction(self.ui.actionShowAddonInFileManager)
+        # If addon has a statup script
+        if self.context_menu_selected_interface_ID:
+            relative_script_path = self.getRelativeStartupScriptFromInterfaceID(
+                table=self.context_menu_selected_table,
+                interface_ID=self.context_menu_selected_interface_ID,
+            )
+            if relative_script_path:
+                # If startup script is enabled
+                relative_script_paths = [
+                    script.relative_path
+                    for script in self.config_manager.read_game_config_file(
+                        self.game_uuid
+                    ).addons.enabled_startup_scripts
+                ]
+                if relative_script_path in relative_script_paths:
+                    menu.addAction(self.ui.actionDisableStartupScript)
                 else:
-                    menu.addAction(self.ui.actionInstallAddon)
+                    menu.addAction(self.ui.actionEnableStartupScript)
 
-                # If addon has a new version available
-                version_item = self.context_menu_selected_table.item(
-                    self.context_menu_selected_row, 3
-                )
-                version_color = version_item.foreground().color()
-                if version_color in [QtGui.QColor("crimson"), QtGui.QColor("green")]:
-                    menu.addAction(self.ui.actionUpdateAddon)
-
-                # If addon has a statup script
-                if self.context_menu_selected_interface_ID:
-                    relative_script_path = self.getRelativeStartupScriptFromInterfaceID(
-                        self.context_menu_selected_table,
-                        self.context_menu_selected_interface_ID,
-                    )
-                    if relative_script_path:
-                        # If startup script is enabled
-                        relative_script_paths = [
-                            script.relative_path
-                            for script in self.config_manager.read_game_config_file(
-                                self.game_uuid
-                            ).addons.enabled_startup_scripts
-                        ]
-                        if relative_script_path in relative_script_paths:
-                            menu.addAction(self.ui.actionDisableStartupScript)
-                        else:
-                            menu.addAction(self.ui.actionEnableStartupScript)
-
-        # Only return menu if something has been added to it
-        return None if menu.isEmpty() else menu
+        # It is not a local variable, because of garbage collection
+        self.contextMenu = None if menu.isEmpty() else menu
+        if self.contextMenu:
+            self.contextMenu.popup(table.mapToGlobal(cursor_position))
 
     def getTableRowInterfaceID(
         self, table: QtWidgets.QTableWidget, row: int
@@ -2358,7 +2349,9 @@ class AddonManagerWindow(QtWidgets.QDialog):
                     attrs.evolve(game_config, addons=updated_addons_section),
                 )
 
-    def uninstallStartupScript(self, script: str, addon_data_folder: CaseInsensitiveAbsolutePath) -> None:
+    def uninstallStartupScript(
+        self, script: str, addon_data_folder: CaseInsensitiveAbsolutePath
+    ) -> None:
         if script:
             script_path = addon_data_folder / (script.replace("\\", "/"))
 
