@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2.6
+## 1.2.6 (2021-04-29)
 
 This release implements some important fixes for the addon manager and adds the --language launch argument.
 
@@ -9,14 +9,14 @@ This release implements some important fixes for the addon manager and adds the 
 - Fixed addon manager UI breaking when OS text size is changed
 - Added launch argument to set the game client language. This was requested by @wduda for easier plugin testing
 
-## 1.2.5
+## 1.2.5 (2021-04-25)
 
 This is a quick hotfix for the in-game store with the 64-bit client on Windows. The WINE version is also updated for Mac and Linux users.
 
 - Fixed in-game store issue on Windows builds with the 64-bit client
 - Updated WINE
 
-## 1.2.4
+## 1.2.4 (2021-04-16)
 
 This release has some small improvements and important fixes. Most importantly the certificates needed for logging into LOTRO have been updated and a bug affecting the installation of some plugins has been fixed. Thanks to @mja00 and @gtbX for their code contributions to this update.
 
@@ -32,9 +32,9 @@ This release has some small improvements and important fixes. Most importantly t
 - Simplified loading of news feeds
 - Updated the certificates for SSL connections
 
-## 1.2.3
+## 1.2.3 (2020-11-27)
 
-This release has some small fixes and improvements. Most notably FSYNC support is added and the first language detected is used by default rather than English. This improves the user experience for those that don't have English installed with their client.
+This release has some small fixes and improvements. Most notably FSYNC support is added, and the first language detected is used by default rather than English. This improves the user experience for those that don't have English installed with their client.
 
 - Updated WINE and DXVK
 - Fixed typo in change log
@@ -48,7 +48,7 @@ This release has some small fixes and improvements. Most notably FSYNC support i
 - Language defaults to first one detected rather than English
 - Fixed getting `normalClientNode` when it doesn't exist yet
 
-## 1.2.2
+## 1.2.2 (2020-08-14)
 
 This release fixes language selection and allows specification of startup game with a launch argument. This can be used to make different shortcuts for quickly accessing OneLauncher with different games.
 
@@ -56,7 +56,7 @@ This release fixes language selection and allows specification of startup game w
 - Startup game selection with `--game` launch argument
 - Advanced usage section in README.md
 
-## 1.2.1
+## 1.2.1 (2020-08-07)
 
 This release fixes some important bugs and allows developers to request a Python script to be run on every game launch. **The user has to give permission for every add-on that does this since these scripts have the equivalent power of an executable file.**
 
@@ -68,7 +68,7 @@ This release fixes some important bugs and allows developers to request a Python
 - Invalid folder handling for plugins and music
 - A few smaller fixes and improvements
 
-## 1.2
+## 1.2 (2020-07-28)
 
 The main feature of this release is the add-on manager, but a ton more was done. Thanks to everyone on the LOTRO discord server who helped out with testing. Especially the ever detail oriented ShoeMaker/Technical-13.
 
@@ -84,7 +84,7 @@ The main feature of this release is the add-on manager, but a ton more was done.
 - Switch to installer and cx-freeze for distribution
 - Many smaller improvements
 
-## 1.1
+## 1.1 (2019-08-10)
 
 This is a big release that adds a lot of polish and usability to OneLauncher. With the built in prefix it is now possible to always run LOTRO and DDO in the best way possible without any knowledge of Wine. Even an install on a separate windows partition should work!
 
@@ -98,7 +98,7 @@ This is a big release that adds a lot of polish and usability to OneLauncher. Wi
 - Redone language selection
 - Many smaller improvements
 
-## 1.0
+## 1.0 (2019-06-21)
 
 My first release with many updates for the modern day and design improvements. I'm having a lot of fun with this, so I hope you enjoy it too!
 
@@ -395,104 +395,104 @@ Fixed problem with realm not being saved correctly in config file and a coredump
 
 ## CLI launcher for LOTRO (Shell Script). Predecessor to LotROLinux
 
-1.2.1 - 2016-06-10
+### 1.2.1 (2016-06-10)
 
 - Fixed link to urlencode.sh (.de -> .com)
   - broken link pointed out by Charles Tersteeg
 
-1.2.0 - 2014-12-15
+### 1.2.0 (2014-12-15)
 
 - Update to configuration and template generation, /AGAIN/
   - contributor: blosco in the official LotRO forum
 
-1.1.1 - 2014-11-27
+### 1.1.1 (2014-11-27)
 
 - Fixed bug in language for arg template, introduced by 1.1.0
   - contributor: Etienne Carriere
 
-1.1.0 - 2014-11-25
+### 1.1.0 (2014-11-25)
 
 - Update to configuration "parser" and game template generation necessary to reflect changes to the game configuration files
   - contributor: blosco (and others) in the official LotRO forum
 
-1.0.1 - 2014-04-09
+### 1.0.1 (2014-04-09)
 
 - Added comment for forcing SSLv3
   - contributor: Nicolas Trecourt (SSLv3 symptom and workaround)
 - Minor cosmetic and typo fixes to the ChangeLog
 
-1.0 - 2013-10-02
+### 1.0 (2013-10-02)
 
 - Added patch progress helper
 - Also added updates to loading screens
 - Enabled re-use of existing login ticket (for up to 12 hours)
 - Other small changes and cleanups
 
-1.0rc2 - 2011-08-09
+### 1.0rc2 (2011-08-09)
 
 - Small update for global service (grep -F for server names)
 
-1.0rc1 - 2010-11-25
+### 1.0rc1 (2010-11-25)
 
 - Updates for F2P
 - Added queue looping
   - contributor: steelsnake
 - Minor cleanups
 
-0.9.9d 2008-10-27
+### 0.9.9d (2008-10-27)
 
 - Added check for disabled world login queue
 
-0.9.9c - 2008-04-10
+### 0.9.9c (2008-04-10)
 
 - Added choice for patching (default: start without patching)
 - Changed language check to now return the proper language code so that the patching works properly now wrt. the splash screen (ie: DE->de EN->en EN_GB->en_GB)
 - Added choice for subscription to use when more than one `<GameSubscription>` sections exist in `GLSAuthServer` config
   - contributors: ct_traveller and JediMastyre (multiple subscriptions)
 
-0.9.9b - 2008-01-28
+### 0.9.9b (2008-01-28)
 
 - fixed an issue with the `GLSDataCenter` config file downloaded from Turbine containing more than one `<Datacenter>` section
 
-0.9.9 - 2008-01-02
+### 0.9.9 (2008-01-02)
 
 - MAJOR breakthrough with the patching. Earlier attempts at linking against the dll functions stalled due to missing function prototypes. Blatantly simple call using the rundll interface does the trick
   - contributor: Robert Getter ("rundll32.exe PatchClient,Patch")
 
-0.9.7 - 2007-11-20
+### 0.9.7 (2007-11-20)
 
 - Can now be called from elsewhere, will change to the game dir (still needs to reside there, of course)
 
-0.9.6 - 2007-08-07
+### 0.9.6 (2007-08-07)
 
 - Changed account id extraction to look for the correct game, too so that it works for subscribers of other turbine games (DDO)
   - contributor: thealb
 
-0.9.5 - 2007-05-30
+### 0.9.5 (2007-05-30)
 
 - Changed to SOAP for `LoginAccount` as well (same reason as 0.9.4). SOAP snippet taken from lotroeugls.com service description
 - Also switched off wine debugging msgs to increase performance
   - contributor: kegie (suggested WINEDEBUG=fixme-all)
 
-0.9.4 - 2007-05-29
+### 0.9.4 (2007-05-29)
 
 - Changed to SOAP for `GetDatacenters` due to non-EU LOTRO datacenter (US/AU/others) not accepting HTTP GET
   - contributor: Fitzy_oz (SOAP request body)
 
-0.9.3 - 2007-05-27
+### 0.9.3 (2007-05-27)
 
 - Fixed extractions for XML value="$VAL"
   - contributor: ajackson (problem identified)
 
-0.9.2 - 2007-05-25
+### 0.9.2 (2007-05-25)
 
 - Added check for installed languages and chooser
   - contributor: Sinistral
 
-0.9.1 - 2007-05-24
+### 0.9.1 (2007-05-24)
 
 - "parsing" TurbineLauncher.exe.config
 
-0.9 - 2007-05-05
+### 0.9 (2007-05-05)
 
 - initial version
