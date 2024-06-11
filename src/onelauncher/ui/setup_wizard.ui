@@ -233,9 +233,6 @@
          <property name="text">
           <string>Keep it</string>
          </property>
-         <property name="icon">
-          <iconset theme="document-save"/>
-         </property>
          <attribute name="buttonGroup">
           <string notr="true">gamesDataButtonGroup</string>
          </attribute>
@@ -245,9 +242,6 @@
         <widget class="QRadioButton" name="resetDataRadioButton">
          <property name="text">
           <string>Reset it</string>
-         </property>
-         <property name="icon">
-          <iconset theme="edit-clear"/>
          </property>
          <attribute name="buttonGroup">
           <string notr="true">gamesDataButtonGroup</string>

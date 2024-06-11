@@ -33,9 +33,9 @@ from typing import Final
 from uuid import UUID, uuid4
 
 import attrs
+import qtawesome
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from .__about__ import __title__
 from .addons.config import AddonsConfigSection
 from .config_manager import ConfigManager
 from .game_config import GameConfig, GameType
@@ -82,11 +82,11 @@ class GamesDeletionStatusItemDelegate(QtWidgets.QStyledItemDelegate):
             option.icon = (  # type: ignore[attr-defined]
                 self.item_checked_icon
                 if game_uuid in self.existing_game_uuids
-                else QtGui.QIcon.fromTheme(QtGui.QIcon.ThemeIcon.ListAdd)
+                else qtawesome.icon("mdi6.folder-plus-outline")
             )
         else:
             option.icon = (  # type: ignore[attr-defined]
-                QtGui.QIcon.fromTheme(QtGui.QIcon.ThemeIcon.EditDelete)
+                qtawesome.icon("mdi6.trash-can-outline")
                 if game_uuid in self.existing_game_uuids
                 else QtGui.QIcon()
             )
@@ -128,8 +128,12 @@ class SetupWizard(QtWidgets.QWizard):
         self.ui.dataDeletionWizardPage.setCommitPage(True)
         self.ui.gamesDeletionStatusListView.setModel(self.ui.gamesListWidget.model())
         self.ui.gamesDeletionStatusListView.setEnabled(False)
+        # Icons will be too small on Windows without this
+        self.ui.gamesDeletionStatusListView.setIconSize(QtCore.QSize(24, 24))
         self.ui.gamesDataButtonGroup.buttonToggled.connect(self.gamesDataButtonToggled)
         self.ui.dataDeletionWizardPage.isComplete = self.dataDeletionPageIsComplete  # type: ignore[method-assign]
+        self.ui.keepDataRadioButton.setIcon(qtawesome.icon("mdi6.content-save-outline"))
+        self.ui.resetDataRadioButton.setIcon(qtawesome.icon("mdi6.backspace-outline"))
         if self.game_selection_only:
             self.ui.keepDataRadioButton.setChecked(True)
         # Finished page
@@ -197,9 +201,9 @@ class SetupWizard(QtWidgets.QWizard):
         self, button: QtWidgets.QAbstractButton, checked: bool
     ) -> None:
         if self.ui.keepDataRadioButton.isChecked():
-            icon = QtGui.QIcon.fromTheme(QtGui.QIcon.ThemeIcon.DocumentSave)
+            icon = self.ui.keepDataRadioButton.icon()
         else:
-            icon = QtGui.QIcon.fromTheme(QtGui.QIcon.ThemeIcon.EditClear)
+            icon = self.ui.resetDataRadioButton.icon()
         self.ui.gamesDeletionStatusListView.setItemDelegate(
             GamesDeletionStatusItemDelegate(
                 item_checked_icon=icon,

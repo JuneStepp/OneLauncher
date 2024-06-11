@@ -25,6 +25,7 @@ Launcher for Linux, Mac OS X, and Windows.
 
 ## Resources Used
 
-- Flag icons by Mark James <mjames@gmail.com> at [famfamfam.com](http://www.famfamfam.com/lab/icons/flags/)
-- [Font Awesome](https://fontawesome.com) icons
+- [Flag icons](https://github.com/markjames/famfamfam-flag-icons) by Mark James <mjames@gmail.com> at [famfamfam.com](https://famfamfam.com)
+- [Font Awesome Icons](https://fontawesome.com)
+- [Material Design Icons](https://fonts.google.com/icons)
 - XML Schemas from [vscode-lotro-api](https://github.com/lunarwtr/vscode-lotro-api) by [@lunawtr](https://github.com/lunarwtr) (the creator of [LOTRO Plugin Compendium](https://www.lotrointerface.com/downloads/info663-LOTROPluginCompendium.html))

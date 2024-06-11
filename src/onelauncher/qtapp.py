@@ -29,6 +29,7 @@ import os
 import sys
 from pathlib import Path
 
+import qtawesome
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from .__about__ import __title__, __version__
@@ -60,6 +61,7 @@ def setup_qtapplication() -> QtWidgets.QApplication:
     application.setFont(font)
 
     handle_windows_dark_theme(application)
+    qtawesome.set_defaults(color=application.palette().windowText().color())
     return application
 
 

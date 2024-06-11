@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'setup_wizard.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.7.0
+## Created by: Qt User Interface Compiler version 6.7.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -144,16 +144,12 @@ class Ui_Wizard(object):
         self.gamesDataButtonGroup.setObjectName(u"gamesDataButtonGroup")
         self.gamesDataButtonGroup.addButton(self.keepDataRadioButton)
         self.keepDataRadioButton.setObjectName(u"keepDataRadioButton")
-        icon = QIcon(QIcon.fromTheme(u"document-save"))
-        self.keepDataRadioButton.setIcon(icon)
 
         self.horizontalLayout_3.addWidget(self.keepDataRadioButton)
 
         self.resetDataRadioButton = QRadioButton(self.groupBox)
         self.gamesDataButtonGroup.addButton(self.resetDataRadioButton)
         self.resetDataRadioButton.setObjectName(u"resetDataRadioButton")
-        icon1 = QIcon(QIcon.fromTheme(u"edit-clear"))
-        self.resetDataRadioButton.setIcon(icon1)
 
         self.horizontalLayout_3.addWidget(self.resetDataRadioButton)
 

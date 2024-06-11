@@ -1098,6 +1098,37 @@ files = [
 ]
 
 [[package]]
+name = "qtawesome"
+version = "1.3.1"
+description = "FontAwesome icons in PyQt and PySide applications"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "QtAwesome-1.3.1-py3-none-any.whl", hash = "sha256:6078449035cd5311bc461e99940a426c27cb919fb4211c8cfc64506cb71e2dd7"},
+    {file = "QtAwesome-1.3.1.tar.gz", hash = "sha256:075b2c9ee01cbaf5e3a4bebed0e5529ee8605981355f21dea051b15c1b869e1b"},
+]
+
+[package.dependencies]
+qtpy = "*"
+
+[[package]]
+name = "qtpy"
+version = "2.4.1"
+description = "Provides an abstraction layer on top of the various Qt bindings (PyQt5/6 and PySide2/6)."
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "QtPy-2.4.1-py3-none-any.whl", hash = "sha256:1c1d8c4fa2c884ae742b069151b0abe15b3f70491f3972698c683b8e38de839b"},
+    {file = "QtPy-2.4.1.tar.gz", hash = "sha256:a5a15ffd519550a1361bdc56ffc07fda56a6af7292f17c7b395d4083af632987"},
+]
+
+[package.dependencies]
+packaging = "*"
+
+[package.extras]
+test = ["pytest (>=6,!=7.0.0,!=7.0.1)", "pytest-cov (>=3.0.0)", "pytest-qt"]
+
+[[package]]
 name = "requests"
 version = "2.32.3"
 description = "Python HTTP for Humans."
@@ -1519,4 +1550,4 @@ old-kwallet = ["dbus-python"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "4a934d02509a635ed5b78645b0a1c6555c09b504069d5b5852bece3ae2f68f5d"
+content-hash = "1be743fde349dfb9d010abe5fde24669800330b9baa18cc5751b399ab68dc542"

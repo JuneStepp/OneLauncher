@@ -207,3 +207,12 @@ These are pre-set variables that you can access in your startup script.
 ### OneLauncher Banner Image
 
 Game banner images are displayed above the newsfeed in OneLauncher. All images are scaled to 136 pixels in height keeping aspect ratio and should ideally should be 300x136. Images following the path `{Game Directory}/{Locale Resources Folder}/banner.png` will replace the default image for that game and locale. If there is no image for a user's selected locale, the default image will be shown. An example path is `C://Program Files/Standing Stone Games/Lord of The Rings Online/en/banner.png`.
+
+## License
+
+GPLv3+ License. Copyright 2019-2024 - June Stepp.
+See the [LICENSE](LICENSE.md) file for details.
+
+The [Font Awesome](https://github.com/FortAwesome/Font-Awesome/blob/master/LICENSE.txt) font is licensed under the [SIL Open Font License](http://scripts.sil.org/OFL).
+
+The [Material Design Icons](https://github.com/Templarian/MaterialDesign/blob/master/LICENSE) font is licensed under the [Apache License Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
