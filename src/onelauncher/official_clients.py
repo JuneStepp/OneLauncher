@@ -29,10 +29,14 @@ import logging
 import socket
 import ssl
 from functools import cache
-from typing import Final
+from pathlib import Path
+from typing import Final, assert_never
 from urllib.parse import urlparse
 
 import httpx
+
+from onelauncher import resources
+from onelauncher.game_config import GameType
 
 LOTRO_GLS_PREVIEW_DOMAIN = "gls-bullroarer.lotro.com"
 LOTRO_GLS_DOMAINS: Final = [
@@ -160,6 +164,16 @@ def get_official_servers_httpx_client_sync() -> httpx.Client:
         verify=get_official_servers_ssl_context(),
         event_hooks={"request": [_httpx_request_hook_sync]},
     )
+
+
+def get_game_icon(game_type: GameType) -> Path:
+    match game_type:
+        case GameType.LOTRO:
+            return resources.data_dir / "images/lotro_icon.ico"
+        case GameType.DDO:
+            return resources.data_dir / "images/ddo_icon.ico"
+        case _:
+            assert_never(game_type)
 
 
 logger = logging.getLogger("main")

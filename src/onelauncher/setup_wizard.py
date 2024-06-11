@@ -48,7 +48,7 @@ from .game_utilities import (
     InvalidGameDirError,
     find_game_dir_game_type,
 )
-from .official_clients import is_gls_url_for_preview_client
+from .official_clients import get_game_icon, is_gls_url_for_preview_client
 from .program_config import GamesSortingMode, ProgramConfig
 from .resources import available_locales
 from .ui.setup_wizard_uic import Ui_Wizard
@@ -319,7 +319,11 @@ class SetupWizard(QtWidgets.QWizard):
         item = QtWidgets.QListWidgetItem(str(game_config.game_directory))
         item.setData(GameUUIDRole, game_uuid)
         item.setData(GameConfigRole, game_config)
-        item.setIcon(QtGui.QIcon(str(game_config.game_directory / "icon.ico")))
+        game_icon = game_config.game_directory / "icon.ico"
+        if game_icon.exists():
+            item.setIcon(QtGui.QIcon(str(game_icon)))
+        else:
+            item.setIcon(QtGui.QIcon(str(get_game_icon(game_config.game_type))))
         item.setCheckState(
             QtCore.Qt.CheckState.Checked if checked else QtCore.Qt.CheckState.Unchecked
         )

@@ -216,3 +216,7 @@ See the [LICENSE](LICENSE.md) file for details.
 The [Font Awesome](https://github.com/FortAwesome/Font-Awesome/blob/master/LICENSE.txt) font is licensed under the [SIL Open Font License](http://scripts.sil.org/OFL).
 
 The [Material Design Icons](https://github.com/Templarian/MaterialDesign/blob/master/LICENSE) font is licensed under the [Apache License Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+
+The Lord of the Rings Online is a trademark of Middle-earth Enterprises.
+Dungeons & Dragons Online is a trademark of Wizards of the Coast LLC.
+The Lord of the Rings Online and Dungeons & Dragons Online games and logos are owned by Standing Stone Games LLC. We are not affiliated with Standing Stone Games LLC, Middle-earth Enterprises, or Wizards of the Coast LLC in any way.
