@@ -406,15 +406,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.cboWorld.setCurrentText(account.last_used_world_name)
 
     def set_current_account_placeholder_password(self) -> None:
-        if account := self.get_current_game_account():
-            password = self.config_manager.get_game_account_password(
-                self.game_uuid, account
-            )
-            if password is not None:
-                password_length = len(password)
-                del password
-                self.ui.txtPassword.setPlaceholderText("*" * password_length)
-                return
+        if (account := self.get_current_game_account()) and (
+            self.config_manager.get_game_account_password(self.game_uuid, account)
+            is not None
+        ):
+            self.ui.txtPassword.setPlaceholderText("********")
+            return
 
         self.ui.txtPassword.setPlaceholderText("")
         # Focus on the password field, so user can easily type password, since none are
