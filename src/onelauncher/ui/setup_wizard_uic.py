@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (QAbstractItemView, QApplication, QButtonGroup, QC
     QVBoxLayout, QWidget, QWizard, QWizardPage)
 
 class Ui_Wizard(object):
-    def setupUi(self, Wizard):
+    def setupUi(self, Wizard: QWizard) -> None:
         if not Wizard.objectName():
             Wizard.setObjectName(u"Wizard")
         Wizard.resize(621, 411)
@@ -69,12 +69,12 @@ class Ui_Wizard(object):
         self.alwaysUseDefaultLangForUILabel = QLabel(self.languageSelectionWizardPage)
         self.alwaysUseDefaultLangForUILabel.setObjectName(u"alwaysUseDefaultLangForUILabel")
 
-        self.formLayout.setWidget(0, QFormLayout.LabelRole, self.alwaysUseDefaultLangForUILabel)
+        self.formLayout.setWidget(0, QFormLayout.ItemRole.LabelRole, self.alwaysUseDefaultLangForUILabel)
 
         self.alwaysUseDefaultLangForUICheckBox = QCheckBox(self.languageSelectionWizardPage)
         self.alwaysUseDefaultLangForUICheckBox.setObjectName(u"alwaysUseDefaultLangForUICheckBox")
 
-        self.formLayout.setWidget(0, QFormLayout.FieldRole, self.alwaysUseDefaultLangForUICheckBox)
+        self.formLayout.setWidget(0, QFormLayout.ItemRole.FieldRole, self.alwaysUseDefaultLangForUICheckBox)
 
 
         self.horizontalLayout_2.addLayout(self.formLayout)
@@ -178,7 +178,7 @@ class Ui_Wizard(object):
         QMetaObject.connectSlotsByName(Wizard)
     # setupUi
 
-    def retranslateUi(self, Wizard):
+    def retranslateUi(self, Wizard: QWizard) -> None:
         Wizard.setWindowTitle(QCoreApplication.translate("Wizard", u"Wizard", None))
         self.languageSelectionWizardPage.setTitle(QCoreApplication.translate("Wizard", u"OneLauncher Setup Wizard:", None))
         self.languageSelectionWizardPage.setSubTitle(QCoreApplication.translate("Wizard", u"This wizard will quickly take you through the steps needed to get up and running with OneLauncher. ", None))

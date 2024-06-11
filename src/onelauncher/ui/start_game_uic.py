@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (QApplication, QDialog, QPushButton, QSizePolicy,
     QTextBrowser, QWidget)
 
 class Ui_startGameDialog(object):
-    def setupUi(self, startGameDialog):
+    def setupUi(self, startGameDialog: QDialog) -> None:
         if not startGameDialog.objectName():
             startGameDialog.setObjectName(u"startGameDialog")
         startGameDialog.setWindowModality(Qt.ApplicationModal)
@@ -46,7 +46,7 @@ class Ui_startGameDialog(object):
         QMetaObject.connectSlotsByName(startGameDialog)
     # setupUi
 
-    def retranslateUi(self, startGameDialog):
+    def retranslateUi(self, startGameDialog: QDialog) -> None:
         startGameDialog.setWindowTitle(QCoreApplication.translate("startGameDialog", u"MainWindow", None))
         self.btnSave.setText(QCoreApplication.translate("startGameDialog", u"Save", None))
         self.btnStop.setText(QCoreApplication.translate("startGameDialog", u"Stop", None))

@@ -35,6 +35,7 @@ from uuid import UUID, uuid4
 import attrs
 import qtawesome
 from PySide6 import QtCore, QtGui, QtWidgets
+from typing_extensions import override
 
 from .addons.config import AddonsConfigSection
 from .config_manager import ConfigManager
@@ -71,6 +72,7 @@ class GamesDeletionStatusItemDelegate(QtWidgets.QStyledItemDelegate):
         self.item_checked_icon = item_checked_icon
         self.existing_game_uuids = existing_game_uuids
 
+    @override
     def initStyleOption(
         self,
         option: QtWidgets.QStyleOptionViewItem,
@@ -105,7 +107,7 @@ class SetupWizard(QtWidgets.QWizard):
         self.select_existing_games = select_existing_games
 
         self.ui = Ui_Wizard()
-        self.ui.setupUi(self)  # type: ignore
+        self.ui.setupUi(self)
         self.setWindowTitle("Setup Wizard")
         # As of PySide 6.1, other styles don't have right spacing or work with the dark
         # theme on Windows. Sticking with this known look on all platforms for now.

@@ -25,6 +25,8 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
+from __future__ import annotations
+
 import contextlib
 import logging
 from pathlib import Path
@@ -35,6 +37,7 @@ import httpx
 import packaging.version
 import trio
 from PySide6 import QtCore, QtGui, QtWidgets
+from typing_extensions import override
 from xmlschema import XMLSchemaValidationError
 
 from . import __about__
@@ -89,6 +92,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose, on=True)
 
+        self.game_launcher_config: GameLauncherConfig | None = None
+
     def get_starting_game_uuid(self) -> UUID:
         last_played = self.config_manager.get_games_sorted_by_last_played()[0]
         return (
@@ -101,7 +106,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def init_ui(self) -> None:
         self.ui = Ui_winMain()
-        self.ui.setupUi(self)  # type: ignore
+        self.ui.setupUi(self)
 
         self.setFixedSize(790, 470)
 
@@ -120,11 +125,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # Accounts combo box item selection signal
         self.ui.cboAccount.currentIndexChanged.connect(self.accounts_index_changed)
         self.ui.cboAccount.lineEdit().textEdited.connect(self.user_edited_account_name)
-
-        # Pressing enter in password box acts like pressing login button
-        self.ui.txtPassword.returnPressed.connect(
-            lambda: self.nursery.start_soon(self.btnLoginClicked)
-        )
 
         self.setupMousePropagation()
 
@@ -145,6 +145,7 @@ class MainWindow(QtWidgets.QMainWindow):
         ):
             self.ui.txtPassword.setFocus()
 
+    @override
     def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
         """Lets the user drag the window when left-click holding it"""
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
@@ -167,6 +168,7 @@ class MainWindow(QtWidgets.QMainWindow):
         for widget in mouse_ignore_list:
             widget.setAttribute(QtCore.Qt.WidgetAttribute.WA_NoMousePropagation)
 
+    @override
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         self.nursery.cancel_scope.cancel()
         event.accept()
@@ -206,6 +208,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def setupBtnLoginMenu(self) -> None:
         """Sets up signals and context menu for btnLoginMenu"""
         self.ui.btnLogin.clicked.connect(
+            lambda: self.nursery.start_soon(self.btnLoginClicked)
+        )
+        # Pressing enter in password box acts like pressing login button
+        self.ui.txtPassword.returnPressed.connect(
             lambda: self.nursery.start_soon(self.btnLoginClicked)
         )
 
@@ -272,7 +278,7 @@ class MainWindow(QtWidgets.QMainWindow):
         dlgAbout = QtWidgets.QDialog(self, QtCore.Qt.WindowType.Popup)
 
         ui = Ui_dlgAbout()
-        ui.setupUi(dlgAbout)  # type: ignore
+        ui.setupUi(dlgAbout)
 
         ui.lblDescription.setText(__about__.__description__)
         if __about__.__project_url__:
@@ -355,7 +361,11 @@ class MainWindow(QtWidgets.QMainWindow):
             )
             return
 
-        await self.AuthAccount()
+        if not self.game_launcher_config:
+            self.AddLog("Game launcher network config isn't laoded")
+            return
+
+        await self.start_game(game_launcher_config=self.game_launcher_config)
 
     def accounts_index_changed(self, new_index: int) -> None:
         """Sets saved information for selected account."""
@@ -444,7 +454,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self, QtCore.Qt.WindowType.FramelessWindowHint
         )
         ui = Ui_dlgSelectSubscription()
-        ui.setupUi(select_subscription_dialog)  # type: ignore
+        ui.setupUi(select_subscription_dialog)
 
         for subscription in subscriptions:
             ui.subscriptionsComboBox.addItem(subscription.description, subscription)
@@ -460,14 +470,52 @@ class MainWindow(QtWidgets.QMainWindow):
             self.AddLog("No sub-account selected - aborting")
             return None
 
-    async def AuthAccount(self) -> None:
+    async def authenticate_account(
+        self, account: GameAccountConfig
+    ) -> login_account.AccountLoginResponse | None:
         self.AddLog("Checking account details...")
 
-        # Force a small display to ensure message above is displayed
-        # as program can look like it is not responding while validating
-        for _ in range(4):
-            QtCore.QCoreApplication.instance().processEvents()  # type: ignore
+        game_config = self.config_manager.get_game_config(self.game_uuid)
+        game_services_info = await GameServicesInfo.from_game_config(
+            game_config=game_config
+        )
+        if game_services_info is None:
+            return None
 
+        try:
+            login_response = await login_account.login_account(
+                auth_server=game_services_info.auth_server,
+                username=account.username,
+                password=self.ui.txtPassword.text()
+                or self.config_manager.get_game_account_password(
+                    game_uuid=self.game_uuid, game_account=account
+                )
+                or "",
+            )
+        except login_account.WrongUsernameOrPasswordError:
+            self.AddLog("Username or password is incorrect", True)
+            return None
+        except httpx.HTTPError:
+            logger.exception("")
+            self.AddLog("Network error while authenticating account", True)
+            return None
+        except GLSServiceError:
+            logger.exception("")
+            self.AddLog(
+                "Non-network error with login service. Please report "
+                "this issue, if it continues.",
+                True,
+            )
+            return None
+
+        # don't keep password longer in memory than required
+        if not self.ui.chkSavePassword.isChecked():
+            self.ui.txtPassword.clear()
+
+        self.AddLog("Account authenticated")
+        return login_response
+
+    async def start_game(self, game_launcher_config: GameLauncherConfig) -> None:
         current_account = self.get_current_game_account()
         current_world: World = self.ui.cboWorld.currentData()
         if current_account is None:
@@ -476,45 +524,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 display_name=None,
                 last_used_world_name=current_world.name,
             )
-
-        game_config = self.config_manager.get_game_config(self.game_uuid)
-        game_services_info = await GameServicesInfo.from_game_config(
-            game_config=game_config
-        )
-        if game_services_info is None:
+        login_response = await self.authenticate_account(current_account)
+        if not login_response:
             return
-
-        try:
-            login_response = await login_account.login_account(
-                game_services_info.auth_server,
-                current_account.username,
-                self.ui.txtPassword.text()
-                or self.config_manager.get_game_account_password(
-                    self.game_uuid, current_account
-                )
-                or "",
-            )
-        except login_account.WrongUsernameOrPasswordError:
-            self.AddLog("Username or password is incorrect", True)
-            return
-        except httpx.HTTPError:
-            logger.exception("")
-            self.AddLog("Network error while authenticating account", True)
-            return
-        except GLSServiceError:
-            logger.exception("")
-            self.AddLog(
-                "Non-network error with login service. Please report "
-                "this issue, if it continues.",
-                True,
-            )
-            return
-
-        # don't keep password longer in memory than required
-        if not self.ui.chkSavePassword.isChecked():
-            self.ui.txtPassword.clear()
-
-        self.AddLog("Account authenticated")
 
         game_subscriptions = login_response.get_game_subscriptions(
             datacenter_game_name=self.game_launcher_local_config.datacenter_game_name
@@ -527,7 +539,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 return
         else:
             subscription = game_subscriptions[0]
-            account_number = subscription.name
+        account_number = subscription.name
 
         if self.ui.chkSaveSettings.isChecked():
             if len(game_subscriptions) > 1:
@@ -602,7 +614,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 "World status info has incompatible format. Please report "
                 "this issue if using a supported game server",
                 is_error=True,
-            )  # TODO: Easy report
+            )
             return
 
         if selected_world_status.queue_url != "":
@@ -610,28 +622,15 @@ class MainWindow(QtWidgets.QMainWindow):
                 queueURL=selected_world_status.queue_url,
                 account_number=account_number,
                 login_response=login_response,
+                game_launcher_config=game_launcher_config,
             )
-        await self.start_game(
-            account_number=account_number,
-            world=selected_world,
-            login_server=selected_world_status.login_server,
-            login_response=login_response,
-        )
-
-    async def start_game(
-        self,
-        account_number: str,
-        world: World,
-        login_server: str,
-        login_response: login_account.AccountLoginResponse,
-    ) -> None:
         game = StartGame(
             game_uuid=self.game_uuid,
             config_manager=self.config_manager,
             game_launcher_local_config=self.game_launcher_local_config,
-            game_launcher_config=self.game_launcher_config,
-            world=world,
-            login_server=login_server,
+            game_launcher_config=game_launcher_config,
+            world=selected_world,
+            login_server=selected_world_status.login_server,
             account_number=account_number,
             ticket=login_response.session_ticket,
         )
@@ -642,10 +641,11 @@ class MainWindow(QtWidgets.QMainWindow):
         queueURL: str,
         account_number: str,
         login_response: login_account.AccountLoginResponse,
+        game_launcher_config: GameLauncherConfig,
     ) -> None:
         world_login_queue = WorldLoginQueue(
-            self.game_launcher_config.login_queue_url,
-            self.game_launcher_config.login_queue_params_template,
+            game_launcher_config.login_queue_url,
+            game_launcher_config.login_queue_params_template,
             account_number,
             login_response.session_ticket,
             queueURL,
@@ -661,7 +661,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.AddLog(
                     "Non-network error joining world queue. "
                     "Please report this error if it continues"
-                )  # TODO Easy report
+                )
                 logger.exception("")
                 return
             if world_queue_result.queue_number <= world_queue_result.now_serving_number:
@@ -806,18 +806,16 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         except httpx.HTTPError:
             logger.exception("")
-            # TODO: load anything else that can be, provide option to retry, and
-            # don't lock up the whole UI
-            self.AddLog("Network error while fetching game services info", True)
+            self.AddLog(
+                message="Network error while fetching game services info", is_error=True
+            )
             return
         except GLSServiceError:
             logger.exception("")
-            # TODO Specify how they they can report or even have the report
-            # text be something they can click to report the issue.
             self.AddLog(
-                "Non-network error with GLS datacenter service. Please report "
+                message="Non-network error with GLS datacenter service. Please report "
                 "this issue, if it continues.",
-                True,
+                is_error=True,
             )
             return
 
@@ -869,7 +867,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 "Game launcher config has incompatible format. Please report "
                 "this issue if using a supported game server",
                 True,
-            )  # TODO: Easy report
+            )
             return None
 
     async def load_newsfeed(self, game_launcher_config: GameLauncherConfig) -> None:
@@ -898,8 +896,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # Make line red if it is an error
             if is_error:
                 logger.error(line)
-
-                line = f'<font color="red">{message}</font>'
+                formatted_line = f'<font color="red">{message}</font>'
 
                 # Enable buttons that won't normally get re-enabled if
                 # MainWindowThread gets frozen.
@@ -907,8 +904,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.ui.btnSwitchGame.setEnabled(True)
             else:
                 logger.info(line)
-
-            self.ui.txtStatus.append(line)
+                formatted_line = line
+            self.ui.txtStatus.append(formatted_line)
 
 
 async def check_for_update() -> None:

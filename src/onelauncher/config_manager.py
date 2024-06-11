@@ -118,7 +118,7 @@ def convert_to_toml(
 
 
 def _tables_to_array_of_tables(
-    unstructured_tables: dict[str, dict[str, Any]],
+    unstructured_tables: dict[str, dict[str, Any] | Any],
     array_name: str,
     table_name_key_name: str,
 ) -> dict[str, list[dict[str, Any]]]:
@@ -196,14 +196,14 @@ class ConfigFileError(Exception):
 
 
 @attrs.frozen(kw_only=True)
-class ConfigFileParseError(ConfigFileError):
+class ConfigFileParseError(ConfigFileError): # type: ignore[explicit-override]
     """Error parsing config file"""
 
     msg: str = "Error parsing config file"
 
 
 @attrs.frozen(kw_only=True)
-class WrongConfigVersionError(ConfigFileError):
+class WrongConfigVersionError(ConfigFileError):  # type: ignore[explicit-override]
     msg: str = "Config file has wrong config version"
     config_file_version: Version
 

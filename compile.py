@@ -13,7 +13,7 @@ nuitka_arguments = [
 ]
 
 
-def main():
+def main() -> None:
     if os.name == "nt":
         nuitka_arguments.extend(
             [
@@ -38,7 +38,7 @@ def main():
         )
 
     os.system(
-        f"poetry run python -m nuitka {' '.join(nuitka_arguments)} start_onelauncher"
+        f"poetry run python -m nuitka {' '.join(nuitka_arguments)} start_onelauncher"  # noqa: S605
     )
 
 

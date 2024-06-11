@@ -2,8 +2,11 @@ import sys
 from html.parser import HTMLParser
 from pathlib import Path
 
+from typing_extensions import override
+
 
 class MyHTMLParser(HTMLParser):
+    @override
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag not in self.attrs:
             self.attrs[tag] = []
@@ -22,6 +25,7 @@ class MyHTMLParser(HTMLParser):
             )
             self.data.append(f"<{tag}{string_attrs}>")
 
+    @override
     def handle_endtag(self, tag: str) -> None:
         if self.attrs.get(tag):
             attrs = self.attrs[tag][-1]
@@ -36,17 +40,19 @@ class MyHTMLParser(HTMLParser):
         else:
             self.data.append(f"</{tag}>")
 
+    @override
     def handle_data(self, data: str) -> None:
         self.data.append(data)
 
+    @override
     def handle_comment(self, data: str) -> None:
         """Leave comments as they are."""
         self.data.append(f"<!--{data}-->")
 
-    def feed(self, data: str):
-        self.attrs: dict[str, list[dict[str, str]]] = {}
-        self.data = []
-        HTMLParser.feed(self, data)
+    def get_bbcode(self, data: str) -> str:
+        self.attrs: dict[str, list[dict[str, str | None]]] = {}
+        self.data: list[str] = []
+        super().feed(data)
         return "".join(self.data)
 
 
@@ -61,7 +67,7 @@ with input_file.open("r") as file:
     input_text = input_text.replace("[/code]", "[/code]-->")
 
 parser = MyHTMLParser()
-formated_text = parser.feed(input_text)
+formated_text = parser.get_bbcode(input_text)
 # Uncomment code blocks
 formated_text = formated_text.replace("<!--[code]", "[code]")
 formated_text = formated_text.replace("[/code]-->", "[/code]")

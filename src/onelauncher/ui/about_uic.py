@@ -19,10 +19,10 @@ from PySide6.QtWidgets import (QAbstractButton, QApplication, QDialog, QDialogBu
     QLabel, QSizePolicy, QVBoxLayout, QWidget)
 
 class Ui_dlgAbout(object):
-    def setupUi(self, dlgAbout):
+    def setupUi(self, dlgAbout: QDialog) -> None:
         if not dlgAbout.objectName():
             dlgAbout.setObjectName(u"dlgAbout")
-        dlgAbout.setWindowModality(Qt.ApplicationModal)
+        dlgAbout.setWindowModality(Qt.WindowModality.ApplicationModal)
         dlgAbout.resize(520, 320)
         font = QFont()
         font.setFamilies([u"Verdana"])
@@ -32,8 +32,8 @@ class Ui_dlgAbout(object):
         self.buttonBox = QDialogButtonBox(dlgAbout)
         self.buttonBox.setObjectName(u"buttonBox")
         self.buttonBox.setGeometry(QRect(10, 280, 500, 32))
-        self.buttonBox.setOrientation(Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QDialogButtonBox.Close)
+        self.buttonBox.setOrientation(Qt.Orientation.Horizontal)
+        self.buttonBox.setStandardButtons(QDialogButtonBox.StandardButton.Close)
         self.layoutWidget = QWidget(dlgAbout)
         self.layoutWidget.setObjectName(u"layoutWidget")
         self.layoutWidget.setGeometry(QRect(10, 10, 501, 261))
@@ -42,34 +42,34 @@ class Ui_dlgAbout(object):
         self.verticalLayout.setContentsMargins(0, 1, 0, 0)
         self.lblDescription = QLabel(self.layoutWidget)
         self.lblDescription.setObjectName(u"lblDescription")
-        self.lblDescription.setAlignment(Qt.AlignCenter)
+        self.lblDescription.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout.addWidget(self.lblDescription)
 
         self.lblRepoWebsite = QLabel(self.layoutWidget)
         self.lblRepoWebsite.setObjectName(u"lblRepoWebsite")
-        self.lblRepoWebsite.setAlignment(Qt.AlignCenter)
+        self.lblRepoWebsite.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.lblRepoWebsite.setOpenExternalLinks(True)
-        self.lblRepoWebsite.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        self.lblRepoWebsite.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
 
         self.verticalLayout.addWidget(self.lblRepoWebsite)
 
         self.lblCopyright = QLabel(self.layoutWidget)
         self.lblCopyright.setObjectName(u"lblCopyright")
-        self.lblCopyright.setAlignment(Qt.AlignCenter)
+        self.lblCopyright.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout.addWidget(self.lblCopyright)
 
         self.lblCopyrightHistory = QLabel(self.layoutWidget)
         self.lblCopyrightHistory.setObjectName(u"lblCopyrightHistory")
         self.lblCopyrightHistory.setAcceptDrops(False)
-        self.lblCopyrightHistory.setAlignment(Qt.AlignCenter)
+        self.lblCopyrightHistory.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout.addWidget(self.lblCopyrightHistory)
 
         self.lblVersion = QLabel(self.layoutWidget)
         self.lblVersion.setObjectName(u"lblVersion")
-        self.lblVersion.setAlignment(Qt.AlignCenter)
+        self.lblVersion.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout.addWidget(self.lblVersion)
 
@@ -80,7 +80,7 @@ class Ui_dlgAbout(object):
         QMetaObject.connectSlotsByName(dlgAbout)
     # setupUi
 
-    def retranslateUi(self, dlgAbout):
+    def retranslateUi(self, dlgAbout: QDialog) -> None:
         dlgAbout.setWindowTitle(QCoreApplication.translate("dlgAbout", u"About", None))
         self.lblDescription.setText("")
         self.lblRepoWebsite.setText("")

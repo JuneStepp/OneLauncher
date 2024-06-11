@@ -12,4 +12,4 @@ class AttrsClassUsingConfigField:
     x: Any = config_field()
 
 
-AttrsClassUsingConfigField()
+_ = AttrsClassUsingConfigField()
