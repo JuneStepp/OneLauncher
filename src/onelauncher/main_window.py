@@ -533,11 +533,17 @@ class MainWindow(QtWidgets.QMainWindow):
             account_number = subscription.name
 
         if self.ui.chkSaveSettings.isChecked():
-            self.config_manager.save_game_account_last_used_subscription_name(
-                game_uuid=self.game_uuid,
-                game_account=current_account,
-                subscription_name=subscription.name,
-            )
+            if len(game_subscriptions) > 1:
+                self.config_manager.save_game_account_last_used_subscription_name(
+                    game_uuid=self.game_uuid,
+                    game_account=current_account,
+                    subscription_name=subscription.name,
+                )
+            else:
+                self.config_manager.delete_game_account_last_used_subscription_name(
+                    game_uuid=self.game_uuid,
+                    game_account=current_account,
+                )
 
             if self.ui.chkSavePassword.isChecked():
                 if self.ui.txtPassword.text():
