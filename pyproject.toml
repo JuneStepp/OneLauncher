@@ -112,14 +112,25 @@ docstring-code-format = true
 
 [tool.pytest.ini_options]
 addopts = ["--import-mode=importlib"]
-testpaths = [
-    "tests",
-]
+testpaths = ["tests"]
 
 [tool.mypy]
 plugins = ["trio_typing.plugin", "onelauncher.mypy_plugin"]
+
 strict = true
-exclude = ["_uic\\.py", "\\.mypy_test_data\\.py"]
+
+# Disallow most dynamic typing
+warn_return_any = true
+disallow_any_unimported = true
+disallow_any_decorated = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+
+warn_unreachable = true
+implicit_reexport = false
+
+enable_error_code = "redundant-expr,possibly-undefined,truthy-bool,truthy-iterable,ignore-without-code,unused-awaitable,explicit-override,mutable-override,unimported-reveal"
+exclude = ["\\.mypy_test_data\\.py"]
 
 
 [[tool.mypy.overrides]]
