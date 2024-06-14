@@ -164,7 +164,7 @@
      <enum>QToolButton::MenuButtonPopup</enum>
     </property>
    </widget>
-   <widget class="QCheckBox" name="chkSaveSettings">
+   <widget class="QCheckBox" name="chkSaveAccount">
     <property name="geometry">
      <rect>
       <x>530</x>
@@ -182,7 +182,7 @@
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save last used world and account name&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
-     <string>Remember these settings</string>
+     <string>Remember account</string>
     </property>
    </widget>
    <widget class="QTextBrowser" name="txtStatus">
@@ -395,7 +395,7 @@
    <zorder>txtPassword</zorder>
    <zorder>imgMain</zorder>
    <zorder>btnLogin</zorder>
-   <zorder>chkSaveSettings</zorder>
+   <zorder>chkSaveAccount</zorder>
    <zorder>txtStatus</zorder>
    <zorder>btnAbout</zorder>
    <zorder>btnExit</zorder>
@@ -439,7 +439,7 @@
   <tabstop>cboAccount</tabstop>
   <tabstop>txtPassword</tabstop>
   <tabstop>btnLogin</tabstop>
-  <tabstop>chkSaveSettings</tabstop>
+  <tabstop>chkSaveAccount</tabstop>
   <tabstop>chkSavePassword</tabstop>
   <tabstop>txtFeed</tabstop>
   <tabstop>btnMinimize</tabstop>

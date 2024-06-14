@@ -18,6 +18,7 @@ import rich
 import typer
 from PySide6 import QtCore, QtWidgets
 from typer.core import TyperGroup as TyperGroupBase
+from typing_extensions import override
 
 from .__about__ import __title__, __version__
 from .addons.config import AddonsConfigSection
@@ -49,6 +50,7 @@ logger = logging.getLogger("main")
 class TyperGroup(TyperGroupBase):
     """Custom TyperGroup class."""
 
+    @override
     def get_usage(self, context: click.Context) -> str:
         """Add app title above usage section"""
         usage = super().get_usage(context)
@@ -75,8 +77,6 @@ def merge_program_config(
     *,
     default_locale: Optional[str],
     always_use_default_locale_for_ui: Optional[bool],
-    save_accounts: Optional[bool],
-    save_accounts_passwords: Optional[bool],
     games_sorting_mode: Optional[GamesSortingMode],
 ) -> ProgramConfig:
     """
@@ -97,14 +97,6 @@ def merge_program_config(
             always_use_default_locale_for_ui
             if always_use_default_locale_for_ui is not None
             else program_config.always_use_default_locale_for_ui
-        ),
-        save_accounts=(
-            save_accounts if save_accounts is not None else program_config.save_accounts
-        ),
-        save_accounts_passwords=(
-            save_accounts_passwords
-            if save_accounts_passwords is not None
-            else program_config.save_accounts_passwords
         ),
         games_sorting_mode=(games_sorting_mode or program_config.games_sorting_mode),
     )
@@ -392,12 +384,6 @@ def main(
         Optional[bool],
         ProgramOption(help=prog_help("always_use_default_locale_for_ui")),
     ] = None,
-    save_accounts: Annotated[
-        Optional[bool], ProgramOption(help=prog_help("save_accounts"))
-    ] = None,
-    save_accounts_passwords: Annotated[
-        Optional[bool], ProgramOption(help=prog_help("save_accounts_passwords"))
-    ] = None,
     games_sorting_mode: Annotated[
         Optional[GamesSortingMode], ProgramOption(help=prog_help("games_sorting_mode"))
     ] = None,
@@ -494,8 +480,6 @@ def main(
         merge_program_config,
         default_locale=default_locale,
         always_use_default_locale_for_ui=always_use_default_locale_for_ui,
-        save_accounts=save_accounts,
-        save_accounts_passwords=save_accounts_passwords,
         games_sorting_mode=games_sorting_mode,
     )
     get_merged_game_config = partial(

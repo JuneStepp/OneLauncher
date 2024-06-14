@@ -125,6 +125,9 @@ class MainWindow(QtWidgets.QMainWindow):
         # Accounts combo box item selection signal
         self.ui.cboAccount.currentIndexChanged.connect(self.accounts_index_changed)
         self.ui.cboAccount.lineEdit().textEdited.connect(self.user_edited_account_name)
+        self.ui.chkSaveAccount.checkStateChanged.connect(
+            self.save_account_check_state_changed
+        )
 
         self.setupMousePropagation()
 
@@ -163,7 +166,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.btnAddonManager,
             self.ui.btnSwitchGame,
             self.ui.cboWorld,
-            self.ui.chkSaveSettings,
+            self.ui.chkSaveAccount,
+            self.ui.chkSavePassword,
         ]
         for widget in mouse_ignore_list:
             widget.setAttribute(QtCore.Qt.WidgetAttribute.WA_NoMousePropagation)
@@ -371,10 +375,13 @@ class MainWindow(QtWidgets.QMainWindow):
         """Sets saved information for selected account."""
         # No selection
         if new_index == -1:
+            self.ui.chkSaveAccount.setChecked(False)
             return
 
-        self.ui.txtPassword.clear()
         self.setCurrentAccountWorld()
+        # We know these account settings are saved, because they exist
+        self.ui.chkSaveAccount.setChecked(True)
+        self.ui.txtPassword.clear()
         self.set_current_account_placeholder_password()
         self.resetFocus()
 
@@ -390,12 +397,25 @@ class MainWindow(QtWidgets.QMainWindow):
         # Remove any placeholder text for saved password of previously selected
         # account.
         self.ui.txtPassword.setPlaceholderText("")
+        self.ui.chkSaveAccount.setChecked(False)
+
+    def save_account_check_state_changed(
+        self, new_check_state: QtCore.Qt.CheckState
+    ) -> None:
+        if new_check_state == QtCore.Qt.CheckState.Checked:
+            self.ui.chkSavePassword.setEnabled(True)
+        else:
+            self.ui.chkSavePassword.setChecked(False)
+            self.ui.chkSavePassword.setEnabled(False)
 
     def loadAllSavedAccounts(self) -> None:
         self.ui.cboAccount.clear()
         self.ui.cboAccount.setCurrentText("")
 
         accounts = self.config_manager.get_game_accounts(self.game_uuid)
+        if not accounts:
+            self.accounts_index_changed(-1)
+            return
         for account in accounts:
             self.ui.cboAccount.addItem(
                 account.display_name or account.username, userData=account
@@ -421,9 +441,11 @@ class MainWindow(QtWidgets.QMainWindow):
             is not None
         ):
             self.ui.txtPassword.setPlaceholderText("********")
+            self.ui.chkSavePassword.setChecked(True)
             return
 
         self.ui.txtPassword.setPlaceholderText("")
+        self.ui.chkSavePassword.setChecked(False)
         # Focus on the password field, so user can easily type password, since none are
         # saved.
         self.ui.txtPassword.setFocus()
@@ -541,7 +563,7 @@ class MainWindow(QtWidgets.QMainWindow):
             subscription = game_subscriptions[0]
         account_number = subscription.name
 
-        if self.ui.chkSaveSettings.isChecked():
+        if self.ui.chkSaveAccount.isChecked():
             if len(game_subscriptions) > 1:
                 self.config_manager.save_game_account_last_used_subscription_name(
                     game_uuid=self.game_uuid,
@@ -584,13 +606,6 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.config_manager.update_game_accounts_config_file(self.game_uuid, ())
         self.loadAllSavedAccounts()
-        self.config_manager.update_program_config_file(
-            attrs.evolve(
-                self.config_manager.read_program_config_file(),
-                save_accounts=self.ui.chkSaveSettings.isChecked(),
-                save_accounts_passwords=self.ui.chkSavePassword.isChecked(),
-            )
-        )
 
         selected_world: World = self.ui.cboWorld.currentData()
 
@@ -755,10 +770,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btnOptions.setEnabled(False)
         self.ui.btnSwitchGame.setEnabled(False)
 
-        program_config = self.config_manager.get_program_config()
-        self.ui.chkSaveSettings.setChecked(program_config.save_accounts)
-        self.ui.chkSavePassword.setChecked(program_config.save_accounts_passwords)
-
         self.ui.txtPassword.setText("")
         self.ui.txtPassword.setPlaceholderText("")
         self.ui.cboWorld.clear()
@@ -831,7 +842,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.actionPatch.setEnabled(True)
         self.ui.actionPatch.setVisible(True)
         self.ui.btnLogin.setEnabled(True)
-        self.ui.chkSaveSettings.setEnabled(True)
+        self.ui.chkSaveAccount.setEnabled(True)
         self.ui.chkSavePassword.setEnabled(True)
         self.ui.cboAccount.setEnabled(True)
         self.ui.txtPassword.setEnabled(True)

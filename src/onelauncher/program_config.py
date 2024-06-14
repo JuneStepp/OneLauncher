@@ -25,17 +25,13 @@ class GamesSortingMode(Enum):
 
 
 @attrs.frozen
-class ProgramConfig(Config):
+class ProgramConfig(Config): # type: ignore[explicit-override]
     default_locale: OneLauncherLocale = config_field(
         default=get_default_locale(),
         help="The default language for games and UI.",
     )
     always_use_default_locale_for_ui: bool = config_field(
         default=False, help="Use default language for UI regardless of game language"
-    )
-    save_accounts: bool = config_field(default=False, help="Save game accounts")
-    save_accounts_passwords: bool = config_field(
-        default=False, help="Save game account passwords with Keyring"
     )
     games_sorting_mode: GamesSortingMode = config_field(
         default=GamesSortingMode.PRIORITY, help="Order to show games in UI"
