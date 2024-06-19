@@ -63,6 +63,11 @@
       devShells.default = pkgs.mkShell {
         inputsFrom = [poetry_env.env];
         packages = [pkgs.poetry];
+        # There can be Qt version mismatches, if the Qt version in PySide6 tries to
+        # access the nixpkgs Qt plugins found in QT_PLUGIN_PATH.
+        shellHook = ''
+          unset QT_PLUGIN_PATH
+        '';
       };
     });
 }
