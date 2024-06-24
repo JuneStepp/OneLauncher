@@ -64,9 +64,10 @@
         inputsFrom = [poetry_env.env];
         packages = [pkgs.poetry];
         shellHook = ''
-          # There can be Qt version mismatches, if the Qt version in PySide6 tries to
-          # access the nixpkgs Qt plugins found in QT_PLUGIN_PATH.
-          unset QT_PLUGIN_PATH
+          # Include both the PySide6 Qt and system Qt plugin paths in QT_PLUGIN_PATH.
+          # The system plugins are included, so apps can follow the system theme. The
+          # PySide6 Qt plugins path has to be manually included if QT_PLUGIN_PATH exists.
+          export QT_PLUGIN_PATH=${poetry_env}/${poetry_env.python.sitePackages}/PySide6/Qt/plugins:$QT_PLUGIN_PATH
           # Trick pyside6-designer into setting the right LD_PRELOAD path for Python
           # instead of the bare library name.
           export PYENV_ROOT=${poetry_env}
