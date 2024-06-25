@@ -58,21 +58,21 @@ This release fixes language selection and allows specification of startup game w
 
 ## 1.2.1 (2020-08-07)
 
-This release fixes some important bugs and allows developers to request a Python script to be run on every game launch. **The user has to give permission for every add-on that does this since these scripts have the equivalent power of an executable file.**
+This release fixes some important bugs and allows developers to request a Python script to be run on every game launch. **The user has to give permission for every addon that does this since these scripts have the equivalent power of an executable file.**
 
 - Dynamic documents folder detection on Windows
 - Fixed .plugincompendium file finding on Windows
 - Switch to using game config values for game settings and log folders
 - Database is re-made if its structure doesn't match current generation code
-- Startup script support for add-ons
+- Startup script support for addons
 - Invalid folder handling for plugins and music
 - A few smaller fixes and improvements
 
 ## 1.2 (2020-07-28)
 
-The main feature of this release is the add-on manager, but a ton more was done. Thanks to everyone on the LOTRO discord server who helped out with testing. Especially the ever detail oriented ShoeMaker/Technical-13.
+The main feature of this release is the addon manager, but a ton more was done. Thanks to everyone on the LOTRO discord server who helped out with testing. Especially the ever detail oriented ShoeMaker/Technical-13.
 
-- Add-on manager
+- Addon manager
   - Manage, update, and browse/download:
     - plugins (with dependency checking)
     - themes (DDO support too!)

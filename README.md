@@ -9,16 +9,14 @@
 
 [![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/junestepp/onelauncher?include_prereleases)](https://Github.com/JuneStepp/OneLauncher/releases/latest) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-An enhanced launcher for both [LOTRO](https://www.lotro.com/) and [DDO](https://www.ddo.com/) with many features including an Add-on manager for plugins, skins, and music.
-
-***Version 2.0 is on the way with many many changes. The current version is stable and has all major features, though.***
+An enhanced launcher for both [LOTRO](https://www.lotro.com/) and [DDO](https://www.ddo.com/) with many features including an addons manager for plugins, skins, and music.
 
 ## Features
 
-- Plugins, skins, and music manager
 - Multiple accounts support
 - Password saving
-- External scripting support for add-ons
+- Plugins, skins, and music manager
+- External scripting support for addons
 - Auto WINE setup for Linux
 - Multiple clients support
 - *more*
@@ -29,7 +27,7 @@ The easiest way to get OneLauncher is with a pre-built installer. Linux users sh
 
 - [**Installers**](https://Github.com/JuneStepp/OneLauncher/releases/latest)
 - [Wine instructions](https://github.com/lutris/docs/blob/master/WineDependencies.md#distribution-specific-instructions)
-- [Running from source code](#development-install)
+- [Running from source code](CONTRIBUTING.md#development-install)
 
 ## Command Line Usage
 
@@ -76,44 +74,26 @@ All settings can be overridden from the command line. This is especially useful 
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
-## Development Install
+## Contributing
 
-OneLauncher uses [Poetry](https://python-poetry.org) for dependency management. To get everything setup, simply run `poetry install` in the root folder of the OneLauncher source code.
+See [CONTRIBUTING.md](CONTRIBUTING.md)
 
-### To run from source
+## Information For Addon Developers
 
-`poetry run onelauncher`
+### Getting Your Addon in OneLauncher
 
-### To build
-
-The build ends up in `start_onelauncher.dist`.
-
-Nuitka can't currently cross-compile, but the InstallBuilder installers can be cross-compiled.
-
-`poetry run python compile.py`
-
-### To translate
-
-OneLauncher uses [Weblate](weblate.org) for translations. You can make an account and contribute translations through their site. See the project page [here](https://hosted.weblate.org/projects/onelauncher/).
-
-## Add-on Manager Info For Developers
-
-### Getting Your Add-on in OneLauncher
-
-I follow the RSS feed on [LotroInterface](https://lotrointerface.com) and will add any add-ons that look
-to be in the correct format. Compendium files are **not** required.
-You can open an issue here or email me if you feel
-your add-on needs to be added.
+I follow the RSS feed on [LotroInterface](https://lotrointerface.com) and will add any addons that look to be in the correct format. Compendium files are **not** required.
+You can open an issue or email me if your addon still needs to be added.
 
 ### Archive Format
 
-- Add-ons must be uploaded as a zip!
+- Addons must be uploaded as a zip!
 - Archive should have a descriptive name (i.e. not "skin" or "plugin")
-- It's not recommended, but ok if zip has no root folder, multiple root folders, or includes part of the path to the data folder like "ui/skins" or "Plugins".
+- It's okay but not recommended if the archive has no root folder, multiple root folders, or includes part of the path to the data folder like "ui/skins" or "Plugins".
 
 ### Compendium Files
 
-Compendium files should be placed inside the top-level directory of your add-on, and their names follow the format:
+Compendium files should be placed inside the top-level directory of your addon, and their names follow the format:
 
 `{NAME}.{plugin/skin/music}compendium`
 An example is `Example Plugin.plugincompendium`
@@ -134,12 +114,12 @@ The contents of compendium files follow the format:
         <descriptor>{AUTHOR}\{NAME}.plugin</descriptor>
         <!--More descriptors can be added if more plugins are part of the main plugin. This is a representation of the paths to all the .plugin files.-->
     </Descriptors>
-    <!--Dependencies can be added for any type of add-on. The dependency doesn't have to be of the same add-on type as what is dependent on it-->
+    <!--Dependencies can be added for any type of addon. The dependency doesn't have to be of the same addon type as what is dependent on it-->
     <Dependencies>
         <dependency>{INTERFACE ID OF DEPENDENCY}</dependency>
         <!--Any amount of dependencies are fine-->
     </Dependencies>
-    <!--An add-on can request permission to run a Python script at every game launch.-->
+    <!--An addon can request permission to run a Python script at every game launch.-->
     <StartupScript>{PATH TO PYTHON SCRIPT IN SAME FORMAT AS DESCRIPTORS}</StartupScript>
 </{Plugin/Skin/Music}Config>
 ```
@@ -171,28 +151,28 @@ There is a [vscode extension](https://github.com/lunarwtr/vscode-lotro-api) by @
 
 ### Patches
 
-Patches must follow the same format as the add-on that is being patched. The most common issue is leaving out folders farther up the tree from what is changed.
+Patches must follow the same format as the addon that is being patched. The most common issue is leaving out folders farther up the tree from what is changed.
 
 Here is a list of possible issues to keep in mind when making a patch:
 
 Make sure patch…
 
-- Follows the exact same folder structure as the add-on being patched.
-- Doesn't edit the compendium file of the add-on being patched.
+- Follows the exact same folder structure as the addon being patched.
+- Doesn't edit the compendium file of the addon being patched.
 - Is installed after what is being patched.
 - Has clear name.
 
 ### Collections
 
-Collections of add-ons can be made by listing the add-ons you would like in the collection as dependencies of your add-on. See the [Compendium Files](#Compendium-Files) section for how to add dependencies to your add-on.
+Collections of addons can be made by listing the addons you would like in the collection as dependencies of your addon. See the [Compendium Files](#compendium-files) section for how to add dependencies to your addon.
 
 ### Dependencies
 
-Dependencies will be installed automatically after your add-on. See the [Compendium Files](#compendium-files) section for how to add dependencies to your add-on. Turbine Utilities uses ID `0`.
+Dependencies will be installed automatically after your addon. See the [Compendium Files](#compendium-files) section for how to add dependencies to your addon. Turbine Utilities uses ID `0`.
 
 ### Startup Scripts
 
-Startup scripts are Python scripts that will be run before every game launch. When installing an add-on with a startup script, the user will be prompted for permission for the script to run and shown the contents of the script. It is likely that users will not give permission for your script to run, so make sure to program in a message for that situation. See the [Compendium Files](#compendium-files) section for how to add a startup script to your add-on.
+Startup scripts are Python scripts that will be run before every game launch. When installing an addon with a startup script, the user will be prompted for permission for the script to run and shown the contents of the script. Addons should anticipate and handle the user not giving permission. See the [Compendium Files](#compendium-files) section for how to add a startup script to your addon.
 
 #### Builtin Variables
 
@@ -200,13 +180,13 @@ These are pre-set variables that you can access in your startup script.
 
 - `__file__`: The string path to your startup script.
 - `__game_dir__`: The string path to the current game directory.
-- `__game_config_dir__`: The string path to the current game settings folder. This is normally "The Lord of The Rings Online" or "Dungeons and Dragons Online" in the user's documents folder, but it can be configured differently.
+- `__game_config_dir__`: The string path to the current game settings folder. This is normally "The Lord of the Rings Online" or "Dungeons and Dragons Online" in the user's documents folder, but it can be configured differently.
 
 ## Custom Clients
 
 ### OneLauncher Banner Image
 
-Game banner images are displayed above the newsfeed in OneLauncher. All images are scaled to 136 pixels in height keeping aspect ratio and should ideally should be 300x136. Images following the path `{Game Directory}/{Locale Resources Folder}/banner.png` will replace the default image for that game and locale. If there is no image for a user's selected locale, the default image will be shown. An example path is `C://Program Files/Standing Stone Games/Lord of The Rings Online/en/banner.png`.
+Game banner images are displayed above the newsfeed in OneLauncher and are normally expected to be 300x136 pixels. Images following the path `{Game Directory}/{Locale Resources Folder}/banner.png` will replace the default banner for that game and locale. If there is no image for a user's selected locale, the default image will be shown. An example path is `C://Program Files/Standing Stone Games/Lord of The Rings Online/en/banner.png`.
 
 ## License
 
@@ -219,4 +199,4 @@ The [Material Design Icons](https://github.com/Templarian/MaterialDesign/blob/ma
 
 The Lord of the Rings Online is a trademark of Middle-earth Enterprises.
 Dungeons & Dragons Online is a trademark of Wizards of the Coast LLC.
-The Lord of the Rings Online and Dungeons & Dragons Online games and logos are owned by Standing Stone Games LLC. We are not affiliated with Standing Stone Games LLC, Middle-earth Enterprises, or Wizards of the Coast LLC in any way.
+The Lord of the Rings Online and Dungeons & Dragons Online games and logos are owned by Standing Stone Games LLC. I am not affiliated with Standing Stone Games LLC, Middle-earth Enterprises, or Wizards of the Coast LLC in any way.

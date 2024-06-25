@@ -6,9 +6,7 @@ from pathlib import Path
 from platform import platform
 from types import TracebackType
 
-from packaging.version import Version
-
-from .__about__ import __title__, __version__
+from .__about__ import __title__, __version__, version_parsed
 from .config import platform_dirs
 
 
@@ -22,11 +20,11 @@ class Logger:
         setup_logging = partial(
             self.setup_logging, logs_dir=logs_dir, log_name=log_name
         )
-        if Version(__version__).is_devrelease:
+        if version_parsed.is_devrelease:
             self.logger = setup_logging(
                 file_logging_level=logging.INFO, stream_logging_level=logging.DEBUG
             )
-        elif Version(__version__).is_prerelease:
+        elif version_parsed.is_prerelease:
             self.logger = setup_logging(
                 file_logging_level=logging.DEBUG, stream_logging_level=logging.WARNING
             )

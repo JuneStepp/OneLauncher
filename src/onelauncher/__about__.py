@@ -1,8 +1,10 @@
 import importlib_metadata
+from packaging.version import Version
 
 package_metadata = importlib_metadata.metadata(__package__)
 __title__ = package_metadata["Name"]
 __version__ = package_metadata["Version"]
+version_parsed = Version(__version__)
 __description__ = package_metadata["Summary"]
 # Update checks only work with a repository hosted on GitHub.
 __project_url__ = package_metadata.get("Home-page")

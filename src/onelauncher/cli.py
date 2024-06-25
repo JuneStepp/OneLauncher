@@ -1,15 +1,18 @@
 # ruff: noqa: UP007
 from __future__ import annotations
 
+import inspect
 import logging
 import os
+import subprocess
 import sys
+import sysconfig
 import traceback
 from collections.abc import Awaitable, Callable, Iterator
 from enum import StrEnum
 from functools import partial
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated, Optional, assert_never
 from uuid import UUID
 
 import attrs
@@ -20,7 +23,9 @@ from PySide6 import QtCore, QtWidgets
 from typer.core import TyperGroup as TyperGroupBase
 from typing_extensions import override
 
-from .__about__ import __title__, __version__
+import onelauncher
+
+from .__about__ import __title__, __version__, version_parsed
 from .addons.config import AddonsConfigSection
 from .addons.startup_script import StartupScript
 from .async_utils import AsyncHelper, app_cancel_scope
@@ -39,11 +44,11 @@ from .program_config import GamesSortingMode, ProgramConfig
 from .qtapp import setup_qtapplication
 from .resources import OneLauncherLocale
 from .setup_wizard import SetupWizard
+from .ui import qtdesigner
 from .ui.error_message_uic import Ui_errorDialog
 from .utilities import CaseInsensitiveAbsolutePath
 from .wine.config import WineConfigSection
 
-setup_application_logging()
 logger = logging.getLogger("main")
 
 
@@ -280,7 +285,8 @@ def _parse_game_arg(game_arg: str, config_manager: ConfigManager) -> UUID:
             )
         return game_uuid
 
-    match GameOptions(game_arg):
+    game_option = GameOptions(game_arg)
+    match game_option:
         case GameOptions.LOTRO:
             game_type = GameType.LOTRO
             is_preview = False
@@ -293,6 +299,8 @@ def _parse_game_arg(game_arg: str, config_manager: ConfigManager) -> UUID:
         case GameOptions.DDO_PREVIEW:
             game_type = GameType.DDO
             is_preview = True
+        case _:
+            assert_never(game_option)
     for game_uuid in game_uuids:
         game_config = config_manager.read_game_config_file(game_uuid=game_uuid)
         if (
@@ -350,6 +358,17 @@ WineOption = partial(
     rich_help_panel="Game WINE Options",
     hidden=os.name == "nt",
 )
+DevOption = partial(
+    typer.Option,
+    show_default=True,
+    rich_help_panel="Dev Stuff",
+    hidden=not version_parsed.is_devrelease,
+)
+dev_command = partial(
+    app.command,
+    hidden=not version_parsed.is_devrelease,
+    rich_help_panel="Dev Stuff",
+)
 
 
 def get_help(field_name: str, /, attrs_class: type[attrs.AttrsInstance]) -> str | None:
@@ -367,6 +386,7 @@ wine_help = partial(get_help, attrs_class=WineConfigSection)
 
 @app.callback(invoke_without_command=True)
 def main(
+    context: typer.Context,
     version: Annotated[
         bool,
         typer.Option(
@@ -476,6 +496,10 @@ def main(
         Optional[str], WineOption(help=wine_help("debug_level"))
     ] = None,
 ) -> None:
+    # Don't run when other command or autocompletion is invoked
+    if context.invoked_subcommand is not None or context.resilient_parsing:
+        return
+    setup_application_logging()
     get_merged_program_config = partial(
         merge_program_config,
         default_locale=default_locale,
@@ -516,6 +540,26 @@ def main(
     QtCore.QTimer.singleShot(0, async_helper.launch_guest_run)
     # qapp.exec() won't return until trio event loop finishes
     sys.exit(qapp.exec())
+
+
+@dev_command()
+def designer() -> None:
+    """Start pyside6-designer with correct environment variables"""
+    env = os.environ.copy()
+    env["PYTHONPATH"] = f"{env['PYTHONPATH']}:" if "PYTHONPATH" in env else ""
+    env["PYTHONPATH"] += (
+        f"{sysconfig.get_path('purelib')}:{Path(inspect.getabsfile(onelauncher)).parent.parent}"
+    )
+    env["PYSIDE_DESIGNER_PLUGINS"] = str(Path(inspect.getabsfile(qtdesigner)).parent)
+    if nix_python := os.environ.get("NIX_PYTHON"):
+        # Trick pyside6-designer into setting the right LD_PRELOAD path for Python
+        # in Nix flake instead of the bare library name.
+        env["PYENV_ROOT"] = nix_python
+    subprocess.run(
+        "pyside6-designer",  # noqa: S607, S603
+        env=env,
+        check=True,
+    )
 
 
 async def _main(entry: Callable[[], Awaitable[None]]) -> None:

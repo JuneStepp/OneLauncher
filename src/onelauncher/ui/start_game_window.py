@@ -164,7 +164,7 @@ class StartGame(QtWidgets.QDialog):
                 outfile.write(self.ui.txtLog.toPlainText())
 
     def run_startup_scripts(self) -> None:
-        """Runs Python scripts from add-ons with one that is approved by user"""
+        """Runs Python scripts from addons with one that is approved by user"""
         game_config = self.config_manager.get_game_config(self.game_uuid)
         for script in game_config.addons.enabled_startup_scripts:
             try:
