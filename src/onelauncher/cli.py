@@ -546,9 +546,11 @@ def main(
 def designer() -> None:
     """Start pyside6-designer with correct environment variables"""
     env = os.environ.copy()
-    env["PYTHONPATH"] = f"{env['PYTHONPATH']}:" if "PYTHONPATH" in env else ""
+    env["PYTHONPATH"] = (
+        f"{env['PYTHONPATH']}{os.pathsep}" if "PYTHONPATH" in env else ""
+    )
     env["PYTHONPATH"] += (
-        f"{sysconfig.get_path('purelib')}:{Path(inspect.getabsfile(onelauncher)).parent.parent}"
+        f"{sysconfig.get_path('purelib')}{os.pathsep}{Path(inspect.getabsfile(onelauncher)).parent.parent}"
     )
     env["PYSIDE_DESIGNER_PLUGINS"] = str(Path(inspect.getabsfile(qtdesigner)).parent)
     if nix_python := os.environ.get("NIX_PYTHON_ENV"):

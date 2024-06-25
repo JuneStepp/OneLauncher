@@ -100,7 +100,7 @@ class ApplicationStyle(QtCore.QObject):
             # Set placeholder banner for better style preview in QtDesigner
             stylesheet += dedent(f"""
                 QLabel#imgGameBanner {{
-                    qproperty-pixmap: url({data_dir / Path('images/LOTRO_banner.png')})
+                    qproperty-pixmap: url({((data_dir / Path('images/LOTRO_banner.png')).as_posix())})
                 }}
             """)
         stylesheet += self._get_font_size_qss()
@@ -125,7 +125,7 @@ class ApplicationStyle(QtCore.QObject):
             stylesheet += dedent(f"""
                 *[{CLASS_PROPERTY}~="icon-{scale_prefix}"] {{
                     qproperty-iconSize: {self.rem_to_px(rem)}px;
-                    {f"qproperty-icon: url({ data_dir / Path('images/placeholder_icon.svg')});" if qtdesigner_version else ""}
+                    {f"qproperty-icon: url({ (data_dir / Path('images/placeholder_icon.svg')).as_posix()});" if qtdesigner_version else ""}
                 }}""")
         return stylesheet
 
