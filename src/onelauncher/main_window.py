@@ -921,7 +921,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
 async def check_for_update() -> None:
     """Notifies user if their copy of OneLauncher is out of date"""
-    current_version = packaging.version.parse(__about__.__version__)
+    # Don't unecessarily check for updates during development
+    if __about__.version_parsed.is_devrelease:
+        return
     repository_url = __about__.__project_url__
     if not repository_url:
         logger.warning("No repository URL available. Will not check for updates.")
