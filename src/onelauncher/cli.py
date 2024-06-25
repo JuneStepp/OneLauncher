@@ -551,7 +551,7 @@ def designer() -> None:
         f"{sysconfig.get_path('purelib')}:{Path(inspect.getabsfile(onelauncher)).parent.parent}"
     )
     env["PYSIDE_DESIGNER_PLUGINS"] = str(Path(inspect.getabsfile(qtdesigner)).parent)
-    if nix_python := os.environ.get("NIX_PYTHON"):
+    if nix_python := os.environ.get("NIX_PYTHON_ENV"):
         # Trick pyside6-designer into setting the right LD_PRELOAD path for Python
         # in Nix flake instead of the bare library name.
         env["PYENV_ROOT"] = nix_python
