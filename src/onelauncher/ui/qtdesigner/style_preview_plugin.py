@@ -34,7 +34,7 @@ class CustomStylesheetPlugin(QtDesigner.QDesignerCustomWidgetInterface):
 
     @override
     def includeFile(self) -> str:
-        return ".custom_widgets"
+        return ".qtdesigner.custom_widgets"
 
     @override
     def initialize(self, form_editor: QtDesigner.QDesignerFormEditorInterface) -> None:

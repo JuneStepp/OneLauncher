@@ -1,4 +1,4 @@
-from onelauncher.ui.custom_widgets import (
+from onelauncher.ui.qtdesigner.custom_widgets import (
     QDialogWithStylePreview,
     QMainWindowWithStylePreview,
     QWidgetWithStylePreview,

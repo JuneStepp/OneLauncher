@@ -9,9 +9,12 @@ from ..resources import data_dir
 
 # Dynamic property used for styling, like the class attribute in HTML
 CLASS_PROPERTY: str = "qssClass"
-# Unit that is the application base font size multiplied by the Rem number when
-# transformed into pixels.
+
 Rem: TypeAlias = float
+"""
+Unit that is the application base font size multiplied by the Rem number when
+transformed into pixels.
+"""
 SPACING: Final[dict[str, Rem]] = {
     "0": 0.0,
     "0.5": 0.125,
@@ -85,6 +88,13 @@ class ApplicationStyle(QtCore.QObject):
     def update_app_stylesheet(self) -> None:
         self.qapp.setStyleSheet(self.generate_stylesheet())
 
+    def update_base_font(self) -> None:
+        if self.qapp.font() != self._font_base:
+            self.update_app_stylesheet()
+
+    def rem_to_px(self, rem: Rem) -> int:
+        return round(self._base_font_metrics.height() * rem)
+
     def generate_stylesheet(self, qtdesigner_version: bool = False) -> str:
         self._font_base = self.qapp.font()
         self._base_font_metrics = QtGui.QFontMetricsF(self._font_base)
@@ -105,8 +115,14 @@ class ApplicationStyle(QtCore.QObject):
             """)
         stylesheet += self._get_font_size_qss()
         stylesheet += self._get_icon_size_qss(qtdesigner_version=qtdesigner_version)
-        stylesheet += self._get_spacing_qss("margin", "m")
-        stylesheet += self._get_spacing_qss("padding", "p")
+        stylesheet += self._get_directional_spacing_qss("margin", "m")
+        stylesheet += self._get_directional_spacing_qss("padding", "p")
+        stylesheet += self._get_spacing_qss("width", "w")
+        stylesheet += self._get_spacing_qss("min-width", "min-w")
+        stylesheet += self._get_spacing_qss("max-width", "max-w")
+        stylesheet += self._get_spacing_qss("height", "h")
+        stylesheet += self._get_spacing_qss("min-height", "min-h")
+        stylesheet += self._get_spacing_qss("max-height", "max-h")
         return stylesheet
 
     def _get_font_size_qss(self) -> str:
@@ -115,8 +131,7 @@ class ApplicationStyle(QtCore.QObject):
             stylesheet += dedent(f"""
                 *[{CLASS_PROPERTY}~="text-{scale_prefix}"] {{
                     font-size: {self._font_base.pointSizeF() * rem}pt;
-                }}
-                """)
+                }}""")
         return stylesheet
 
     def _get_icon_size_qss(self, qtdesigner_version: bool = False) -> str:
@@ -137,6 +152,18 @@ class ApplicationStyle(QtCore.QObject):
                 *[{CLASS_PROPERTY}~="{property_shorthand}-{spacing_name}"] {{
                     {property_name}: {spacing_px}px;
                 }}""")
+        return stylesheet
+
+    def _get_directional_spacing_qss(
+        self, property_name: str, property_shorthand: str
+    ) -> str:
+        stylesheet = ""
+        for spacing_name, spacing_rem in SPACING.items():
+            spacing_px = self.rem_to_px(spacing_rem)
+            stylesheet += dedent(f"""
+                *[{CLASS_PROPERTY}~="{property_shorthand}-{spacing_name}"] {{
+                    {property_name}: {spacing_px}px;
+                }}""")
             for directions, directions_shorthand in DIRECTIONS_SHORTHAND:
                 stylesheet += dedent(f"""
                     *[{CLASS_PROPERTY}~="{property_shorthand}{directions_shorthand}-{spacing_name}"] {{
@@ -145,10 +172,3 @@ class ApplicationStyle(QtCore.QObject):
                     stylesheet += f"    {property_name}-{direction}: {spacing_px}px;\n"
                 stylesheet += "}"
         return stylesheet
-
-    def rem_to_px(self, rem: Rem) -> int:
-        return round(self._base_font_metrics.height() * rem)
-
-    def update_base_font(self) -> None:
-        if self.qapp.font() != self._font_base:
-            self.update_app_stylesheet()
