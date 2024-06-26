@@ -37,7 +37,7 @@ from .config_manager import ConfigManager
 from .game_launcher_local_config import GameLauncherLocalConfig
 from .game_utilities import get_documents_config_dir
 from .patching_progress_monitor import PatchingProgressMonitor
-from .ui.patching_window_uic import Ui_patchingWindow
+from .ui.patching_window_uic import Ui_patchingDialog
 from .ui_utilities import QByteArray2str
 from .utilities import CaseInsensitiveAbsolutePath
 from .wine_environment import edit_qprocess_to_use_wine
@@ -56,8 +56,8 @@ class PatchWindow(QtWidgets.QDialog):
             QtCore.Qt.WindowType.FramelessWindowHint,
         )
 
-        self.ui = Ui_patchingWindow()
-        self.ui.setupUi(self)  # type: ignore
+        self.ui = Ui_patchingDialog()
+        self.ui.setupUi(self)
 
         if os.name == "nt":
             self.setWindowTitle("Patching Output")

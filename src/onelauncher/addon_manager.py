@@ -28,6 +28,7 @@
 import logging
 import sqlite3
 import urllib
+import xml.dom.minidom
 import zipfile
 from collections.abc import Callable, Iterator, Sequence
 from functools import partial
@@ -35,16 +36,20 @@ from pathlib import Path
 from shutil import copy, copytree, move, rmtree
 from tempfile import TemporaryDirectory
 from time import localtime, strftime
-from typing import Final, Literal, NamedTuple, overload
+from typing import Final, Literal, NamedTuple, TypeAlias, assert_never, overload
 from uuid import UUID
 from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minicompat import NodeList
-from xml.dom.minidom import Document, Element
+from xml.dom.minidom import Element
 
-import attrs  # nosec
+import attrs
 import defusedxml.minidom
+import qtawesome
 from PySide6 import QtCore, QtGui, QtWidgets
+from typing_extensions import override
 from vkbeautify import xml as prettify_xml
+
+from onelauncher.ui.qtdesigner.custom_widgets import QWidgetWithStylePreview
 
 from .__about__ import __title__
 from .addons.startup_script import StartupScript
@@ -54,31 +59,45 @@ from .game_config import GameType
 from .game_launcher_local_config import GameLauncherLocalConfig
 from .game_utilities import get_documents_config_dir
 from .ui.addon_manager_uic import Ui_winAddonManager
-from .ui_resources import icon_font
 from .utilities import CaseInsensitiveAbsolutePath
+
+
+# Just to fix type hints
+class Document(xml.dom.minidom.Document):
+    @override
+    # The type hints for this didn't include the return type or that it accepts
+    # `EMPTY_NAMESPACE` which is equal to `None`.
+    def createElementNS(self, namespaceURI: str | None, qualifiedName: str) -> Element:
+        return super().createElementNS(namespaceURI, qualifiedName)  # type: ignore[arg-type,no-any-return]
 
 
 class Addon(NamedTuple):
     interface_id: str
     file: str
+    """File is the URL if the addon is remote."""
     name: str
 
 
 @attrs.define
 class AddonInfo(Sequence[str]):
+    # DON'T CHANGE THE ORDER OF THESE FIELDS. This is a wrapper over what used to be
+    # normal sequences of strings.
     name: str | Literal[""] = ""
     category: str | Literal[""] = ""
     version: str | Literal[""] = ""
     author: str | Literal[""] = ""
     latest_release: str | Literal[""] = ""
     file: str | Literal[""] = ""
+    """File is the URL if the addon is remote."""
     interface_id: str | Literal[""] = ""
     dependencies: str | Literal[""] = ""
     startup_script: str | Literal[""] = ""
 
+    @override
     def __iter__(self) -> Iterator[str | Literal[""]]:
         yield from attrs.astuple(self)
 
+    @override
     def __len__(self) -> int:
         return len(attrs.astuple(self))
 
@@ -88,6 +107,7 @@ class AddonInfo(Sequence[str]):
     @overload
     def __getitem__(self, slice: slice, /) -> Sequence[str]: ...  # noqa: A002
 
+    @override
     def __getitem__(self, key: int | slice) -> str | tuple[str, ...]:
         return attrs.astuple(self).__getitem__(key)
 
@@ -97,13 +117,13 @@ class AddonInfo(Sequence[str]):
 
 def GetText(nodelist: NodeList[Element]) -> str:
     return "".join(
-        node.data  # type: ignore
+        node.data  # type: ignore[attr-defined]
         for node in nodelist
         if node.nodeType in [node.TEXT_NODE, node.CDATA_SECTION_NODE]
     )
 
 
-class AddonManagerWindow(QtWidgets.QDialog):
+class AddonManagerWindow(QWidgetWithStylePreview):
     # ID is from the order plugins are found on the filesystem. InterfaceID is
     # the unique ID for plugins on lotrointerface.com
     # Don't change order of list
@@ -119,6 +139,27 @@ class AddonManagerWindow(QtWidgets.QDialog):
         "Dependencies",
         "StartupScript",
     )
+    TableWidgetColumnName: TypeAlias = Literal[
+        "ID",
+        "Name",
+        "Category",
+        "Version",
+        "Author",
+        "Latest Release",
+    ]
+    TABLE_WIDGET_COLUMNS: Final[tuple[TableWidgetColumnName, ...]] = (
+        "ID",
+        "Name",
+        "Category",
+        "Version",
+        "Author",
+        "Latest Release",
+    )
+    # Used for type hints, since the typeshed type hint for `Sequence.index()` has `Any`
+    # for the value.
+    TABLE_WIDGET_COLUMN_INDEXES: Final[dict[TableWidgetColumnName, int]] = {
+        column_name: i for i, column_name in enumerate(TABLE_WIDGET_COLUMNS)
+    }
     # Don't change order of list
     TABLE_LIST: Final[tuple[str, ...]] = (
         "tablePluginsInstalled",
@@ -130,6 +171,13 @@ class AddonManagerWindow(QtWidgets.QDialog):
         "tableSkinsDDO",
         "tableSkinsDDOInstalled",
     )
+    SOURCE_TAB_NAMES: Final = (
+        "Installed",
+        "Find More",
+    )
+    AddonTypeTabName: TypeAlias = Literal["Plugins", "Skins", "Music"]
+    TAB_NAMES_LOTRO: Final[tuple[AddonTypeTabName, ...]] = ("Plugins", "Skins", "Music")
+    TAB_NAMES_DDO: Final[tuple[AddonTypeTabName, ...]] = ("Skins",)
 
     PLUGINS_URL = "https://api.lotrointerface.com/fav/OneLauncher-Plugins.xml"
     SKINS_URL = "https://api.lotrointerface.com/fav/OneLauncher-Themes.xml"
@@ -141,32 +189,37 @@ class AddonManagerWindow(QtWidgets.QDialog):
         config_manager: ConfigManager,
         game_uuid: UUID,
         launcher_local_config: GameLauncherLocalConfig,
+        # Don't copy this. It's an in-between solution.
+        add_error_log: Callable[[str], None],
     ):
-        super().__init__(
-            QtCore.QCoreApplication.instance().activeWindow(),  # type: ignore
-            QtCore.Qt.WindowType.FramelessWindowHint,
-        )
+        super().__init__()
         self.config_manager = config_manager
         self.game_uuid: UUID = game_uuid
+        self.add_error_log = add_error_log
         self.ui = Ui_winAddonManager()
-        self.ui.setupUi(self)  # type: ignore[no-untyped-call]
+        self.ui.setupUi(self)
 
         game_config = self.config_manager.get_game_config(self.game_uuid)
-        if game_config.game_type == GameType.DDO:
-            # Remove plugin and music tabs when using DDO.
-            # This has to be done before the tab switching signals are
-            # connected.
-            self.ui.tabWidgetRemote.removeTab(0)
-            self.ui.tabWidgetRemote.removeTab(1)
-            self.ui.tabWidgetInstalled.removeTab(0)
-            self.ui.tabWidgetInstalled.removeTab(1)
 
-        # Create backround color for addons that are installed already in
-        # remote tables
-        self.installed_addons_color = QtGui.QColor()
-        self.installed_addons_color.setRgb(63, 73, 83)
-
-        self.ui.btnBox.rejected.connect(self.btnBoxActivated)
+        for tab_name in self.SOURCE_TAB_NAMES:
+            self.ui.tabBarSource.addTab(tab_name)
+        self.ui.tabBarSource.setExpanding(True)
+        self.ui.tabBarSource.currentChanged.connect(self.tabBarIndexChanged)
+        self.tab_names: tuple[AddonManagerWindow.AddonTypeTabName, ...]
+        if game_config.game_type == GameType.LOTRO:
+            self.tab_names = self.TAB_NAMES_LOTRO
+        elif game_config.game_type == GameType.DDO:
+            self.tab_names = self.TAB_NAMES_DDO
+        else:
+            assert_never(game_config.game_type)
+        for tab_name in self.tab_names:
+            self.ui.tabBarInstalled.addTab(tab_name)
+            self.ui.tabBarRemote.addTab(tab_name)
+        # Bar won't show up without setting a minimum size
+        self.ui.tabBarInstalled.setMinimumSize(1, 1)
+        self.ui.tabBarRemote.setMinimumSize(1, 1)
+        self.ui.tabBarInstalled.currentChanged.connect(self.tabBarInstalledIndexChanged)
+        self.ui.tabBarRemote.currentChanged.connect(self.tabBarRemoteIndexChanged)
 
         self.btnAddonsMenu = QtWidgets.QMenu()
         self.btnAddonsMenu.addAction(self.ui.actionAddonImport)
@@ -195,8 +248,6 @@ class AddonManagerWindow(QtWidgets.QDialog):
             self.updateAllSelectedAddons
         )
 
-        self.updateAddonFolderActions(0)
-
         self.ui.actionInstallAddon.triggered.connect(self.actionInstallAddonSelected)
         self.ui.actionUninstallAddon.triggered.connect(
             self.actionUninstallAddonSelected
@@ -210,37 +261,47 @@ class AddonManagerWindow(QtWidgets.QDialog):
             self.actionDisableStartupScriptSelected
         )
 
-        self.ui.btnCheckForUpdates.setFont(icon_font)
-        self.ui.btnCheckForUpdates.setText("\uf2f1")
+        self.ui.progressBar.setVisible(False)
+
+        qapp: QtWidgets.QApplication = qApp  # type: ignore[name-defined]  # noqa: F821
+        color_scheme_changed = qapp.styleHints().colorSchemeChanged
+        get_check_for_updates_icon = partial(qtawesome.icon, "fa5s.sync-alt")
+        self.ui.btnCheckForUpdates.setIcon(get_check_for_updates_icon())
+        self.ui.btnCheckForUpdates_2.setIcon(get_check_for_updates_icon())
+        color_scheme_changed.connect(
+            lambda: self.ui.btnCheckForUpdates.setIcon(get_check_for_updates_icon())
+        )
+        color_scheme_changed.connect(
+            lambda: self.ui.btnCheckForUpdates_2.setIcon(get_check_for_updates_icon())
+        )
         self.ui.btnCheckForUpdates.pressed.connect(self.checkForUpdates)
+        self.ui.btnCheckForUpdates_2.pressed.connect(self.checkForUpdates)
         self.ui.btnUpdateAll.pressed.connect(self.updateAll)
 
         self.ui.btnAddons.setMenu(self.btnAddonsMenu)
         self.ui.btnAddons.clicked.connect(self.btnAddonsClicked)
-        self.ui.btnAddons.setFont(icon_font)
-        self.ui.btnAddons.setText("\uf068")
-
-        self.ui.tabWidget.currentChanged.connect(self.tabWidgetIndexChanged)
-        self.ui.tabWidgetInstalled.currentChanged.connect(
-            self.tabWidgetInstalledIndexChanged
-        )
-        self.ui.tabWidgetRemote.currentChanged.connect(self.tabWidgetRemoteIndexChanged)
-
-        self.ui.txtLog.hide()
-        self.ui.btnLog.clicked.connect(self.btnLogClicked)
+        self.update_btn_addons()
+        color_scheme_changed.connect(self.update_btn_addons)
 
         self.ui.txtSearchBar.setFocus()
         self.ui.txtSearchBar.textChanged.connect(self.txtSearchBarTextChanged)
 
-        for table_name in self.TABLE_LIST[:-2]:
-            # Gets callable form from the string
-            table: QtWidgets.QTableWidget = getattr(self.ui, table_name)
-
-            # Hides ID column
-            table.hideColumn(0)
-
-            # Sort tables by addon name
-            table.sortItems(1)
+        # The order of these should match
+        self.ui_tables_installed: Final[tuple[QtWidgets.QTableWidget, ...]] = (
+            self.ui.tablePluginsInstalled,
+            self.ui.tableSkinsInstalled,
+            self.ui.tableMusicInstalled,
+        )
+        self.ui_tables_remote: Final[tuple[QtWidgets.QTableWidget, ...]] = (
+            self.ui.tablePlugins,
+            self.ui.tableSkins,
+            self.ui.tableMusic,
+        )
+        for table in self.ui_tables_installed + self.ui_tables_remote:
+            table.setColumnCount(len(self.TABLE_WIDGET_COLUMNS))
+            table.setHorizontalHeaderLabels(self.TABLE_WIDGET_COLUMNS)
+            table.hideColumn(self.TABLE_WIDGET_COLUMN_INDEXES["ID"])
+            table.sortItems(self.TABLE_WIDGET_COLUMN_INDEXES["Name"])
 
             table.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
             table.customContextMenuRequested.connect(
@@ -257,17 +318,14 @@ class AddonManagerWindow(QtWidgets.QDialog):
         )
         if game_config.game_type == GameType.DDO:
             self.data_folder_skins = self.data_folder / "ui/skins"
-
             self.ui.tableSkinsInstalled.setObjectName("tableSkinsDDOInstalled")
             self.ui.tableSkins.setObjectName("tableSkinsDDO")
-            self.getInstalledSkins()
         else:
             self.data_folder_plugins = self.data_folder / "Plugins"
             self.data_folder_skins = self.data_folder / "ui/skins"
             self.data_folder_music = self.data_folder / "Music"
-
-            # Loads in installed plugins
-            self.getInstalledPlugins()
+        # This will load up whatever's needed for the initial tab. Ex. Plugins
+        self.tabBarInstalledIndexChanged(self.ui.tabBarInstalled.currentIndex())
 
     def getInstalledSkins(self, folders_list: list[Path] | None = None) -> None:
         if self.isTableEmpty(self.ui.tableSkinsInstalled):
@@ -449,7 +507,9 @@ class AddonManagerWindow(QtWidgets.QDialog):
                         plugin_files.remove(file)
 
                     if not descriptor_path.exists():
-                        self.addLog(f"{compendium_file} has misconfigured descriptors")
+                        self.add_error_log(
+                            f"{compendium_file} has misconfigured descriptors"
+                        )
 
     def addInstalledPluginsToDB(
         self,
@@ -645,7 +705,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             self.installAbcFile(addon_path)
             return
         elif addon_path.suffix == ".rar":
-            self.addLog(
+            self.add_error_log(
                 f"{__title__} does not support .rar archives, because it"
                 " is a proprietary format that would require and external "
                 "program to extract"
@@ -659,7 +719,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             self.config_manager.get_game_config(self.game_uuid).game_type
             == GameType.DDO
         ):
-            self.addLog("DDO does not support .abc/music files")
+            self.add_error_log("DDO does not support .abc/music files")
             return
 
         copy(str(addon_path), self.data_folder_music)
@@ -678,7 +738,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             with zipfile.ZipFile(addon_path, "r") as archive:
                 # Addons without any files aren't valid
                 if all(zip_info.is_dir() for zip_info in archive.infolist()):
-                    self.addLog("Add-on Zip is empty. Aborting")
+                    self.add_error_log("Addon Zip is empty. Aborting")
                     return
 
                 archive.extractall(tmp_dir)
@@ -705,7 +765,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             self.config_manager.get_game_config(self.game_uuid).game_type
             == GameType.DDO
         ):
-            self.addLog("DDO does not support plugins")
+            self.add_error_log("DDO does not support plugins")
             return
 
         table = self.ui.tablePlugins
@@ -746,7 +806,9 @@ class AddonManagerWindow(QtWidgets.QDialog):
             ]:
                 author_folder = author_folders_plugin[0]
             else:
-                self.addLog("Plugin doesn't have an author folder with a .plugin file")
+                self.add_error_log(
+                    "Plugin doesn't have an author folder with a .plugin file"
+                )
                 return
         else:
             author_folder = author_folders[0]
@@ -820,7 +882,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         """
         existing_compendium_files = list(tmp_search_dir.glob("*.*compendium"))
         if len(existing_compendium_files) > 1:
-            self.addLog("Addon has multiple compendium files")
+            self.add_error_log("Addon has multiple compendium files")
             return False
         elif len(existing_compendium_files) == 1:
             return existing_compendium_files[0]
@@ -833,7 +895,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             self.config_manager.get_game_config(self.game_uuid).game_type
             == GameType.DDO
         ):
-            self.addLog("DDO does not support .abc/music files")
+            self.add_error_log("DDO does not support .abc/music files")
             return None
 
         # Some plugins have .abc files, but music collections
@@ -905,28 +967,27 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
     def installAddonRemoteDependencies(self, table_name: str) -> None:
         """Installs the dependencies for the last installed addon"""
-        # Gets dependencies for last column in db
+        # Get dependencies for last column in db
+        dependencies: str | None = None
         for item in self.c.execute(
             f"SELECT Dependencies FROM {table_name} ORDER BY rowid DESC LIMIT 1"  # noqa: S608
         ):
             dependencies = item[0]
+        if dependencies is None:
+            raise ValueError("Addon dependencies not found in DB")
 
         for dependency in dependencies.split(","):
-            if dependency:
-                # 0 is the arbitrary ID for Turbine Utilities. 1064 is the ID
-                # of OneLauncher's upload of the utilities on LotroInterface
-                if dependency == "0":
-                    dependency = "1064"
+            if not dependency:
+                continue
+            # 0 is the arbitrary ID for Turbine Utilities. 1064 is the ID
+            # of OneLauncher's upload of the utilities on LotroInterface
+            interface_id = "1064" if dependency == "0" else dependency
 
-                for item in self.c.execute(  # nosec
-                    "SELECT File, Name FROM {table} WHERE InterfaceID = ? AND InterfaceID NOT IN "
-                    "(SELECT InterfaceID FROM {table_installed})".format(
-                        table=table_name.split("Installed")[0],
-                        table_installed=table_name,
-                    ),
-                    (dependency,),
-                ):
-                    self.installRemoteAddon(item[0], item[1], dependency)
+            for item in self.c.execute(  # nosec
+                f"SELECT File, Name FROM {table_name.split('Installed')[0]} WHERE InterfaceID = ? AND InterfaceID NOT IN (SELECT InterfaceID FROM {table_name})",  # noqa: S608
+                (interface_id,),
+            ):
+                self.installRemoteAddon(item[0], item[1], interface_id)
 
     def fix_improper_root_dir_addon(
         self, addon_tmp_dir: CaseInsensitiveAbsolutePath, addon_name: str
@@ -1056,8 +1117,9 @@ class AddonManagerWindow(QtWidgets.QDialog):
             existing_compendium_file.unlink()
 
         for row in self.c.execute(
-            f"SELECT * FROM {table} WHERE InterfaceID = ?", (interface_id,)
-        ):  # nosec
+            f"SELECT * FROM {table} WHERE InterfaceID = ?",  # noqa: S608
+            (interface_id,),
+        ):
             if row[0]:
                 doc = Document()
                 mainNode = doc.createElementNS(
@@ -1066,29 +1128,29 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 doc.appendChild(mainNode)
 
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Id")
-                tempNode.appendChild(doc.createTextNode("%s" % (row[6])))
+                tempNode.appendChild(doc.createTextNode(f"{row[6]}"))
                 mainNode.appendChild(tempNode)
 
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Name")
-                tempNode.appendChild(doc.createTextNode("%s" % (row[0])))
+                tempNode.appendChild(doc.createTextNode(f"{row[0]}"))
                 mainNode.appendChild(tempNode)
 
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Version")
-                tempNode.appendChild(doc.createTextNode("%s" % (row[2])))
+                tempNode.appendChild(doc.createTextNode(f"{row[2]}"))
                 mainNode.appendChild(tempNode)
 
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "Author")
-                tempNode.appendChild(doc.createTextNode("%s" % (row[3])))
+                tempNode.appendChild(doc.createTextNode(f"{row[3]}"))
                 mainNode.appendChild(tempNode)
 
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "InfoUrl")
                 tempNode.appendChild(
-                    doc.createTextNode("%s" % (self.getInterfaceInfoUrl(row[5])))
+                    doc.createTextNode(f"{self.getInterfaceInfoUrl(row[5])}")
                 )
                 mainNode.appendChild(tempNode)
 
                 tempNode = doc.createElementNS(EMPTY_NAMESPACE, "DownloadUrl")
-                tempNode.appendChild(doc.createTextNode("%s" % (row[5])))
+                tempNode.appendChild(doc.createTextNode(f"{row[5]}"))
                 mainNode.appendChild(tempNode)
 
                 if addon_type.title() == "Plugin":
@@ -1101,8 +1163,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
                         tempNode = doc.createElementNS(EMPTY_NAMESPACE, "descriptor")
                         tempNode.appendChild(
                             doc.createTextNode(
-                                "%s"
-                                % (f"{tmp_addon_root_dir.name}\\{plugin_file.name}")
+                                f"{tmp_addon_root_dir.name}\\{plugin_file.name}"
                             )
                         )
                         descriptorsNode.appendChild(tempNode)
@@ -1112,12 +1173,12 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 dependenciesNode = doc.createElementNS(EMPTY_NAMESPACE, "Dependencies")
                 mainNode.appendChild(dependenciesNode)
 
-                # If compendium file from add-on already existed with
+                # If compendium file from addon already existed with
                 # dependencies
                 if dependencies:
                     for dependency in dependencies.split(","):
                         tempNode = doc.createElementNS(EMPTY_NAMESPACE, "dependency")
-                        tempNode.appendChild(doc.createTextNode("%s" % (dependency)))
+                        tempNode.appendChild(doc.createTextNode(f"{dependency}"))
                         dependenciesNode.appendChild(tempNode)
 
                 # Can't add startup script, because it is defined in compendium
@@ -1125,11 +1186,11 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 startupScriptNode = doc.createElementNS(
                     EMPTY_NAMESPACE, "StartupScript"
                 )
-                # If compendium file from add-on already existed with startup
+                # If compendium file from add-n already existed with startup
                 # script
                 if startup_python_script:
                     startupScriptNode.appendChild(
-                        doc.createTextNode("%s" % (startup_python_script))
+                        doc.createTextNode(f"{startup_python_script}")
                     )
                 mainNode.appendChild(startupScriptNode)
 
@@ -1154,40 +1215,24 @@ class AddonManagerWindow(QtWidgets.QDialog):
         return download_url.replace("/downloads/download", "/downloads/info")
 
     def txtSearchBarTextChanged(self, text: str) -> None:
-        if (
-            self.config_manager.get_game_config(self.game_uuid).game_type
-            == GameType.LOTRO
-        ):
-            # If in Installed tab
-            if self.ui.tabWidget.currentIndex() == 0:
-                index_installed = self.ui.tabWidgetInstalled.currentIndex()
-
-                # If in PluginsInstalled tab
-                if index_installed == 0:
-                    self.searchDB(self.ui.tablePluginsInstalled, text)
-                # If in SkinsInstalled tab
-                elif index_installed == 1:
-                    self.searchDB(self.ui.tableSkinsInstalled, text)
-                # If in MusicInstalled tab
-                elif index_installed == 2:
-                    self.searchDB(self.ui.tableMusicInstalled, text)
-            # If in Find More tab
-            elif self.ui.tabWidget.currentIndex() == 1:
-                index_remote = self.ui.tabWidgetRemote.currentIndex()
-                # If in Plugins tab
-                if index_remote == 0:
-                    self.searchDB(self.ui.tablePlugins, text)
-                # If in Skins tab
-                elif index_remote == 1:
-                    self.searchDB(self.ui.tableSkins, text)
-                # If in Music tab
-                elif index_remote == 2:
-                    self.searchDB(self.ui.tableMusic, text)
-        elif self.ui.tabWidget.currentIndex() == 0:
-            self.searchDB(self.ui.tableSkinsInstalled, text)
+        index = self.ui.tabBarSource.currentIndex()
+        if self.SOURCE_TAB_NAMES[index] == "Installed":
+            index_installed = self.ui.tabBarInstalled.currentIndex()
+            if self.tab_names[index_installed] == "Plugins":
+                self.searchDB(self.ui.tablePluginsInstalled, text)
+            elif self.tab_names[index_installed] == "Skins":
+                self.searchDB(self.ui.tableSkinsInstalled, text)
+            elif self.tab_names[index_installed] == "Music":
+                self.searchDB(self.ui.tableMusicInstalled, text)
         # If in Find More tab
-        elif self.ui.tabWidget.currentIndex() == 1:
-            self.searchDB(self.ui.tableSkins, text)
+        elif self.SOURCE_TAB_NAMES[index] == "Find More":
+            index_remote = self.ui.tabBarRemote.currentIndex()
+            if self.tab_names[index_remote] == "Plugins":
+                self.searchDB(self.ui.tablePlugins, text)
+            elif self.tab_names[index_remote] == "Skins":
+                self.searchDB(self.ui.tableSkins, text)
+            elif self.tab_names[index_remote] == "Music":
+                self.searchDB(self.ui.tableMusic, text)
 
     def searchDB(self, table: QtWidgets.QTableWidget, text: str) -> None:
         table.clearContents()
@@ -1197,41 +1242,52 @@ class AddonManagerWindow(QtWidgets.QDialog):
             for word in text.split():
                 search_word = f"%{word}%"
 
-                for row in self.c.execute(
+                for result in self.c.execute(
                     # nosec
-                    "SELECT rowid, * FROM {table} WHERE Author LIKE ? OR Category"
-                    " LIKE ? OR Name LIKE ?".format(table=table.objectName()),
+                    f"SELECT rowid, * FROM {table.objectName()} WHERE Author LIKE ? OR Category LIKE ? OR Name LIKE ?",  # noqa: S608
                     (search_word, search_word, search_word),
                 ):
+                    rowid = result[0]
+                    addon_info = AddonInfo(*result[1:])
                     # Detects duplicates from multi-word search
                     duplicate = False
                     for item in table.findItems(
-                        row[1], QtCore.Qt.MatchFlag.MatchExactly
+                        addon_info.name, QtCore.Qt.MatchFlag.MatchExactly
                     ):
-                        if int((table.item(item.row(), 0)).text()) == row[0]:
+                        if (
+                            int(
+                                (
+                                    table.item(
+                                        item.row(),
+                                        self.TABLE_WIDGET_COLUMN_INDEXES["ID"],
+                                    )
+                                ).text()
+                            )
+                            == rowid
+                        ):
                             duplicate = True
                             break
                     if not duplicate:
-                        self.addRowToTable(table, row)
+                        self.addRowToTable(table, rowid=rowid, addon_info=addon_info)
         else:
             # Shows all plugins if the search bar is empty
-            for row in self.c.execute(
+            for result in self.c.execute(
                 # nosec
-                "SELECT rowid, * FROM {table}".format(table=table.objectName())
+                f"SELECT rowid, * FROM {table.objectName()}"  # noqa: S608
             ):
-                self.addRowToTable(table, row)
+                self.addRowToTable(
+                    table, rowid=result[0], addon_info=AddonInfo(*result[1:])
+                )
 
     def isTableEmpty(self, table: QtWidgets.QTableWidget) -> bool:
-        return not table.item(0, 1)
+        return not table.item(0, self.TABLE_WIDGET_COLUMN_INDEXES["Name"])
 
     def reloadSearch(self, table: QtWidgets.QTableWidget) -> None:
         """Re-searches the current search"""
         self.searchDB(table, self.ui.txtSearchBar.text())
 
     def resetRemoteAddonsTables(self) -> None:
-        for i in range(self.ui.tabWidgetRemote.count()):
-            tab = self.ui.tabWidgetRemote.widget(i)
-            table = getattr(self.ui, tab.objectName().replace("tab", "table"))
+        for table in self.ui_tables_remote:
             if not self.isTableEmpty(table):
                 self.searchDB(table, "")
 
@@ -1268,45 +1324,51 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
     # Adds row to a visible table. First value in list is row name
     def addRowToTable(
-        self, table: QtWidgets.QTableWidget, addon_info: AddonInfo
+        self, table: QtWidgets.QTableWidget, rowid: int | str, addon_info: AddonInfo
     ) -> None:
         table.setSortingEnabled(False)
-
-        disable_row = False
 
         rows = table.rowCount()
         table.setRowCount(rows + 1)
 
-        # Sets row name
-        tbl_item = QtWidgets.QTableWidgetItem()
-        tbl_item.setText(str(addon_info[0]))
-
-        # Adds items to row
-        for column, item in enumerate(addon_info):
+        disable_row = False
+        for column_index, column_name in enumerate(self.TABLE_WIDGET_COLUMNS):
             tbl_item = QtWidgets.QTableWidgetItem()
-
-            tbl_item.setText(str(item))
-            # Sets color to red if addon is unmanaged
-            if item == "Unmanaged" and column == 2:
-                tbl_item.setForeground(QtGui.QColor("darkred"))
-            # Disable row if addon is Installed. This is only applicable to
-            # remote tables.
-            elif str(item).startswith("(Installed) ") and column == 1:
-                tbl_item.setText(item.split("(Installed) ")[1])
-                disable_row = True
-            elif str(item).startswith("(Updated) ") and column == 3:
-                tbl_item.setText(item.split("(Updated) ")[1])
-                tbl_item.setForeground(QtGui.QColor("green"))
-            elif str(item).startswith("(Outdated) ") and column == 3:
-                tbl_item.setText(item.split("(Outdated) ")[1])
-                tbl_item.setForeground(QtGui.QColor("crimson"))
-
-            table.setItem(rows, column, tbl_item)
+            if column_name == "ID":
+                tbl_item.setText(str(rowid))
+            elif column_name == "Name":
+                # Disable row if addon is Installed. This is only applicable to
+                # remote tables.
+                if addon_info.name.startswith("(Installed) "):
+                    tbl_item.setText(addon_info.name.split("(Installed) ")[1])
+                    disable_row = True
+                else:
+                    tbl_item.setText(addon_info.name)
+            elif column_name == "Category":
+                tbl_item.setText(addon_info.category)
+                # Set color to red if addon is unmanaged
+                if addon_info.category == "Unmanaged":
+                    tbl_item.setForeground(QtGui.QColor("darkred"))
+            elif column_name == "Version":
+                if addon_info.version.startswith("(Updated) "):
+                    tbl_item.setText(addon_info.version.split("(Updated) ")[1])
+                    tbl_item.setForeground(QtGui.QColor("green"))
+                elif addon_info.version.startswith("(Outdated) "):
+                    tbl_item.setText(addon_info.version.split("(Outdated) ")[1])
+                    tbl_item.setForeground(QtGui.QColor("crimson"))
+                else:
+                    tbl_item.setText(addon_info.version)
+            elif column_name == "Author":
+                tbl_item.setText(addon_info.author)
+            elif column_name == "Latest Release":
+                tbl_item.setText(addon_info.latest_release)
+            else:
+                assert_never(column_name)
+            table.setItem(rows, column_index, tbl_item)
 
         if disable_row:
             for i in range(table.columnCount()):
-                table.item(rows, i).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
-                table.item(rows, i).setBackground(self.installed_addons_color)
+                table.item(rows, i).setFlags(QtCore.Qt.ItemFlag.NoItemFlags)
 
         table.setSortingEnabled(True)
 
@@ -1316,41 +1378,21 @@ class AddonManagerWindow(QtWidgets.QDialog):
             question_marks += ",?"
 
         self.c.execute(
-            "INSERT INTO {table} VALUES({})".format(
-                question_marks, table=table.objectName()
-            ),
-            addon_info,  # nosec
+            f"INSERT INTO {table.objectName()} VALUES({question_marks})", addon_info
         )
-
-    def btnBoxActivated(self) -> None:
-        self.accept()
-
-    def btnLogClicked(self) -> None:
-        if self.ui.txtLog.isHidden():
-            self.ui.txtLog.show()
-        else:
-            self.ui.txtLog.hide()
-
-    def addLog(self, message: str) -> None:
-        self.ui.lblErrors.setText(
-            "Errors: " + str(int(self.ui.lblErrors.text()[-1]) + 1)
-        )
-        logger.warning(message)
-        self.ui.txtLog.append(message + "\n")
 
     def btnAddonsClicked(self) -> None:
         table = self.getCurrentTable()
 
         # If on installed tab which means remove addons
-        if table.objectName().endswith("Installed"):
+        if table in self.ui_tables_installed:
             uninstall_function = self.getUninstallFunctionFromTable(table)
 
             uninstallConfirm, addons = self.getUninstallConfirm(table)
             if uninstallConfirm:
                 uninstall_function(addons, table)
                 self.resetRemoteAddonsTables()
-
-        elif self.ui.tabWidget.currentIndex() == 1:
+        elif self.SOURCE_TAB_NAMES[self.ui.tabBarSource.currentIndex()] == "Find More":
             self.installRemoteAddons()
 
     def getUninstallFunctionFromTable(
@@ -1365,7 +1407,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             return self.uninstallMusic
         else:
             raise IndexError(
-                f"{table.objectName()} doesn't correspond to add-on type tab"
+                f"{table.objectName()} doesn't correspond to addon type tab"
             )
 
     def installRemoteAddons(self) -> None:
@@ -1382,36 +1424,34 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
     def getCurrentTable(self) -> QtWidgets.QTableWidget:
         """Return the table that the user currently sees based on what tabs they are in"""
-        game_config = self.config_manager.get_game_config(self.game_uuid)
-        if self.ui.tabWidget.currentIndex() == 0:
-            if game_config.game_type == GameType.LOTRO:
-                index_installed = self.ui.tabWidgetInstalled.currentIndex()
-
-                if index_installed == 0:
-                    table = self.ui.tablePluginsInstalled
-                elif index_installed == 1:
-                    table = self.ui.tableSkinsInstalled
-                elif index_installed == 2:
-                    table = self.ui.tableMusicInstalled
-            else:
+        if self.SOURCE_TAB_NAMES[self.ui.tabBarSource.currentIndex()] == "Installed":
+            index_installed = self.ui.tabBarInstalled.currentIndex()
+            if self.tab_names[index_installed] == "Plugins":
+                table = self.ui.tablePluginsInstalled
+            elif self.tab_names[index_installed] == "Skins":
                 table = self.ui.tableSkinsInstalled
-        elif self.ui.tabWidget.currentIndex() == 1:
-            if game_config.game_type == GameType.DDO:
-                table = self.ui.tableSkins
+            elif self.tab_names[index_installed] == "Music":
+                table = self.ui.tableMusicInstalled
             else:
-                index_remote = self.ui.tabWidgetRemote.currentIndex()
-
-                if index_remote == 0:
-                    table = self.ui.tablePlugins
-                elif index_remote == 1:
-                    table = self.ui.tableSkins
-                elif index_remote == 2:
-                    table = self.ui.tableMusic
+                raise IndexError(
+                    f"Unhandled {self.ui.tabBarInstalled} tab index: {index_installed}"
+                )
+        elif self.SOURCE_TAB_NAMES[self.ui.tabBarSource.currentIndex()] == "Find More":
+            index_remote = self.ui.tabBarRemote.currentIndex()
+            if self.tab_names[index_remote] == "Plugins":
+                table = self.ui.tablePlugins
+            elif self.tab_names[index_remote] == "Skins":
+                table = self.ui.tableSkins
+            elif self.tab_names[index_remote] == "Music":
+                table = self.ui.tableMusic
+            else:
+                raise IndexError(
+                    f"Unhandled {self.ui.tabBarRemote} tab index: {index_remote}"
+                )
         else:
             raise IndexError(
-                f"{self.ui.tabWidget.currentIndex()} isn't valid main tab index"
+                f"Unhandled {self.ui.tabBarSource} tab index: {self.ui.tabBarSource.currentIndex()}"
             )
-
         return table
 
     def installRemoteAddon(self, url: str, name: str, interface_id: str) -> None:
@@ -1454,9 +1494,13 @@ class AddonManagerWindow(QtWidgets.QDialog):
         # Column count is minus one because of hidden ID column
         for item in table.selectedItems()[0 :: (table.columnCount() - 1)]:
             # Gets db row id for selected row
-            selected_row = int((table.item(item.row(), 0)).text())
+            selected_row = int(
+                (table.item(item.row(), self.TABLE_WIDGET_COLUMN_INDEXES["ID"])).text()
+            )
 
-            selected_name = table.item(item.row(), 1).text()
+            selected_name = table.item(
+                item.row(), self.TABLE_WIDGET_COLUMN_INDEXES["Name"]
+            ).text()
 
             for selected_addon in self.c.execute(
                 f"SELECT InterfaceID, File, Name FROM {table.objectName()} WHERE rowid = ?",  # noqa: S608
@@ -1496,6 +1540,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 else:
                     continue
 
+            plugin_folder: CaseInsensitiveAbsolutePath | None = None
             for plugin_file in plugin_files:
                 if plugin_file.exists():
                     doc = defusedxml.minidom.parse(str(plugin_file))
@@ -1514,9 +1559,10 @@ class AddonManagerWindow(QtWidgets.QDialog):
             Path(plugin[1]).unlink(missing_ok=True)
 
             # Remove author folder if there are no other plugins in it
-            author_dir = plugin_folder.parent
-            if not list(author_dir.glob("*")):
-                author_dir.rmdir()
+            if plugin_folder:
+                author_dir = plugin_folder.parent
+                if not list(author_dir.glob("*")):
+                    author_dir.rmdir()
 
             logger.info(f"{plugin} plugin uninstalled")
 
@@ -1580,9 +1626,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         details = ""
 
         for dependent in self.c.execute(
-            'SELECT Name, Dependencies FROM {table} WHERE Dependencies != ""'.format(  # nosec
-                table=table.objectName()
-            )
+            f'SELECT Name, Dependencies FROM {table.objectName()} WHERE Dependencies != ""'  # noqa: S608
         ):
             for dependency in dependent[1].split(","):
                 if dependency == addon_ID:
@@ -1614,7 +1658,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         messageBox.setDetailedText(details)
 
         # Checks if user accepts dialogue
-        return messageBox.exec() == 33554432
+        return messageBox.exec() == QtWidgets.QMessageBox.StandardButton.Apply
 
     def searchSearchBarContents(self) -> None:
         """
@@ -1623,18 +1667,29 @@ class AddonManagerWindow(QtWidgets.QDialog):
         user_search = self.ui.txtSearchBar.text()
         self.txtSearchBarTextChanged(user_search)
 
-    def tabWidgetInstalledIndexChanged(self, index: int) -> None:
+    def tabBarInstalledIndexChanged(self, index: int) -> None:
         self.updateAddonFolderActions(index)
 
-        # Load in installed skins on first switch to tab
-        if index == 1:
+        if self.tab_names[index] == "Plugins":
+            self.ui.stackedWidgetInstalled.setCurrentWidget(
+                self.ui.pagePluginsInstalled
+            )
+            # Load in installed plugins on first switch to tab
+            self.loadPluginsIfNotDone()
+        elif self.tab_names[index] == "Skins":
+            self.ui.stackedWidgetInstalled.setCurrentWidget(self.ui.pageSkinsInstalled)
+            # Load in installed skins on first switch to tab
             self.loadSkinsIfNotDone()
-
-        # Load in installed music on first switch to tab
-        if index == 2:
+        elif self.tab_names[index] == "Music":
+            self.ui.stackedWidgetInstalled.setCurrentWidget(self.ui.pageMusicInstalled)
+            # Load in installed music on first switch to tab
             self.loadMusicIfNotDone()
 
         self.searchSearchBarContents()
+
+    def loadPluginsIfNotDone(self) -> None:
+        if self.isTableEmpty(self.ui.tableSkinsInstalled):
+            self.getInstalledPlugins()
 
     def loadSkinsIfNotDone(self) -> None:
         if self.isTableEmpty(self.ui.tableSkinsInstalled):
@@ -1644,28 +1699,45 @@ class AddonManagerWindow(QtWidgets.QDialog):
         if self.isTableEmpty(self.ui.tableMusicInstalled):
             self.getInstalledMusic()
 
-    def tabWidgetRemoteIndexChanged(self, index: int) -> None:
+    def tabBarRemoteIndexChanged(self, index: int) -> None:
+        if self.tab_names[index] == "Plugins":
+            self.ui.stackedWidgetRemote.setCurrentWidget(self.ui.pagePluginsRemote)
+        if self.tab_names[index] == "Skins":
+            self.ui.stackedWidgetRemote.setCurrentWidget(self.ui.pageSkinsRemote)
+        elif self.tab_names[index] == "Music":
+            self.ui.stackedWidgetRemote.setCurrentWidget(self.ui.pageMusicRemote)
         self.updateAddonFolderActions(index)
-
         self.searchSearchBarContents()
 
-    def tabWidgetIndexChanged(self, index: int) -> None:
-        if index == 0:
-            self.ui.btnAddons.setText("\uf068")
+    def update_btn_addons(self) -> None:
+        index = self.ui.tabBarSource.currentIndex()
+        if self.SOURCE_TAB_NAMES[index] == "Installed":
+            self.ui.btnAddons.setIcon(qtawesome.icon("fa5s.minus"))
             self.ui.btnAddons.setToolTip("Remove addons")
 
-            index_installed = self.ui.tabWidgetInstalled.currentIndex()
+            index_installed = self.ui.tabBarInstalled.currentIndex()
             self.updateAddonFolderActions(index_installed)
-        elif index == 1:
-            self.ui.btnAddons.setText("\uf067")
+        elif self.SOURCE_TAB_NAMES[index] == "Find More":
+            self.ui.btnAddons.setIcon(qtawesome.icon("fa5s.plus"))
             self.ui.btnAddons.setToolTip("Install addons")
 
-            index_remote = self.ui.tabWidgetRemote.currentIndex()
+    def tabBarIndexChanged(self, index: int) -> None:
+        self.update_btn_addons()
+        if self.SOURCE_TAB_NAMES[index] == "Installed":
+            self.ui.stackedWidgetSource.setCurrentWidget(self.ui.pageInstalled)
+            index_installed = self.ui.tabBarInstalled.currentIndex()
+            self.updateAddonFolderActions(index_installed)
+        elif self.SOURCE_TAB_NAMES[index] == "Find More":
+            self.ui.stackedWidgetSource.setCurrentWidget(self.ui.pageRemote)
+            index_remote = self.ui.tabBarRemote.currentIndex()
             self.updateAddonFolderActions(index_remote)
 
-            # Populates remote addons tables if not done already
+            # Handle the first time this tab is swtiched to.
+            # Populate remote addons tables if not done already.
             if self.isTableEmpty(self.ui.tableSkins) and self.loadRemoteAddons():
                 self.getOutOfDateAddons()
+                # Make sure correct stacked widget page is selected
+                self.tabBarRemoteIndexChanged(self.ui.tabBarRemote.currentIndex())
 
         self.searchSearchBarContents()
 
@@ -1674,7 +1746,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
             self.config_manager.get_game_config(self.game_uuid).game_type
             == GameType.LOTRO
         ):
-            # Only keep loading remote add-ons if the first load doesn't run
+            # Only keep loading remote addons if the first load doesn't run
             # into issues
             if self.getRemoteAddons(self.PLUGINS_URL, self.ui.tablePlugins):
                 self.getRemoteAddons(self.SKINS_URL, self.ui.tableSkins)
@@ -1689,14 +1761,12 @@ class AddonManagerWindow(QtWidgets.QDialog):
         self, favorites_url: str, table: QtWidgets.QTableWidget
     ) -> bool:
         # Clears rows from db table
-        self.c.execute(f"DELETE FROM {table.objectName()}")  # nosec
+        self.c.execute(f"DELETE FROM {table.objectName()}")  # noqa: S608
 
         # Gets list of Interface IDs for installed addons
         installed_IDs = []
         for ID in self.c.execute(
-            "SELECT InterfaceID FROM {table}".format(  # nosec
-                table=table.objectName() + "Installed"
-            )
+            f"SELECT InterfaceID FROM {table.objectName() + 'Installed'}"  # noqa: S608
         ):
             if ID[0]:
                 installed_IDs.append(ID[0])
@@ -1711,10 +1781,10 @@ class AddonManagerWindow(QtWidgets.QDialog):
             )
         except (urllib.error.URLError, urllib.error.HTTPError) as error:
             logger.error(error.reason, exc_info=True)
-            self.addLog(
+            self.add_error_log(
                 "There was a network error. You may want to check your connection."
             )
-            self.ui.tabWidget.setCurrentIndex(0)
+            self.ui.tabBarSource.setCurrentIndex(0)
             return False
 
         doc = defusedxml.minidom.parseString(addons_file)
@@ -1759,19 +1829,21 @@ class AddonManagerWindow(QtWidgets.QDialog):
     def downloader(self, url: str, path: Path) -> bool:
         if url.lower().startswith("http"):
             try:
+                self.ui.progressBar.setValue(0)
+                self.ui.progressBar.setVisible(True)
                 urllib.request.urlretrieve(  # nosec  # noqa: S310
                     url, path, self.handleDownloadProgress
                 )
             except (urllib.error.URLError, urllib.error.HTTPError) as error:
                 logger.error(error.reason, exc_info=True)
-                self.addLog(
+                self.add_error_log(
                     "There was a network error. You may want to check your connection."
                 )
+                self.ui.progressBar.setVisible(False)
                 return False
         else:
             raise ValueError from None
-
-        self.ui.progressBar.setValue(0)
+        self.ui.progressBar.setVisible(False)
         return True
 
     def handleDownloadProgress(self, index: int, frame: int, size: int) -> None:
@@ -1779,15 +1851,18 @@ class AddonManagerWindow(QtWidgets.QDialog):
         percent = 100 * index * frame // size
         self.ui.progressBar.setValue(percent)
 
-    def Run(self) -> None:
-        self.exec()
+    @override
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         self.closeDB()
+        super().closeEvent(event)
 
     def contextMenuRequested(
         self, cursor_position: QtCore.QPoint, table: QtWidgets.QTableWidget
     ) -> None:
         self.context_menu_selected_table = table
-        selected_item = self.context_menu_selected_table.itemAt(cursor_position)
+        selected_item: QtWidgets.QTableWidgetItem | None = (
+            self.context_menu_selected_table.itemAt(cursor_position)
+        )
         if not selected_item:
             self.contextMenu = None
             return
@@ -1805,7 +1880,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         # If addon is installed
         if (
             self.context_menu_selected_table.objectName().endswith("Installed")
-            or selected_item.background().color() == self.installed_addons_color
+            or QtCore.Qt.ItemFlag.ItemIsEnabled not in selected_item.flags()
         ):
             menu.addAction(self.ui.actionUninstallAddon)
             menu.addAction(self.ui.actionShowAddonInFileManager)
@@ -1814,7 +1889,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
         # If addon has a new version available
         version_item = self.context_menu_selected_table.item(
-            self.context_menu_selected_row, 3
+            self.context_menu_selected_row, self.TABLE_WIDGET_COLUMN_INDEXES["Version"]
         )
         version_color = version_item.foreground().color()
         if version_color in [QtGui.QColor("crimson"), QtGui.QColor("green")]:
@@ -1847,7 +1922,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
     def getTableRowInterfaceID(
         self, table: QtWidgets.QTableWidget, row: int
     ) -> str | None:
-        addon_db_id = table.item(row, 0).text()
+        addon_db_id = table.item(row, self.TABLE_WIDGET_COLUMN_INDEXES["ID"]).text()
 
         interface_ID: str
         for interface_ID in self.c.execute(
@@ -1883,9 +1958,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
         addon_url: tuple[str]
         for addon_url in self.c.execute(
-            "SELECT File FROM {table} WHERE InterfaceID = ?".format(  # nosec
-                table=table.objectName()
-            ),
+            f"SELECT File FROM {table.objectName()} WHERE InterfaceID = ?",  # noqa: S608
             (interface_ID,),
         ):
             if addon_url[0]:
@@ -1894,6 +1967,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
                     if download_url
                     else self.getInterfaceInfoUrl(addon_url[0])
                 )
+        raise ValueError("No addon URL founnd for interface ID", interface_ID)
 
     def getAddonFileFromInterfaceID(
         self, interface_ID: str, table: QtWidgets.QTableWidget
@@ -1905,13 +1979,12 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
         file: tuple[str]
         for file in self.c.execute(
-            "SELECT File FROM {table} WHERE InterfaceID = ?".format(  # nosec
-                table=table.objectName()
-            ),
+            f"SELECT File FROM {table.objectName()} WHERE InterfaceID = ?",  # noqa: S608
             (interface_ID,),
         ):
             if file[0]:
                 return file[0]
+        raise ValueError("No addon File founnd for interface ID", interface_ID)
 
     def showSelectedOnLotrointerface(self) -> None:
         table = self.getCurrentTable()
@@ -1985,7 +2058,11 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 item: tuple[str]
                 for item in self.c.execute(
                     f"SELECT File FROM {table_installed.objectName()} WHERE rowid=?",  # noqa: S608
-                    (table_installed.item(row, 0).text(),),
+                    (
+                        table_installed.item(
+                            row, self.TABLE_WIDGET_COLUMN_INDEXES["ID"]
+                        ).text(),
+                    ),
                 ):
                     file = item[0]
             else:
@@ -1995,24 +2072,25 @@ class AddonManagerWindow(QtWidgets.QDialog):
             return None
 
         return Addon(
-            interface_id=interface_ID, file=file, name=table.item(row, 1).text()
+            interface_id=interface_ID,
+            file=file,
+            name=table.item(row, self.TABLE_WIDGET_COLUMN_INDEXES["Name"]).text(),
         )
 
     def getRemoteOrLocalTableFromOne(
         self, input_table: QtWidgets.QTableWidget, remote: bool = False
     ) -> QtWidgets.QTableWidget:
-        table_name = input_table.objectName()
-        # UI table object names are renamed with DDO in them when the current game is
-        # DDO for DB access, but the callable name for the UI tables stays the
-        # same.
-        table_name = table_name.replace("DDO", "")
+        if input_table in self.ui_tables_installed:
+            table_index = self.ui_tables_installed.index(input_table)
+        elif input_table in self.ui_tables_remote:
+            table_index = self.ui_tables_remote.index(input_table)
+        else:
+            raise ValueError("Table isn't local or remote", input_table)
 
         if remote:
-            return getattr(self.ui, table_name.split("Installed")[0])
-        elif table_name.endswith("Installed"):
-            return input_table
+            return self.ui_tables_remote[table_index]
         else:
-            return getattr(self.ui, f"{table_name}Installed")
+            return self.ui_tables_installed[table_index]
 
     def actionShowAddonInFileManagerSelected(self) -> None:
         table = self.context_menu_selected_table
@@ -2044,19 +2122,15 @@ class AddonManagerWindow(QtWidgets.QDialog):
         Makes action for opening addon folder associated with
         current tab the only addon folder opening action visible.
         """
-        if (
-            self.config_manager.get_game_config(self.game_uuid).game_type
-            == GameType.DDO
-            or index == 1
-        ):
-            self.ui.actionShowPluginsFolderInFileManager.setVisible(False)
-            self.ui.actionShowSkinsFolderInFileManager.setVisible(True)
-            self.ui.actionShowMusicFolderInFileManager.setVisible(False)
-        elif index == 0:
+        if self.tab_names[index] == "Plugins":
             self.ui.actionShowPluginsFolderInFileManager.setVisible(True)
             self.ui.actionShowSkinsFolderInFileManager.setVisible(False)
             self.ui.actionShowMusicFolderInFileManager.setVisible(False)
-        elif index == 2:
+        elif self.tab_names[index] == "Skins":
+            self.ui.actionShowPluginsFolderInFileManager.setVisible(False)
+            self.ui.actionShowSkinsFolderInFileManager.setVisible(True)
+            self.ui.actionShowMusicFolderInFileManager.setVisible(False)
+        elif self.tab_names[index] == "Music":
             self.ui.actionShowPluginsFolderInFileManager.setVisible(False)
             self.ui.actionShowSkinsFolderInFileManager.setVisible(False)
             self.ui.actionShowMusicFolderInFileManager.setVisible(True)
@@ -2133,17 +2207,13 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
         self.c.execute(
             (
-                "UPDATE {table} SET Version=('(Outdated) ' || Version) WHERE rowid=?".format(  # nosec
-                    table=table_installed.objectName()
-                )
+                f"UPDATE {table_installed.objectName()} SET Version=('(Outdated) ' || Version) WHERE rowid=?"  # noqa: S608
             ),
             (str(rowid_local),),
         )
         self.c.execute(
             (
-                "UPDATE {table} SET Version=('(Updated) ' || Version) WHERE rowid=?".format(  # nosec
-                    table=table_remote.objectName()
-                )
+                f"UPDATE {table_remote.objectName()} SET Version=('(Updated) ' || Version) WHERE rowid=?"  # noqa: S608
             ),
             (str(rowid_remote),),
         )
@@ -2163,8 +2233,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
         for db_table in tables:
             table = getattr(self.ui, db_table)
             for addon in self.c.execute(
-                "SELECT InterfaceID, File, Name FROM {table} WHERE"  # nosec
-                " Version LIKE '(Outdated) %'".format(table=table.objectName())
+                f"SELECT InterfaceID, File, Name FROM {table.objectName()} WHERE Version LIKE '(Outdated) %'"  # noqa: S608
             ):
                 self.updateAddon(addon, table)
 
@@ -2178,12 +2247,14 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
         uninstall_function([addon], table_installed)
 
+        url: str | None = None
         for entry in self.c.execute(
-            "SELECT File FROM {table} WHERE"  # nosec
-            " InterfaceID = ?".format(table=table_remote.objectName()),
+            f"SELECT File FROM {table_remote.objectName()} WHERE InterfaceID = ?",  # noqa: S608
             (addon[0],),
         ):
             url = entry[0]
+        if url is None:
+            raise ValueError("Addon not found in DB", addon)
         self.installRemoteAddon(url, addon[2], addon[0])
         self.setRemoteAddonToInstalled(addon, table_remote)
 
@@ -2249,6 +2320,8 @@ class AddonManagerWindow(QtWidgets.QDialog):
         script = self.getRelativeStartupScriptFromInterfaceID(
             self.context_menu_selected_table, self.context_menu_selected_interface_ID
         )
+        if not script:
+            return
         full_script_path = self.data_folder / script
         if full_script_path.exists():
             game_config = self.config_manager.read_game_config_file(self.game_uuid)
@@ -2264,7 +2337,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
                 attrs.evolve(game_config, addons=updated_addons_section),
             )
         else:
-            self.addLog(
+            self.add_error_log(
                 f"'{full_script_path}' startup script does not exist, so it could not be enabled."
             )
 
@@ -2290,7 +2363,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
 
     def getRelativeStartupScriptFromInterfaceID(
         self, table: QtWidgets.QTableWidget, interface_ID: str
-    ) -> Path:
+    ) -> Path | None:
         """Returns path of startup script relative to game documents settings directory"""
         table_local = self.getRemoteOrLocalTableFromOne(table, remote=False)
         entry: tuple[str]
@@ -2304,6 +2377,7 @@ class AddonManagerWindow(QtWidgets.QDialog):
                     table_local
                 ).relative_to(self.data_folder)
                 return addon_data_folder_relative / script
+        return None
 
     def getAddonTypeDataFolderFromTable(
         self, table: QtWidgets.QTableWidget
@@ -2321,14 +2395,17 @@ class AddonManagerWindow(QtWidgets.QDialog):
     def handleStartupScriptActivationPrompt(
         self, table: QtWidgets.QTableWidget, interface_ID: str
     ) -> None:
-        """Asks user if they want to enable an add-on's startup script if present"""
+        """Ask user if they want to enable an addon's startup script if present"""
         if script := self.getRelativeStartupScriptFromInterfaceID(table, interface_ID):
-            script_contents = (self.data_folder / script).open().read()
+            addon_name: str | None = None
             for name in self.c.execute(
                 f"SELECT Name from {table.objectName()} WHERE InterfaceID = ?",  # noqa: S608
                 (interface_ID,),
             ):
                 addon_name = name[0]
+            if addon_name is None:
+                raise ValueError("No addon name found for Interface ID", interface_ID)
+            script_contents = (self.data_folder / script).open().read()
 
             if self.confirmationPrompt(
                 f"{addon_name} is requesting to run a Python script at every game launch."

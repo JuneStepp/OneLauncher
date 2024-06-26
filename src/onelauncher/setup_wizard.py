@@ -28,6 +28,7 @@
 import os
 from collections.abc import Iterable
 from contextlib import suppress
+from functools import partial
 from pathlib import Path
 from typing import Final
 from uuid import UUID, uuid4
@@ -117,6 +118,9 @@ class SetupWizard(QtWidgets.QWizard):
 
         self.add_available_languages_to_ui()
 
+        qapp: QtWidgets.QApplication = qApp  # type: ignore[name-defined]  # noqa: F821
+        color_scheme_changed = qapp.styleHints().colorSchemeChanged
+
         # Games discovery page
         self.ui.gamesSelectionWizardPage.initializePage = (  # type: ignore[method-assign]
             self.initialize_games_selection_page
@@ -130,12 +134,30 @@ class SetupWizard(QtWidgets.QWizard):
         self.ui.dataDeletionWizardPage.setCommitPage(True)
         self.ui.gamesDeletionStatusListView.setModel(self.ui.gamesListWidget.model())
         self.ui.gamesDeletionStatusListView.setEnabled(False)
-        # Icons will be too small on Windows without this
-        self.ui.gamesDeletionStatusListView.setIconSize(QtCore.QSize(24, 24))
         self.ui.gamesDataButtonGroup.buttonToggled.connect(self.gamesDataButtonToggled)
         self.ui.dataDeletionWizardPage.isComplete = self.dataDeletionPageIsComplete  # type: ignore[method-assign]
-        self.ui.keepDataRadioButton.setIcon(qtawesome.icon("mdi6.content-save-outline"))
-        self.ui.resetDataRadioButton.setIcon(qtawesome.icon("mdi6.backspace-outline"))
+        get_keep_data_icon = partial(qtawesome.icon, "mdi6.content-save-outline")
+        self.ui.keepDataRadioButton.setIcon(get_keep_data_icon())
+        color_scheme_changed.connect(
+            lambda: self.ui.keepDataRadioButton.setIcon(get_keep_data_icon())
+        )
+        get_reset_data_icon = partial(qtawesome.icon, "mdi6.backspace-outline")
+        self.ui.resetDataRadioButton.setIcon(get_reset_data_icon())
+        color_scheme_changed.connect(
+            lambda: self.ui.resetDataRadioButton.setIcon(get_reset_data_icon())
+        )
+
+        def data_deletion_page_update() -> None:
+            checked_button: QtWidgets.QAbstractButton | None = (
+                self.ui.gamesDataButtonGroup.checkedButton()
+            )
+            if checked_button:
+                self.gamesDataButtonToggled(
+                    button=checked_button,
+                    checked=True,
+                )
+
+        color_scheme_changed.connect(data_deletion_page_update)
         if self.game_selection_only:
             self.ui.keepDataRadioButton.setChecked(True)
         # Finished page

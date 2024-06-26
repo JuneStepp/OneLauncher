@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'setup_wizard.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.7.1
+## Created by: Qt User Interface Compiler version 6.7.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -45,7 +45,6 @@ class Ui_Wizard(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.languagesListWidget.sizePolicy().hasHeightForWidth())
         self.languagesListWidget.setSizePolicy(sizePolicy)
-        self.languagesListWidget.setMaximumSize(QSize(250, 16777215))
         self.languagesListWidget.setFrameShape(QFrame.Shape.Box)
         self.languagesListWidget.setEditTriggers(QAbstractItemView.EditTrigger.CurrentChanged|QAbstractItemView.EditTrigger.DoubleClicked|QAbstractItemView.EditTrigger.EditKeyPressed|QAbstractItemView.EditTrigger.SelectedClicked)
         self.languagesListWidget.setProperty("showDropIndicator", False)
@@ -195,6 +194,8 @@ class Ui_Wizard(object):
         self.alwaysUseDefaultLangForUILabel.setText(QCoreApplication.translate("Wizard", u"Always Use Default Language For UI", None))
         self.gamesSelectionWizardPage.setTitle(QCoreApplication.translate("Wizard", u"Games Selection", None))
         self.gamesSelectionWizardPage.setSubTitle(QCoreApplication.translate("Wizard", u"Select your game installations. The first one will be the main game instance.", None))
+        self.gamesListWidget.setProperty("qssClass", [
+            QCoreApplication.translate("Wizard", u"icon-xl", None)])
         self.gamesDiscoveryStatusLabel.setText("")
 #if QT_CONFIG(tooltip)
         self.downPriorityButton.setToolTip(QCoreApplication.translate("Wizard", u"Decrease priority", None))
@@ -210,6 +211,8 @@ class Ui_Wizard(object):
         self.groupBox.setTitle(QCoreApplication.translate("Wizard", u"What should happen to existing game data?", None))
         self.keepDataRadioButton.setText(QCoreApplication.translate("Wizard", u"Keep it", None))
         self.resetDataRadioButton.setText(QCoreApplication.translate("Wizard", u"Reset it", None))
+        self.gamesDeletionStatusListView.setProperty("qssClass", [
+            QCoreApplication.translate("Wizard", u"icon-xl", None)])
         self.finishedWizardPage.setTitle(QCoreApplication.translate("Wizard", u"Setup Finished", None))
         self.finishedWizardPage.setSubTitle(QCoreApplication.translate("Wizard", u"That's it! You can always check out the settings menu or addons manager for extra customization.", None))
     # retranslateUi

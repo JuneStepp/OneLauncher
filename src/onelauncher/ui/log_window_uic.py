@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'error_message.ui'
+## Form generated from reading UI file 'log_window.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.7.2
 ##
@@ -16,33 +16,25 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractButton, QApplication, QDialog, QDialogButtonBox,
-    QLabel, QPlainTextEdit, QSizePolicy, QVBoxLayout,
-    QWidget)
+    QPlainTextEdit, QSizePolicy, QVBoxLayout, QWidget)
 
-class Ui_errorDialog(object):
-    def setupUi(self, errorDialog: QDialog) -> None:
-        if not errorDialog.objectName():
-            errorDialog.setObjectName(u"errorDialog")
-        errorDialog.setWindowModality(Qt.WindowModality.ApplicationModal)
-        errorDialog.resize(400, 300)
-        errorDialog.setSizeGripEnabled(True)
-        errorDialog.setModal(True)
-        self.verticalLayout = QVBoxLayout(errorDialog)
+class Ui_logDialog(object):
+    def setupUi(self, logDialog: QDialog) -> None:
+        if not logDialog.objectName():
+            logDialog.setObjectName(u"logDialog")
+        logDialog.setWindowModality(Qt.WindowModality.ApplicationModal)
+        logDialog.resize(400, 300)
+        logDialog.setModal(True)
+        self.verticalLayout = QVBoxLayout(logDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.textLabel = QLabel(errorDialog)
-        self.textLabel.setObjectName(u"textLabel")
-
-        self.verticalLayout.addWidget(self.textLabel)
-
-        self.detailsTextEdit = QPlainTextEdit(errorDialog)
+        self.detailsTextEdit = QPlainTextEdit(logDialog)
         self.detailsTextEdit.setObjectName(u"detailsTextEdit")
         self.detailsTextEdit.setUndoRedoEnabled(False)
-        self.detailsTextEdit.setLineWrapMode(QPlainTextEdit.LineWrapMode.NoWrap)
         self.detailsTextEdit.setReadOnly(True)
 
         self.verticalLayout.addWidget(self.detailsTextEdit)
 
-        self.buttonBox = QDialogButtonBox(errorDialog)
+        self.buttonBox = QDialogButtonBox(logDialog)
         self.buttonBox.setObjectName(u"buttonBox")
         self.buttonBox.setOrientation(Qt.Orientation.Horizontal)
         self.buttonBox.setStandardButtons(QDialogButtonBox.StandardButton.Close)
@@ -50,15 +42,14 @@ class Ui_errorDialog(object):
         self.verticalLayout.addWidget(self.buttonBox)
 
 
-        self.retranslateUi(errorDialog)
-        self.buttonBox.accepted.connect(errorDialog.accept)
-        self.buttonBox.rejected.connect(errorDialog.reject)
+        self.retranslateUi(logDialog)
+        self.buttonBox.accepted.connect(logDialog.accept)
+        self.buttonBox.rejected.connect(logDialog.reject)
 
-        QMetaObject.connectSlotsByName(errorDialog)
+        QMetaObject.connectSlotsByName(logDialog)
     # setupUi
 
-    def retranslateUi(self, errorDialog: QDialog) -> None:
-        errorDialog.setWindowTitle(QCoreApplication.translate("errorDialog", u"Error", None))
-        self.textLabel.setText(QCoreApplication.translate("errorDialog", u"Error:", None))
+    def retranslateUi(self, logDialog: QDialog) -> None:
+        logDialog.setWindowTitle(QCoreApplication.translate("logDialog", u"Logs", None))
     # retranslateUi
 

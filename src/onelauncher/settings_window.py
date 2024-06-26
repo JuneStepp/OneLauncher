@@ -28,13 +28,16 @@
 import os
 import re
 from contextlib import suppress
+from enum import StrEnum
 from pathlib import Path
 from uuid import UUID
 
 import attrs
 import trio
 from PySide6 import QtCore, QtGui, QtWidgets
+from typing_extensions import override
 
+from .__about__ import __title__
 from .config_manager import ConfigManager
 from .game_config import ClientType
 from .game_utilities import (
@@ -46,25 +49,39 @@ from .program_config import GamesSortingMode
 from .resources import available_locales
 from .setup_wizard import SetupWizard
 from .standard_game_launcher import get_standard_game_launcher_path
+from .ui.custom_widgets import FramelessQDialogWithStylePreview
 from .ui.settings_uic import Ui_dlgSettings
 from .ui_utilities import show_warning_message
 from .utilities import CaseInsensitiveAbsolutePath
 from .wine_environment import edit_qprocess_to_use_wine
 
 
-class SettingsWindow(QtWidgets.QDialog):
+class TabName(StrEnum):
+    GAME_INFO = "Game Info"
+    GAME = "Game"
+    WINE = "Wine"
+    PROGRAM = __title__
+
+
+class SettingsWindow(FramelessQDialogWithStylePreview):
     def __init__(self, config_manager: ConfigManager, game_uuid: UUID):
-        super().__init__(
-            QtCore.QCoreApplication.instance().activeWindow(),  # type: ignore[union-attr]
-            QtCore.Qt.WindowType.FramelessWindowHint,
-        )
+        super().__init__(QtCore.QCoreApplication.instance().activeWindow())  # type: ignore[union-attr]
+        self.titleBar.hide()
         self.config_manager = config_manager
         self.game_uuid = game_uuid
         self.ui = Ui_dlgSettings()
-        self.ui.setupUi(self)  # type: ignore[no-untyped-call]
+        self.ui.setupUi(self)
 
     def setup_ui(self) -> None:
         self.finished.connect(self.cleanup)
+
+        self.tab_names = list(TabName)
+        if os.name == "nt":
+            self.tab_names.remove(TabName.WINE)
+        for tab_name in self.tab_names:
+            self.ui.tabBar.addTab(tab_name)
+        self.ui.tabBar.setExpanding(False)
+        self.ui.tabBar.currentChanged.connect(self.tabBarCurrentChanged)
 
         self.ui.showAdvancedSettingsCheckbox.toggled.connect(
             self.toggle_advanced_settings
@@ -110,11 +127,6 @@ class SettingsWindow(QtWidgets.QDialog):
                 str(game_config.wine.user_wine_executable_path or "")
             )
             self.ui.wineDebugLineEdit.setText(game_config.wine.debug_level or "")
-        else:
-            # WINE isn't used on Windows
-            self.ui.tabWidget.setTabVisible(
-                self.ui.tabWidget.indexOf(self.ui.winePage), False
-            )
 
         self.setup_client_type_combo_box()
         self.ui.standardLauncherLineEdit.setText(
@@ -173,6 +185,13 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.open()
 
+    @override
+    def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
+        """Lets the user drag the window when left-click holding it"""
+        if event.button() == QtCore.Qt.MouseButton.LeftButton:
+            self.windowHandle().startSystemMove()
+            event.accept()
+
     async def run(self) -> None:
         self.setup_ui()
         async with trio.open_nursery() as self.nursery:
@@ -184,9 +203,20 @@ class SettingsWindow(QtWidgets.QDialog):
     def cleanup(self) -> None:
         self.nursery.cancel_scope.cancel()
 
+    @override
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         self.cleanup()
         event.accept()
+
+    def tabBarCurrentChanged(self, index: int) -> None:
+        if self.tab_names[index] == TabName.GAME_INFO:
+            self.ui.stackedWidget.setCurrentWidget(self.ui.pageGameInfo)
+        elif self.tab_names[index] == TabName.GAME:
+            self.ui.stackedWidget.setCurrentWidget(self.ui.pageGame)
+        elif self.tab_names[index] == TabName.WINE:
+            self.ui.stackedWidget.setCurrentWidget(self.ui.pageWine)
+        elif self.tab_names[index] == TabName.PROGRAM:
+            self.ui.stackedWidget.setCurrentWidget(self.ui.pageProgram)
 
     async def setup_newsfeed_option(self) -> None:
         game_config = self.config_manager.read_game_config_file(self.game_uuid)
@@ -228,8 +258,8 @@ class SettingsWindow(QtWidgets.QDialog):
             widget.setVisible(is_checked)
 
         if os.name != "nt":
-            self.ui.tabWidget.setTabVisible(
-                self.ui.tabWidget.indexOf(self.ui.winePage), is_checked
+            self.ui.tabBar.setTabVisible(
+                self.tab_names.index(TabName.WINE), is_checked
             )
 
     def setup_client_type_combo_box(self) -> None:

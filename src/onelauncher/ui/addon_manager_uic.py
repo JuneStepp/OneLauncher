@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'addon_manager.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.7.1
+## Created by: Qt User Interface Compiler version 6.7.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -16,23 +16,20 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
-from PySide6.QtWidgets import (QAbstractButton, QAbstractItemView, QAbstractScrollArea, QApplication,
-    QDialog, QDialogButtonBox, QFrame, QHBoxLayout,
-    QHeaderView, QLabel, QLineEdit, QProgressBar,
-    QPushButton, QSizePolicy, QTabWidget, QTableWidget,
-    QTableWidgetItem, QTextEdit, QToolButton, QWidget)
+from PySide6.QtWidgets import (QAbstractItemView, QAbstractScrollArea, QApplication, QFrame,
+    QHBoxLayout, QHeaderView, QLineEdit, QProgressBar,
+    QPushButton, QSizePolicy, QSpacerItem, QStackedWidget,
+    QTabBar, QTableWidget, QTableWidgetItem, QToolButton,
+    QVBoxLayout, QWidget)
+
+from .custom_widgets import NoOddSizesQToolButton
+from .qtdesigner.custom_widgets import QWidgetWithStylePreview
 
 class Ui_winAddonManager(object):
-    def setupUi(self, winAddonManager):
+    def setupUi(self, winAddonManager: QWidgetWithStylePreview) -> None:
         if not winAddonManager.objectName():
             winAddonManager.setObjectName(u"winAddonManager")
-        winAddonManager.setWindowModality(Qt.WindowModality.ApplicationModal)
         winAddonManager.resize(720, 400)
-        font = QFont()
-        font.setFamilies([u"Verdana"])
-        font.setPointSize(12)
-        winAddonManager.setFont(font)
-        winAddonManager.setModal(True)
         self.actionAddonImport = QAction(winAddonManager)
         self.actionAddonImport.setObjectName(u"actionAddonImport")
         self.actionShowOnLotrointerface = QAction(winAddonManager)
@@ -59,45 +56,95 @@ class Ui_winAddonManager(object):
         self.actionEnableStartupScript.setObjectName(u"actionEnableStartupScript")
         self.actionDisableStartupScript = QAction(winAddonManager)
         self.actionDisableStartupScript.setObjectName(u"actionDisableStartupScript")
-        self.btnBox = QDialogButtonBox(winAddonManager)
-        self.btnBox.setObjectName(u"btnBox")
-        self.btnBox.setGeometry(QRect(541, 367, 169, 27))
-        self.btnBox.setStandardButtons(QDialogButtonBox.StandardButton.Close)
+        self.verticalLayout_9 = QVBoxLayout(winAddonManager)
+        self.verticalLayout_9.setSpacing(0)
+        self.verticalLayout_9.setObjectName(u"verticalLayout_9")
+        self.verticalLayout_9.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout_3 = QHBoxLayout()
+        self.horizontalLayout_3.setSpacing(9)
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.horizontalLayout_3.setContentsMargins(9, 9, 9, 9)
         self.txtSearchBar = QLineEdit(winAddonManager)
         self.txtSearchBar.setObjectName(u"txtSearchBar")
-        self.txtSearchBar.setGeometry(QRect(260, 17, 371, 27))
         self.txtSearchBar.setClearButtonEnabled(True)
-        self.btnAddons = QToolButton(winAddonManager)
+
+        self.horizontalLayout_3.addWidget(self.txtSearchBar)
+
+        self.btnAddons = NoOddSizesQToolButton(winAddonManager)
         self.btnAddons.setObjectName(u"btnAddons")
-        self.btnAddons.setGeometry(QRect(650, 12, 52, 36))
         self.btnAddons.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
-        self.tabWidget = QTabWidget(winAddonManager)
-        self.tabWidget.setObjectName(u"tabWidget")
-        self.tabWidget.setGeometry(QRect(-4, 29, 731, 331))
-        self.tabInstalled = QWidget()
-        self.tabInstalled.setObjectName(u"tabInstalled")
-        self.tabWidgetInstalled = QTabWidget(self.tabInstalled)
-        self.tabWidgetInstalled.setObjectName(u"tabWidgetInstalled")
-        self.tabWidgetInstalled.setGeometry(QRect(0, 0, 721, 301))
-        self.tabPluginsInstalled = QWidget()
-        self.tabPluginsInstalled.setObjectName(u"tabPluginsInstalled")
-        self.tablePluginsInstalled = QTableWidget(self.tabPluginsInstalled)
-        if (self.tablePluginsInstalled.columnCount() < 6):
-            self.tablePluginsInstalled.setColumnCount(6)
-        __qtablewidgetitem = QTableWidgetItem()
-        self.tablePluginsInstalled.setHorizontalHeaderItem(0, __qtablewidgetitem)
-        __qtablewidgetitem1 = QTableWidgetItem()
-        self.tablePluginsInstalled.setHorizontalHeaderItem(1, __qtablewidgetitem1)
-        __qtablewidgetitem2 = QTableWidgetItem()
-        self.tablePluginsInstalled.setHorizontalHeaderItem(2, __qtablewidgetitem2)
-        __qtablewidgetitem3 = QTableWidgetItem()
-        self.tablePluginsInstalled.setHorizontalHeaderItem(3, __qtablewidgetitem3)
-        __qtablewidgetitem4 = QTableWidgetItem()
-        self.tablePluginsInstalled.setHorizontalHeaderItem(4, __qtablewidgetitem4)
-        __qtablewidgetitem5 = QTableWidgetItem()
-        self.tablePluginsInstalled.setHorizontalHeaderItem(5, __qtablewidgetitem5)
+
+        self.horizontalLayout_3.addWidget(self.btnAddons)
+
+
+        self.verticalLayout_9.addLayout(self.horizontalLayout_3)
+
+        self.tabBarSource = QTabBar(winAddonManager)
+        self.tabBarSource.setObjectName(u"tabBarSource")
+
+        self.verticalLayout_9.addWidget(self.tabBarSource)
+
+        self.stackedWidgetSource = QStackedWidget(winAddonManager)
+        self.stackedWidgetSource.setObjectName(u"stackedWidgetSource")
+        self.pageInstalled = QWidget()
+        self.pageInstalled.setObjectName(u"pageInstalled")
+        self.verticalLayout = QVBoxLayout(self.pageInstalled)
+        self.verticalLayout.setSpacing(0)
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.layoutTabBarInstalled = QHBoxLayout()
+        self.layoutTabBarInstalled.setSpacing(6)
+        self.layoutTabBarInstalled.setObjectName(u"layoutTabBarInstalled")
+        self.tabBarInstalled = QTabBar(self.pageInstalled)
+        self.tabBarInstalled.setObjectName(u"tabBarInstalled")
+
+        self.layoutTabBarInstalled.addWidget(self.tabBarInstalled, 0, Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignBottom)
+
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.layoutTabBarInstalled.addItem(self.horizontalSpacer)
+
+        self.horizontalLayout_6 = QHBoxLayout()
+        self.horizontalLayout_6.setSpacing(6)
+        self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
+        self.horizontalLayout_6.setContentsMargins(6, 6, 6, 6)
+        self.btnUpdateAll = QPushButton(self.pageInstalled)
+        self.btnUpdateAll.setObjectName(u"btnUpdateAll")
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.btnUpdateAll.sizePolicy().hasHeightForWidth())
+        self.btnUpdateAll.setSizePolicy(sizePolicy)
+        self.btnUpdateAll.setAutoDefault(False)
+
+        self.horizontalLayout_6.addWidget(self.btnUpdateAll)
+
+        self.btnCheckForUpdates = NoOddSizesQToolButton(self.pageInstalled)
+        self.btnCheckForUpdates.setObjectName(u"btnCheckForUpdates")
+
+        self.horizontalLayout_6.addWidget(self.btnCheckForUpdates)
+
+
+        self.layoutTabBarInstalled.addLayout(self.horizontalLayout_6)
+
+
+        self.verticalLayout.addLayout(self.layoutTabBarInstalled)
+
+        self.stackedWidgetInstalled = QStackedWidget(self.pageInstalled)
+        self.stackedWidgetInstalled.setObjectName(u"stackedWidgetInstalled")
+        self.pagePluginsInstalled = QWidget()
+        self.pagePluginsInstalled.setObjectName(u"pagePluginsInstalled")
+        self.verticalLayout_3 = QVBoxLayout(self.pagePluginsInstalled)
+        self.verticalLayout_3.setSpacing(0)
+        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
+        self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)
+        self.widgetWithStylePreview = QWidgetWithStylePreview(self.pagePluginsInstalled)
+        self.widgetWithStylePreview.setObjectName(u"widgetWithStylePreview")
+
+        self.verticalLayout_3.addWidget(self.widgetWithStylePreview)
+
+        self.tablePluginsInstalled = QTableWidget(self.pagePluginsInstalled)
         self.tablePluginsInstalled.setObjectName(u"tablePluginsInstalled")
-        self.tablePluginsInstalled.setGeometry(QRect(0, 0, 721, 271))
         self.tablePluginsInstalled.setFrameShape(QFrame.Shape.NoFrame)
         self.tablePluginsInstalled.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
         self.tablePluginsInstalled.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -110,26 +157,18 @@ class Ui_winAddonManager(object):
         self.tablePluginsInstalled.horizontalHeader().setCascadingSectionResizes(False)
         self.tablePluginsInstalled.horizontalHeader().setStretchLastSection(True)
         self.tablePluginsInstalled.verticalHeader().setVisible(False)
-        self.tabWidgetInstalled.addTab(self.tabPluginsInstalled, "")
-        self.tabSkinsInstalled = QWidget()
-        self.tabSkinsInstalled.setObjectName(u"tabSkinsInstalled")
-        self.tableSkinsInstalled = QTableWidget(self.tabSkinsInstalled)
-        if (self.tableSkinsInstalled.columnCount() < 6):
-            self.tableSkinsInstalled.setColumnCount(6)
-        __qtablewidgetitem6 = QTableWidgetItem()
-        self.tableSkinsInstalled.setHorizontalHeaderItem(0, __qtablewidgetitem6)
-        __qtablewidgetitem7 = QTableWidgetItem()
-        self.tableSkinsInstalled.setHorizontalHeaderItem(1, __qtablewidgetitem7)
-        __qtablewidgetitem8 = QTableWidgetItem()
-        self.tableSkinsInstalled.setHorizontalHeaderItem(2, __qtablewidgetitem8)
-        __qtablewidgetitem9 = QTableWidgetItem()
-        self.tableSkinsInstalled.setHorizontalHeaderItem(3, __qtablewidgetitem9)
-        __qtablewidgetitem10 = QTableWidgetItem()
-        self.tableSkinsInstalled.setHorizontalHeaderItem(4, __qtablewidgetitem10)
-        __qtablewidgetitem11 = QTableWidgetItem()
-        self.tableSkinsInstalled.setHorizontalHeaderItem(5, __qtablewidgetitem11)
+
+        self.verticalLayout_3.addWidget(self.tablePluginsInstalled)
+
+        self.stackedWidgetInstalled.addWidget(self.pagePluginsInstalled)
+        self.pageSkinsInstalled = QWidget()
+        self.pageSkinsInstalled.setObjectName(u"pageSkinsInstalled")
+        self.verticalLayout_4 = QVBoxLayout(self.pageSkinsInstalled)
+        self.verticalLayout_4.setSpacing(0)
+        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+        self.verticalLayout_4.setContentsMargins(0, 0, 0, 0)
+        self.tableSkinsInstalled = QTableWidget(self.pageSkinsInstalled)
         self.tableSkinsInstalled.setObjectName(u"tableSkinsInstalled")
-        self.tableSkinsInstalled.setGeometry(QRect(0, 0, 721, 271))
         self.tableSkinsInstalled.setFrameShape(QFrame.Shape.NoFrame)
         self.tableSkinsInstalled.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
         self.tableSkinsInstalled.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -142,26 +181,18 @@ class Ui_winAddonManager(object):
         self.tableSkinsInstalled.horizontalHeader().setCascadingSectionResizes(False)
         self.tableSkinsInstalled.horizontalHeader().setStretchLastSection(True)
         self.tableSkinsInstalled.verticalHeader().setVisible(False)
-        self.tabWidgetInstalled.addTab(self.tabSkinsInstalled, "")
-        self.tabMusicInstalled = QWidget()
-        self.tabMusicInstalled.setObjectName(u"tabMusicInstalled")
-        self.tableMusicInstalled = QTableWidget(self.tabMusicInstalled)
-        if (self.tableMusicInstalled.columnCount() < 6):
-            self.tableMusicInstalled.setColumnCount(6)
-        __qtablewidgetitem12 = QTableWidgetItem()
-        self.tableMusicInstalled.setHorizontalHeaderItem(0, __qtablewidgetitem12)
-        __qtablewidgetitem13 = QTableWidgetItem()
-        self.tableMusicInstalled.setHorizontalHeaderItem(1, __qtablewidgetitem13)
-        __qtablewidgetitem14 = QTableWidgetItem()
-        self.tableMusicInstalled.setHorizontalHeaderItem(2, __qtablewidgetitem14)
-        __qtablewidgetitem15 = QTableWidgetItem()
-        self.tableMusicInstalled.setHorizontalHeaderItem(3, __qtablewidgetitem15)
-        __qtablewidgetitem16 = QTableWidgetItem()
-        self.tableMusicInstalled.setHorizontalHeaderItem(4, __qtablewidgetitem16)
-        __qtablewidgetitem17 = QTableWidgetItem()
-        self.tableMusicInstalled.setHorizontalHeaderItem(5, __qtablewidgetitem17)
+
+        self.verticalLayout_4.addWidget(self.tableSkinsInstalled)
+
+        self.stackedWidgetInstalled.addWidget(self.pageSkinsInstalled)
+        self.pageMusicInstalled = QWidget()
+        self.pageMusicInstalled.setObjectName(u"pageMusicInstalled")
+        self.verticalLayout_2 = QVBoxLayout(self.pageMusicInstalled)
+        self.verticalLayout_2.setSpacing(0)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.tableMusicInstalled = QTableWidget(self.pageMusicInstalled)
         self.tableMusicInstalled.setObjectName(u"tableMusicInstalled")
-        self.tableMusicInstalled.setGeometry(QRect(0, 0, 721, 271))
         self.tableMusicInstalled.setFrameShape(QFrame.Shape.NoFrame)
         self.tableMusicInstalled.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
         self.tableMusicInstalled.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -174,32 +205,54 @@ class Ui_winAddonManager(object):
         self.tableMusicInstalled.horizontalHeader().setCascadingSectionResizes(False)
         self.tableMusicInstalled.horizontalHeader().setStretchLastSection(True)
         self.tableMusicInstalled.verticalHeader().setVisible(False)
-        self.tabWidgetInstalled.addTab(self.tabMusicInstalled, "")
-        self.tabWidget.addTab(self.tabInstalled, "")
-        self.tabFindMore = QWidget()
-        self.tabFindMore.setObjectName(u"tabFindMore")
-        self.tabWidgetRemote = QTabWidget(self.tabFindMore)
-        self.tabWidgetRemote.setObjectName(u"tabWidgetRemote")
-        self.tabWidgetRemote.setGeometry(QRect(0, 0, 721, 301))
-        self.tabPlugins = QWidget()
-        self.tabPlugins.setObjectName(u"tabPlugins")
-        self.tablePlugins = QTableWidget(self.tabPlugins)
-        if (self.tablePlugins.columnCount() < 6):
-            self.tablePlugins.setColumnCount(6)
-        __qtablewidgetitem18 = QTableWidgetItem()
-        self.tablePlugins.setHorizontalHeaderItem(0, __qtablewidgetitem18)
-        __qtablewidgetitem19 = QTableWidgetItem()
-        self.tablePlugins.setHorizontalHeaderItem(1, __qtablewidgetitem19)
-        __qtablewidgetitem20 = QTableWidgetItem()
-        self.tablePlugins.setHorizontalHeaderItem(2, __qtablewidgetitem20)
-        __qtablewidgetitem21 = QTableWidgetItem()
-        self.tablePlugins.setHorizontalHeaderItem(3, __qtablewidgetitem21)
-        __qtablewidgetitem22 = QTableWidgetItem()
-        self.tablePlugins.setHorizontalHeaderItem(4, __qtablewidgetitem22)
-        __qtablewidgetitem23 = QTableWidgetItem()
-        self.tablePlugins.setHorizontalHeaderItem(5, __qtablewidgetitem23)
+
+        self.verticalLayout_2.addWidget(self.tableMusicInstalled)
+
+        self.stackedWidgetInstalled.addWidget(self.pageMusicInstalled)
+
+        self.verticalLayout.addWidget(self.stackedWidgetInstalled)
+
+        self.stackedWidgetSource.addWidget(self.pageInstalled)
+        self.pageRemote = QWidget()
+        self.pageRemote.setObjectName(u"pageRemote")
+        self.verticalLayout_5 = QVBoxLayout(self.pageRemote)
+        self.verticalLayout_5.setSpacing(0)
+        self.verticalLayout_5.setObjectName(u"verticalLayout_5")
+        self.verticalLayout_5.setContentsMargins(0, 0, 0, 0)
+        self.layoutTabBarRemote = QHBoxLayout()
+        self.layoutTabBarRemote.setObjectName(u"layoutTabBarRemote")
+        self.tabBarRemote = QTabBar(self.pageRemote)
+        self.tabBarRemote.setObjectName(u"tabBarRemote")
+
+        self.layoutTabBarRemote.addWidget(self.tabBarRemote, 0, Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignBottom)
+
+        self.horizontalSpacer_4 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.layoutTabBarRemote.addItem(self.horizontalSpacer_4)
+
+        self.horizontalLayout_5 = QHBoxLayout()
+        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
+        self.horizontalLayout_5.setContentsMargins(6, 6, 6, 6)
+        self.btnCheckForUpdates_2 = NoOddSizesQToolButton(self.pageRemote)
+        self.btnCheckForUpdates_2.setObjectName(u"btnCheckForUpdates_2")
+
+        self.horizontalLayout_5.addWidget(self.btnCheckForUpdates_2)
+
+
+        self.layoutTabBarRemote.addLayout(self.horizontalLayout_5)
+
+
+        self.verticalLayout_5.addLayout(self.layoutTabBarRemote)
+
+        self.stackedWidgetRemote = QStackedWidget(self.pageRemote)
+        self.stackedWidgetRemote.setObjectName(u"stackedWidgetRemote")
+        self.pagePluginsRemote = QWidget()
+        self.pagePluginsRemote.setObjectName(u"pagePluginsRemote")
+        self.verticalLayout_7 = QVBoxLayout(self.pagePluginsRemote)
+        self.verticalLayout_7.setObjectName(u"verticalLayout_7")
+        self.verticalLayout_7.setContentsMargins(0, 0, 0, 0)
+        self.tablePlugins = QTableWidget(self.pagePluginsRemote)
         self.tablePlugins.setObjectName(u"tablePlugins")
-        self.tablePlugins.setGeometry(QRect(0, 0, 721, 271))
         self.tablePlugins.setFrameShape(QFrame.Shape.NoFrame)
         self.tablePlugins.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
         self.tablePlugins.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -212,26 +265,17 @@ class Ui_winAddonManager(object):
         self.tablePlugins.horizontalHeader().setCascadingSectionResizes(False)
         self.tablePlugins.horizontalHeader().setStretchLastSection(True)
         self.tablePlugins.verticalHeader().setVisible(False)
-        self.tabWidgetRemote.addTab(self.tabPlugins, "")
-        self.tabSkins = QWidget()
-        self.tabSkins.setObjectName(u"tabSkins")
-        self.tableSkins = QTableWidget(self.tabSkins)
-        if (self.tableSkins.columnCount() < 6):
-            self.tableSkins.setColumnCount(6)
-        __qtablewidgetitem24 = QTableWidgetItem()
-        self.tableSkins.setHorizontalHeaderItem(0, __qtablewidgetitem24)
-        __qtablewidgetitem25 = QTableWidgetItem()
-        self.tableSkins.setHorizontalHeaderItem(1, __qtablewidgetitem25)
-        __qtablewidgetitem26 = QTableWidgetItem()
-        self.tableSkins.setHorizontalHeaderItem(2, __qtablewidgetitem26)
-        __qtablewidgetitem27 = QTableWidgetItem()
-        self.tableSkins.setHorizontalHeaderItem(3, __qtablewidgetitem27)
-        __qtablewidgetitem28 = QTableWidgetItem()
-        self.tableSkins.setHorizontalHeaderItem(4, __qtablewidgetitem28)
-        __qtablewidgetitem29 = QTableWidgetItem()
-        self.tableSkins.setHorizontalHeaderItem(5, __qtablewidgetitem29)
+
+        self.verticalLayout_7.addWidget(self.tablePlugins)
+
+        self.stackedWidgetRemote.addWidget(self.pagePluginsRemote)
+        self.pageSkinsRemote = QWidget()
+        self.pageSkinsRemote.setObjectName(u"pageSkinsRemote")
+        self.verticalLayout_8 = QVBoxLayout(self.pageSkinsRemote)
+        self.verticalLayout_8.setObjectName(u"verticalLayout_8")
+        self.verticalLayout_8.setContentsMargins(0, 0, 0, 0)
+        self.tableSkins = QTableWidget(self.pageSkinsRemote)
         self.tableSkins.setObjectName(u"tableSkins")
-        self.tableSkins.setGeometry(QRect(0, 0, 721, 271))
         self.tableSkins.setFrameShape(QFrame.Shape.NoFrame)
         self.tableSkins.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
         self.tableSkins.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -244,26 +288,17 @@ class Ui_winAddonManager(object):
         self.tableSkins.horizontalHeader().setCascadingSectionResizes(False)
         self.tableSkins.horizontalHeader().setStretchLastSection(True)
         self.tableSkins.verticalHeader().setVisible(False)
-        self.tabWidgetRemote.addTab(self.tabSkins, "")
-        self.tabMusic = QWidget()
-        self.tabMusic.setObjectName(u"tabMusic")
-        self.tableMusic = QTableWidget(self.tabMusic)
-        if (self.tableMusic.columnCount() < 6):
-            self.tableMusic.setColumnCount(6)
-        __qtablewidgetitem30 = QTableWidgetItem()
-        self.tableMusic.setHorizontalHeaderItem(0, __qtablewidgetitem30)
-        __qtablewidgetitem31 = QTableWidgetItem()
-        self.tableMusic.setHorizontalHeaderItem(1, __qtablewidgetitem31)
-        __qtablewidgetitem32 = QTableWidgetItem()
-        self.tableMusic.setHorizontalHeaderItem(2, __qtablewidgetitem32)
-        __qtablewidgetitem33 = QTableWidgetItem()
-        self.tableMusic.setHorizontalHeaderItem(3, __qtablewidgetitem33)
-        __qtablewidgetitem34 = QTableWidgetItem()
-        self.tableMusic.setHorizontalHeaderItem(4, __qtablewidgetitem34)
-        __qtablewidgetitem35 = QTableWidgetItem()
-        self.tableMusic.setHorizontalHeaderItem(5, __qtablewidgetitem35)
+
+        self.verticalLayout_8.addWidget(self.tableSkins)
+
+        self.stackedWidgetRemote.addWidget(self.pageSkinsRemote)
+        self.pageMusicRemote = QWidget()
+        self.pageMusicRemote.setObjectName(u"pageMusicRemote")
+        self.verticalLayout_6 = QVBoxLayout(self.pageMusicRemote)
+        self.verticalLayout_6.setObjectName(u"verticalLayout_6")
+        self.verticalLayout_6.setContentsMargins(0, 0, 0, 0)
+        self.tableMusic = QTableWidget(self.pageMusicRemote)
         self.tableMusic.setObjectName(u"tableMusic")
-        self.tableMusic.setGeometry(QRect(0, 0, 721, 271))
         self.tableMusic.setFrameShape(QFrame.Shape.NoFrame)
         self.tableMusic.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
         self.tableMusic.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -276,74 +311,31 @@ class Ui_winAddonManager(object):
         self.tableMusic.horizontalHeader().setCascadingSectionResizes(False)
         self.tableMusic.horizontalHeader().setStretchLastSection(True)
         self.tableMusic.verticalHeader().setVisible(False)
-        self.tabWidgetRemote.addTab(self.tabMusic, "")
-        self.tabWidget.addTab(self.tabFindMore, "")
+
+        self.verticalLayout_6.addWidget(self.tableMusic)
+
+        self.stackedWidgetRemote.addWidget(self.pageMusicRemote)
+
+        self.verticalLayout_5.addWidget(self.stackedWidgetRemote)
+
+        self.stackedWidgetSource.addWidget(self.pageRemote)
+
+        self.verticalLayout_9.addWidget(self.stackedWidgetSource)
+
         self.progressBar = QProgressBar(winAddonManager)
         self.progressBar.setObjectName(u"progressBar")
-        self.progressBar.setGeometry(QRect(12, 369, 441, 23))
-        self.progressBar.setValue(0)
         self.progressBar.setTextVisible(False)
-        self.lblErrors = QLabel(winAddonManager)
-        self.lblErrors.setObjectName(u"lblErrors")
-        self.lblErrors.setGeometry(QRect(467, 370, 81, 21))
-        self.btnLog = QToolButton(winAddonManager)
-        self.btnLog.setObjectName(u"btnLog")
-        self.btnLog.setGeometry(QRect(550, 369, 51, 24))
-        self.btnLog.setProperty("flat", True)
-        self.txtLog = QTextEdit(winAddonManager)
-        self.txtLog.setObjectName(u"txtLog")
-        self.txtLog.setEnabled(True)
-        self.txtLog.setGeometry(QRect(10, 10, 701, 341))
-        self.txtLog.setUndoRedoEnabled(False)
-        self.txtLog.setReadOnly(True)
-        self.widget = QWidget(winAddonManager)
-        self.widget.setObjectName(u"widget")
-        self.widget.setGeometry(QRect(530, 55, 181, 31))
-        self.layoutWidget = QWidget(self.widget)
-        self.layoutWidget.setObjectName(u"layoutWidget")
-        self.layoutWidget.setGeometry(QRect(8, 10, 161, 21))
-        self.horizontalLayout = QHBoxLayout(self.layoutWidget)
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
-        self.btnUpdateAll = QPushButton(self.layoutWidget)
-        self.btnUpdateAll.setObjectName(u"btnUpdateAll")
-        sizePolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.btnUpdateAll.sizePolicy().hasHeightForWidth())
-        self.btnUpdateAll.setSizePolicy(sizePolicy)
 
-        self.horizontalLayout.addWidget(self.btnUpdateAll)
+        self.verticalLayout_9.addWidget(self.progressBar)
 
-        self.btnCheckForUpdates = QToolButton(self.layoutWidget)
-        self.btnCheckForUpdates.setObjectName(u"btnCheckForUpdates")
-        self.btnCheckForUpdates.setPopupMode(QToolButton.ToolButtonPopupMode.DelayedPopup)
-        self.btnCheckForUpdates.setAutoRaise(False)
-
-        self.horizontalLayout.addWidget(self.btnCheckForUpdates)
-
-        self.btnBox.raise_()
-        self.tabWidget.raise_()
-        self.txtSearchBar.raise_()
-        self.btnAddons.raise_()
-        self.progressBar.raise_()
-        self.lblErrors.raise_()
-        self.btnLog.raise_()
-        self.widget.raise_()
-        self.txtLog.raise_()
 
         self.retranslateUi(winAddonManager)
-
-        self.tabWidget.setCurrentIndex(0)
-        self.tabWidgetInstalled.setCurrentIndex(0)
-        self.tabWidgetRemote.setCurrentIndex(0)
-
 
         QMetaObject.connectSlotsByName(winAddonManager)
     # setupUi
 
-    def retranslateUi(self, winAddonManager):
-        winAddonManager.setWindowTitle(QCoreApplication.translate("winAddonManager", u"MainWindow", None))
+    def retranslateUi(self, winAddonManager: QWidgetWithStylePreview) -> None:
+        winAddonManager.setWindowTitle(QCoreApplication.translate("winAddonManager", u"Addons Manager", None))
         self.actionAddonImport.setText(QCoreApplication.translate("winAddonManager", u"Import Addons", None))
 #if QT_CONFIG(tooltip)
         self.actionAddonImport.setToolTip(QCoreApplication.translate("winAddonManager", u"Import addons from files/archives", None))
@@ -365,104 +357,23 @@ class Ui_winAddonManager(object):
         self.actionDisableStartupScript.setText(QCoreApplication.translate("winAddonManager", u"Disable startup script", None))
         self.txtSearchBar.setPlaceholderText(QCoreApplication.translate("winAddonManager", u"Search here", None))
 #if QT_CONFIG(tooltip)
-        self.btnAddons.setToolTip(QCoreApplication.translate("winAddonManager", u"<html><head/><body><p>Remove addons</p></body></html>", None))
+        self.btnAddons.setToolTip(QCoreApplication.translate("winAddonManager", u"Remove addons", None))
 #endif // QT_CONFIG(tooltip)
-        self.btnAddons.setText(QCoreApplication.translate("winAddonManager", u"-", None))
-        ___qtablewidgetitem = self.tablePluginsInstalled.horizontalHeaderItem(0)
-        ___qtablewidgetitem.setText(QCoreApplication.translate("winAddonManager", u"ID", None));
-        ___qtablewidgetitem1 = self.tablePluginsInstalled.horizontalHeaderItem(1)
-        ___qtablewidgetitem1.setText(QCoreApplication.translate("winAddonManager", u"Name", None));
-        ___qtablewidgetitem2 = self.tablePluginsInstalled.horizontalHeaderItem(2)
-        ___qtablewidgetitem2.setText(QCoreApplication.translate("winAddonManager", u"Category", None));
-        ___qtablewidgetitem3 = self.tablePluginsInstalled.horizontalHeaderItem(3)
-        ___qtablewidgetitem3.setText(QCoreApplication.translate("winAddonManager", u"Version", None));
-        ___qtablewidgetitem4 = self.tablePluginsInstalled.horizontalHeaderItem(4)
-        ___qtablewidgetitem4.setText(QCoreApplication.translate("winAddonManager", u"Author", None));
-        ___qtablewidgetitem5 = self.tablePluginsInstalled.horizontalHeaderItem(5)
-        ___qtablewidgetitem5.setText(QCoreApplication.translate("winAddonManager", u"Latest Release", None));
-        self.tabWidgetInstalled.setTabText(self.tabWidgetInstalled.indexOf(self.tabPluginsInstalled), QCoreApplication.translate("winAddonManager", u"Plugins", None))
-        ___qtablewidgetitem6 = self.tableSkinsInstalled.horizontalHeaderItem(0)
-        ___qtablewidgetitem6.setText(QCoreApplication.translate("winAddonManager", u"ID", None));
-        ___qtablewidgetitem7 = self.tableSkinsInstalled.horizontalHeaderItem(1)
-        ___qtablewidgetitem7.setText(QCoreApplication.translate("winAddonManager", u"Name", None));
-        ___qtablewidgetitem8 = self.tableSkinsInstalled.horizontalHeaderItem(2)
-        ___qtablewidgetitem8.setText(QCoreApplication.translate("winAddonManager", u"Category", None));
-        ___qtablewidgetitem9 = self.tableSkinsInstalled.horizontalHeaderItem(3)
-        ___qtablewidgetitem9.setText(QCoreApplication.translate("winAddonManager", u"Version", None));
-        ___qtablewidgetitem10 = self.tableSkinsInstalled.horizontalHeaderItem(4)
-        ___qtablewidgetitem10.setText(QCoreApplication.translate("winAddonManager", u"Author", None));
-        ___qtablewidgetitem11 = self.tableSkinsInstalled.horizontalHeaderItem(5)
-        ___qtablewidgetitem11.setText(QCoreApplication.translate("winAddonManager", u"Latest Release", None));
-        self.tabWidgetInstalled.setTabText(self.tabWidgetInstalled.indexOf(self.tabSkinsInstalled), QCoreApplication.translate("winAddonManager", u"Skins", None))
-        ___qtablewidgetitem12 = self.tableMusicInstalled.horizontalHeaderItem(0)
-        ___qtablewidgetitem12.setText(QCoreApplication.translate("winAddonManager", u"ID", None));
-        ___qtablewidgetitem13 = self.tableMusicInstalled.horizontalHeaderItem(1)
-        ___qtablewidgetitem13.setText(QCoreApplication.translate("winAddonManager", u"Name", None));
-        ___qtablewidgetitem14 = self.tableMusicInstalled.horizontalHeaderItem(2)
-        ___qtablewidgetitem14.setText(QCoreApplication.translate("winAddonManager", u"Category", None));
-        ___qtablewidgetitem15 = self.tableMusicInstalled.horizontalHeaderItem(3)
-        ___qtablewidgetitem15.setText(QCoreApplication.translate("winAddonManager", u"Version", None));
-        ___qtablewidgetitem16 = self.tableMusicInstalled.horizontalHeaderItem(4)
-        ___qtablewidgetitem16.setText(QCoreApplication.translate("winAddonManager", u"Author", None));
-        ___qtablewidgetitem17 = self.tableMusicInstalled.horizontalHeaderItem(5)
-        ___qtablewidgetitem17.setText(QCoreApplication.translate("winAddonManager", u"Latest Release", None));
-        self.tabWidgetInstalled.setTabText(self.tabWidgetInstalled.indexOf(self.tabMusicInstalled), QCoreApplication.translate("winAddonManager", u"Music", None))
-#if QT_CONFIG(tooltip)
-        self.tabWidgetInstalled.setTabToolTip(self.tabWidgetInstalled.indexOf(self.tabMusicInstalled), QCoreApplication.translate("winAddonManager", u"ABC Files", None))
-#endif // QT_CONFIG(tooltip)
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabInstalled), QCoreApplication.translate("winAddonManager", u"Installed", None))
-        ___qtablewidgetitem18 = self.tablePlugins.horizontalHeaderItem(0)
-        ___qtablewidgetitem18.setText(QCoreApplication.translate("winAddonManager", u"ID", None));
-        ___qtablewidgetitem19 = self.tablePlugins.horizontalHeaderItem(1)
-        ___qtablewidgetitem19.setText(QCoreApplication.translate("winAddonManager", u"Name", None));
-        ___qtablewidgetitem20 = self.tablePlugins.horizontalHeaderItem(2)
-        ___qtablewidgetitem20.setText(QCoreApplication.translate("winAddonManager", u"Category", None));
-        ___qtablewidgetitem21 = self.tablePlugins.horizontalHeaderItem(3)
-        ___qtablewidgetitem21.setText(QCoreApplication.translate("winAddonManager", u"Version", None));
-        ___qtablewidgetitem22 = self.tablePlugins.horizontalHeaderItem(4)
-        ___qtablewidgetitem22.setText(QCoreApplication.translate("winAddonManager", u"Author", None));
-        ___qtablewidgetitem23 = self.tablePlugins.horizontalHeaderItem(5)
-        ___qtablewidgetitem23.setText(QCoreApplication.translate("winAddonManager", u"Latest Release", None));
-        self.tabWidgetRemote.setTabText(self.tabWidgetRemote.indexOf(self.tabPlugins), QCoreApplication.translate("winAddonManager", u"Plugins", None))
-        ___qtablewidgetitem24 = self.tableSkins.horizontalHeaderItem(0)
-        ___qtablewidgetitem24.setText(QCoreApplication.translate("winAddonManager", u"ID", None));
-        ___qtablewidgetitem25 = self.tableSkins.horizontalHeaderItem(1)
-        ___qtablewidgetitem25.setText(QCoreApplication.translate("winAddonManager", u"Name", None));
-        ___qtablewidgetitem26 = self.tableSkins.horizontalHeaderItem(2)
-        ___qtablewidgetitem26.setText(QCoreApplication.translate("winAddonManager", u"Category", None));
-        ___qtablewidgetitem27 = self.tableSkins.horizontalHeaderItem(3)
-        ___qtablewidgetitem27.setText(QCoreApplication.translate("winAddonManager", u"Version", None));
-        ___qtablewidgetitem28 = self.tableSkins.horizontalHeaderItem(4)
-        ___qtablewidgetitem28.setText(QCoreApplication.translate("winAddonManager", u"Author", None));
-        ___qtablewidgetitem29 = self.tableSkins.horizontalHeaderItem(5)
-        ___qtablewidgetitem29.setText(QCoreApplication.translate("winAddonManager", u"Latest Release", None));
-        self.tabWidgetRemote.setTabText(self.tabWidgetRemote.indexOf(self.tabSkins), QCoreApplication.translate("winAddonManager", u"Skins", None))
-        ___qtablewidgetitem30 = self.tableMusic.horizontalHeaderItem(0)
-        ___qtablewidgetitem30.setText(QCoreApplication.translate("winAddonManager", u"ID", None));
-        ___qtablewidgetitem31 = self.tableMusic.horizontalHeaderItem(1)
-        ___qtablewidgetitem31.setText(QCoreApplication.translate("winAddonManager", u"Name", None));
-        ___qtablewidgetitem32 = self.tableMusic.horizontalHeaderItem(2)
-        ___qtablewidgetitem32.setText(QCoreApplication.translate("winAddonManager", u"Category", None));
-        ___qtablewidgetitem33 = self.tableMusic.horizontalHeaderItem(3)
-        ___qtablewidgetitem33.setText(QCoreApplication.translate("winAddonManager", u"Version", None));
-        ___qtablewidgetitem34 = self.tableMusic.horizontalHeaderItem(4)
-        ___qtablewidgetitem34.setText(QCoreApplication.translate("winAddonManager", u"Author", None));
-        ___qtablewidgetitem35 = self.tableMusic.horizontalHeaderItem(5)
-        ___qtablewidgetitem35.setText(QCoreApplication.translate("winAddonManager", u"Latest Release", None));
-        self.tabWidgetRemote.setTabText(self.tabWidgetRemote.indexOf(self.tabMusic), QCoreApplication.translate("winAddonManager", u"Music", None))
-#if QT_CONFIG(tooltip)
-        self.tabWidgetRemote.setTabToolTip(self.tabWidgetRemote.indexOf(self.tabMusic), QCoreApplication.translate("winAddonManager", u"ABC Files", None))
-#endif // QT_CONFIG(tooltip)
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabFindMore), QCoreApplication.translate("winAddonManager", u"Find More", None))
-        self.lblErrors.setText(QCoreApplication.translate("winAddonManager", u"Errors: 0", None))
-        self.btnLog.setText(QCoreApplication.translate("winAddonManager", u"Log", None))
+        self.btnAddons.setProperty("qssClass", [
+            QCoreApplication.translate("winAddonManager", u"icon-lg", None),
+            QCoreApplication.translate("winAddonManager", u"px-2.5", None),
+            QCoreApplication.translate("winAddonManager", u"py-1", None)])
 #if QT_CONFIG(tooltip)
         self.btnUpdateAll.setToolTip(QCoreApplication.translate("winAddonManager", u"Update all addons", None))
 #endif // QT_CONFIG(tooltip)
         self.btnUpdateAll.setText(QCoreApplication.translate("winAddonManager", u"Update All", None))
 #if QT_CONFIG(tooltip)
-        self.btnCheckForUpdates.setToolTip(QCoreApplication.translate("winAddonManager", u"<html><head/><body><p>Check for updates</p></body></html>", None))
+        self.btnCheckForUpdates.setToolTip(QCoreApplication.translate("winAddonManager", u"Check for updates", None))
 #endif // QT_CONFIG(tooltip)
-        self.btnCheckForUpdates.setText("")
+#if QT_CONFIG(tooltip)
+        self.btnCheckForUpdates_2.setToolTip(QCoreApplication.translate("winAddonManager", u"Check for updates", None))
+#endif // QT_CONFIG(tooltip)
+        self.progressBar.setProperty("qssClass", [
+            QCoreApplication.translate("winAddonManager", u"max-h-2", None)])
     # retranslateUi
 

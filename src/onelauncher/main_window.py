@@ -29,16 +29,20 @@ from __future__ import annotations
 
 import contextlib
 import logging
+from functools import partial
 from pathlib import Path
 from uuid import UUID
 
 import attrs
 import httpx
 import packaging.version
+import qtawesome
 import trio
 from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
 from xmlschema import XMLSchemaValidationError
+
+from onelauncher.ui.custom_widgets import FramelessQMainWindowWithStylePreview
 
 from . import __about__
 from .addon_manager import AddonManagerWindow
@@ -76,22 +80,22 @@ from .ui.about_uic import Ui_dlgAbout
 from .ui.main_uic import Ui_winMain
 from .ui.select_subscription_uic import Ui_dlgSelectSubscription
 from .ui.start_game_window import StartGame
-from .ui_resources import icon_font
+from .ui.style import ApplicationStyle
 from .ui_utilities import show_message_box_details_as_markdown
 
 
-class MainWindow(QtWidgets.QMainWindow):
+class MainWindow(FramelessQMainWindowWithStylePreview):
     def __init__(
         self, config_manager: ConfigManager, starting_game_uuid: UUID | None = None
     ) -> None:
-        super().__init__(None, QtCore.Qt.WindowType.FramelessWindowHint)
+        super().__init__(None)
+        self.titleBar.hide()
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose, on=True)
         self.config_manager = config_manager
         self.game_uuid: UUID = starting_game_uuid or self.get_starting_game_uuid()
 
         self.checked_for_program_update = False
-
-        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose, on=True)
-
+        self.addon_manager_window: AddonManagerWindow | None = None
         self.game_launcher_config: GameLauncherConfig | None = None
 
     def get_starting_game_uuid(self) -> UUID:
@@ -104,18 +108,41 @@ class MainWindow(QtWidgets.QMainWindow):
             )[0]
         )
 
-    def init_ui(self) -> None:
+    def setup_ui(self) -> None:
         self.ui = Ui_winMain()
         self.ui.setupUi(self)
 
-        self.setFixedSize(790, 470)
-
-        # Setup buttons
-        self.setupBtnAbout()
-        self.setupBtnMinimize()
-        self.setupBtnExit()
-        self.setupBtnOptions()
-        self.setupBtnAddonManager()
+        qapp: QtWidgets.QApplication = qApp  # type: ignore[name-defined]  # noqa: F821
+        self.app_style = ApplicationStyle(qapp)
+        color_scheme_changed = qapp.styleHints().colorSchemeChanged
+        self.ui.btnExit.clicked.connect(self.close)
+        get_exit_icon = partial(qtawesome.icon, "fa5s.times")
+        self.ui.btnExit.setIcon(get_exit_icon())
+        color_scheme_changed.connect(lambda: self.ui.btnExit.setIcon(get_exit_icon()))
+        self.ui.btnMinimize.clicked.connect(self.showMinimized)
+        get_minimize_icon = partial(qtawesome.icon, "fa5s.window-minimize")
+        self.ui.btnMinimize.setIcon(get_minimize_icon())
+        color_scheme_changed.connect(
+            lambda: self.ui.btnMinimize.setIcon(get_minimize_icon())
+        )
+        self.ui.btnAbout.clicked.connect(self.btnAboutSelected)
+        get_about_icon = partial(qtawesome.icon, "fa5s.info-circle")
+        self.ui.btnAbout.setIcon(get_about_icon())
+        color_scheme_changed.connect(lambda: self.ui.btnAbout.setIcon(get_about_icon()))
+        self.ui.btnOptions.clicked.connect(
+            lambda: self.nursery.start_soon(self.btnOptionsSelected)
+        )
+        get_options_icon = partial(qtawesome.icon, "fa5s.cog")
+        self.ui.btnOptions.setIcon(get_options_icon())
+        color_scheme_changed.connect(
+            lambda: self.ui.btnOptions.setIcon(get_options_icon())
+        )
+        self.ui.btnAddonManager.clicked.connect(self.btnAddonManagerSelected)
+        get_addons_manager_icon = partial(qtawesome.icon, "fa5s.plus-circle")
+        self.ui.btnAddonManager.setIcon(get_addons_manager_icon())
+        color_scheme_changed.connect(
+            lambda: self.ui.btnAddonManager.setIcon(get_addons_manager_icon())
+        )
         self.setupBtnLoginMenu()
         self.ui.btnSwitchGame.clicked.connect(
             lambda: self.nursery.start_soon(self.btnSwitchGameClicked)
@@ -133,7 +160,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     async def run(self) -> None:
         async with trio.open_nursery() as self.nursery:
-            self.init_ui()
+            self.setup_ui()
             self.show()
             await self.InitialSetup()
             # Will be canceled when the winddow is closed
@@ -177,37 +204,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.nursery.cancel_scope.cancel()
         event.accept()
 
-    def setupBtnExit(self) -> None:
-        self.ui.btnExit.clicked.connect(self.close)
-
-        self.ui.btnExit.setFont(icon_font)
-        self.ui.btnExit.setText("\uf00d")
-
-    def setupBtnMinimize(self) -> None:
-        self.ui.btnMinimize.clicked.connect(self.showMinimized)
-
-        self.ui.btnMinimize.setFont(icon_font)
-        self.ui.btnMinimize.setText("\uf2d1")
-
-    def setupBtnAbout(self) -> None:
-        self.ui.btnAbout.clicked.connect(self.btnAboutSelected)
-
-        self.ui.btnAbout.setFont(icon_font)
-        self.ui.btnAbout.setText("\uf05a")
-
-    def setupBtnOptions(self) -> None:
-        self.ui.btnOptions.clicked.connect(
-            lambda: self.nursery.start_soon(self.btnOptionsSelected)
-        )
-
-        self.ui.btnOptions.setFont(icon_font)
-        self.ui.btnOptions.setText("\uf013")
-
-    def setupBtnAddonManager(self) -> None:
-        self.ui.btnAddonManager.clicked.connect(self.btnAddonManagerSelected)
-
-        self.ui.btnAddonManager.setFont(icon_font)
-        self.ui.btnAddonManager.setText("\uf055")
+    @override
+    def changeEvent(self, event: QtCore.QEvent) -> None:
+        super().changeEvent(event)
+        if event.type() == QtCore.QEvent.Type.ThemeChange:
+            self.app_style.update_base_font()
 
     def setupBtnLoginMenu(self) -> None:
         """Sets up signals and context menu for btnLoginMenu"""
@@ -325,13 +326,26 @@ class MainWindow(QtWidgets.QMainWindow):
             await self.InitialSetup()
 
     def btnAddonManagerSelected(self) -> None:
-        winAddonManager = AddonManagerWindow(
+        if self.addon_manager_window:
+            if self.addon_manager_window.isVisible():
+                self.addon_manager_window.raise_()
+                self.addon_manager_window.activateWindow()
+                return
+            else:
+                self.addon_manager_window.deleteLater()
+
+        def addon_manager_error_log(message: str) -> None:
+            self.AddLog(message, is_error=True)
+            self.raise_()
+            self.activateWindow()
+
+        self.addon_manager_window = AddonManagerWindow(
             config_manager=self.config_manager,
             game_uuid=self.game_uuid,
             launcher_local_config=self.game_launcher_local_config,
+            add_error_log=addon_manager_error_log,
         )
-        winAddonManager.Run()
-        self.resetFocus()
+        self.addon_manager_window.show()
 
     async def btnSwitchGameClicked(self) -> None:
         new_game_type = (
@@ -702,9 +716,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     )
                 )
             )
-
-        banner_pixmap = banner_pixmap.scaledToHeight(self.ui.imgMain.height())
-        self.ui.imgMain.setPixmap(banner_pixmap)
+        self.ui.imgGameBanner.setPixmap(banner_pixmap)
 
     def check_game_dir(self) -> bool:
         game_config = self.config_manager.get_game_config(self.game_uuid)
@@ -761,12 +773,7 @@ class MainWindow(QtWidgets.QMainWindow):
         return True
 
     async def InitialSetup(self) -> None:
-        self.ui.cboAccount.setEnabled(False)
-        self.ui.cboAccount.setFocus()
-        self.ui.txtPassword.setEnabled(False)
-        self.ui.btnLogin.setEnabled(False)
-        self.ui.chkSaveSettings.setEnabled(False)
-        self.ui.chkSavePassword.setEnabled(False)
+        self.ui.widgetLogin.setEnabled(False)
         self.ui.btnOptions.setEnabled(False)
         self.ui.btnSwitchGame.setEnabled(False)
 
@@ -801,7 +808,13 @@ class MainWindow(QtWidgets.QMainWindow):
             return
 
         self.resetFocus()
-
+        # Without this, it will take a sec for the game banner geometry to adjust to the
+        # image size. That behavior didn't look nice. The events are processed here,
+        # because starting the Trio stuff is where the slowdown is.
+        self.app_style.qapp.processEvents(
+            QtCore.QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents
+            | QtCore.QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers
+        )
         async with trio.open_nursery() as nursery:
             nursery.start_soon(self.game_initial_network_setup)
 
@@ -839,13 +852,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if not self.game_launcher_config:
             return
         # Enable UI elements that rely on what's been loaded.
-        self.ui.actionPatch.setEnabled(True)
-        self.ui.actionPatch.setVisible(True)
-        self.ui.btnLogin.setEnabled(True)
-        self.ui.chkSaveAccount.setEnabled(True)
-        self.ui.chkSavePassword.setEnabled(True)
-        self.ui.cboAccount.setEnabled(True)
-        self.ui.txtPassword.setEnabled(True)
+        self.ui.widgetLogin.setEnabled(True)
 
         await self.load_newsfeed(self.game_launcher_config)
 
@@ -954,7 +961,7 @@ async def check_for_update() -> None:
 
     release_version = packaging.version.parse(release_dictionary["tag_name"])
 
-    if release_version > current_version:
+    if release_version > __about__.version_parsed:
         url = release_dictionary["html_url"]
         name = release_dictionary["name"]
         description = release_dictionary["body"]

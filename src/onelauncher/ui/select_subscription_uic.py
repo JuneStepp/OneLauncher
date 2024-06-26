@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'select_subscription.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.4.2
+## Created by: Qt User Interface Compiler version 6.7.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -16,7 +16,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractButton, QApplication, QComboBox, QDialog,
-    QDialogButtonBox, QLabel, QSizePolicy, QWidget)
+    QDialogButtonBox, QLabel, QSizePolicy, QVBoxLayout,
+    QWidget)
 
 class Ui_dlgSelectSubscription(object):
     def setupUi(self, dlgSelectSubscription: QDialog) -> None:
@@ -24,22 +25,28 @@ class Ui_dlgSelectSubscription(object):
             dlgSelectSubscription.setObjectName(u"dlgSelectSubscription")
         dlgSelectSubscription.setWindowModality(Qt.WindowModality.ApplicationModal)
         dlgSelectSubscription.resize(320, 169)
-        font = QFont()
-        font.setPointSize(12)
-        dlgSelectSubscription.setFont(font)
         dlgSelectSubscription.setModal(True)
-        self.subscriptionsComboBox = QComboBox(dlgSelectSubscription)
-        self.subscriptionsComboBox.setObjectName(u"subscriptionsComboBox")
-        self.subscriptionsComboBox.setGeometry(QRect(5, 90, 310, 33))
+        self.verticalLayout = QVBoxLayout(dlgSelectSubscription)
+        self.verticalLayout.setSpacing(9)
+        self.verticalLayout.setObjectName(u"verticalLayout")
         self.label = QLabel(dlgSelectSubscription)
         self.label.setObjectName(u"label")
-        self.label.setGeometry(QRect(-5, 8, 331, 71))
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.verticalLayout.addWidget(self.label)
+
+        self.subscriptionsComboBox = QComboBox(dlgSelectSubscription)
+        self.subscriptionsComboBox.setObjectName(u"subscriptionsComboBox")
+
+        self.verticalLayout.addWidget(self.subscriptionsComboBox)
+
         self.buttonBox = QDialogButtonBox(dlgSelectSubscription)
         self.buttonBox.setObjectName(u"buttonBox")
-        self.buttonBox.setGeometry(QRect(145, 135, 166, 27))
         self.buttonBox.setOrientation(Qt.Orientation.Horizontal)
         self.buttonBox.setStandardButtons(QDialogButtonBox.StandardButton.Cancel|QDialogButtonBox.StandardButton.Ok)
+
+        self.verticalLayout.addWidget(self.buttonBox)
+
 
         self.retranslateUi(dlgSelectSubscription)
         self.buttonBox.accepted.connect(dlgSelectSubscription.accept)

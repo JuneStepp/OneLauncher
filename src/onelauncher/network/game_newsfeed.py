@@ -36,6 +36,35 @@ def _escape_feed_val(details: feedparser.util.FeedParserDict) -> str:
     return html.escape(details["value"])
 
 
+def get_newsfeed_css() -> str:
+    qapp: QtWidgets.QApplication = qApp  # type: ignore[name-defined]  # noqa: F821
+    news_entry_header_color = (
+        "#ffd100"
+        if qapp.styleHints().colorScheme() == QtCore.Qt.ColorScheme.Dark
+        else "#be9b00"
+    )
+    return f"""
+.news-entry-header {{
+    margin: 0;
+    margin-bottom: 0.2em;
+    font-weight: 600;
+    color: {news_entry_header_color};
+}}
+.news-entry-header a {{
+    text-decoration: none;
+    color: {news_entry_header_color};
+}}
+.news-entry-content {{
+    margin: 0;
+    margin-top:0.25em;
+}}
+.news-entries-break {{
+    margin: 0;
+    margin-top: 0.35em;
+}}
+"""
+
+
 def newsfeed_xml_to_html(
     newsfeed_string: str, babel_locale: Locale, original_feed_url: str | None = None
 ) -> str:
@@ -67,11 +96,10 @@ def newsfeed_xml_to_html(
         description = description.removeprefix("<p>")
         description = description.removesuffix("</p>")
 
-        qapp: QtWidgets.QApplication = qApp  # type: ignore[name-defined]  # noqa: F821
         entries_html += f"""
         <div>
-            <h4 style="margin: 0; margin-bottom: 0.2em; font-weight: 600">
-                <a href="{entry_url}" style="color: {"#ffd100" if qapp.styleHints().colorScheme() == QtCore.Qt.ColorScheme.Dark else "#be9b00"}; text-decoration: none">
+            <h4 class="news-entry-header">
+                <a href="{entry_url}">
                     {title}
                 </a>
             </h4>
@@ -80,9 +108,9 @@ def newsfeed_xml_to_html(
                 <i>{date}</i>
             </small>
 
-            <p style="margin: 0; margin-top:0.25em">{description}</p>
+            <p class="news-entry-content">{description}</p>
         </div>
-        <hr style="margin: 0; margin-top: 0.35em"/>
+        <hr class="news-entries-break"/>
         """
 
     feed_url = feed_dict.feed.get("link") or original_feed_url

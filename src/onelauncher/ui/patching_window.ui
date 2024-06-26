@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>patchingWindow</class>
+ <class>patchingDialog</class>
  <widget class="QDialog" name="patchingDialog">
   <property name="windowModality">
-   <enum>Qt::ApplicationModal</enum>
+   <enum>Qt::WindowModality::ApplicationModal</enum>
   </property>
   <property name="geometry">
    <rect>
@@ -12,12 +12,6 @@
     <width>720</width>
     <height>400</height>
    </rect>
-  </property>
-  <property name="font">
-   <font>
-    <family>Verdana</family>
-    <pointsize>12</pointsize>
-   </font>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
@@ -51,7 +45,7 @@
      <item>
       <widget class="QPushButton" name="btnSave">
        <property name="text">
-        <string>Save</string>
+        <string>Save Log</string>
        </property>
       </widget>
      </item>

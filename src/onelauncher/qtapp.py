@@ -37,10 +37,11 @@ from .resources import data_dir
 
 
 def setup_qtapplication() -> QtWidgets.QApplication:
-    QtCore.QCoreApplication.setAttribute(
-        QtCore.Qt.ApplicationAttribute.AA_ShareOpenGLContexts
-    )
     application = QtWidgets.QApplication(sys.argv)
+    # See https://github.com/zhiyiYo/PyQt-Frameless-Window/issues/50
+    application.setAttribute(
+        QtCore.Qt.ApplicationAttribute.AA_DontCreateNativeWidgetSiblings
+    )
     # Will be quit after Trio event loop finishes
     application.setQuitOnLastWindowClosed(False)
     application.setApplicationName(__title__)
@@ -54,82 +55,15 @@ def setup_qtapplication() -> QtWidgets.QApplication:
         )
     )
 
-    # Set font size explicitly to stop OS text size options from
-    # breaking the UI.
-    font = QtGui.QFont()
-    font.setPointSize(10)
-    application.setFont(font)
+    # The Qt Windows style doesn't work with dark mode
+    if os.name == "nt":
+        application.setStyle("Fusion")
 
-    handle_windows_dark_theme(application)
-    qtawesome.set_defaults(color=application.palette().windowText().color())
+    def set_qtawesome_defaults() -> None:
+        qtawesome.reset_cache()
+        qtawesome.set_defaults(color=application.palette().windowText().color())
+
+    set_qtawesome_defaults()
+    application.styleHints().colorSchemeChanged.connect(set_qtawesome_defaults)
+
     return application
-
-
-def handle_windows_dark_theme(qapp: QtWidgets.QApplication) -> None:
-    if os.name != "nt":
-        return
-
-    qsettings = QtCore.QSettings(
-        "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
-        QtCore.QSettings.Format.NativeFormat,
-    )
-    # If user has dark theme activated
-    if not qsettings.value("AppsUseLightTheme"):
-        # Use QPalette to set custom dark theme for Windows.
-        # The builtin Windows dark theme for Windows is not ready
-        # as of 7-5-2021
-        qapp.setStyle(QtWidgets.QStyleFactory.create("Fusion"))
-        dark_palette = QtGui.QPalette()
-        dark_color = QtGui.QColor(45, 45, 45)
-        disabled_color = QtGui.QColor(127, 127, 127)
-
-        dark_palette.setColor(QtGui.QPalette.ColorRole.Window, dark_color)
-        dark_palette.setColor(
-            QtGui.QPalette.ColorRole.WindowText, QtCore.Qt.GlobalColor.white
-        )
-        dark_palette.setColor(QtGui.QPalette.ColorRole.Base, QtGui.QColor(18, 18, 18))
-        dark_palette.setColor(QtGui.QPalette.ColorRole.AlternateBase, dark_color)
-        dark_palette.setColor(
-            QtGui.QPalette.ColorRole.ToolTipBase, QtCore.Qt.GlobalColor.white
-        )
-        dark_palette.setColor(
-            QtGui.QPalette.ColorRole.ToolTipText, QtCore.Qt.GlobalColor.white
-        )
-        dark_palette.setColor(
-            QtGui.QPalette.ColorRole.Text, QtCore.Qt.GlobalColor.white
-        )
-        dark_palette.setColor(
-            QtGui.QPalette.ColorGroup.Disabled,
-            QtGui.QPalette.ColorRole.Text,
-            disabled_color,
-        )
-        dark_palette.setColor(QtGui.QPalette.ColorRole.Button, dark_color)
-        dark_palette.setColor(
-            QtGui.QPalette.ColorRole.ButtonText, QtCore.Qt.GlobalColor.white
-        )
-        dark_palette.setColor(
-            QtGui.QPalette.ColorGroup.Disabled,
-            QtGui.QPalette.ColorRole.ButtonText,
-            disabled_color,
-        )
-        dark_palette.setColor(
-            QtGui.QPalette.ColorRole.BrightText, QtCore.Qt.GlobalColor.red
-        )
-        dark_palette.setColor(QtGui.QPalette.ColorRole.Link, QtGui.QColor(42, 130, 218))
-
-        dark_palette.setColor(
-            QtGui.QPalette.ColorRole.Highlight, QtGui.QColor(42, 130, 218)
-        )
-        dark_palette.setColor(
-            QtGui.QPalette.ColorRole.HighlightedText, QtCore.Qt.GlobalColor.black
-        )
-        dark_palette.setColor(
-            QtGui.QPalette.ColorGroup.Disabled,
-            QtGui.QPalette.ColorRole.HighlightedText,
-            disabled_color,
-        )
-
-        qapp.setPalette(dark_palette)
-        qapp.setStyleSheet(
-            "QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }"
-        )

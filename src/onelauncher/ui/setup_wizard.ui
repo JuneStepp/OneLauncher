@@ -47,12 +47,6 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-        <property name="maximumSize">
-         <size>
-          <width>250</width>
-          <height>16777215</height>
-         </size>
-        </property>
         <property name="toolTip">
          <string>The language used for games by default</string>
         </property>
@@ -152,6 +146,11 @@
       </property>
       <property name="selectionBehavior">
        <enum>QAbstractItemView::SelectionBehavior::SelectItems</enum>
+      </property>
+      <property name="qssClass" stdset="0">
+       <stringlist>
+        <string>icon-xl</string>
+       </stringlist>
       </property>
      </widget>
     </item>
@@ -274,6 +273,11 @@
       </property>
       <property name="selectionMode">
        <enum>QAbstractItemView::SelectionMode::NoSelection</enum>
+      </property>
+      <property name="qssClass" stdset="0">
+       <stringlist>
+        <string>icon-xl</string>
+       </stringlist>
       </property>
      </widget>
     </item>

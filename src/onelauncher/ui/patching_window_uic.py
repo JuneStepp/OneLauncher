@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'patching_window.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.4.2
+## Created by: Qt User Interface Compiler version 6.7.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -19,16 +19,12 @@ from PySide6.QtWidgets import (QApplication, QDialog, QHBoxLayout, QProgressBar,
     QPushButton, QSizePolicy, QTextBrowser, QVBoxLayout,
     QWidget)
 
-class Ui_patchingWindow(object):
-    def setupUi(self, patchingDialog):
+class Ui_patchingDialog(object):
+    def setupUi(self, patchingDialog: QDialog) -> None:
         if not patchingDialog.objectName():
             patchingDialog.setObjectName(u"patchingDialog")
-        patchingDialog.setWindowModality(Qt.ApplicationModal)
+        patchingDialog.setWindowModality(Qt.WindowModality.ApplicationModal)
         patchingDialog.resize(720, 400)
-        font = QFont()
-        font.setFamilies([u"Verdana"])
-        font.setPointSize(12)
-        patchingDialog.setFont(font)
         patchingDialog.setModal(True)
         self.verticalLayout = QVBoxLayout(patchingDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
@@ -69,11 +65,11 @@ class Ui_patchingWindow(object):
         QMetaObject.connectSlotsByName(patchingDialog)
     # setupUi
 
-    def retranslateUi(self, patchingDialog):
-        patchingDialog.setWindowTitle(QCoreApplication.translate("patchingWindow", u"MainWindow", None))
-        self.progressBar.setFormat(QCoreApplication.translate("patchingWindow", u"%p% (%v/%m)", None))
-        self.btnStop.setText(QCoreApplication.translate("patchingWindow", u"Stop", None))
-        self.btnSave.setText(QCoreApplication.translate("patchingWindow", u"Save", None))
-        self.btnStart.setText(QCoreApplication.translate("patchingWindow", u"Start", None))
+    def retranslateUi(self, patchingDialog: QDialog) -> None:
+        patchingDialog.setWindowTitle(QCoreApplication.translate("patchingDialog", u"MainWindow", None))
+        self.progressBar.setFormat(QCoreApplication.translate("patchingDialog", u"%p% (%v/%m)", None))
+        self.btnStop.setText(QCoreApplication.translate("patchingDialog", u"Stop", None))
+        self.btnSave.setText(QCoreApplication.translate("patchingDialog", u"Save Log", None))
+        self.btnStart.setText(QCoreApplication.translate("patchingDialog", u"Start", None))
     # retranslateUi
 

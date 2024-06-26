@@ -74,9 +74,9 @@ class StartGame(QtWidgets.QDialog):
         self.ui = Ui_startGameDialog()
         self.ui.setupUi(self)
 
-        self.ui.btnStart.setText("Back")
+        self.ui.btnStart.setText("Close")
         self.ui.btnStart.setEnabled(False)
-        self.ui.btnSave.setText("Save")
+        self.ui.btnSave.setText("Save Log")
         self.ui.btnSave.setEnabled(False)
         self.ui.btnStop.setText("Exit")
         self.ui.btnStart.clicked.connect(self.btnStartClicked)

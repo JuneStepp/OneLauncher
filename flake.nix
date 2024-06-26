@@ -20,6 +20,9 @@
         pyside6-essentials = super.pyside6-essentials.overridePythonAttrs (old: {
           autoPatchelfIgnoreMissingDeps = (old.autoPatchelfIgnoreMissingDeps or []) ++ ["libgbm.so.1"];
         });
+        pysidesix-frameless-window = super.pysidesix-frameless-window.overridePythonAttrs (old: {
+          buildInputs = (old.buildInputs or []) ++ [super.setuptools];
+        });
         vkbeautify = super.vkbeautify.overridePythonAttrs (old: {
           buildInputs = (old.buildInputs or []) ++ [super.setuptools];
         });
