@@ -773,7 +773,15 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         return True
 
     async def InitialSetup(self) -> None:
-        self.ui.widgetLogin.setEnabled(False)
+        # Keyring dependent
+        self.ui.cboAccount.setEnabled(False)
+        self.ui.txtPassword.setEnabled(False)
+        self.ui.widgetSaveSettings.setEnabled(False)
+
+        # Network loading dependent
+        self.ui.cboWorld.setEnabled(False)
+        self.ui.btnLogin.setEnabled(False)
+
         self.ui.btnOptions.setEnabled(False)
         self.ui.btnSwitchGame.setEnabled(False)
 
@@ -797,6 +805,9 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             return
 
         self.loadAllSavedAccounts()
+        self.ui.cboAccount.setEnabled(True)
+        self.ui.txtPassword.setEnabled(True)
+        self.ui.widgetSaveSettings.setEnabled(True)
 
         self.set_banner_image()
         self.setWindowTitle(self.config_manager.get_game_config(self.game_uuid).name)
@@ -852,7 +863,8 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         if not self.game_launcher_config:
             return
         # Enable UI elements that rely on what's been loaded.
-        self.ui.widgetLogin.setEnabled(True)
+        self.ui.cboWorld.setEnabled(True)
+        self.ui.btnLogin.setEnabled(True)
 
         await self.load_newsfeed(self.game_launcher_config)
 

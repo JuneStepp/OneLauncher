@@ -189,17 +189,20 @@ class Ui_winMain(object):
 
         self.layoutLogin.setWidget(5, QFormLayout.ItemRole.LabelRole, self.btnLogin)
 
-        self.verticalLayout = QVBoxLayout()
+        self.widgetSaveSettings = QWidget(self.widgetLogin)
+        self.widgetSaveSettings.setObjectName(u"widgetSaveSettings")
+        self.verticalLayout = QVBoxLayout(self.widgetSaveSettings)
         self.verticalLayout.setSpacing(0)
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
-        self.verticalLayout.setContentsMargins(6, -1, -1, -1)
-        self.chkSaveAccount = QCheckBox(self.widgetLogin)
+        self.verticalLayout.setContentsMargins(6, 0, 0, 0)
+        self.chkSaveAccount = QCheckBox(self.widgetSaveSettings)
         self.chkSaveAccount.setObjectName(u"chkSaveAccount")
 
         self.verticalLayout.addWidget(self.chkSaveAccount, 0, Qt.AlignmentFlag.AlignTop)
 
-        self.chkSavePassword = QCheckBox(self.widgetLogin)
+        self.chkSavePassword = QCheckBox(self.widgetSaveSettings)
         self.chkSavePassword.setObjectName(u"chkSavePassword")
 
         self.verticalLayout.addWidget(self.chkSavePassword, 0, Qt.AlignmentFlag.AlignTop)
@@ -209,7 +212,7 @@ class Ui_winMain(object):
         self.verticalLayout.addItem(self.verticalSpacer)
 
 
-        self.layoutLogin.setLayout(5, QFormLayout.ItemRole.FieldRole, self.verticalLayout)
+        self.layoutLogin.setWidget(5, QFormLayout.ItemRole.FieldRole, self.widgetSaveSettings)
 
 
         self.verticalLayout_2.addWidget(self.widgetLogin)
