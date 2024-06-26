@@ -171,7 +171,8 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         "tableSkinsDDO",
         "tableSkinsDDOInstalled",
     )
-    SOURCE_TAB_NAMES: Final = (
+    SourceTabName: TypeAlias = Literal["Installed", "Find More"]
+    SOURCE_TAB_NAMES: Final[tuple[SourceTabName, ...]] = (
         "Installed",
         "Find More",
     )
@@ -201,8 +202,11 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         game_config = self.config_manager.get_game_config(self.game_uuid)
 
-        for tab_name in self.SOURCE_TAB_NAMES:
-            self.ui.tabBarSource.addTab(tab_name)
+        qapp: QtWidgets.QApplication = qApp  # type: ignore[name-defined]  # noqa: F821
+        color_scheme_changed = qapp.styleHints().colorSchemeChanged
+
+        for source_tab_name in self.SOURCE_TAB_NAMES:
+            self.ui.tabBarSource.addTab(source_tab_name)
         self.ui.tabBarSource.setExpanding(True)
         self.ui.tabBarSource.currentChanged.connect(self.tabBarIndexChanged)
         self.tab_names: tuple[AddonManagerWindow.AddonTypeTabName, ...]
@@ -212,9 +216,9 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.tab_names = self.TAB_NAMES_DDO
         else:
             assert_never(game_config.game_type)
-        for tab_name in self.tab_names:
-            self.ui.tabBarInstalled.addTab(tab_name)
-            self.ui.tabBarRemote.addTab(tab_name)
+        for addon_tab_name in self.tab_names:
+            self.ui.tabBarInstalled.addTab(addon_tab_name)
+            self.ui.tabBarRemote.addTab(addon_tab_name)
         # Bar won't show up without setting a minimum size
         self.ui.tabBarInstalled.setMinimumSize(1, 1)
         self.ui.tabBarRemote.setMinimumSize(1, 1)
@@ -222,15 +226,18 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self.ui.tabBarRemote.currentChanged.connect(self.tabBarRemoteIndexChanged)
 
         self.btnAddonsMenu = QtWidgets.QMenu()
-        self.btnAddonsMenu.addAction(self.ui.actionAddonImport)
+        self.btnAddonsMenu.addAction(self.ui.actionUpdateSelectedAddons)
+        self.ui.actionUpdateSelectedAddons.triggered.connect(self.updateSelectedAddons)
         self.btnAddonsMenu.addAction(self.ui.actionShowSelectedOnLotrointerface)
-        self.ui.actionAddonImport.triggered.connect(self.actionAddonImportSelected)
         self.ui.actionShowSelectedOnLotrointerface.triggered.connect(
             self.showSelectedOnLotrointerface
         )
-        self.ui.actionShowAddonInFileManager.triggered.connect(
-            self.actionShowAddonInFileManagerSelected
+        self.btnAddonsMenu.addAction(self.ui.actionShowSelectedAddonsInFileManager)
+        self.ui.actionShowSelectedAddonsInFileManager.triggered.connect(
+            self.show_selected_addons_in_file_manager
         )
+        self.btnAddonsMenu.addAction(self.ui.actionAddonImport)
+        self.ui.actionAddonImport.triggered.connect(self.actionAddonImportSelected)
         self.btnAddonsMenu.addAction(self.ui.actionShowPluginsFolderInFileManager)
         self.ui.actionShowPluginsFolderInFileManager.triggered.connect(
             self.actionShowPluginsFolderSelected
@@ -243,10 +250,11 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self.ui.actionShowMusicFolderInFileManager.triggered.connect(
             self.actionShowMusicFolderSelected
         )
-        self.btnAddonsMenu.addAction(self.ui.actionUpdateAllSelectedAddons)
-        self.ui.actionUpdateAllSelectedAddons.triggered.connect(
-            self.updateAllSelectedAddons
-        )
+        self.btnAddonsMenu.aboutToShow.connect(self.update_addons_button_actions)
+        self.ui.btnAddons.setMenu(self.btnAddonsMenu)
+        self.ui.btnAddons.clicked.connect(self.btnAddonsClicked)
+        self.update_btn_addons()
+        color_scheme_changed.connect(self.update_btn_addons)
 
         self.ui.actionInstallAddon.triggered.connect(self.actionInstallAddonSelected)
         self.ui.actionUninstallAddon.triggered.connect(
@@ -260,11 +268,13 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self.ui.actionDisableStartupScript.triggered.connect(
             self.actionDisableStartupScriptSelected
         )
+        self.ui.actionShowAddonInFileManager.triggered.connect(
+            self.actionShowAddonInFileManagerSelected
+        )
 
+        # Will only show when a downlaod is hapenning
         self.ui.progressBar.setVisible(False)
 
-        qapp: QtWidgets.QApplication = qApp  # type: ignore[name-defined]  # noqa: F821
-        color_scheme_changed = qapp.styleHints().colorSchemeChanged
         get_check_for_updates_icon = partial(qtawesome.icon, "fa5s.sync-alt")
         self.ui.btnCheckForUpdates.setIcon(get_check_for_updates_icon())
         self.ui.btnCheckForUpdates_2.setIcon(get_check_for_updates_icon())
@@ -277,11 +287,6 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self.ui.btnCheckForUpdates.pressed.connect(self.checkForUpdates)
         self.ui.btnCheckForUpdates_2.pressed.connect(self.checkForUpdates)
         self.ui.btnUpdateAll.pressed.connect(self.updateAll)
-
-        self.ui.btnAddons.setMenu(self.btnAddonsMenu)
-        self.ui.btnAddons.clicked.connect(self.btnAddonsClicked)
-        self.update_btn_addons()
-        color_scheme_changed.connect(self.update_btn_addons)
 
         self.ui.txtSearchBar.setFocus()
         self.ui.txtSearchBar.textChanged.connect(self.txtSearchBarTextChanged)
@@ -1424,34 +1429,29 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
     def getCurrentTable(self) -> QtWidgets.QTableWidget:
         """Return the table that the user currently sees based on what tabs they are in"""
-        if self.SOURCE_TAB_NAMES[self.ui.tabBarSource.currentIndex()] == "Installed":
-            index_installed = self.ui.tabBarInstalled.currentIndex()
-            if self.tab_names[index_installed] == "Plugins":
+        source_tab = self.SOURCE_TAB_NAMES[self.ui.tabBarSource.currentIndex()]
+        if source_tab == "Installed":
+            addons_tab = self.tab_names[self.ui.tabBarInstalled.currentIndex()]
+            if addons_tab == "Plugins":
                 table = self.ui.tablePluginsInstalled
-            elif self.tab_names[index_installed] == "Skins":
+            elif addons_tab == "Skins":
                 table = self.ui.tableSkinsInstalled
-            elif self.tab_names[index_installed] == "Music":
+            elif addons_tab == "Music":
                 table = self.ui.tableMusicInstalled
             else:
-                raise IndexError(
-                    f"Unhandled {self.ui.tabBarInstalled} tab index: {index_installed}"
-                )
-        elif self.SOURCE_TAB_NAMES[self.ui.tabBarSource.currentIndex()] == "Find More":
-            index_remote = self.ui.tabBarRemote.currentIndex()
-            if self.tab_names[index_remote] == "Plugins":
+                assert_never(addons_tab)
+        elif source_tab == "Find More":
+            addons_tab = self.tab_names[self.ui.tabBarRemote.currentIndex()]
+            if addons_tab == "Plugins":
                 table = self.ui.tablePlugins
-            elif self.tab_names[index_remote] == "Skins":
+            elif addons_tab == "Skins":
                 table = self.ui.tableSkins
-            elif self.tab_names[index_remote] == "Music":
+            elif addons_tab == "Music":
                 table = self.ui.tableMusic
             else:
-                raise IndexError(
-                    f"Unhandled {self.ui.tabBarRemote} tab index: {index_remote}"
-                )
+                assert_never(addons_tab)
         else:
-            raise IndexError(
-                f"Unhandled {self.ui.tabBarSource} tab index: {self.ui.tabBarSource.currentIndex()}"
-            )
+            assert_never(source_tab)
         return table
 
     def installRemoteAddon(self, url: str, name: str, interface_id: str) -> None:
@@ -1668,8 +1668,6 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self.txtSearchBarTextChanged(user_search)
 
     def tabBarInstalledIndexChanged(self, index: int) -> None:
-        self.updateAddonFolderActions(index)
-
         if self.tab_names[index] == "Plugins":
             self.ui.stackedWidgetInstalled.setCurrentWidget(
                 self.ui.pagePluginsInstalled
@@ -1706,7 +1704,6 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.ui.stackedWidgetRemote.setCurrentWidget(self.ui.pageSkinsRemote)
         elif self.tab_names[index] == "Music":
             self.ui.stackedWidgetRemote.setCurrentWidget(self.ui.pageMusicRemote)
-        self.updateAddonFolderActions(index)
         self.searchSearchBarContents()
 
     def update_btn_addons(self) -> None:
@@ -1714,9 +1711,6 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         if self.SOURCE_TAB_NAMES[index] == "Installed":
             self.ui.btnAddons.setIcon(qtawesome.icon("fa5s.minus"))
             self.ui.btnAddons.setToolTip("Remove addons")
-
-            index_installed = self.ui.tabBarInstalled.currentIndex()
-            self.updateAddonFolderActions(index_installed)
         elif self.SOURCE_TAB_NAMES[index] == "Find More":
             self.ui.btnAddons.setIcon(qtawesome.icon("fa5s.plus"))
             self.ui.btnAddons.setToolTip("Install addons")
@@ -1725,12 +1719,8 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self.update_btn_addons()
         if self.SOURCE_TAB_NAMES[index] == "Installed":
             self.ui.stackedWidgetSource.setCurrentWidget(self.ui.pageInstalled)
-            index_installed = self.ui.tabBarInstalled.currentIndex()
-            self.updateAddonFolderActions(index_installed)
         elif self.SOURCE_TAB_NAMES[index] == "Find More":
             self.ui.stackedWidgetSource.setCurrentWidget(self.ui.pageRemote)
-            index_remote = self.ui.tabBarRemote.currentIndex()
-            self.updateAddonFolderActions(index_remote)
 
             # Handle the first time this tab is swtiched to.
             # Populate remote addons tables if not done already.
@@ -2092,18 +2082,27 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         else:
             return self.ui_tables_installed[table_index]
 
+    def show_addon_in_file_manager(self, addon: Addon) -> None:
+        if Path(addon[1]).is_file():
+            addon_folder = Path(addon[1]).parent
+        else:
+            addon_folder = Path(addon[1])
+        QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(str(addon_folder)))
+
     def actionShowAddonInFileManagerSelected(self) -> None:
         table = self.context_menu_selected_table
         row = self.context_menu_selected_row
         addon = self.getAddonObjectFromRow(table, row, remote=False)
         if not addon:
             return
+        self.show_addon_in_file_manager(addon)
 
-        if Path(addon[1]).is_file():
-            addon_folder = Path(addon[1]).parent
-        else:
-            addon_folder = Path(addon[1])
-        QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(str(addon_folder)))
+    def show_selected_addons_in_file_manager(self) -> None:
+        table = self.getCurrentTable()
+        selected_addons = self.getSelectedAddons(table)
+
+        for addon in selected_addons[0]:
+            self.show_addon_in_file_manager(addon)
 
     def actionShowPluginsFolderSelected(self) -> None:
         folder = self.data_folder_plugins
@@ -2117,23 +2116,39 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         folder = self.data_folder_music
         QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(str(folder)))
 
-    def updateAddonFolderActions(self, index: int) -> None:
-        """
-        Makes action for opening addon folder associated with
-        current tab the only addon folder opening action visible.
-        """
-        if self.tab_names[index] == "Plugins":
+    def update_addons_button_actions(self) -> None:
+        """Only show relevant actions"""
+        source_tab = self.SOURCE_TAB_NAMES[self.ui.tabBarSource.currentIndex()]
+        if source_tab == "Installed":
+            addons_tab = self.tab_names[self.ui.stackedWidgetInstalled.currentIndex()]
+        elif source_tab == "Find More":
+            addons_tab = self.tab_names[self.ui.stackedWidgetRemote.currentIndex()]
+        else:
+            assert_never(source_tab)
+        if addons_tab == "Plugins":
             self.ui.actionShowPluginsFolderInFileManager.setVisible(True)
             self.ui.actionShowSkinsFolderInFileManager.setVisible(False)
             self.ui.actionShowMusicFolderInFileManager.setVisible(False)
-        elif self.tab_names[index] == "Skins":
+        elif addons_tab == "Skins":
             self.ui.actionShowPluginsFolderInFileManager.setVisible(False)
             self.ui.actionShowSkinsFolderInFileManager.setVisible(True)
             self.ui.actionShowMusicFolderInFileManager.setVisible(False)
-        elif self.tab_names[index] == "Music":
+        elif addons_tab == "Music":
             self.ui.actionShowPluginsFolderInFileManager.setVisible(False)
             self.ui.actionShowSkinsFolderInFileManager.setVisible(False)
             self.ui.actionShowMusicFolderInFileManager.setVisible(True)
+        else:
+            assert_never(addons_tab)
+
+        # These actions can only be used when at least one addon is selected
+        if self.getCurrentTable().selectedItems():
+            self.ui.actionUpdateSelectedAddons.setVisible(True)
+            self.ui.actionShowSelectedOnLotrointerface.setVisible(True)
+            self.ui.actionShowSelectedAddonsInFileManager.setVisible(True)
+        else:
+            self.ui.actionUpdateSelectedAddons.setVisible(False)
+            self.ui.actionShowSelectedOnLotrointerface.setVisible(False)
+            self.ui.actionShowSelectedAddonsInFileManager.setVisible(False)
 
     def checkForUpdates(self) -> None:
         if self.loadRemoteAddons():
@@ -2274,7 +2289,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self.resetRemoteAddonsTables()
         self.searchSearchBarContents()
 
-    def updateAllSelectedAddons(self) -> None:
+    def updateSelectedAddons(self) -> None:
         table = self.getCurrentTable()
         addons, details = self.getSelectedAddons(table)
 

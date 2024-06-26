@@ -651,9 +651,9 @@
     <string>Show music folder in file manager</string>
    </property>
   </action>
-  <action name="actionUpdateAllSelectedAddons">
+  <action name="actionUpdateSelectedAddons">
    <property name="text">
-    <string>Update all selected addons</string>
+    <string>Update selected addons</string>
    </property>
   </action>
   <action name="actionUpdateAddon">
@@ -669,6 +669,14 @@
   <action name="actionDisableStartupScript">
    <property name="text">
     <string>Disable startup script</string>
+   </property>
+  </action>
+  <action name="actionShowSelectedAddonsInFileManager">
+   <property name="text">
+    <string>Show selected addons in file manager</string>
+   </property>
+   <property name="toolTip">
+    <string>Show selected addons in file manager</string>
    </property>
   </action>
  </widget>
