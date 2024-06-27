@@ -15,7 +15,7 @@ def show_warning_message(message: str, parent: QtWidgets.QWidget | None) -> None
 
 def show_message_box_details_as_markdown(messageBox: QtWidgets.QMessageBox) -> None:
     """Makes the detailed text of messageBox display in Markdown format"""
-    button_box: QtWidgets.QDialogButtonBox = messageBox.findChild(  # type: ignore
+    button_box: QtWidgets.QDialogButtonBox = messageBox.findChild(  # type: ignore[assignment]
         QtWidgets.QDialogButtonBox, "qt_msgbox_buttonbox"
     )
     for button in button_box.buttons():
@@ -24,16 +24,12 @@ def show_message_box_details_as_markdown(messageBox: QtWidgets.QMessageBox) -> N
             and button.text() == "Show Details..."
         ):
             button.click()
-            detailed_text_widget: QtWidgets.QTextEdit = messageBox.findChild(  # type: ignore
+            detailed_text_widget: QtWidgets.QTextEdit = messageBox.findChild(  # type: ignore[assignment]
                 QtWidgets.QTextEdit
             )
             detailed_text_widget.setMarkdown(messageBox.detailedText())
             button.click()
             return
-
-
-def QByteArray2str(s: QtCore.QByteArray) -> str:
-    return str(s, encoding="utf8", errors="replace")
 
 
 logger = logging.getLogger("main")

@@ -8,6 +8,7 @@ from typing import Self
 import attrs
 import babel
 from PySide6.QtCore import QLocale
+from typing_extensions import override
 
 
 @attrs.frozen
@@ -28,6 +29,7 @@ class OneLauncherLocale:
     display_name: str
     game_language_name: str
 
+    @override
     def __str__(self) -> str:
         return self.lang_tag
 

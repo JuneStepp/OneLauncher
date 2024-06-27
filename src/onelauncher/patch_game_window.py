@@ -28,6 +28,7 @@
 ###########################################################################
 import logging
 import os
+from typing import Literal, TypeAlias
 from uuid import UUID
 
 from PySide6 import QtCore, QtWidgets
@@ -38,12 +39,13 @@ from .game_launcher_local_config import GameLauncherLocalConfig
 from .game_utilities import get_documents_config_dir
 from .patching_progress_monitor import PatchingProgressMonitor
 from .ui.patching_window_uic import Ui_patchingDialog
-from .ui_utilities import QByteArray2str
 from .utilities import CaseInsensitiveAbsolutePath
 from .wine_environment import edit_qprocess_to_use_wine
 
 
 class PatchWindow(QtWidgets.QDialog):
+    PatchPhase: TypeAlias = Literal["FullPatch", "FilesOnly", "DataOnly", "Done"]
+    
     def __init__(
         self,
         game_uuid: UUID,
@@ -52,7 +54,7 @@ class PatchWindow(QtWidgets.QDialog):
         urlPatchServer: str,
     ):
         super().__init__(
-            qApp.activeWindow(),  # type: ignore  # noqa: F821
+            qApp.activeWindow(),  # type: ignore[name-defined]  # noqa: F821
             QtCore.Qt.WindowType.FramelessWindowHint,
         )
 
@@ -76,6 +78,8 @@ class PatchWindow(QtWidgets.QDialog):
         self.aborted = False
         self.patching_finished = True
         self.lastRun = False
+        self.patch_phases: tuple[PatchWindow.PatchPhase, ...] = ("FilesOnly", "FilesOnly", "DataOnly")
+        self.phase_index: int = 0
 
         if os.name == "nt":
             self.process_status_timer = QtCore.QTimer()
@@ -108,7 +112,10 @@ class PatchWindow(QtWidgets.QDialog):
             ).name
 
             game_logs_folder = (
-                CaseInsensitiveAbsolutePath(os.environ.get("APPDATA")).parent
+                CaseInsensitiveAbsolutePath(
+                    os.environ.get("APPDATA")
+                    or CaseInsensitiveAbsolutePath.home() / "AppData/Roaming"
+                ).parent
                 / "Local"
                 / log_folder_name
             )
@@ -133,17 +140,20 @@ class PatchWindow(QtWidgets.QDialog):
             arguments.append("--highres")
         self.process.setArguments(arguments)
         if os.name != "nt":
-            edit_qprocess_to_use_wine(qprocess=self.process, wine_config=game_config.wine)
+            edit_qprocess_to_use_wine(
+                qprocess=self.process, wine_config=game_config.wine
+            )
 
         # Arguments have to be gotten from self.process, because
         # they mey have been changed by edit_qprocess_to_use_wine().
+        self.arguments = self.process.arguments().copy()
         self.file_arguments = self.process.arguments().copy()
         self.file_arguments.append("--filesonly")
         self.data_arguments = self.process.arguments().copy()
         self.data_arguments.append("--dataonly")
 
     def readOutput(self) -> None:
-        line = QByteArray2str(self.process.readAllStandardOutput())
+        line = self.process.readAllStandardOutput().toStdString()
         self.ui.txtLog.append(line)
 
         progress = self.progress_monitor.feed_line(line)
@@ -152,7 +162,7 @@ class PatchWindow(QtWidgets.QDialog):
         logger.debug(f"Patcher: {line}")
 
     def readErrors(self) -> None:
-        line = QByteArray2str(self.process.readAllStandardError())
+        line = self.process.readAllStandardError().toStdString()
         self.ui.txtLog.append(line)
         logger.debug(f"Patcher: {line}")
 
@@ -193,29 +203,33 @@ class PatchWindow(QtWidgets.QDialog):
         if self.aborted:
             self.resetButtons()
             return
-        # handle remaining patching phases
-        if self.phase == 1:
-            # run file patching again (to avoid problems when patchclient.dll
-            # self-patches)
-            self.process.setArguments(self.file_arguments)
-            self.process.start()
-        elif self.phase == 2:
-            # run data patching
-            self.process.setArguments(self.data_arguments)
-            self.process.start()
-        else:
+        
+        if self.phase_index > len(self.patch_phases) - 1:
             # finished
             self.lastRun = True
             self.resetButtons()
             if os.name == "nt":
                 self.patch_log_file.close()
-        self.phase += 1
+            return
+        # Handle remaining patching phases
+        if self.patch_phases[self.phase_index] == "FilesOnly":
+            # run file patching again (to avoid problems when patchclient.dll
+            # self-patches)
+            self.process.setArguments(self.file_arguments)
+            self.process.start()
+        elif self.patch_phases[self.phase_index] == "DataOnly":
+            self.process.setArguments(self.data_arguments)
+            self.process.start()
+        elif self.patch_phases[self.phase_index] == "FullPatch":
+            self.process.setArguments(self.arguments)
+            self.process.start()
+        self.phase_index += 1
 
     def btnStartClicked(self) -> None:
         self.lastRun = False
         self.aborted = False
         self.patching_finished = False
-        self.phase = 1
+        self.phase_index = 0
         self.ui.btnStart.setEnabled(False)
         self.ui.btnStop.setText("Abort")
         self.ui.btnSave.setEnabled(False)

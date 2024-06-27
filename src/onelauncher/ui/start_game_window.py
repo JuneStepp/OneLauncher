@@ -41,7 +41,6 @@ from ..game_utilities import get_documents_config_dir
 from ..network.game_launcher_config import GameLauncherConfig
 from ..network.world import World
 from ..start_game import MissingLaunchArgumentError, get_qprocess
-from ..ui_utilities import QByteArray2str
 from .start_game_uic import Ui_startGameDialog
 
 
@@ -110,12 +109,12 @@ class StartGame(QtWidgets.QDialog):
             return None
 
         def readOutput() -> None:
-            text = QByteArray2str(process.readAllStandardOutput())
+            text = process.readAllStandardOutput().toStdString()
             self.ui.txtLog.append(text)
             logger.debug(f"Game: {text}")
 
         def readErrors() -> None:
-            text = QByteArray2str(process.readAllStandardError())
+            text = process.readAllStandardError().toStdString()
             self.ui.txtLog.append(text)
             logger.debug(f"Game: {text}")
 

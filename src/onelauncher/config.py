@@ -52,7 +52,7 @@ _CONFIG_HELP_METADATA = "__config_help"
 
 
 @overload
-def config_field(
+def config_field( # type: ignore[misc]
     *,
     default: None = ...,
     validator: None = ...,
@@ -73,7 +73,7 @@ def config_field(
 
 
 @overload
-def config_field(
+def config_field(  # type: ignore[misc]
     *,
     default: None = ...,
     validator: _ValidatorArgType[_T] | None = ...,
@@ -99,7 +99,7 @@ def config_field(
 
 
 @overload
-def config_field(
+def config_field(  # type: ignore[misc]
     *,
     default: _T,
     validator: _ValidatorArgType[_T] | None = ...,
@@ -124,7 +124,7 @@ def config_field(
 
 
 @overload
-def config_field(
+def config_field(  # type: ignore[misc]
     *,
     default: _T | None = ...,
     validator: _ValidatorArgType[_T] | None = ...,
@@ -201,7 +201,7 @@ class ConfigFieldMetadata:
     help: str | None = None
 
     @classmethod
-    def from_attribute(cls: type[Self], attribute: attrs.Attribute[Any]) -> Self:
+    def from_attribute(cls: type[Self], attribute: attrs.Attribute[Any]) -> Self:  # type: ignore[misc]
         """
         Raises:
             NotConfigAttributeError: Attribute doesn't have config metadata
@@ -233,7 +233,8 @@ def unstructure_config(
     base_unstructure_func = converter.gen_unstructure_attrs_fromdict(type(obj))
     destructured = base_unstructure_func(obj)
     # Convert config vals to `ConfigValWithMetadata`.
-    if isinstance(destructured, dict) and attrs.has(type(obj)):
+    # There's probably? a reason for checking that it's a dict here. I'm too tired to investigate more.
+    if isinstance(destructured, dict) and attrs.has(type(obj)): # type: ignore[redundant-expr]
         for attribute in attrs.fields_dict(type(obj)).values():
             if attribute.name in destructured:
                 destructured_val = destructured[attribute.name]

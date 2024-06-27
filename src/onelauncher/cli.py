@@ -32,7 +32,6 @@ from .async_utils import AsyncHelper, app_cancel_scope
 from .config import ConfigFieldMetadata
 from .config_manager import (
     ConfigFileError,
-    ConfigFileParseError,
     ConfigManager,
     WrongConfigVersionError,
     get_converter,
@@ -583,7 +582,7 @@ async def _start_ui(config_manager: ConfigManager, game_arg: str | None) -> None
         logger.exception("")
         dialog = QtWidgets.QDialog()
         ui = Ui_errorDialog()
-        ui.setupUi(dialog)  # type: ignore
+        ui.setupUi(dialog)
         ui.textLabel.setText(e.msg)
         ui.detailsTextEdit.setPlainText(traceback.format_exc())
         config_backup_path = config_manager.get_config_backup_path(

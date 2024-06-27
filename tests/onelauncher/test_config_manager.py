@@ -106,7 +106,7 @@ test_val_types_params: list[tuple[dict[str, Any], str]] = [
     ("data_dict", "final_toml_output"),
     test_key_val_params + test_table_params + test_val_types_params,
 )
-def test_convert_to_toml(
+def test_convert_to_toml( # type: ignore[misc]
     data_dict: dict[str, Any | ConfigValWithMetadata], final_toml_output: str
 ) -> None:
     container = tomlkit.document()

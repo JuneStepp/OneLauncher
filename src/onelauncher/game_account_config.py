@@ -18,12 +18,12 @@ class GameAccountConfig:
 
 
 @attrs.frozen
-class GameAcccountNoUsername(GameAccountConfig):
+class GameAcccountNoUsername(GameAccountConfig): # type: ignore[explicit-override]
     username: str = attrs.field(default="", init=False)
 
 
 @attrs.frozen
-class GameAccountsConfig(Config):
+class GameAccountsConfig(Config):  # type: ignore[explicit-override]
     accounts: tuple[GameAccountConfig, ...]
 
     @override

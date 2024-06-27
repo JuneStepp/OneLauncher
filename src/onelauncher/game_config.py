@@ -26,7 +26,7 @@ class GameType(StrEnum):
 
 
 @attrs.frozen(kw_only=True)
-class GameConfig(Config):
+class GameConfig(Config):  # type: ignore[explicit-override]
     sorting_priority: int = -1
     game_type: GameType
     is_preview_client: bool

@@ -1,9 +1,9 @@
 from functools import cache
 from typing import Self, cast
+from xml.etree import ElementTree as ET
 from xml.etree.ElementTree import Element
 
-import vkbeautify
-from defusedxml import ElementTree
+from defusedxml import ElementTree  # type: ignore[import-untyped]
 
 from .game_config import GameType
 from .utilities import (
@@ -157,11 +157,11 @@ class GameLauncherLocalConfig:
             root = ElementTree.fromstring(existing_xml)
             root = cast(Element, root)
         else:
-            root = Element("configuration")
-            root.append(Element("appSettings"))
+            root = ET.Element("configuration")
+            root.append(ET.Element("appSettings"))
 
         app_settings = root.find("./appSettings")
-        app_settings = cast(Element, app_settings)
+        app_settings = cast(ET.Element, app_settings)
         self._edit_config_xml_app_setting(
             app_settings, "Launcher.DataCenterService.GLS", self.gls_datacenter_service
         )
@@ -173,6 +173,8 @@ class GameLauncherLocalConfig:
         )
 
         GameLauncherLocalConfig.from_game_dir.cache_clear()
-        return vkbeautify.xml(
-            ElementTree.tostring(root, "utf-8", xml_declaration=True).decode()
+        ET.indent(root)
+        pretty_xml_string: str = ElementTree.tostring(
+            root, encoding="unicode", xml_declaration=True
         )
+        return pretty_xml_string

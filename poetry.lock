@@ -4313,16 +4313,6 @@ socks = ["pysocks (>=1.5.6,!=1.5.7,<2.0)"]
 zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
-name = "vkbeautify"
-version = "0.3.0"
-description = "python plugin to pretty-print or minify text in XML, JSON and CSS formats"
-optional = false
-python-versions = "*"
-files = [
-    {file = "vkbeautify-0.3.0.tar.gz", hash = "sha256:ba2ac99d4d964a0a484232aefa87d57206d0693a042f26acb41ef7c8e02c81c6"},
-]
-
-[[package]]
 name = "xmlschema"
 version = "3.2.1"
 description = "An XML Schema validator and decoder"
@@ -4450,4 +4440,4 @@ old-kwallet = ["dbus-python"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "c0c2b4c2cb30699db5fb9b78adde3a57fea0cc1fe51ad932adfcc412c3daf035"
+content-hash = "6d38004900031e86c27bca3f9fc80e12a8b34d72f583929e9e2710f3c12b706f"

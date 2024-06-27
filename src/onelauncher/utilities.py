@@ -35,7 +35,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Self
 from xml.etree.ElementTree import Element
 
-from defusedxml import ElementTree
+from defusedxml import ElementTree  # type: ignore[import-untyped]
+from typing_extensions import override
 
 if TYPE_CHECKING:
     from _typeshed import StrPath
@@ -56,9 +57,9 @@ class CaseInsensitiveAbsolutePath(Path):
     """
 
     _flavour = (
-        pathlib._windows_flavour  # type: ignore
+        pathlib._windows_flavour  # type: ignore[attr-defined]
         if os.name == "nt"
-        else pathlib._posix_flavour  # type: ignore
+        else pathlib._posix_flavour  # type: ignore[attr-defined]
     )
 
     def __new__(cls, *pathsegments: StrPath) -> Self:
@@ -139,7 +140,7 @@ class CaseInsensitiveAbsolutePath(Path):
             return None
 
     def _make_child(self, args: tuple[StrPath, ...]) -> Self:
-        joined_path = super()._make_child(args)  # type: ignore
+        joined_path = super()._make_child(args)  # type: ignore[misc]
         return super().__new__(
             type(self),
             self._get_real_path_from_fully_case_insensitive_path(
@@ -148,6 +149,7 @@ class CaseInsensitiveAbsolutePath(Path):
             ),
         )
 
+    @override
     @classmethod
     def home(cls: type[Self]) -> Self:
         return cls(os.path.expanduser("~"))
@@ -157,13 +159,16 @@ class CaseInsensitiveAbsolutePath(Path):
             [f"[{c.lower()}{c.upper()}]" if c.isalpha() else c for c in pattern]
         )
 
+    @override
     def glob(self, pattern: str) -> Generator[Self, None, None]:
         return super().glob(self._get_case_insensitive_glob_pattern(pattern))
 
+    @override
     def rglob(self, pattern: str) -> Generator[Self, None, None]:
         return super().rglob(self._get_case_insensitive_glob_pattern(pattern))
 
-    def relative_to(self, *other: StrPath) -> Path: # type: ignore[override]
+    @override
+    def relative_to(self, *other: StrPath) -> Path:  # type: ignore[override]
         return Path(self).relative_to(*other)
 
 

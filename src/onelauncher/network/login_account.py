@@ -1,4 +1,4 @@
-from typing import NamedTuple, Self
+from typing import Any, NamedTuple, Self
 
 import zeep.exceptions
 
@@ -20,7 +20,7 @@ class GameSubscription(NamedTuple):
     additional_info: str | None
 
     @classmethod
-    def from_dict(cls: type[Self], subscription_dict: dict) -> Self:
+    def from_dict(cls: type[Self], subscription_dict: dict[str, Any]) -> Self:  # type:ignore [misc]
         """
         Construct from a `subscription_dict` of the "GameSubscription" list
         in the dictionary SOAP response of LoginAccount operation.
@@ -91,7 +91,7 @@ class AccountLoginResponse:
         return self._session_ticket
 
     @classmethod
-    def from_soap_response_dict(cls: type[Self], login_response_dict: dict) -> Self:
+    def from_soap_response_dict(cls: type[Self], login_response_dict: dict[str, Any]) -> Self:  # type:ignore [misc]
         """Construct from dictionary SOAP response
         of LoginAccount operation. See `login_account`."""
 

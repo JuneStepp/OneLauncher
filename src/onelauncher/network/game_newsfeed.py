@@ -23,17 +23,18 @@ async def newsfeed_url_to_html(url: str, babel_locale: Locale) -> str:
     return newsfeed_xml_to_html(response.text, babel_locale, url)
 
 
-def _escape_feed_val(details: feedparser.util.FeedParserDict) -> str:
+def _escape_feed_val(details: feedparser.util.FeedParserDict) -> str: # type: ignore[no-any-unimported]
     """Return escaped value if the type is 'text/plain'. Otherwise, return the original value.
         See https://github.com/kurtmckee/feedparser/blame/b6917f83354a58348a16cf1106d64ea6622e24df/docs/html-sanitization.rst#L24-L31
         Summary is that values marked as 'text/plain' aren't sanitized.
     Args:
         details (feedparser.util.FeedParserDict): Value details dict. Ex. entry.title_detail
     """
+    details_val: str = details["value"]
     if details["type"] != "text/plain":
-        return details["value"]
+        return details_val
 
-    return html.escape(details["value"])
+    return html.escape(details_val)
 
 
 def get_newsfeed_css() -> str:

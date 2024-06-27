@@ -5,6 +5,7 @@ from typing import Any
 import outcome
 import trio
 from PySide6 import QtCore, QtWidgets
+from typing_extensions import override
 
 
 class AsyncHelper(QtCore.QObject):
@@ -13,6 +14,7 @@ class AsyncHelper(QtCore.QObject):
         Trio to resume when the event is handled. event.fn() is the
         next entry point of the Trio event loop."""
 
+        @override
         def event(self, event: QtCore.QEvent) -> bool:
             if event.type() == QtCore.QEvent.Type.User + 1 and isinstance(
                 event, AsyncHelper.ReenterQtEvent
@@ -34,7 +36,6 @@ class AsyncHelper(QtCore.QObject):
         self.reenter_qt = self.ReenterQtObject()
         self.entry = entry
 
-    @QtCore.Slot()
     def launch_guest_run(self) -> None:
         """
         To use Trio and Qt together, one must run the Trio event
@@ -58,7 +59,7 @@ class AsyncHelper(QtCore.QObject):
         """
         QtWidgets.QApplication.postEvent(self.reenter_qt, self.ReenterQtEvent(fn))
 
-    def trio_done_callback(self, run_outcome: outcome.Outcome) -> None:
+    def trio_done_callback(self, run_outcome: outcome.Outcome[Any]) -> None:
         """This function is called by Trio when its event loop has
         finished."""
         if isinstance(run_outcome, outcome.Error):

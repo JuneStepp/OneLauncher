@@ -98,7 +98,7 @@ class GameServicesInfo:
         return self._worlds
 
     @staticmethod
-    def _get_worlds(
+    def _get_worlds(  # type:ignore [misc]
         datacenter_dict: dict[str, Any], gls_datacenter_service: str | None
     ) -> set[World]:
         """Return set of game `World` objects
@@ -118,7 +118,7 @@ class GameServicesInfo:
         }
 
     @staticmethod
-    async def _get_datacenter_dict(
+    async def _get_datacenter_dict( # type:ignore [misc]
         gls_datacenter_service: str, game_datacenter_name: str
     ) -> dict[str, Any]:
         """Return dictionary of GetDatacenters SOAP operation response.
@@ -133,7 +133,7 @@ class GameServicesInfo:
         client = await get_soap_client(gls_datacenter_service)
 
         try:
-            return (await client.service.GetDatacenters(game=game_datacenter_name))[0]
+            return (await client.service.GetDatacenters(game=game_datacenter_name))[0] # type: ignore[no-any-return]
         except zeep.exceptions.Error as e:
             raise GLSServiceError("Error while parsing GetDatacenters response") from e
         except AttributeError as e:

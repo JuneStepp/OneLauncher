@@ -4,6 +4,7 @@ from urllib.parse import urlparse, urlunparse
 import httpx
 import trio
 import zeep.exceptions
+from typing_extensions import override
 from zeep import AsyncClient, Settings
 from zeep.cache import Base, InMemoryCache
 from zeep.loader import load_external_async
@@ -19,6 +20,7 @@ class GLSServiceError(Exception):
 
 class FullyAsyncTransport(AsyncTransport):
     """Async transport that loads remote data like wsdl async."""
+
     def __init__(
         self,
         client: httpx.AsyncClient,
@@ -28,7 +30,7 @@ class FullyAsyncTransport(AsyncTransport):
         verify_ssl: bool = True,
         proxy: httpx.Proxy | None = None,
     ):
-        super().__init__( # type: ignore
+        super().__init__(  # type: ignore[no-untyped-call]
             client=client,
             wsdl_client=client,
             cache=cache,
@@ -38,6 +40,7 @@ class FullyAsyncTransport(AsyncTransport):
             proxy=proxy,
         )
 
+    @override
     async def load(self, url: str) -> bytes:
         if not url:
             raise ValueError("No url given to load")
@@ -66,7 +69,7 @@ class FullyAsyncTransport(AsyncTransport):
         try:
             response.raise_for_status()
         except httpx.HTTPStatusError as exc:
-            raise zeep.exceptions.TransportError(
+            raise zeep.exceptions.TransportError( # type: ignore[no-untyped-call]
                 status_code=response.status_code
             ) from exc
         return result
@@ -87,18 +90,19 @@ class AsyncDocument(Document):
             settings=settings,
         )
 
+    @override
     def load(self, location: str) -> None:
         return
 
     async def load_async(self, location: str) -> None:
         document = await load_external_async(
-            url=location,  # type: ignore
+            url=location,  # type: ignore[arg-type]
             transport=self.transport,
             base_url=self.location,
             settings=self.settings,
         )
 
-        root_definitions = Definition(self, document, self.location)
+        root_definitions = Definition(self, document, self.location) # type: ignore[no-untyped-call]
         root_definitions.resolve_imports()
 
         # Make the wsdl definitions public
@@ -125,7 +129,7 @@ async def get_soap_client(gls_service: str) -> AsyncClient:
     # Transform base service link into link to the service description
     wsdl_url = urlunparse(parsed_url._replace(query="WSDL"))
 
-    cache = InMemoryCache(timeout=5 * 60)
+    cache = InMemoryCache(timeout=5 * 60)  # type: ignore[no-untyped-call]
     # Make transport to use caching and the SSL configs in `session`
     transport = FullyAsyncTransport(
         client=get_httpx_client(wsdl_url),
@@ -137,7 +141,7 @@ async def get_soap_client(gls_service: str) -> AsyncClient:
             location=wsdl_url, transport=transport, settings=settings
         )
         await document.load_async(wsdl_url)
-        return AsyncClient(wsdl=document, transport=transport, settings=settings)
+        return AsyncClient(wsdl=document, transport=transport, settings=settings)  # type: ignore[no-untyped-call]
     except zeep.exceptions.Error as e:
         raise GLSServiceError("Error while parsing the service description") from e
 

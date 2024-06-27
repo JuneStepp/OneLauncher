@@ -29,6 +29,7 @@ import logging
 import sqlite3
 import urllib
 import xml.dom.minidom
+import xml.etree.ElementTree as ET
 import zipfile
 from collections.abc import Callable, Iterator, Sequence
 from functools import partial
@@ -43,11 +44,10 @@ from xml.dom.minicompat import NodeList
 from xml.dom.minidom import Element
 
 import attrs
-import defusedxml.minidom
+import defusedxml.minidom  # type: ignore[import-untyped]
 import qtawesome
 from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
-from vkbeautify import xml as prettify_xml
 
 from onelauncher.ui.qtdesigner.custom_widgets import QWidgetWithStylePreview
 
@@ -1204,8 +1204,10 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                     tmp_addon_root_dir / f"{row[0]}.{addon_type.lower()}compendium"
                 )
                 with compendium_file.open("w+") as file:
-                    pretty_xml = prettify_xml(doc.toxml())
-                    file.write(pretty_xml)
+                    # Use ElementTree for prettification. Minidom isn't great at it.
+                    etree_element = ET.XML(doc.toxml())
+                    ET.indent(etree_element)
+                    file.write(ET.tostring(etree_element, encoding="unicode"))
 
                 return compendium_file
 

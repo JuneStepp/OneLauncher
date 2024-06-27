@@ -62,13 +62,9 @@ class WineManagement:
     def __init__(self) -> None:
         self.is_setup = False
 
-        (platform_dirs.user_data_path / "wine").mkdir(parents=True, exist_ok=True)
-
         self.wine_path: Path | None = None
         self.prefix_path = platform_dirs.user_cache_path / "wine/prefix"
-        self.prefix_path.mkdir(exist_ok=True, parents=True)
         self.downloads_path = platform_dirs.user_data_path / "wine"
-        self.downloads_path.mkdir(exist_ok=True, parents=True)
         self._dlgDownloader: QtWidgets.QProgressDialog | None = None
 
     @property
@@ -87,19 +83,19 @@ class WineManagement:
             "",
             0,
             100,
-            QtCore.QCoreApplication.instance().activeWindow(),
+            qApp.activeWindow(),  # type: ignore[name-defined] # noqa: F821
             QtCore.Qt.WindowType.FramelessWindowHint,
         )
         dialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
         dialog.setAutoClose(False)
-        dialog.setCancelButton(None)  # type: ignore
+        dialog.setCancelButton(None)  # type: ignore[arg-type]
         return dialog
 
     def wine_setup(self) -> None:
         """Sets wine program and downloads wine if it is not there or a new version is needed"""
 
         # Uncomment line below when using Proton
-        # self.proton_documents_symlinker()
+        # self.proton_documents_symlinker()  # noqa: ERA001
 
         self.latest_wine_version = WINE_URL.split("/download/")[1].split("/")[0]
         latest_wine_path = (
@@ -156,7 +152,7 @@ class WineManagement:
     def _downloader(self, url: str, path: Path) -> bool:
         """Downloads file from url to path and shows progress with self.handle_download_progress"""
         try:
-            request.urlretrieve(  # nosec
+            request.urlretrieve(  # noqa: S310
                 url, str(path), self._handle_download_progress
             )
             return True
@@ -165,7 +161,7 @@ class WineManagement:
             show_warning_message(
                 f"There was an error downloading '{url}'. "
                 "You may want to check your network connection.",
-                QtWidgets.QApplication.instance().activeWindow(),
+                qApp.activeWindow(),  # type: ignore[name-defined]  # noqa: F821
             )
             return False
 
@@ -179,7 +175,7 @@ class WineManagement:
 
         # Extracts tar.xz file
         with lzma.open(path) as file, tarfile.open(fileobj=file) as tar:
-            tar.extractall(path_no_suffix)
+            tar.extractall(path_no_suffix, filter="data")
 
         # Moves files from nested directory to main one
         source_dir = next(path for path in path_no_suffix.glob("*") if path.is_dir())
@@ -203,7 +199,9 @@ class WineManagement:
 
         # Extracts tar.gz file
         with tarfile.open(path, "r:gz") as file:
-            file.extractall(path_no_suffix.with_name(f"{path_no_suffix.name}_TEMP"))
+            file.extractall(
+                path_no_suffix.with_name(f"{path_no_suffix.name}_TEMP"), filter="data"
+            )
 
         # Moves files from nested directory to main one
         source_dir = next(
@@ -275,6 +273,9 @@ class WineManagement:
         )
 
     def setup_files(self) -> None:
+        (platform_dirs.user_data_path / "wine").mkdir(parents=True, exist_ok=True)
+        self.prefix_path.mkdir(exist_ok=True, parents=True)
+        self.downloads_path.mkdir(exist_ok=True, parents=True)
         self.wine_setup()
         self.dlgDownloader.reset()
         self.dxvk_setup()
@@ -282,7 +283,10 @@ class WineManagement:
         self.is_setup = True
 
 
-wine_management = None
+wine_management = WineManagement()
+
+
+ESYNC_MINIMUM_OPEN_FILE_LMIT = 524288
 
 
 def edit_qprocess_to_use_wine(
@@ -290,15 +294,14 @@ def edit_qprocess_to_use_wine(
 ) -> None:
     """Reconfigures QProcess to use WINE. The program and arguments must be pre-set!"""
     if os.name == "nt":
-        logger.warning("Attempt to edit QProcess to use WINE on Windows. No changes were made.")
+        logger.warning(
+            "Attempt to edit QProcess to use WINE on Windows. No changes were made."
+        )
         return
     processEnvironment = QtCore.QProcessEnvironment.systemEnvironment()
 
+    prefix_path: Path | None
     if wine_config.builtin_prefix_enabled:
-        global wine_management
-        if wine_management is None:
-            wine_management = WineManagement()
-
         if not wine_management.is_setup:
             wine_management.setup_files()
 
@@ -310,7 +313,7 @@ def edit_qprocess_to_use_wine(
         if path.exists():
             with path.open() as file:
                 file_data = file.read()
-                if int(file_data) >= 524288:
+                if int(file_data) >= ESYNC_MINIMUM_OPEN_FILE_LMIT:
                     processEnvironment.insert("WINEESYNC", "1")
 
         # Enables FSYNC. It overrides ESYNC and will only be used if
@@ -323,7 +326,8 @@ def edit_qprocess_to_use_wine(
         prefix_path = wine_config.user_prefix_path
         wine_path = wine_config.user_wine_executable_path
 
-    processEnvironment.insert("WINEPREFIX", str(prefix_path))
+    if prefix_path:
+        processEnvironment.insert("WINEPREFIX", str(prefix_path))
 
     if wine_config.debug_level:
         processEnvironment.insert("WINEDEBUG", wine_config.debug_level)

@@ -1,10 +1,12 @@
 import logging
-from typing import Final
+from typing import Any, Final
 from urllib.parse import urlparse, urlunparse
 
+import httpx
 import xmlschema
 from asyncache import cached
 from cachetools import TTLCache
+from typing_extensions import override
 
 from ..resources import data_dir
 from .httpx_client import get_httpx_client
@@ -67,10 +69,6 @@ class World:
             HTTPError: Network error while downloading the status XML
             WorldUnavailableError: World is unavailable
             XMLSchemaValidationError: Status XML doesn't match schema
-
-        Returns:
-            dict: Dictionary representation of world status.
-                  See `self._WORLD_STATUS_SCHEMA` schema file for what to expect.
         """
         status_dict = await self._get_status_dict(self.status_server_url)
         queue_urls: tuple[str, ...] = tuple(
@@ -81,7 +79,7 @@ class World:
         )
         return WorldStatus(queue_urls[0], login_servers[0])
 
-    async def _get_status_dict(self, status_server_url: str) -> dict:
+    async def _get_status_dict(self, status_server_url: str) -> dict[str, Any]:
         """Return world status dictionary
 
         Raises:
@@ -95,7 +93,7 @@ class World:
         """
         response = await get_httpx_client(status_server_url).get(status_server_url)
 
-        if response.status_code == 404:
+        if response.status_code == httpx.codes.NOT_FOUND:
             # Fix broken status URLs for LOTRO legendary servers
             if self._gls_datacenter_service:
                 parsed_status_url = urlparse(status_server_url)
@@ -116,8 +114,9 @@ class World:
             # worlds downtime on 2024/30/31.
             raise WorldUnavailableError(f"{self} world unavailable")
 
-        return self._WORLD_STATUS_SCHEMA.to_dict(response.text)
+        return self._WORLD_STATUS_SCHEMA.to_dict(response.text)  # type: ignore[return-value]
 
+    @override
     def __str__(self) -> str:
         return self.name
 
