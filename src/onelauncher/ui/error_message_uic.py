@@ -25,7 +25,6 @@ class Ui_errorDialog(object):
             errorDialog.setObjectName(u"errorDialog")
         errorDialog.setWindowModality(Qt.WindowModality.ApplicationModal)
         errorDialog.resize(400, 300)
-        errorDialog.setSizeGripEnabled(True)
         errorDialog.setModal(True)
         self.verticalLayout = QVBoxLayout(errorDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")

@@ -16,9 +16,6 @@
   <property name="windowTitle">
    <string>Error</string>
   </property>
-  <property name="sizeGripEnabled">
-   <bool>true</bool>
-  </property>
   <property name="modal">
    <bool>true</bool>
   </property>
