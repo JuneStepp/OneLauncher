@@ -120,6 +120,7 @@ class PatchWindow(QtWidgets.QDialog):
                 / log_folder_name
             )
 
+            game_logs_folder.mkdir(parents=True, exist_ok=True)
             patch_log_path = game_logs_folder / "PatchClient.log"
             patch_log_path.unlink(missing_ok=True)
             patch_log_path.touch()
