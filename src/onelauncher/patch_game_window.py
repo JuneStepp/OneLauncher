@@ -249,10 +249,10 @@ class PatchWindow(QtWidgets.QDialog):
         if self.process.state() != QtCore.QProcess.ProcessState.Running:
             return
 
-        if line := self.patch_log_file.readline():
+        if line := self.patch_log_file.readline().strip():
             # Ignore information only relevent to log
             if not line.startswith("//"):
-                line = line.split(": ")[1]
+                line = line.split(": ", maxsplit=1)[1]
 
                 self.ui.txtLog.append(line)
                 logger.debug(f"Patcher: {line}")
