@@ -110,5 +110,8 @@ async def get_qprocess(
         edit_qprocess_to_use_wine(qprocess=process, wine_config=game_config.wine)
 
     process.setWorkingDirectory(str(game_config.game_directory))
+    # Just setting the QProcess working directory isn't enough on Windows
+    if os.name == "nt":
+        os.chdir(process.workingDirectory())
 
     return process
