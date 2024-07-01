@@ -62,7 +62,11 @@
       };
       devShells.default = pkgs.mkShell {
         inputsFrom = [poetry_env.env];
-        packages = [pkgs.poetry];
+        packages = [
+          pkgs.poetry
+          # Used for Nuitka compilation caching
+          pkgs.ccache
+        ];
         shellHook = ''
           # Include both the PySide6 Qt and system Qt plugin paths in QT_PLUGIN_PATH.
           # The system plugins are included, so apps can follow the system theme. The

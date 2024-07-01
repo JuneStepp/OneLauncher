@@ -1,44 +1,58 @@
-import os
+import subprocess
+import sys
+
+from onelauncher import __about__
 
 nuitka_arguments = [
     "--standalone",
-    "--assume-yes-for-downloads",
-    "--nofollow-import-to=tkinter,unittest,pydoc,pdb",
-    "--plugin-enable=pyside6",
-    "--include-package=keyring.backends",
+    # "--static-libpython=yes",
+    "--python-flag=-m",  # Package mode. Compile as "pakcage.__main__"
+    "--python-flag=isolated",
+    "--python-flag=no_docstrings",
+    "--warn-unusual-code",
+    # f"--include-distribution-metadata={__about__.__package__}",
+    "--nofollow-import-to=tkinter,pydoc,pdb,PySide6.QtOpenGL,PySide6.QtOpenGLWidgets,zstandard",
+    "--noinclude-setuptools-mode=nofollow",
+    "--noinclude-unittest-mode=nofollow",
+    "--enable-plugins=pyside6",
     "--include-data-files=src/onelauncher/=onelauncher/=**/*.xsd",
     "--include-data-dir=src/onelauncher/images=onelauncher/images",
     "--include-data-dir=src/onelauncher/locale=onelauncher/locale",
-    "--include-data-dir=src/onelauncher/fonts=onelauncher/fonts",
+    # Base version, because no strings are allowed.
+    f"--product-name={__about__.__title__}",
+    f"--product-version={__about__.version_parsed.base_version}",
+    f"--file-description={__about__.__title__}",
+    f"--copyright={__about__.__copyright__}",
 ]
 
 
 def main() -> None:
-    if os.name == "nt":
+    if sys.platform == "win32":
         nuitka_arguments.extend(
             [
-                "--windows-disable-console",
-                "--include-package=win32timezone",
-                "--include-package=platformdirs.windows",
+                "--windows-console-mode=attach",
                 "--windows-icon-from-ico=src/onelauncher/images/OneLauncherIcon.ico",
             ]
         )
-    elif os.name == "mac":
+    elif sys.platform == "darwin":
         nuitka_arguments.extend(
             [
-                "--include-package=platformdirs.macos",
+                f"--macos-app-name={__about__.__title__}",
+                f"--macos-app-version={__about__.__version__}",
+                "--macos-app-icon=src/onelauncher/images/OneLauncherIcon.png",
             ]
         )
-    else:
+    elif sys.platform == "linux":
         nuitka_arguments.extend(
             [
-                "--include-qt-plugins=wayland-shell-integration,platforms",
-                "--include-package=platformdirs.unix",
+                "--linux-icon=src/onelauncher/images/OneLauncherIcon.png",
             ]
         )
-
-    os.system(
-        f"poetry run python -m nuitka {' '.join(nuitka_arguments)} start_onelauncher"  # noqa: S605
+    subprocess.run(
+        [sys.executable or "python", "-m", "nuitka", "src/onelauncher"]  # noqa: S603
+        + nuitka_arguments
+        + sys.argv[1:],
+        check=True,
     )
 
 
