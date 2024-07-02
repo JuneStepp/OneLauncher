@@ -481,7 +481,7 @@ class ConfigManager:
             game_config = self.get_game_config(game_uuid)
             return (
                 datetime.datetime(
-                    datetime.MAXYEAR, 12, 31, 23, 59, 59, 999999, tzinfo=datetime.UTC
+                    datetime.MINYEAR, 1, 1, 0, 0, 0, 0, tzinfo=datetime.UTC
                 )
                 if game_config.last_played is None
                 else game_config.last_played
