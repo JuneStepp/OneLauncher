@@ -28,7 +28,7 @@
 ###########################################################################
 import logging
 import os
-from typing import Literal, TypeAlias
+from typing import Literal, TypeAlias, assert_never
 from uuid import UUID
 
 from PySide6 import QtCore, QtWidgets
@@ -44,8 +44,8 @@ from .wine_environment import edit_qprocess_to_use_wine
 
 
 class PatchWindow(QtWidgets.QDialog):
-    PatchPhase: TypeAlias = Literal["FullPatch", "FilesOnly", "DataOnly", "Done"]
-    
+    PatchPhase: TypeAlias = Literal["FullPatch", "FilesOnly", "DataOnly"]
+
     def __init__(
         self,
         game_uuid: UUID,
@@ -57,6 +57,7 @@ class PatchWindow(QtWidgets.QDialog):
             qApp.activeWindow(),  # type: ignore[name-defined]  # noqa: F821
             QtCore.Qt.WindowType.FramelessWindowHint,
         )
+        self.launcher_local_config = launcher_local_config
 
         self.ui = Ui_patchingDialog()
         self.ui.setupUi(self)
@@ -77,9 +78,6 @@ class PatchWindow(QtWidgets.QDialog):
 
         self.aborted = False
         self.patching_finished = True
-        self.lastRun = False
-        self.patch_phases: tuple[PatchWindow.PatchPhase, ...] = ("FilesOnly", "FilesOnly", "DataOnly")
-        self.phase_index: int = 0
 
         if os.name == "nt":
             self.process_status_timer = QtCore.QTimer()
@@ -103,28 +101,16 @@ class PatchWindow(QtWidgets.QDialog):
         self.process.readyReadStandardError.connect(self.readErrors)
         self.process.finished.connect(self.processFinished)
         self.process.setWorkingDirectory(str(game_config.game_directory))
-
         if os.name == "nt":
-            # Get log file to read patching details from, since
-            # rundll32 doesn't provide output on Windows
-            log_folder_name = get_documents_config_dir(
-                launcher_local_config=launcher_local_config
-            ).name
-
-            game_logs_folder = (
-                CaseInsensitiveAbsolutePath(
-                    os.environ.get("APPDATA")
-                    or CaseInsensitiveAbsolutePath.home() / "AppData/Roaming"
-                ).parent
-                / "Local"
-                / log_folder_name
+            # The directory with TTEPatchClient.dll has to be in the PATH for 
+            # patchclient.dll to find it when OneLauncher is compilled with Nuitka.
+            environment = self.process.processEnvironment()
+            existing_path_var = environment.value("PATH", "")
+            environment.insert(
+                "PATH",
+                f"{f'{existing_path_var};' if existing_path_var else ''}{game_config.game_directory}",
             )
-
-            game_logs_folder.mkdir(parents=True, exist_ok=True)
-            patch_log_path = game_logs_folder / "PatchClient.log"
-            patch_log_path.unlink(missing_ok=True)
-            patch_log_path.touch()
-            self.patch_log_file = patch_log_path.open(mode="r")
+            self.process.setProcessEnvironment(environment)
 
         self.process.setProgram("rundll32.exe")
         arguments = [
@@ -147,11 +133,31 @@ class PatchWindow(QtWidgets.QDialog):
 
         # Arguments have to be gotten from self.process, because
         # they mey have been changed by edit_qprocess_to_use_wine().
-        self.arguments = self.process.arguments().copy()
-        self.file_arguments = self.process.arguments().copy()
-        self.file_arguments.append("--filesonly")
-        self.data_arguments = self.process.arguments().copy()
-        self.data_arguments.append("--dataonly")
+        self.base_patching_arguments = tuple(self.process.arguments())
+        # Run file patching twiceto avoid problems when patchclient.dll
+        # self-patches
+        self.patch_phases: tuple[PatchWindow.PatchPhase, ...] = (
+            "FilesOnly",
+            "FilesOnly",
+            "DataOnly",
+        )
+        self.phase_index: int = 0
+        if process_arguments := self.get_process_arguments():
+            self.process.setArguments(process_arguments)
+
+    def get_process_arguments(self) -> tuple[str, ...] | None:
+        if self.phase_index > len(self.patch_phases) - 1 or self.phase_index < 0:
+            # Finished
+            return None
+        current_phase = self.patch_phases[self.phase_index]
+        if current_phase == "FilesOnly":
+            return (*self.base_patching_arguments, "--filesonly")
+        elif current_phase == "DataOnly":
+            return (*self.base_patching_arguments, "--dataonly")
+        elif current_phase == "FullPatch":
+            return self.base_patching_arguments
+        else:
+            assert_never(current_phase)
 
     def readOutput(self) -> None:
         line = self.process.readAllStandardOutput().toStdString()
@@ -179,7 +185,7 @@ class PatchWindow(QtWidgets.QDialog):
         self.ui.progressBar.reset()
         if self.aborted:
             self.ui.txtLog.append("<b>***  Aborted  ***</b>")
-        elif self.lastRun:
+        elif self.get_process_arguments() is None:
             self.ui.txtLog.append("<b>***  Finished  ***</b>")
 
     def btnStopClicked(self) -> None:
@@ -188,6 +194,9 @@ class PatchWindow(QtWidgets.QDialog):
         else:
             self.process.kill()
             self.aborted = True
+
+            if self.process.state() != self.process.ProcessState.Running:
+                self.resetButtons()
 
     def btnSaveClicked(self) -> None:
         filename = QtWidgets.QFileDialog.getSaveFileName(
@@ -204,36 +213,51 @@ class PatchWindow(QtWidgets.QDialog):
         if self.aborted:
             self.resetButtons()
             return
-        
-        if self.phase_index > len(self.patch_phases) - 1:
+
+        self.phase_index += 1
+        # Handle remaining patching phases
+        new_arguments = self.get_process_arguments()
+        if new_arguments is None:
             # finished
-            self.lastRun = True
             self.resetButtons()
             if os.name == "nt":
                 self.patch_log_file.close()
             return
-        # Handle remaining patching phases
-        if self.patch_phases[self.phase_index] == "FilesOnly":
-            # run file patching again (to avoid problems when patchclient.dll
-            # self-patches)
-            self.process.setArguments(self.file_arguments)
-            self.process.start()
-        elif self.patch_phases[self.phase_index] == "DataOnly":
-            self.process.setArguments(self.data_arguments)
-            self.process.start()
-        elif self.patch_phases[self.phase_index] == "FullPatch":
-            self.process.setArguments(self.arguments)
-            self.process.start()
-        self.phase_index += 1
+        self.process.setArguments(new_arguments)
+        self.process.start()
+
+    def get_windows_patching_log_path(self) -> CaseInsensitiveAbsolutePath:
+        log_folder_name = get_documents_config_dir(
+            launcher_local_config=self.launcher_local_config
+        ).name
+
+        game_logs_folder = (
+            CaseInsensitiveAbsolutePath(
+                os.environ.get("APPDATA")
+                or CaseInsensitiveAbsolutePath.home() / "AppData/Roaming"
+            ).parent
+            / "Local"
+            / log_folder_name
+        )
+
+        game_logs_folder.mkdir(parents=True, exist_ok=True)
+        patch_log_path = game_logs_folder / "PatchClient.log"
+        patch_log_path.unlink(missing_ok=True)
+        patch_log_path.touch()
+        return patch_log_path
 
     def btnStartClicked(self) -> None:
-        self.lastRun = False
         self.aborted = False
         self.patching_finished = False
         self.phase_index = 0
         self.ui.btnStart.setEnabled(False)
         self.ui.btnStop.setText("Abort")
         self.ui.btnSave.setEnabled(False)
+
+        # Get log file to read patching details from, since
+        # rundll32 doesn't provide output on Windows
+        if os.name == "nt":
+            self.patch_log_file = self.get_windows_patching_log_path().open(mode="r")
 
         self.process.start()
         self.ui.txtLog.append("<b>***  Started  ***</b>")
@@ -252,7 +276,9 @@ class PatchWindow(QtWidgets.QDialog):
         if line := self.patch_log_file.readline().strip():
             # Ignore information only relevent to log
             if not line.startswith("//"):
-                line = line.split(": ", maxsplit=1)[1]
+                if ":" in line:
+                    line = line.split(": ", maxsplit=1)[1]
+
 
                 self.ui.txtLog.append(line)
                 logger.debug(f"Patcher: {line}")
