@@ -152,9 +152,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         # Accounts combo box item selection signal
         self.ui.cboAccount.currentIndexChanged.connect(self.accounts_index_changed)
         self.ui.cboAccount.lineEdit().textEdited.connect(self.user_edited_account_name)
-        self.ui.chkSaveAccount.checkStateChanged.connect(
-            self.save_account_check_state_changed
-        )
+        self.ui.chkSaveAccount.toggled.connect(self.chk_save_account_toggled)
 
         self.setupMousePropagation()
 
@@ -390,6 +388,8 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         # No selection
         if new_index == -1:
             self.ui.chkSaveAccount.setChecked(False)
+            # In case it's still in it's inital unchecked state.
+            self.chk_save_account_toggled(self.ui.chkSaveAccount.isChecked())
             return
 
         self.setCurrentAccountWorld()
@@ -413,10 +413,8 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         self.ui.txtPassword.setPlaceholderText("")
         self.ui.chkSaveAccount.setChecked(False)
 
-    def save_account_check_state_changed(
-        self, new_check_state: QtCore.Qt.CheckState
-    ) -> None:
-        if new_check_state == QtCore.Qt.CheckState.Checked:
+    def chk_save_account_toggled(self, checked: bool) -> None:
+        if checked:
             self.ui.chkSavePassword.setEnabled(True)
         else:
             self.ui.chkSavePassword.setChecked(False)
