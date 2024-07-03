@@ -870,7 +870,8 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         self.ui.btnSwitchGame.setEnabled(True)
 
     def load_worlds_list(self, game_services_info: GameServicesInfo) -> None:
-        for world in game_services_info.worlds:
+        sorted_worlds = sorted(game_services_info.worlds, key=lambda world: world.name)
+        for world in sorted_worlds:
             self.ui.cboWorld.addItem(world.name, userData=world)
 
         self.setCurrentAccountWorld()
