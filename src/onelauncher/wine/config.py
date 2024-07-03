@@ -23,4 +23,5 @@ class WineConfigSection:
             "Path to the WINE prefix to use when WINE isn't automatically " "managed"
         ),
     )
-    debug_level: str | None = config_field(default=None, help="WINE debug level to use")
+    # "fixme-all" disables fixme messages.
+    debug_level: str = config_field(default="fixme-all", help="WINE debug level to use")
