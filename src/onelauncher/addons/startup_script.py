@@ -19,9 +19,7 @@ class StartupScript:
     def get_absolute_path(
         self, documents_config_dir: CaseInsensitiveAbsolutePath
     ) -> CaseInsensitiveAbsolutePath:
-        return CaseInsensitiveAbsolutePath(
-            self.relative_path.relative_to(documents_config_dir)
-        )
+        return documents_config_dir / self.relative_path
 
 
 def run_startup_script(
@@ -45,7 +43,7 @@ def run_startup_script(
     exec(  # noqa: S102
         code,
         {
-            "__file__": str(script.get_absolute_path),
+            "__file__": str(script.get_absolute_path(documents_config_dir)),
             "__game_dir__": str(game_directory),
             "__game_config_dir__": str(documents_config_dir),
         },
