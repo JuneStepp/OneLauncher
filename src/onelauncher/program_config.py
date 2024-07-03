@@ -16,16 +16,16 @@ class GamesSortingMode(Enum):
     """
     - priority: The manual order the user set in the setup wizard.
     - alphabetical: Alphabetical order.
-    - last_used: Order of the most recently played games.
+    - last_played: Order of the most recently played games.
     """
 
     PRIORITY = "priority"
-    LAST_USED = "last_used"
+    LAST_PLAYED = "last_played"
     ALPHABETICAL = "alphabetical"
 
 
 @attrs.frozen
-class ProgramConfig(Config): # type: ignore[explicit-override]
+class ProgramConfig(Config):  # type: ignore[explicit-override]
     default_locale: OneLauncherLocale = config_field(
         default=get_default_locale(),
         help="The default language for games and UI.",

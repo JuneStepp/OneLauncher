@@ -164,7 +164,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             "Priority", userData=GamesSortingMode.PRIORITY
         )
         self.ui.gamesSortingModeComboBox.addItem(
-            "Last Used", userData=GamesSortingMode.LAST_USED
+            "Last Played", userData=GamesSortingMode.LAST_PLAYED
         )
         self.ui.gamesSortingModeComboBox.addItem(
             "Alphabetical", userData=GamesSortingMode.ALPHABETICAL
@@ -258,9 +258,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             widget.setVisible(is_checked)
 
         if os.name != "nt":
-            self.ui.tabBar.setTabVisible(
-                self.tab_names.index(TabName.WINE), is_checked
-            )
+            self.ui.tabBar.setTabVisible(self.tab_names.index(TabName.WINE), is_checked)
 
     def setup_client_type_combo_box(self) -> None:
         combo_box_item_names = {

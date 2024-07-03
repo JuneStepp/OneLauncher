@@ -196,7 +196,7 @@ class ConfigFileError(Exception):
 
 
 @attrs.frozen(kw_only=True)
-class ConfigFileParseError(ConfigFileError): # type: ignore[explicit-override]
+class ConfigFileParseError(ConfigFileError):  # type: ignore[explicit-override]
     """Error parsing config file"""
 
     msg: str = "Error parsing config file"
@@ -504,7 +504,7 @@ class ConfigManager:
         match sorting_mode:
             case GamesSortingMode.PRIORITY:
                 return self.get_games_sorted_by_priority(game_type)
-            case GamesSortingMode.LAST_USED:
+            case GamesSortingMode.LAST_PLAYED:
                 return self.get_games_sorted_by_last_played(game_type)
             case GamesSortingMode.ALPHABETICAL:
                 return self.get_games_sorted_alphabetically(game_type)
