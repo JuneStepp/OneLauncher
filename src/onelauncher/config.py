@@ -13,7 +13,9 @@ from platformdirs import PlatformDirs
 
 from .__about__ import __title__
 
-platform_dirs = PlatformDirs(__title__.lower(), ensure_exists=True)
+platform_dirs = PlatformDirs(
+    appname=__title__.lower(), appauthor=False, ensure_exists=True
+)
 
 
 @attrs.frozen
