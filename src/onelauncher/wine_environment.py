@@ -44,9 +44,11 @@ from .wine.config import WineConfigSection
 
 # To use Proton, replace link with Proton build and uncomment
 # `self.proton_documents_symlinker()` in wine_setup in wine_management
-WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/6.7/wine-6.7-staging-tkg-amd64.tar.xz"
+WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/7.22/wine-7.22-staging-tkg-amd64.tar.xz"
+# This is the last DXVK release before 2.0, which has different system requirements.
+# See https://github.com/doitsujin/dxvk/releases/tag/v2.0.
 DXVK_URL = (
-    "https://github.com/doitsujin/dxvk/releases/download/v1.8.1/dxvk-1.8.1.tar.gz"
+    "https://github.com/doitsujin/dxvk/releases/download/v1.10.3/dxvk-1.10.3.tar.gz"
 )
 
 
@@ -320,8 +322,9 @@ def edit_qprocess_to_use_wine(
         # the required kernel patches are installed.
         processEnvironment.insert("WINEFSYNC", "1")
 
-        # Adds dll overrides for DirectX, so DXVK is used instead of wine3d
-        processEnvironment.insert("WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10=n")
+        # Add dll overrides for DirectX, so DXVK is used instead of wine3d
+        # Disable mscoree and mshtml to avoid downloading wine mono and gecko.
+        processEnvironment.insert("WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10core=n;d3d9=n;mscoree=d;mshtml=d")
     else:
         prefix_path = wine_config.user_prefix_path
         wine_path = wine_config.user_wine_executable_path
