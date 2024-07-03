@@ -29,13 +29,16 @@
 import logging
 import lzma
 import os
+import ssl
 import tarfile
+from functools import partial
 from pathlib import Path
 from shutil import move, rmtree
 from urllib import request
 from urllib.error import HTTPError, URLError
 
 import attrs
+import certifi
 from PySide6 import QtCore, QtWidgets
 
 from .config import platform_dirs
@@ -154,6 +157,9 @@ class WineManagement:
     def _downloader(self, url: str, path: Path) -> bool:
         """Downloads file from url to path and shows progress with self.handle_download_progress"""
         try:
+            ssl._create_default_https_context = partial(
+                ssl.create_default_context, cafile=certifi.where()
+            )
             request.urlretrieve(  # noqa: S310
                 url, str(path), self._handle_download_progress
             )
@@ -324,7 +330,9 @@ def edit_qprocess_to_use_wine(
 
         # Add dll overrides for DirectX, so DXVK is used instead of wine3d
         # Disable mscoree and mshtml to avoid downloading wine mono and gecko.
-        processEnvironment.insert("WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10core=n;d3d9=n;mscoree=d;mshtml=d")
+        processEnvironment.insert(
+            "WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10core=n;d3d9=n;mscoree=d;mshtml=d"
+        )
     else:
         prefix_path = wine_config.user_prefix_path
         wine_path = wine_config.user_wine_executable_path
