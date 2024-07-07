@@ -1,0 +1,157 @@
+<Wix
+  xmlns="http://wixtoolset.org/schemas/v4/wxs"
+  xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://wixtoolset.org/schemas/v4/wxs https://github.com/wixtoolset/web/raw/master/src/xsd4/wix.xsd
+                      http://wixtoolset.org/schemas/v4/ui https://github.com/wixtoolset/web/raw/master/src/xsd4/ui.xsd"
+>
+  <Package
+    Name="$(env.PRODUCT_NAME)"
+    Manufacturer="$(env.AUTHOR)"
+    Version="$(env.VERSION)"
+    UpgradeCode="6af234f4-5f7f-4fc4-b7c8-0fb306dfae07"
+    Language="1033"
+    InstallerVersion="500"
+  >
+    <MediaTemplate EmbedCab="true" CompressionLevel="high" />
+    <Property Id="ARPURLINFOABOUT" Value="$(env.WEBSITE)" />
+    <!-- <Property Id="DiskPrompt" Value="$(env.PRODUCT_NAME) Installation" /> -->
+    <Icon Id="Icon.ico" SourceFile="$(env.ICON_PATH)" />
+    <Property Id="ARPPRODUCTICON" Value="Icon.ico" />
+
+    <!-- Make sure that the user uninstalls any 1.x OneLauncher versions. They used
+     a non-msi installer framework that doesn't integrate with this one. -->
+    <Property Id="OLDVERSIONPATH" Value="$(env.PROGRAMFILES)\OneLauncher">
+      <RegistrySearch
+        Root="HKLM"
+        Key="SOFTWARE\June Stepp\OneLauncher"
+        Name="Location"
+        Type="raw">
+      </RegistrySearch>
+    </Property>
+    <Property Id="OLDVERSIONEXE">
+      <DirectorySearch Id="OldVersionBuildDir" Path="[OLDVERSIONPATH]\build">
+        <FileSearch Name="OneLauncher.exe" MaxVersion="1.2.9" />
+      </DirectorySearch>
+    </Property>
+    <Launch
+      Condition="NOT OLDVERSIONEXE"
+      Message="An old version of $(env.PRODUCT_NAME) is installed. Please remove it before installing this version." />
+
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="INSTALLDIR" Name="$(env.PRODUCT_NAME)" FileSource="$(env.DIST_PATH)">
+        <Files Include=".\**"></Files>
+      </Directory>
+    </StandardDirectory>
+
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR"></Property>
+    <WixVariable Id="WixUIDialogBmp" Value="installer_background.png" />
+    <Property
+      Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT"
+      Value="Start $(env.PRODUCT_NAME)?"
+    />
+    <CustomAction Id="LaunchApplication"
+      Directory="INSTALLDIR"
+      ExeCommand="[INSTALLDIR]$(env.EXECUTABLE_NAME)"
+      Return="asyncNoWait"
+      Impersonate="yes" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+    <UI>
+      <ui:WixUI Id="WixUI_InstallDir" />
+      <!-- Skip the license dialog -->
+      <Publish Dialog="WelcomeDlg"
+        Control="Next"
+        Event="NewDialog"
+        Value="InstallDirDlg"
+        Order="99"
+      />
+      <Publish Dialog="InstallDirDlg"
+        Control="Back"
+        Event="NewDialog"
+        Value="WelcomeDlg"
+        Order="99"
+      />
+      <Publish Dialog="ExitDialog"
+        Control="Finish"
+        Event="DoAction"
+        Value="LaunchApplication"
+        Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed"
+      />
+    </UI>
+
+    <Component Id="ProgramShortcut"
+      Directory="INSTALLDIR"
+      Guid="6de7dc2f-c372-422a-9431-8a2f84156b58">
+      <Shortcut Id="Program"
+        Directory="INSTALLDIR"
+        Name="$(env.PRODUCT_NAME)"
+        Target="[INSTALLDIR]$(env.EXECUTABLE_NAME)"
+        WorkingDirectory="INSTALLDIR"
+        Icon="Icon.ico" />
+    </Component>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ProgramMenuDirFolder" Name="$(env.PRODUCT_NAME)">
+        <Component
+          Id="ProgramMenuShortcuts"
+          Guid="8e073814-68ba-4648-a3b0-c2bbfaa4092e"
+        >
+          <Shortcut
+            Id="UninstallProduct"
+            Name="Uninstall $(env.PRODUCT_NAME)"
+            Description="Uninstalls $(env.PRODUCT_NAME)"
+            Target="[System64Folder]msiexec.exe"
+            Arguments="/x [ProductCode]"
+            Directory="ProgramMenuDirFolder"
+            Show="normal"
+          />
+          <Shortcut
+            Id="ProgramStartMenuShortcut"
+            Name="$(env.PRODUCT_NAME)"
+            Description="Starts $(env.PRODUCT_NAME)"
+            Target="[INSTALLDIR]$(env.PRODUCT_NAME).lnk"
+            Directory="ProgramMenuDirFolder"
+            Show="normal"
+          />
+          <RemoveFolder Id="ProgramMenuDirFolder" On="uninstall" />
+          <RegistryValue
+            Root="HKCU"
+            Key="Software\[Manufacturer]\[ProductName]"
+            Name="installed"
+            Type="integer"
+            Value="1"
+            KeyPath="yes"
+          />
+        </Component>
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="DesktopFolder">
+      <Component
+        Id="DesktopShortcut"
+        Guid="677202be-6a98-4914-b9c7-ee817b5d2d5c"
+      >
+        <Shortcut
+          Id="DesktopShortcut"
+          Name="$(env.PRODUCT_NAME)"
+          Description="Starts $(env.PRODUCT_NAME)"
+          Target="[INSTALLDIR]$(env.PRODUCT_NAME).lnk"
+          WorkingDirectory="INSTALLDIR"
+          Directory="DesktopFolder"
+          Show="normal"
+        />
+        <RemoveFile
+          Id="DesktopShortcut"
+          Name="RemoveDesktopShortcut"
+          On="uninstall"
+        />
+        <RegistryValue
+          Root="HKCU"
+          Key="Software\[Manufacturer]\[ProductName]"
+          Name="installed"
+          Type="integer"
+          Value="1"
+          KeyPath="yes"
+        />
+      </Component>
+    </StandardDirectory>
+  </Package>
+</Wix>

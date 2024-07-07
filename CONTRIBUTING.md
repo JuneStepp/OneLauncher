@@ -15,11 +15,10 @@ OneLauncher comes with a [Nix](https://nixos.org/) flake for easily replicating 
 
 ## Building
 
-The build ends up in `start_onelauncher.dist`.
+Build by running `poetry run python -m build` in the project's root directory. This will output everything to "build/out".
+Individual scripts can also be called to skip parts of the build or pass arguments to the build tool.
 
-Nuitka can't currently cross-compile, but the InstallBuilder installers can be cross-compiled.
-
-`poetry run python compile.py`
+The .NET CLI is required for building the Windows installer.
 
 ## Translation
 
