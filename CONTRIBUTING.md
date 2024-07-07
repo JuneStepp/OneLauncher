@@ -11,7 +11,9 @@ OneLauncher uses [Poetry](https://python-poetry.org) for dependency management. 
 
 ### Nix
 
-OneLauncher comes with a [Nix](https://nixos.org/) flake for easily replicating the standard development environment. It can be used with [direnv](https://github.com/direnv/direnv) or the `nix develop` command. Once the development shell is activated, OneLauncher can be started with the `onelauncher` command.
+OneLauncher comes with a [Nix](https://nixos.org/) flake for easily replicating the standard development environment. It can be used with [direnv](https://github.com/direnv/direnv) or the `nix develop` command. When using Nix, dependencies aren't installed with poetry. `poetry add`, ect can still be used for editing the dependency files, but `poetry run` should not be used.
+
+There is also an FHS environment for testing compiled builds. It can be accessed with `nix develop .#fhs`.
 
 ## Building
 
