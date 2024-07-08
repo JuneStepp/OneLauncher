@@ -1,0 +1,79 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="Settings">
+        <xs:complexType>
+            <xs:all>
+                <xs:element name="Default.Game" type="GameType" />
+                <xs:element name="LOTRO" type="Game" />
+                <xs:element name="LOTRO.Test" type="Game" />
+                <xs:element name="DDO" type="Game" />
+                <xs:element name="DDO.Test" type="Game" />
+            </xs:all>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:simpleType name="GameType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="LOTRO"></xs:enumeration>
+            <xs:enumeration value="LOTRO.Test"></xs:enumeration>
+            <xs:enumeration value="DDO"></xs:enumeration>
+            <xs:enumeration value="DDO.Test"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="ClientType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="WIN64"></xs:enumeration>
+            <xs:enumeration value="WIN32"></xs:enumeration>
+            <xs:enumeration value="WIN32Legacy"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="Language">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="DE"></xs:enumeration>
+            <xs:enumeration value="EN"></xs:enumeration>
+            <xs:enumeration value="FR"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="bool">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="True"></xs:enumeration>
+            <xs:enumeration value="False"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="Game">
+        <xs:all>
+            <xs:element name="Wine.Program" type="xs:string" />
+            <xs:element name="Wine.Debug" type="xs:string" />
+            <xs:element name="Wine.Prefix" type="xs:string" />
+            <xs:element name="HiRes" type="bool" />
+            <xs:element name="Client" type="ClientType" />
+            <xs:element name="x64Client" type="bool" />
+            <xs:element name="Save.Password" type="bool" />
+            <xs:element name="Game.Directory" type="xs:string" />
+            <xs:element name="Language" type="Language" />
+            <xs:element name="PatchClient" type="xs:string" />   
+            <xs:element name="Accounts" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <!-- These are game accounts where the name of the element is
+                         the account name. They can optionally have a string World child
+                         element. -->
+                        <xs:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                    <!-- Assert that the only chilren each account can have is either 1 or 0 World elements.. -->
+                    <xs:assert test="every $child in * satisfies count($child/World) = 0 or count($child/World) = 1" />
+                    <xs:assert test="every $child in * satisfies count($child/World) = count($child/*)" />
+                    <!-- The world elements should not have any children -->
+                    <xs:assert test="not(./*/World/*)" /> 
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="StartupScripts" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="script" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:all>
+    </xs:complexType>
+</xs:schema>

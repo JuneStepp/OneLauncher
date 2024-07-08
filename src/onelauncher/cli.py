@@ -568,7 +568,7 @@ async def _main(entry: Callable[[], Awaitable[None]]) -> None:
         await entry()
 
 
-async def _start_ui(config_manager: ConfigManager, game_arg: str | None) -> None:  # noqa: PLR0911
+async def _start_ui(config_manager: ConfigManager, game_arg: str | None) -> None:
     try:
         config_manager.verify_configs()
     except ConfigFileError as e:
@@ -576,9 +576,8 @@ async def _start_ui(config_manager: ConfigManager, game_arg: str | None) -> None
             isinstance(e, WrongConfigVersionError)
             and e.config_file_version < e.config_class.get_config_version()
         ):
-            return
-            # TODO: migration stuffs
-            return await _start_ui(config_manager=config_manager, game_arg=game_arg)
+            # This is where code to handle config migrations for 2.0 config files should go.
+            raise e
         logger.exception("")
         dialog = QtWidgets.QDialog()
         ui = Ui_errorDialog()

@@ -25,6 +25,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
+import logging
 import os
 from collections.abc import Iterable
 from contextlib import suppress
@@ -38,6 +39,7 @@ import qtawesome
 from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
 
+from .__about__ import __title__
 from .addons.config import AddonsConfigSection
 from .config_manager import ConfigManager
 from .game_config import GameConfig, GameType
@@ -56,6 +58,11 @@ from .resources import available_locales
 from .ui.setup_wizard_uic import Ui_Wizard
 from .ui_utilities import show_warning_message
 from .utilities import CaseInsensitiveAbsolutePath
+from .v1x_config_migrator import (
+    V1xConfigParseError,
+    get_v1x_config_file_path,
+    migrate_v1x_config,
+)
 from .wine.config import WineConfigSection
 
 GameUUIDRole: Final[int] = QtCore.Qt.ItemDataRole.UserRole + 1001
@@ -121,6 +128,10 @@ class SetupWizard(QtWidgets.QWizard):
         qapp: QtWidgets.QApplication = qApp  # type: ignore[name-defined]  # noqa: F821
         color_scheme_changed = qapp.styleHints().colorSchemeChanged
 
+        self.migrate_old_config_asked: bool = False
+        self.ui.languageSelectionWizardPage.validatePage = (  # type: ignore[method-assign]
+            self.validateLanguageSelectionPage
+        )
         # Games discovery page
         self.ui.gamesSelectionWizardPage.initializePage = (  # type: ignore[method-assign]
             self.initialize_games_selection_page
@@ -171,9 +182,13 @@ class SetupWizard(QtWidgets.QWizard):
             if self.config_manager.get_game_uuids():
                 self.addPage(self.ui.dataDeletionWizardPage)
             self.find_games()
-        # Only show data deletion page if there is existing game data
-        elif not self.config_manager.get_game_uuids():
-            self.ui.gamesSelectionWizardPage.nextId = lambda: self.currentId() + 2  # type: ignore[method-assign]
+        else:
+            # Only show data deletion page if there is existing game data
+            self.ui.gamesSelectionWizardPage.nextId = (  # type: ignore[method-assign]
+                lambda: self.currentId() + 1
+                if self.config_manager.get_game_uuids()
+                else self.currentId() + 2
+            )
 
     def add_available_languages_to_ui(self) -> None:
         program_config = self.config_manager.read_program_config_file()
@@ -186,6 +201,46 @@ class SetupWizard(QtWidgets.QWizard):
             # Default locale should be selected in the list by default.
             if locale == program_config.default_locale:
                 self.ui.languagesListWidget.setCurrentItem(item)
+
+    def validateLanguageSelectionPage(self) -> bool:
+        if self.migrate_old_config_asked:
+            return True
+        # Check for a v1.x config that can be migrated from, if there is no current
+        # config data.
+        if (
+            not self.config_manager.get_game_uuids()
+            and not self.config_manager.program_config_path.exists()
+            and get_v1x_config_file_path().exists()
+        ):
+            messageBox = QtWidgets.QMessageBox(self)
+            messageBox.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
+            messageBox.setIcon(QtWidgets.QMessageBox.Icon.Question)
+            messageBox.setStandardButtons(
+                messageBox.StandardButton.No | messageBox.StandardButton.Yes
+            )
+            messageBox.setInformativeText(
+                f"Found configuration data from a previous {__title__} release. Would you like to migrate the data?"
+            )
+            migrate_config =  messageBox.exec() == messageBox.StandardButton.Yes
+            self.migrate_old_config_asked = True
+            if not migrate_config:
+                return True
+            messageBox.setInformativeText(
+                "Should the old data be deleted after it's migrated?"
+            )
+            delete_old_config = messageBox.exec() == messageBox.StandardButton.Yes
+            try:
+                migrate_v1x_config(
+                    config_manager=self.config_manager,
+                    delete_old_config=delete_old_config,
+                )
+            except V1xConfigParseError:
+                logger.exception("")
+                show_warning_message(
+                    message="Error parsing old configuration. No changes were made.",
+                    parent=self,
+                )
+        return True
 
     def raise_selected_game_priority(self) -> None:
         item = self.ui.gamesListWidget.currentItem()
@@ -510,3 +565,6 @@ class SetupWizard(QtWidgets.QWizard):
             self.config_manager.update_game_config_file(
                 game_uuid=game_uuid, config=game_config
             )
+
+
+logger = logging.getLogger("main")

@@ -4,7 +4,7 @@ from contextlib import suppress
 from functools import cache, partial
 from pathlib import Path
 from shutil import rmtree
-from typing import Any, Final, TypeVar
+from typing import Any, Final, TypeAlias, TypeVar
 from uuid import UUID
 
 import attrs
@@ -40,7 +40,7 @@ def _unstructure_startup_script(startup_scirpt: StartupScript) -> str:
 
 
 def _structure_startup_script(
-    relative_path: Path, conversion_type: type[StartupScript]
+    relative_path: str, conversion_type: type[StartupScript]
 ) -> StartupScript:
     return StartupScript(relative_path=Path(relative_path))
 
@@ -212,7 +212,7 @@ ConfigTypeVar = TypeVar("ConfigTypeVar", bound=Config)
 
 
 def read_config_file(
-    *,  # Paremeters are keyword only for cache entry clearing
+    *, 
     config_class: type[ConfigTypeVar],
     config_file_path: Path,
     preconverter: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
@@ -310,6 +310,9 @@ def update_config_file(
     config_file_path.write_text(doc.as_string())
 
 
+ConfigManagerConfigClass: TypeAlias = ProgramConfig | GameConfig | GameAccountsConfig
+
+
 class ConfigManagerNotSetupError(Exception):
     """Config manager hasn't been setup."""
 
@@ -371,6 +374,9 @@ class ConfigManager:
 
     def get_game_config_path(self, game_uuid: UUID) -> Path:
         return self.get_game_config_dir(game_uuid) / self.GAME_CONFIG_FILE_NAME
+
+    def get_game_uuid_from_config_path(self, config_path: Path) -> UUID:
+        return UUID(config_path.parent.name)
 
     def get_game_accounts_config_path(self, game_uuid: UUID) -> Path:
         return self.get_game_config_dir(game_uuid) / "accounts.toml"
@@ -434,7 +440,7 @@ class ConfigManager:
 
     def _get_game_uuids(self) -> tuple[UUID, ...]:
         return tuple(
-            UUID(config_file.parent.name)
+            self.get_game_uuid_from_config_path(config_path=config_file)
             for config_file in self.games_dir_path.glob(
                 f"*/{self.GAME_CONFIG_FILE_NAME}"
             )

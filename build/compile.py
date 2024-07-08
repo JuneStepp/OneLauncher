@@ -28,7 +28,6 @@ def main(
         "--python-flag=isolated",
         "--python-flag=no_docstrings",
         "--warn-unusual-code",
-        # f"--include-distribution-metadata={__about__.__package__}",
         "--nofollow-import-to=tkinter,pydoc,pdb,PySide6.QtOpenGL,PySide6.QtOpenGLWidgets,zstandard",
         "--noinclude-setuptools-mode=nofollow",
         "--noinclude-unittest-mode=nofollow",
