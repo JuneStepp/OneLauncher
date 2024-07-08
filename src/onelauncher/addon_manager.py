@@ -38,7 +38,6 @@ from shutil import copy, copytree, move, rmtree
 from tempfile import TemporaryDirectory
 from time import localtime, strftime
 from typing import Final, Literal, NamedTuple, TypeAlias, assert_never, overload
-from uuid import UUID
 from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minicompat import NodeList
 from xml.dom.minidom import Element
@@ -56,7 +55,7 @@ from .__about__ import __title__
 from .addons.startup_script import StartupScript
 from .config import platform_dirs
 from .config_manager import ConfigManager
-from .game_config import GameType
+from .game_config import GameConfigID, GameType
 from .game_launcher_local_config import GameLauncherLocalConfig
 from .game_utilities import get_documents_config_dir
 from .ui.addon_manager_uic import Ui_winAddonManager
@@ -189,19 +188,19 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     def __init__(
         self,
         config_manager: ConfigManager,
-        game_uuid: UUID,
+        game_id: GameConfigID,
         launcher_local_config: GameLauncherLocalConfig,
         # Don't copy this. It's an in-between solution.
         add_error_log: Callable[[str], None],
     ):
         super().__init__()
         self.config_manager = config_manager
-        self.game_uuid: UUID = game_uuid
+        self.game_id: GameConfigID = game_id
         self.add_error_log = add_error_log
         self.ui = Ui_winAddonManager()
         self.ui.setupUi(self)
 
-        game_config = self.config_manager.get_game_config(self.game_uuid)
+        game_config = self.config_manager.get_game_config(self.game_id)
 
         color_scheme_changed = get_qapp().styleHints().colorSchemeChanged
 
@@ -686,7 +685,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     def actionAddonImportSelected(self) -> None:
         # DDO doesn't support playing music from .abc files
         if (
-            self.config_manager.get_game_config(self.game_uuid).game_type
+            self.config_manager.get_game_config(self.game_id).game_type
             == GameType.DDO
         ):
             addon_formats = "*.zip *.rar"
@@ -721,7 +720,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
     def installAbcFile(self, addon_path: Path) -> None:
         if (
-            self.config_manager.get_game_config(self.game_uuid).game_type
+            self.config_manager.get_game_config(self.game_id).game_type
             == GameType.DDO
         ):
             self.add_error_log("DDO does not support .abc/music files")
@@ -767,7 +766,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     ) -> None:
         """Install plugin from temporary directory"""
         if (
-            self.config_manager.get_game_config(self.game_uuid).game_type
+            self.config_manager.get_game_config(self.game_id).game_type
             == GameType.DDO
         ):
             self.add_error_log("DDO does not support plugins")
@@ -897,7 +896,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self, tmp_dir: CaseInsensitiveAbsolutePath, interface_id: str, addon_name: str
     ) -> None | Literal[False]:
         if (
-            self.config_manager.get_game_config(self.game_uuid).game_type
+            self.config_manager.get_game_config(self.game_id).game_type
             == GameType.DDO
         ):
             self.add_error_log("DDO does not support .abc/music files")
@@ -1735,7 +1734,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
     def loadRemoteAddons(self) -> bool:
         if (
-            self.config_manager.get_game_config(self.game_uuid).game_type
+            self.config_manager.get_game_config(self.game_id).game_type
             == GameType.LOTRO
         ):
             # Only keep loading remote addons if the first load doesn't run
@@ -1898,7 +1897,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 relative_script_paths = [
                     script.relative_path
                     for script in self.config_manager.read_game_config_file(
-                        self.game_uuid
+                        self.game_id
                     ).addons.enabled_startup_scripts
                 ]
                 if relative_script_path in relative_script_paths:
@@ -2166,7 +2165,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         if not self.loadRemoteDataIfNotDone():
             return
 
-        game_config = self.config_manager.get_game_config(self.game_uuid)
+        game_config = self.config_manager.get_game_config(self.game_id)
         if game_config.game_type != GameType.DDO:
             self.loadSkinsIfNotDone()
             self.loadMusicIfNotDone()
@@ -2240,7 +2239,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             return None
 
         if (
-            self.config_manager.get_game_config(self.game_uuid).game_type
+            self.config_manager.get_game_config(self.game_id).game_type
             == GameType.LOTRO
         ):
             tables = self.TABLE_LIST[:3]
@@ -2341,7 +2340,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             return
         full_script_path = self.data_folder / script
         if full_script_path.exists():
-            game_config = self.config_manager.read_game_config_file(self.game_uuid)
+            game_config = self.config_manager.read_game_config_file(self.game_id)
             updated_addons_section = attrs.evolve(
                 game_config.addons,
                 enabled_startup_scripts=(
@@ -2350,7 +2349,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 ),
             )
             self.config_manager.update_game_config_file(
-                self.game_uuid,
+                self.game_id,
                 attrs.evolve(game_config, addons=updated_addons_section),
             )
         else:
@@ -2364,7 +2363,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 self.context_menu_selected_table,
                 self.context_menu_selected_interface_ID,
             )
-            game_config = self.config_manager.read_game_config_file(self.game_uuid)
+            game_config = self.config_manager.read_game_config_file(self.game_id)
             updated_addons_section = attrs.evolve(
                 game_config.addons,
                 enabled_startup_scripts=tuple(
@@ -2374,7 +2373,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 ),
             )
             self.config_manager.update_game_config_file(
-                game_uuid=self.game_uuid,
+                game_id=self.game_id,
                 config=attrs.evolve(game_config, addons=updated_addons_section),
             )
 
@@ -2430,7 +2429,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 " box below to make sure it's safe.",
                 script_contents,
             ):
-                game_config = self.config_manager.read_game_config_file(self.game_uuid)
+                game_config = self.config_manager.read_game_config_file(self.game_id)
                 updated_addons_section = attrs.evolve(
                     game_config.addons,
                     enabled_startup_scripts=(
@@ -2439,7 +2438,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                     ),
                 )
                 self.config_manager.update_game_config_file(
-                    self.game_uuid,
+                    self.game_id,
                     attrs.evolve(game_config, addons=updated_addons_section),
                 )
 
@@ -2453,7 +2452,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 self.data_folder
             )
 
-            game_config = self.config_manager.read_game_config_file(self.game_uuid)
+            game_config = self.config_manager.read_game_config_file(self.game_id)
             updated_addons_section = attrs.evolve(
                 game_config.addons,
                 enabled_startup_scripts=tuple(
@@ -2463,7 +2462,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 ),
             )
             self.config_manager.update_game_config_file(
-                game_uuid=self.game_uuid,
+                game_id=self.game_id,
                 config=attrs.evolve(game_config, addons=updated_addons_section),
             )
             script_path.unlink(missing_ok=True)

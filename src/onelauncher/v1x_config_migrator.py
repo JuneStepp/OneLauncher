@@ -4,7 +4,6 @@ from contextlib import suppress
 from functools import partial
 from pathlib import Path
 from typing import Any, Literal, TypeAlias, assert_never
-from uuid import uuid4
 
 import attrs
 import cattrs
@@ -17,7 +16,7 @@ from onelauncher.config_manager import ConfigManager
 from onelauncher.game_account_config import GameAccountConfig
 from onelauncher.wine.config import WineConfigSection
 
-from .game_config import ClientType, GameConfig, GameType
+from .game_config import ClientType, GameConfig, GameType, generate_game_config_id
 from .resources import OneLauncherLocale, available_locales, data_dir
 from .utilities import CaseInsensitiveAbsolutePath
 
@@ -329,14 +328,14 @@ def migrate_v1x_config(config_manager: ConfigManager, delete_old_config: bool) -
             )
         )
     for i, configs in enumerate(game_configs):
-        game_uuid = uuid4()
         game_config = configs[0]
+        game_id = generate_game_config_id(game_config)
         account_configs = configs[1]
         config_manager.update_game_config_file(
-            game_uuid, attrs.evolve(game_config, sorting_priority=i)
+            game_id, attrs.evolve(game_config, sorting_priority=i)
         )
         config_manager.update_game_accounts_config_file(
-            game_uuid, accounts=account_configs
+            game_id, accounts=account_configs
         )
         # Add account passwords to Keyring
         service_name = f"OneLauncher{'LOTRO' if game_config.game_type == GameType.LOTRO else 'DDO'}"
@@ -346,7 +345,7 @@ def migrate_v1x_config(config_manager: ConfigManager, delete_old_config: bool) -
                 username=account_config.username,
             ):
                 config_manager.save_game_account_password(
-                    game_uuid=game_uuid, game_account=account_config, password=password
+                    game_id=game_id, game_account=account_config, password=password
                 )
                 if delete_old_config:
                     with suppress(keyring.errors.PasswordDeleteError):

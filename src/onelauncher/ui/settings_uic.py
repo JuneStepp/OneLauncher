@@ -60,16 +60,16 @@ class Ui_dlgSettings(object):
 
         self.formLayout.setWidget(0, QFormLayout.ItemRole.FieldRole, self.gameNameLineEdit)
 
-        self.gameUUIDLabel = QLabel(self.pageGameInfo)
-        self.gameUUIDLabel.setObjectName(u"gameUUIDLabel")
+        self.gameConfigIDLabel = QLabel(self.pageGameInfo)
+        self.gameConfigIDLabel.setObjectName(u"gameConfigIDLabel")
 
-        self.formLayout.setWidget(1, QFormLayout.ItemRole.LabelRole, self.gameUUIDLabel)
+        self.formLayout.setWidget(1, QFormLayout.ItemRole.LabelRole, self.gameConfigIDLabel)
 
-        self.gameUUIDLineEdit = QLineEdit(self.pageGameInfo)
-        self.gameUUIDLineEdit.setObjectName(u"gameUUIDLineEdit")
-        self.gameUUIDLineEdit.setReadOnly(True)
+        self.gameConfigIDLineEdit = QLineEdit(self.pageGameInfo)
+        self.gameConfigIDLineEdit.setObjectName(u"gameConfigIDLineEdit")
+        self.gameConfigIDLineEdit.setReadOnly(True)
 
-        self.formLayout.setWidget(1, QFormLayout.ItemRole.FieldRole, self.gameUUIDLineEdit)
+        self.formLayout.setWidget(1, QFormLayout.ItemRole.FieldRole, self.gameConfigIDLineEdit)
 
         self.gameDescriptionLabel = QLabel(self.pageGameInfo)
         self.gameDescriptionLabel.setObjectName(u"gameDescriptionLabel")
@@ -364,7 +364,7 @@ class Ui_dlgSettings(object):
         self.actionRunStandardGameLauncherWithPatchingDisabled.setToolTip(QCoreApplication.translate("dlgSettings", u"Run launcher using \"-skiprawdownload\" and \"-disablepatch\" arguments", None))
 #endif // QT_CONFIG(tooltip)
         self.gameNameLabel.setText(QCoreApplication.translate("dlgSettings", u"Name", None))
-        self.gameUUIDLabel.setText(QCoreApplication.translate("dlgSettings", u"UUID", None))
+        self.gameConfigIDLabel.setText(QCoreApplication.translate("dlgSettings", u"Config ID", None))
         self.gameDescriptionLabel.setText(QCoreApplication.translate("dlgSettings", u"Description", None))
         self.gameNewsfeedLabel.setText(QCoreApplication.translate("dlgSettings", u"Newsfeed URL", None))
 #if QT_CONFIG(tooltip)

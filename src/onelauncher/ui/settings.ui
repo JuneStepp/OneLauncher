@@ -65,14 +65,14 @@
         <widget class="QLineEdit" name="gameNameLineEdit"/>
        </item>
        <item row="1" column="0">
-        <widget class="QLabel" name="gameUUIDLabel">
+        <widget class="QLabel" name="gameConfigIDLabel">
          <property name="text">
-          <string>UUID</string>
+          <string>Config ID</string>
          </property>
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QLineEdit" name="gameUUIDLineEdit">
+        <widget class="QLineEdit" name="gameConfigIDLineEdit">
          <property name="readOnly">
           <bool>true</bool>
          </property>

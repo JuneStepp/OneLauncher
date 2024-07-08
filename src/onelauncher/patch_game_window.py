@@ -29,10 +29,10 @@
 import logging
 import os
 from typing import Literal, TypeAlias, assert_never
-from uuid import UUID
 
 from PySide6 import QtCore, QtWidgets
 
+from onelauncher.game_config import GameConfigID
 from onelauncher.qtapp import get_qapp
 
 from .config import platform_dirs
@@ -50,7 +50,7 @@ class PatchWindow(QtWidgets.QDialog):
 
     def __init__(
         self,
-        game_uuid: UUID,
+        gane_id: GameConfigID,
         config_manager: ConfigManager,
         launcher_local_config: GameLauncherLocalConfig,
         urlPatchServer: str,
@@ -85,7 +85,7 @@ class PatchWindow(QtWidgets.QDialog):
             self.process_status_timer = QtCore.QTimer()
             self.process_status_timer.timeout.connect(self.activelyShowProcessStatus)
 
-        game_config = config_manager.get_game_config(game_uuid=game_uuid)
+        game_config = config_manager.get_game_config(game_id=gane_id)
         patch_client = game_config.game_directory / game_config.patch_client_filename
 
         # Make sure patch_client exists
@@ -104,7 +104,7 @@ class PatchWindow(QtWidgets.QDialog):
         self.process.finished.connect(self.processFinished)
         self.process.setWorkingDirectory(str(game_config.game_directory))
         if os.name == "nt":
-            # The directory with TTEPatchClient.dll has to be in the PATH for 
+            # The directory with TTEPatchClient.dll has to be in the PATH for
             # patchclient.dll to find it when OneLauncher is compilled with Nuitka.
             environment = self.process.processEnvironment()
             existing_path_var = environment.value("PATH", "")
@@ -280,7 +280,6 @@ class PatchWindow(QtWidgets.QDialog):
             if not line.startswith("//"):
                 if ":" in line:
                     line = line.split(": ", maxsplit=1)[1]
-
 
                 self.ui.txtLog.append(line)
                 logger.debug(f"Patcher: {line}")

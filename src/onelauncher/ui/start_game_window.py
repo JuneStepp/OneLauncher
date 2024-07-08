@@ -27,9 +27,9 @@
 ###########################################################################
 import logging
 from datetime import UTC, datetime
-from uuid import UUID
 
 import attrs
+from onelauncher.game_config import GameConfigID
 from onelauncher.qtapp import get_qapp
 from PySide6 import QtCore, QtWidgets
 
@@ -48,7 +48,7 @@ from .start_game_uic import Ui_startGameDialog
 class StartGame(QtWidgets.QDialog):
     def __init__(
         self,
-        game_uuid: UUID,
+        game_id: GameConfigID,
         config_manager: ConfigManager,
         game_launcher_local_config: GameLauncherLocalConfig,
         game_launcher_config: GameLauncherConfig,
@@ -57,7 +57,7 @@ class StartGame(QtWidgets.QDialog):
         account_number: str,
         ticket: str,
     ) -> None:
-        self.game_uuid = game_uuid
+        self.game_id = game_id
         self.config_manager = config_manager
         self.game_launcher_local_config = game_launcher_local_config
         self.game_launcher_config = game_launcher_config
@@ -93,7 +93,7 @@ class StartGame(QtWidgets.QDialog):
         try:
             process = await get_qprocess(
                 game_launcher_config=self.game_launcher_config,
-                game_config=self.config_manager.get_game_config(self.game_uuid),
+                game_config=self.config_manager.get_game_config(self.game_id),
                 default_locale=self.config_manager.get_program_config().default_locale,
                 world=self.world,
                 login_server=self.login_server,
@@ -165,7 +165,7 @@ class StartGame(QtWidgets.QDialog):
 
     def run_startup_scripts(self) -> None:
         """Runs Python scripts from addons with one that is approved by user"""
-        game_config = self.config_manager.get_game_config(self.game_uuid)
+        game_config = self.config_manager.get_game_config(self.game_id)
         for script in game_config.addons.enabled_startup_scripts:
             try:
                 self.ui.txtLog.append(
@@ -189,9 +189,9 @@ class StartGame(QtWidgets.QDialog):
 
     async def start_game(self) -> None:
         self.config_manager.update_game_config_file(
-            game_uuid=self.game_uuid,
+            game_id=self.game_id,
             config=attrs.evolve(
-                self.config_manager.read_game_config_file(self.game_uuid),
+                self.config_manager.read_game_config_file(self.game_id),
                 last_played=datetime.now(UTC),
             ),
         )

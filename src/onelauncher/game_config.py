@@ -1,5 +1,7 @@
 from datetime import datetime
 from enum import StrEnum
+from typing import TypeAlias
+from uuid import uuid4
 
 import attrs
 from packaging.version import Version
@@ -77,3 +79,13 @@ class GameConfig(Config):  # type: ignore[explicit-override]
     @staticmethod
     def get_config_file_description() -> str:
         return f"A game config file for {__title__}"
+
+
+GameConfigID: TypeAlias = str
+
+
+def generate_game_config_id(game_config: GameConfig) -> GameConfigID:
+    return (
+        f"{uuid4()}-{game_config.game_type}"
+        f"{'-Preview' if game_config.is_preview_client else ''}"
+    )

@@ -30,7 +30,6 @@ import re
 from contextlib import suppress
 from enum import StrEnum
 from pathlib import Path
-from uuid import UUID
 
 import attrs
 import trio
@@ -41,7 +40,7 @@ from onelauncher.qtapp import get_qapp
 
 from .__about__ import __title__
 from .config_manager import ConfigManager
-from .game_config import ClientType
+from .game_config import ClientType, GameConfigID
 from .game_utilities import (
     InvalidGameDirError,
     find_game_dir_game_type,
@@ -66,11 +65,11 @@ class TabName(StrEnum):
 
 
 class SettingsWindow(FramelessQDialogWithStylePreview):
-    def __init__(self, config_manager: ConfigManager, game_uuid: UUID):
+    def __init__(self, config_manager: ConfigManager, game_id: GameConfigID):
         super().__init__(get_qapp().activeWindow())
         self.titleBar.hide()
         self.config_manager = config_manager
-        self.game_uuid = game_uuid
+        self.game_id = game_id
         self.ui = Ui_dlgSettings()
         self.ui.setupUi(self)
 
@@ -90,12 +89,12 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
         )
         self.ui.showAdvancedSettingsCheckbox.setChecked(False)
 
-        game_config = self.config_manager.read_game_config_file(self.game_uuid)
+        game_config = self.config_manager.read_game_config_file(self.game_id)
         self.ui.gameNameLineEdit.setText(game_config.name)
         escaped_other_game_names = [
-            re.escape(self.config_manager.read_game_config_file(game_uuid).name)
-            for game_uuid in self.config_manager.get_game_uuids()
-            if game_uuid != self.game_uuid
+            re.escape(self.config_manager.read_game_config_file(game_id).name)
+            for game_id in self.config_manager.get_game_config_ids()
+            if game_id != self.game_id
         ]
         self.ui.gameNameLineEdit.setValidator(
             QtGui.QRegularExpressionValidator(
@@ -104,13 +103,13 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
                 )
             )
         )
-        self.ui.gameUUIDLineEdit.setText(str(self.game_uuid))
+        self.ui.gameConfigIDLineEdit.setText(self.game_id)
         self.ui.gameDescriptionLineEdit.setText(game_config.description)
         self.ui.gameDirLineEdit.setText(str(game_config.game_directory))
         self.ui.browseGameConfigDirButton.clicked.connect(
             lambda: QtGui.QDesktopServices.openUrl(
                 QtCore.QUrl.fromLocalFile(
-                    self.config_manager.get_game_config_dir(self.game_uuid)
+                    self.config_manager.get_game_config_dir(self.game_id)
                 )
             )
         )
@@ -221,7 +220,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             self.ui.stackedWidget.setCurrentWidget(self.ui.pageProgram)
 
     async def setup_newsfeed_option(self) -> None:
-        game_config = self.config_manager.read_game_config_file(self.game_uuid)
+        game_config = self.config_manager.read_game_config_file(self.game_id)
         # Attempt to set placeholder text to default newsfeed URL
         if game_config.newsfeed is None:
             game_launcher_config = await GameLauncherConfig.from_game_config(
@@ -230,9 +229,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             if game_launcher_config is not None:
                 self.ui.gameNewsfeedLineEdit.setPlaceholderText(
                     game_launcher_config.get_newfeed_url(
-                        locale=self.config_manager.get_ui_locale(
-                            game_uuid=self.game_uuid
-                        )
+                        locale=self.config_manager.get_ui_locale(game_id=self.game_id)
                     )
                 )
 
@@ -246,8 +243,8 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
 
     def toggle_advanced_settings(self, is_checked: bool) -> None:
         advanced_widgets = [
-            self.ui.gameUUIDLabel,
-            self.ui.gameUUIDLineEdit,
+            self.ui.gameConfigIDLabel,
+            self.ui.gameConfigIDLineEdit,
             self.ui.gameNewsfeedLabel,
             self.ui.gameNewsfeedLineEdit,
             self.ui.browseGameConfigDirButton,
@@ -268,7 +265,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             ClientType.WIN32: "32-bit",
             ClientType.WIN32_LEGACY: "32-bit Legacy",
         }
-        game_config = self.config_manager.read_game_config_file(self.game_uuid)
+        game_config = self.config_manager.read_game_config_file(self.game_id)
         self.ui.clientTypeComboBox.addItem(
             combo_box_item_names[ClientType.WIN64], userData=ClientType.WIN64
         )
@@ -285,7 +282,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
 
     async def indicate_unavailable_client_types(self) -> None:
         """Mark all unavailable client types as not found."""
-        game_config = self.config_manager.read_game_config_file(self.game_uuid)
+        game_config = self.config_manager.read_game_config_file(self.game_id)
         game_launcher_config = await GameLauncherConfig.from_game_config(game_config)
         if game_launcher_config is not None:
             for (
@@ -304,7 +301,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
                     )
 
     async def run_standard_game_launcher(self, disable_patching: bool = False) -> None:
-        game_config = self.config_manager.get_game_config(self.game_uuid)
+        game_config = self.config_manager.get_game_config(self.game_id)
         launcher_path = await get_standard_game_launcher_path(game_config=game_config)
 
         if launcher_path is None:
@@ -344,7 +341,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             return None
 
         folder = CaseInsensitiveAbsolutePath(filename)
-        game_config = self.config_manager.read_game_config_file(self.game_uuid)
+        game_config = self.config_manager.read_game_config_file(self.game_id)
         with suppress(InvalidGameDirError):
             if find_game_dir_game_type(folder) == game_config.game_type:
                 self.ui.gameDirLineEdit.setText(str(folder))
@@ -376,7 +373,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             combobox.model().sort(0)
 
     def save_wine_config(self) -> None:
-        game_config = self.config_manager.read_game_config_file(self.game_uuid)
+        game_config = self.config_manager.read_game_config_file(self.game_id)
         updated_wine_config = attrs.evolve(
             game_config.wine,
             builtin_prefix_enabled=self.ui.autoManageWineCheckBox.isChecked(),
@@ -393,7 +390,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             debug_level=self.ui.wineDebugLineEdit.text(),
         )
         self.config_manager.update_game_config_file(
-            self.game_uuid,
+            self.game_id,
             attrs.evolve(game_config, wine=updated_wine_config),
         )
 
@@ -408,9 +405,9 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             )
             return
         self.config_manager.update_game_config_file(
-            self.game_uuid,
+            self.game_id,
             attrs.evolve(
-                self.config_manager.read_game_config_file(self.game_uuid),
+                self.config_manager.read_game_config_file(self.game_id),
                 name=self.ui.gameNameLineEdit.text(),
                 description=self.ui.gameDescriptionLineEdit.text(),
                 newsfeed=self.ui.gameNewsfeedLineEdit.text() or None,

@@ -31,7 +31,6 @@ import contextlib
 import logging
 from functools import partial
 from pathlib import Path
-from uuid import UUID
 
 import attrs
 import httpx
@@ -49,7 +48,7 @@ from . import __about__
 from .addon_manager import AddonManagerWindow
 from .config_manager import ConfigManager
 from .game_account_config import GameAccountConfig
-from .game_config import GameType
+from .game_config import GameConfigID, GameType
 from .game_launcher_local_config import (
     GameLauncherLocalConfig,
     GameLauncherLocalConfigParseError,
@@ -86,19 +85,21 @@ from .ui_utilities import show_message_box_details_as_markdown
 
 class MainWindow(FramelessQMainWindowWithStylePreview):
     def __init__(
-        self, config_manager: ConfigManager, starting_game_uuid: UUID | None = None
+        self,
+        config_manager: ConfigManager,
+        starting_game_id: GameConfigID | None = None,
     ) -> None:
         super().__init__(None)
         self.titleBar.hide()
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose, on=True)
         self.config_manager = config_manager
-        self.game_uuid: UUID = starting_game_uuid or self.get_starting_game_uuid()
+        self.game_id: GameConfigID = starting_game_id or self.get_starting_game_id()
 
         self.checked_for_program_update = False
         self.addon_manager_window: AddonManagerWindow | None = None
         self.game_launcher_config: GameLauncherConfig | None = None
 
-    def get_starting_game_uuid(self) -> UUID:
+    def get_starting_game_id(self) -> GameConfigID:
         last_played = self.config_manager.get_games_sorted_by_last_played()[0]
         return (
             last_played
@@ -226,14 +227,14 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
 
     def setup_switch_game_button(self) -> None:
         """Set icon and dropdown options of switch game button according to current game"""
-        game_config = self.config_manager.get_game_config(self.game_uuid)
+        game_config = self.config_manager.get_game_config(self.game_id)
         if game_config.game_type == GameType.DDO:
             self.ui.btnSwitchGame.setIcon(
                 QtGui.QIcon(
                     str(
                         get_resource(
                             relative_path=Path("images/LOTROSwitchIcon.png"),
-                            locale=self.config_manager.get_ui_locale(self.game_uuid),
+                            locale=self.config_manager.get_ui_locale(self.game_id),
                         )
                     )
                 )
@@ -244,20 +245,20 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                     str(
                         get_resource(
                             relative_path=Path("images/DDOSwitchIcon.png"),
-                            locale=self.config_manager.get_ui_locale(self.game_uuid),
+                            locale=self.config_manager.get_ui_locale(self.game_id),
                         )
                     )
                 )
             )
 
-        game_uuids = list(
+        game_ids = list(
             self.config_manager.get_games_sorted(
                 sorting_mode=self.config_manager.get_program_config().games_sorting_mode,
                 game_type=game_config.game_type,
             )
         )
         # There is no need to show an action for the currently active game
-        game_uuids.remove(self.game_uuid)
+        game_ids.remove(self.game_id)
 
         menu = QtWidgets.QMenu()
         menu.triggered.connect(
@@ -265,11 +266,11 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                 self.game_switch_action_triggered, action
             )
         )
-        for game_uuid in game_uuids:
+        for game_id in game_ids:
             action = QtGui.QAction(
-                self.config_manager.get_game_config(game_uuid).name, self
+                self.config_manager.get_game_config(game_id).name, self
             )
-            action.setData(game_uuid)
+            action.setData(game_id)
             menu.addAction(action)
         self.ui.btnSwitchGame.setMenu(menu)
         # Needed for menu to show up for some reason
@@ -297,7 +298,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         self.resetFocus()
 
     async def actionPatchSelected(self) -> None:
-        game_config = self.config_manager.get_game_config(game_uuid=self.game_uuid)
+        game_config = self.config_manager.get_game_config(game_id=self.game_id)
         game_services_info = await GameServicesInfo.from_game_config(
             game_config=game_config
         )
@@ -305,7 +306,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             return
 
         winPatch = PatchWindow(
-            game_uuid=self.game_uuid,
+            gane_id=self.game_id,
             config_manager=self.config_manager,
             launcher_local_config=self.game_launcher_local_config,
             urlPatchServer=game_services_info.patch_server,
@@ -315,7 +316,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
 
     async def btnOptionsSelected(self) -> None:
         winSettings = SettingsWindow(
-            config_manager=self.config_manager, game_uuid=self.game_uuid
+            config_manager=self.config_manager, game_id=self.game_id
         )
         await winSettings.run()
         if winSettings.result() == QtWidgets.QDialog.DialogCode.Accepted:
@@ -337,7 +338,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
 
         self.addon_manager_window = AddonManagerWindow(
             config_manager=self.config_manager,
-            game_uuid=self.game_uuid,
+            game_id=self.game_id,
             launcher_local_config=self.game_launcher_local_config,
             add_error_log=addon_manager_error_log,
         )
@@ -346,23 +347,23 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
     async def btnSwitchGameClicked(self) -> None:
         new_game_type = (
             GameType.LOTRO
-            if self.config_manager.get_game_config(self.game_uuid).game_type
+            if self.config_manager.get_game_config(self.game_id).game_type
             == GameType.DDO
             else GameType.DDO
         )
-        new_type_game_uuids = self.config_manager.get_games_sorted(
+        new_type_game_ids = self.config_manager.get_games_sorted(
             sorting_mode=self.config_manager.get_program_config().games_sorting_mode,
             game_type=new_game_type,
         )
-        if not new_type_game_uuids:
+        if not new_type_game_ids:
             self.AddLog(f"<font color='#958e55'>No {new_game_type} games found</font>")
             return
-        self.game_uuid = new_type_game_uuids[0]
+        self.game_id = new_type_game_ids[0]
         await self.InitialSetup()
 
     async def game_switch_action_triggered(self, action: QtGui.QAction) -> None:
-        new_game_uuid: UUID = action.data()
-        self.game_uuid = new_game_uuid
+        new_game_id: GameConfigID = action.data()
+        self.game_id = new_game_id
         await self.InitialSetup()
 
     async def btnLoginClicked(self) -> None:
@@ -422,7 +423,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         self.ui.cboAccount.clear()
         self.ui.cboAccount.setCurrentText("")
 
-        accounts = self.config_manager.get_game_accounts(self.game_uuid)
+        accounts = self.config_manager.get_game_accounts(self.game_id)
         if not accounts:
             self.accounts_index_changed(-1)
             return
@@ -447,7 +448,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
 
     def set_current_account_placeholder_password(self) -> None:
         if (account := self.get_current_game_account()) and (
-            self.config_manager.get_game_account_password(self.game_uuid, account)
+            self.config_manager.get_game_account_password(self.game_id, account)
             is not None
         ):
             self.ui.txtPassword.setPlaceholderText("********")
@@ -469,7 +470,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         if (
             last_used_subscription_name
             := self.config_manager.get_game_account_last_used_subscription_name(
-                self.game_uuid, account_config
+                self.game_id, account_config
             )
         ):
             for subscription in subscriptions:
@@ -507,7 +508,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
     ) -> login_account.AccountLoginResponse | None:
         self.AddLog("Checking account details...")
 
-        game_config = self.config_manager.get_game_config(self.game_uuid)
+        game_config = self.config_manager.get_game_config(self.game_id)
         game_services_info = await GameServicesInfo.from_game_config(
             game_config=game_config
         )
@@ -520,7 +521,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                 username=account.username,
                 password=self.ui.txtPassword.text()
                 or self.config_manager.get_game_account_password(
-                    game_uuid=self.game_uuid, game_account=account
+                    game_id=self.game_id, game_account=account
                 )
                 or "",
             )
@@ -576,24 +577,24 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         if self.ui.chkSaveAccount.isChecked():
             if len(game_subscriptions) > 1:
                 self.config_manager.save_game_account_last_used_subscription_name(
-                    game_uuid=self.game_uuid,
+                    game_id=self.game_id,
                     game_account=current_account,
                     subscription_name=subscription.name,
                 )
             else:
                 self.config_manager.delete_game_account_last_used_subscription_name(
-                    game_uuid=self.game_uuid,
+                    game_id=self.game_id,
                     game_account=current_account,
                 )
 
             if self.ui.chkSavePassword.isChecked():
                 if self.ui.txtPassword.text():
                     self.config_manager.save_game_account_password(
-                        self.game_uuid, current_account, self.ui.txtPassword.text()
+                        self.game_id, current_account, self.ui.txtPassword.text()
                     )
             else:
                 self.config_manager.delete_game_account_password(
-                    self.game_uuid, current_account
+                    self.game_id, current_account
                 )
 
             current_account = attrs.evolve(
@@ -602,7 +603,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
 
             # Update order of account in config file
             accounts = list(
-                self.config_manager.read_game_accounts_config_file(self.game_uuid)
+                self.config_manager.read_game_accounts_config_file(self.game_id)
             )
             # Account is deleted first, so it can be inserted back at the beginning.
             # Accounts are sorted with the most recently played first.
@@ -611,10 +612,10 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                     accounts.remove(account)
             accounts.insert(0, current_account)
             self.config_manager.update_game_accounts_config_file(
-                game_uuid=self.game_uuid, accounts=tuple(accounts)
+                game_id=self.game_id, accounts=tuple(accounts)
             )
         else:
-            self.config_manager.update_game_accounts_config_file(self.game_uuid, ())
+            self.config_manager.update_game_accounts_config_file(self.game_id, ())
         self.loadAllSavedAccounts()
 
         selected_world: World = self.ui.cboWorld.currentData()
@@ -650,7 +651,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                 game_launcher_config=game_launcher_config,
             )
         game = StartGame(
-            game_uuid=self.game_uuid,
+            game_id=self.game_id,
             config_manager=self.config_manager,
             game_launcher_local_config=self.game_launcher_local_config,
             game_launcher_config=game_launcher_config,
@@ -697,8 +698,8 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             self.AddLog(f"Position in queue: {people_ahead_in_queue}")
 
     def set_banner_image(self) -> None:
-        game_config = self.config_manager.get_game_config(self.game_uuid)
-        ui_locale = self.config_manager.get_ui_locale(self.game_uuid)
+        game_config = self.config_manager.get_game_config(self.game_id)
+        ui_locale = self.config_manager.get_ui_locale(self.game_id)
         game_dir_banner_override_path = (
             game_config.game_directory / ui_locale.lang_tag.split("-")[0] / "banner.png"
         )
@@ -715,7 +716,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         self.ui.imgGameBanner.setPixmap(banner_pixmap)
 
     def check_game_dir(self) -> bool:
-        game_config = self.config_manager.get_game_config(self.game_uuid)
+        game_config = self.config_manager.get_game_config(self.game_id)
         if not game_config.game_directory.exists():
             self.AddLog("Game directory not found", is_error=True)
             return False
@@ -731,7 +732,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         return True
 
     def setup_game(self) -> bool:
-        game_config = self.config_manager.get_game_config(self.game_uuid)
+        game_config = self.config_manager.get_game_config(self.game_id)
         launcher_config_paths = get_launcher_config_paths(
             search_dir=game_config.game_directory, game_type=game_config.game_type
         )
@@ -795,8 +796,8 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         self.AddLog("Initializing, please wait...")
 
         # Handle when current game has been removed.
-        if self.game_uuid not in self.config_manager.get_game_uuids():
-            self.game_uuid = self.get_starting_game_uuid()
+        if self.game_id not in self.config_manager.get_game_config_ids():
+            self.game_id = self.get_starting_game_id()
             await self.InitialSetup()
             return
 
@@ -806,7 +807,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         self.ui.widgetSaveSettings.setEnabled(True)
 
         self.set_banner_image()
-        self.setWindowTitle(self.config_manager.get_game_config(self.game_uuid).name)
+        self.setWindowTitle(self.config_manager.get_game_config(self.game_id).name)
 
         # Setup btnSwitchGame for current game
         self.setup_switch_game_button()
@@ -898,9 +899,9 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             return None
 
     async def load_newsfeed(self, game_launcher_config: GameLauncherConfig) -> None:
-        ui_locale = self.config_manager.get_ui_locale(self.game_uuid)
+        ui_locale = self.config_manager.get_ui_locale(self.game_id)
         newsfeed_url = self.config_manager.get_game_config(
-            self.game_uuid
+            self.game_id
         ).newsfeed or game_launcher_config.get_newfeed_url(ui_locale)
         try:
             self.ui.txtFeed.setHtml(

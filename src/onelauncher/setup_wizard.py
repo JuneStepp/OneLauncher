@@ -32,7 +32,6 @@ from contextlib import suppress
 from functools import partial
 from pathlib import Path
 from typing import Final
-from uuid import UUID, uuid4
 
 import attrs
 import qtawesome
@@ -44,7 +43,7 @@ from onelauncher.qtapp import get_app_style, get_qapp
 from .__about__ import __title__
 from .addons.config import AddonsConfigSection
 from .config_manager import ConfigManager
-from .game_config import GameConfig, GameType
+from .game_config import GameConfig, GameConfigID, GameType, generate_game_config_id
 from .game_launcher_local_config import (
     GameLauncherLocalConfig,
     GameLauncherLocalConfigParseError,
@@ -67,7 +66,7 @@ from .v1x_config_migrator import (
 )
 from .wine.config import WineConfigSection
 
-GameUUIDRole: Final[int] = QtCore.Qt.ItemDataRole.UserRole + 1001
+GameConfigIDRole: Final[int] = QtCore.Qt.ItemDataRole.UserRole + 1001
 GameConfigRole: Final[int] = QtCore.Qt.ItemDataRole.UserRole + 1000
 
 
@@ -75,12 +74,12 @@ class GamesDeletionStatusItemDelegate(QtWidgets.QStyledItemDelegate):
     def __init__(
         self,
         item_checked_icon: QtGui.QIcon,
-        existing_game_uuids: Iterable[UUID],
+        existing_game_ids: Iterable[GameConfigID],
         parent: QtCore.QObject | None = None,
     ) -> None:
         super().__init__(parent)
         self.item_checked_icon = item_checked_icon
-        self.existing_game_uuids = existing_game_uuids
+        self.existing_game_ids = existing_game_ids
 
     @override
     def initStyleOption(
@@ -89,17 +88,17 @@ class GamesDeletionStatusItemDelegate(QtWidgets.QStyledItemDelegate):
         index: QtCore.QModelIndex | QtCore.QPersistentModelIndex,
     ) -> None:
         super().initStyleOption(option, index)
-        game_uuid: UUID = index.data(GameUUIDRole)
+        game_id: GameConfigID = index.data(GameConfigIDRole)
         if option.checkState == QtCore.Qt.CheckState.Checked:  # type: ignore[attr-defined]
             option.icon = (  # type: ignore[attr-defined]
                 self.item_checked_icon
-                if game_uuid in self.existing_game_uuids
+                if game_id in self.existing_game_ids
                 else qtawesome.icon("mdi6.folder-plus-outline")
             )
         else:
             option.icon = (  # type: ignore[attr-defined]
                 qtawesome.icon("mdi6.trash-can-outline")
-                if game_uuid in self.existing_game_uuids
+                if game_id in self.existing_game_ids
                 else QtGui.QIcon()
             )
 
@@ -180,14 +179,14 @@ class SetupWizard(QtWidgets.QWizard):
                 self.removePage(page_id)
             self.addPage(self.ui.gamesSelectionWizardPage)
             # Existing data page isn't needed, if there's no existing data
-            if self.config_manager.get_game_uuids():
+            if self.config_manager.get_game_config_ids():
                 self.addPage(self.ui.dataDeletionWizardPage)
             self.find_games()
         else:
             # Only show data deletion page if there is existing game data
             self.ui.gamesSelectionWizardPage.nextId = (  # type: ignore[method-assign]
                 lambda: self.currentId() + 1
-                if self.config_manager.get_game_uuids()
+                if self.config_manager.get_game_config_ids()
                 else self.currentId() + 2
             )
 
@@ -221,7 +220,7 @@ class SetupWizard(QtWidgets.QWizard):
         # Check for a v1.x config that can be migrated from, if there is no current
         # config data.
         if (
-            not self.config_manager.get_game_uuids()
+            not self.config_manager.get_game_config_ids()
             and not self.config_manager.program_config_path.exists()
             and get_v1x_config_file_path().exists()
         ):
@@ -299,7 +298,7 @@ class SetupWizard(QtWidgets.QWizard):
         self.ui.gamesDeletionStatusListView.setItemDelegate(
             GamesDeletionStatusItemDelegate(
                 item_checked_icon=icon,
-                existing_game_uuids=self.config_manager.get_game_uuids(),
+                existing_game_ids=self.config_manager.get_game_config_ids(),
             )
         )
         self.ui.gamesDeletionStatusListView.setEnabled(True)
@@ -374,15 +373,15 @@ class SetupWizard(QtWidgets.QWizard):
             return f"{priority}{key.game_directory}"
 
         for game in sorted(self.found_games, key=sort_games):
-            self.add_game(game_uuid=uuid4(), game_config=game)
+            self.add_game(game_id=generate_game_config_id(game), game_config=game)
         self.ui.gamesListWidget.setCurrentRow(0)
         self.games_found = True
 
     def add_existing_games(self) -> None:
-        for game_uuid in self.config_manager.get_games_sorted_by_priority():
+        for game_id in self.config_manager.get_games_sorted_by_priority():
             self.add_game(
-                game_uuid=game_uuid,
-                game_config=self.config_manager.read_game_config_file(game_uuid),
+                game_id=game_id,
+                game_config=self.config_manager.read_game_config_file(game_id),
                 checked=self.select_existing_games,
             )
 
@@ -398,7 +397,7 @@ class SetupWizard(QtWidgets.QWizard):
 
     def add_game(
         self,
-        game_uuid: UUID,
+        game_id: GameConfigID,
         game_config: GameConfig,
         checked: bool = False,
         selected: bool = False,
@@ -409,7 +408,7 @@ class SetupWizard(QtWidgets.QWizard):
             return
 
         item = QtWidgets.QListWidgetItem(str(game_config.game_directory))
-        item.setData(GameUUIDRole, game_uuid)
+        item.setData(GameConfigIDRole, game_id)
         item.setData(GameConfigRole, game_config)
         game_icon = game_config.game_directory / "icon.ico"
         if game_icon.exists():
@@ -500,7 +499,11 @@ class SetupWizard(QtWidgets.QWizard):
             return
         try:
             game_config = self.get_game_config_from_game_dir(game_dir)
-            self.add_game(game_uuid=uuid4(), game_config=game_config, selected=True)
+            self.add_game(
+                game_id=generate_game_config_id(game_config),
+                game_config=game_config,
+                selected=True,
+            )
         except InvalidGameDirError:
             show_warning_message("Not a valid game installation folder", self)
 
@@ -542,41 +545,41 @@ class SetupWizard(QtWidgets.QWizard):
         are set.
         """
         selected_items = self.sort_list_widget_items(self.get_selected_game_items())
-        selected_games: dict[UUID, GameConfig] = {}
+        selected_games: dict[GameConfigID, GameConfig] = {}
         for i, game_item in enumerate(selected_items):
-            game_uuid: UUID = game_item.data(GameUUIDRole)
+            game_id: GameConfigID = game_item.data(GameConfigIDRole)
             game_config: GameConfig = game_item.data(GameConfigRole)
             # Update sorting priority
-            selected_games[game_uuid] = attrs.evolve(game_config, sorting_priority=i)
+            selected_games[game_id] = attrs.evolve(game_config, sorting_priority=i)
 
-        if existing_game_uuids := self.config_manager.get_game_uuids():
+        if existing_game_ids := self.config_manager.get_game_config_ids():
             if self.ui.resetDataRadioButton.isChecked():
                 # Reset existing selected games
-                for game_uuid, game_config in selected_games.items():
-                    if game_uuid not in existing_game_uuids:
+                for game_id, game_config in selected_games.items():
+                    if game_id not in existing_game_ids:
                         continue
 
-                    self.config_manager.delete_game_config(game_uuid)
+                    self.config_manager.delete_game_config(game_id)
                     reset_game_config = self.get_game_config_from_game_dir(
                         game_config.game_directory
                     )
-                    selected_games[game_uuid] = attrs.evolve(
+                    selected_games[game_id] = attrs.evolve(
                         reset_game_config, sorting_priority=game_config.sorting_priority
                     )
 
             # Remove any games that were not selected by the user.
-            not_selected_existing_games: list[UUID] = [
-                game_uuid
-                for game_uuid in existing_game_uuids
-                if game_uuid not in selected_games
+            not_selected_existing_games: list[GameConfigID] = [
+                game_id
+                for game_id in existing_game_ids
+                if game_id not in selected_games
             ]
-            for game_uuid in not_selected_existing_games:
-                self.config_manager.delete_game_config(game_uuid=game_uuid)
+            for game_id in not_selected_existing_games:
+                self.config_manager.delete_game_config(game_id=game_id)
 
         # Save games
-        for game_uuid, game_config in selected_games.items():
+        for game_id, game_config in selected_games.items():
             self.config_manager.update_game_config_file(
-                game_uuid=game_uuid, config=game_config
+                game_id=game_id, config=game_config
             )
 
 

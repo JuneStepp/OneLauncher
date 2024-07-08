@@ -13,7 +13,6 @@ from enum import StrEnum
 from functools import partial
 from pathlib import Path
 from typing import Annotated, Optional, assert_never
-from uuid import UUID
 
 import attrs
 import click
@@ -37,7 +36,7 @@ from .config_manager import (
     get_converter,
 )
 from .game_account_config import GameAccountConfig, GameAccountsConfig
-from .game_config import ClientType, GameConfig, GameType
+from .game_config import ClientType, GameConfig, GameConfigID, GameType
 from .logs import setup_application_logging
 from .program_config import GamesSortingMode, ProgramConfig
 from .qtapp import get_qapp
@@ -254,35 +253,29 @@ class GameOptions(StrEnum):
     DDO_PREVIEW = "ddo_preview"
 
 
-def game_type_or_uuid(value: str) -> str:
+def game_type_or_id(value: str) -> str:
     if value.lower() in list(GameOptions):
         return value.lower()
-
-    try:
-        UUID(value)
-    except ValueError as e:
-        raise typer.BadParameter("Invalid UUID or game type") from e
-
     return value
 
 
-def _parse_game_arg(game_arg: str, config_manager: ConfigManager) -> UUID:
+def _parse_game_arg(game_arg: str, config_manager: ConfigManager) -> GameConfigID:
     """
     Raises:
         typer.BadParameter
     """
-    game_uuids = config_manager.get_games_sorted(
+    game_ids = config_manager.get_games_sorted(
         config_manager.get_program_config().games_sorting_mode
     )
 
-    # Handle UUID game arg
+    # Handle game config ID game arg
     if game_arg not in tuple(GameOptions):
-        game_uuid = UUID(game_arg)
-        if game_uuid not in game_uuids:
+        game_id = game_arg
+        if game_id not in game_ids:
             raise typer.BadParameter(
-                message="Provided game UUID does not exist", param_hint="--game"
+                message="Provided game config ID does not exist", param_hint="--game"
             )
-        return game_uuid
+        return game_id
 
     game_option = GameOptions(game_arg)
     match game_option:
@@ -300,13 +293,13 @@ def _parse_game_arg(game_arg: str, config_manager: ConfigManager) -> UUID:
             is_preview = True
         case _:
             assert_never(game_option)
-    for game_uuid in game_uuids:
-        game_config = config_manager.read_game_config_file(game_uuid=game_uuid)
+    for game_id in game_ids:
+        game_config = config_manager.read_game_config_file(game_id=game_id)
         if (
             game_config.game_type == game_type
             and game_config.is_preview_client == is_preview
         ):
-            return game_uuid
+            return game_id
     raise typer.BadParameter(message=f"No {game_arg} games exist", param_hint="--game")
 
 
@@ -314,10 +307,10 @@ def _complete_game_arg(incomplete: str) -> Iterator[str]:
     config_manager = ConfigManager(lambda c: c, lambda c: c, lambda c: c)
     try:
         config_manager.verify_configs()
-        game_uuids = tuple(str(uuid) for uuid in config_manager.get_game_uuids())
+        game_ids = config_manager.get_game_config_ids()
     except ConfigFileError:
-        game_uuids = ()
-    for option in tuple(GameOptions) + game_uuids:
+        game_ids = ()
+    for option in tuple(GameOptions) + game_ids:
         if option.startswith(incomplete):
             yield option
 
@@ -329,12 +322,12 @@ def _complete_username_arg(incomplete: str, context: typer.Context) -> Iterator[
     config_manager = ConfigManager(lambda c: c, lambda c: c, lambda c: c)
     config_manager.verify_configs()
     try:
-        game_uuid = _parse_game_arg(game_arg=game_arg, config_manager=config_manager)
+        game_id = _parse_game_arg(game_arg=game_arg, config_manager=config_manager)
     except typer.BadParameter:
         return
     usernames = (
         account.username
-        for account in config_manager.read_game_accounts_config_file(game_uuid)
+        for account in config_manager.read_game_accounts_config_file(game_id)
     )
     for option in usernames:
         if option.startswith(incomplete):
@@ -412,9 +405,9 @@ def main(
         GameOption(
             help=(
                 "Which game to load. ([yellow]"
-                f"{', '.join(GameOptions)}, or a game UUID)"
+                f"{', '.join(GameOptions)}, or a game config ID)"
             ),
-            parser=game_type_or_uuid,
+            parser=game_type_or_id,
             autocompletion=_complete_game_arg,
         ),
     ] = None,
@@ -607,7 +600,7 @@ async def _start_ui(config_manager: ConfigManager, game_arg: str | None) -> None
         return await _start_ui(config_manager=config_manager, game_arg=game_arg)
 
     # Just run the games selection portion of the setup wizard
-    if not config_manager.get_game_uuids():
+    if not config_manager.get_game_config_ids():
         QtWidgets.QMessageBox.information(  # type: ignore[call-overload]
             None,
             "No Games Found",
@@ -623,8 +616,6 @@ async def _start_ui(config_manager: ConfigManager, game_arg: str | None) -> None
     # main_window.py imports requires the QApplication to exist.
     from .main_window import MainWindow
 
-    game_uuid = _parse_game_arg(game_arg, config_manager) if game_arg else None
-    main_window = MainWindow(
-        config_manager=config_manager, starting_game_uuid=game_uuid
-    )
+    game_id = _parse_game_arg(game_arg, config_manager) if game_arg else None
+    main_window = MainWindow(config_manager=config_manager, starting_game_id=game_id)
     await main_window.run()

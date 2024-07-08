@@ -5,7 +5,6 @@ from functools import cache, partial
 from pathlib import Path
 from shutil import rmtree
 from typing import Any, Final, TypeAlias, TypeVar
-from uuid import UUID
 
 import attrs
 import cattrs
@@ -19,7 +18,7 @@ from .__about__ import __title__
 from .addons.startup_script import StartupScript
 from .config import Config, ConfigValWithMetadata, platform_dirs, unstructure_config
 from .game_account_config import GameAccountConfig, GameAccountsConfig
-from .game_config import GameConfig, GameType
+from .game_config import GameConfig, GameConfigID, GameType
 from .program_config import GamesSortingMode, ProgramConfig
 from .resources import OneLauncherLocale, available_locales
 
@@ -45,10 +44,6 @@ def _structure_startup_script(
     return StartupScript(relative_path=Path(relative_path))
 
 
-def _unstructure_uuid(uuid: UUID) -> str:
-    return str(uuid)
-
-
 def _unstructure_onelauncher_locale(locale: OneLauncherLocale) -> str:
     return locale.lang_tag
 
@@ -62,7 +57,6 @@ def get_converter() -> cattrs.Converter:
     converter.register_unstructure_hook(StartupScript, _unstructure_startup_script)
     converter.register_structure_hook(StartupScript, _structure_startup_script)
 
-    converter.register_unstructure_hook(UUID, _unstructure_uuid)
     converter.register_unstructure_hook(
         OneLauncherLocale, _unstructure_onelauncher_locale
     )
@@ -212,7 +206,7 @@ ConfigTypeVar = TypeVar("ConfigTypeVar", bound=Config)
 
 
 def read_config_file(
-    *, 
+    *,
     config_class: type[ConfigTypeVar],
     config_file_path: Path,
     preconverter: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
@@ -331,10 +325,12 @@ class ConfigManager:
 
     GAME_CONFIG_FILE_NAME: Final[str] = attrs.field(default="config.toml", init=False)
     configs_are_verified: bool = attrs.field(default=False, init=False)
-    verified_game_uuids: list[UUID] = attrs.field(default=[], init=False)
+    verified_game_config_ids: list[GameConfigID] = attrs.field(default=[], init=False)
     _cached_program_config: ProgramConfig | None = attrs.field(default=None, init=False)
-    _cached_game_configs: dict[UUID, GameConfig] = attrs.field(default={}, init=False)
-    _cached_game_accounts_configs: dict[UUID, GameAccountsConfig] = attrs.field(
+    _cached_game_configs: dict[GameConfigID, GameConfig] = attrs.field(
+        default={}, init=False
+    )
+    _cached_game_accounts_configs: dict[GameConfigID, GameAccountsConfig] = attrs.field(
         default={}, init=False
     )
 
@@ -350,36 +346,36 @@ class ConfigManager:
             ConfigFileParseError: Error parsing a config file
             WrongConfigVersionError: Config file has wrong config version
         """
-        self.verified_game_uuids.clear()
+        self.verified_game_config_ids.clear()
 
         # ConfigFileParseError and WrongConfigVersionError are handled by caller
         self._read_program_config_file()
 
         # Verify game configs
-        for game_uuid in self._get_game_uuids():
-            # FileNotFoundError is handled by using known to exist UUIDs
+        for game_id in self._get_game_config_ids():
+            # FileNotFoundError is handled by using known to exist game IDs
             # ConfigFileParseError and WrongConfigVersionError are handled by caller
-            self._read_game_config_file(game_uuid)
+            self._read_game_config_file(game_id)
             try:
                 # ConfigFileParseError and WrongConfigVersionError are handled by caller
-                self._read_game_accounts_config_file_full(game_uuid)
+                self._read_game_accounts_config_file_full(game_id)
             except FileNotFoundError:
-                self.update_game_accounts_config_file(game_uuid=game_uuid, accounts=())
+                self.update_game_accounts_config_file(game_id=game_id, accounts=())
 
-            self.verified_game_uuids.append(game_uuid)
+            self.verified_game_config_ids.append(game_id)
         self.configs_are_verified = True
 
-    def get_game_config_dir(self, game_uuid: UUID) -> Path:
-        return self.games_dir_path / str(game_uuid)
+    def get_game_config_dir(self, game_id: GameConfigID) -> Path:
+        return self.games_dir_path / game_id
 
-    def get_game_config_path(self, game_uuid: UUID) -> Path:
-        return self.get_game_config_dir(game_uuid) / self.GAME_CONFIG_FILE_NAME
+    def get_game_config_path(self, game_id: GameConfigID) -> Path:
+        return self.get_game_config_dir(game_id) / self.GAME_CONFIG_FILE_NAME
 
-    def get_game_uuid_from_config_path(self, config_path: Path) -> UUID:
-        return UUID(config_path.parent.name)
+    def get_game_id_from_config_path(self, config_path: Path) -> GameConfigID:
+        return config_path.parent.name
 
-    def get_game_accounts_config_path(self, game_uuid: UUID) -> Path:
-        return self.get_game_config_dir(game_uuid) / "accounts.toml"
+    def get_game_accounts_config_path(self, game_id: GameConfigID) -> Path:
+        return self.get_game_config_dir(game_id) / "accounts.toml"
 
     def get_config_backup_path(self, config_path: Path) -> Path:
         """Get config backup file path"""
@@ -432,38 +428,38 @@ class ConfigManager:
         # to parse.
         self._read_program_config_file()
 
-    def get_game_uuids(self) -> tuple[UUID, ...]:
+    def get_game_config_ids(self) -> tuple[GameConfigID, ...]:
         if self.configs_are_verified:
-            return tuple(self.verified_game_uuids)
+            return tuple(self.verified_game_config_ids)
         else:
             raise ConfigManagerNotSetupError("")
 
-    def _get_game_uuids(self) -> tuple[UUID, ...]:
+    def _get_game_config_ids(self) -> tuple[GameConfigID, ...]:
         return tuple(
-            self.get_game_uuid_from_config_path(config_path=config_file)
+            self.get_game_id_from_config_path(config_path=config_file)
             for config_file in self.games_dir_path.glob(
                 f"*/{self.GAME_CONFIG_FILE_NAME}"
             )
         )
 
-    def get_games_by_game_type(self, game_type: GameType) -> tuple[UUID, ...]:
+    def get_games_by_game_type(self, game_type: GameType) -> tuple[GameConfigID, ...]:
         return tuple(
-            game_uuid
-            for game_uuid in self.get_game_uuids()
-            if self.get_game_config(game_uuid).game_type == game_type
+            game_id
+            for game_id in self.get_game_config_ids()
+            if self.get_game_config(game_id).game_type == game_type
         )
 
     def get_games_sorted_by_priority(
         self, game_type: GameType | None = None
-    ) -> tuple[UUID, ...]:
-        game_uuids = (
+    ) -> tuple[GameConfigID, ...]:
+        game_ids = (
             self.get_games_by_game_type(game_type)
             if game_type
-            else self.get_game_uuids()
+            else self.get_game_config_ids()
         )
 
-        def sorter(game_uuid: UUID) -> str:
-            game_config = self.get_game_config(game_uuid)
+        def sorter(game_id: GameConfigID) -> str:
+            game_config = self.get_game_config(game_id)
             return (
                 "Z"
                 if game_config.sorting_priority == -1
@@ -472,19 +468,19 @@ class ConfigManager:
 
         # Sort games by sorting_priority. Games with sorting_priority of -1 are
         # put at the end
-        return tuple(sorted(game_uuids, key=sorter))
+        return tuple(sorted(game_ids, key=sorter))
 
     def get_games_sorted_by_last_played(
         self, game_type: GameType | None = None
-    ) -> tuple[UUID, ...]:
-        game_uuids = (
+    ) -> tuple[GameConfigID, ...]:
+        game_ids = (
             self.get_games_by_game_type(game_type)
             if game_type
-            else self.get_game_uuids()
+            else self.get_game_config_ids()
         )
 
-        def sorter(game_uuid: UUID) -> datetime.datetime:
-            game_config = self.get_game_config(game_uuid)
+        def sorter(game_id: GameConfigID) -> datetime.datetime:
+            game_config = self.get_game_config(game_id)
             return (
                 datetime.datetime(
                     datetime.MINYEAR, 1, 1, 0, 0, 0, 0, tzinfo=datetime.UTC
@@ -496,7 +492,7 @@ class ConfigManager:
         # Get list of played games sorted by when they were last played
         return tuple(
             sorted(
-                game_uuids,
+                game_ids,
                 key=sorter,
                 reverse=True,
             )
@@ -506,7 +502,7 @@ class ConfigManager:
         self,
         sorting_mode: GamesSortingMode,
         game_type: GameType | None = None,
-    ) -> tuple[UUID, ...]:
+    ) -> tuple[GameConfigID, ...]:
         match sorting_mode:
             case GamesSortingMode.PRIORITY:
                 return self.get_games_sorted_by_priority(game_type)
@@ -517,34 +513,32 @@ class ConfigManager:
 
     def get_games_sorted_alphabetically(
         self, game_type: GameType | None
-    ) -> tuple[UUID, ...]:
-        game_uuids = (
+    ) -> tuple[GameConfigID, ...]:
+        game_ids = (
             self.get_games_by_game_type(game_type)
             if game_type
-            else self.get_game_uuids()
+            else self.get_game_config_ids()
         )
         return tuple(
-            sorted(
-                game_uuids, key=lambda game_uuid: self.get_game_config(game_uuid).name
-            )
+            sorted(game_ids, key=lambda game_id: self.get_game_config(game_id).name)
         )
 
-    def get_game_config(self, game_uuid: UUID) -> GameConfig:
+    def get_game_config(self, game_id: GameConfigID) -> GameConfig:
         """
         Get merged game config object.
         """
-        return self.get_merged_game_config(self.read_game_config_file(game_uuid))
+        return self.get_merged_game_config(self.read_game_config_file(game_id))
 
-    def read_game_config_file(self, game_uuid: UUID) -> GameConfig:
+    def read_game_config_file(self, game_id: GameConfigID) -> GameConfig:
         """Read and parse game config file into `GameConfig` object."""
         if not self.configs_are_verified:
             raise ConfigManagerNotSetupError("")
-        if game_uuid not in self.verified_game_uuids:
-            raise ValueError(f"Game UUID: {game_uuid} has not been verified")
+        if game_id not in self.verified_game_config_ids:
+            raise ValueError(f"Game config ID: {game_id} has not been verified")
 
-        return self._cached_game_configs[game_uuid]
+        return self._cached_game_configs[game_id]
 
-    def _read_game_config_file(self, game_uuid: UUID) -> GameConfig:
+    def _read_game_config_file(self, game_id: GameConfigID) -> GameConfig:
         """
         Read and parse game config file into `GameConfig` object.
 
@@ -555,50 +549,52 @@ class ConfigManager:
         """
         config = read_config_file(
             config_class=GameConfig,
-            config_file_path=self.get_game_config_path(game_uuid),
+            config_file_path=self.get_game_config_path(game_id),
         )
-        self._cached_game_configs[game_uuid] = config
+        self._cached_game_configs[game_id] = config
         return config
 
-    def update_game_config_file(self, game_uuid: UUID, config: GameConfig) -> None:
+    def update_game_config_file(
+        self, game_id: GameConfigID, config: GameConfig
+    ) -> None:
         """
         Replace contents of game config file with `config`.
         """
-        game_config_path = self.get_game_config_path(game_uuid)
+        game_config_path = self.get_game_config_path(game_id)
         game_config_path.parent.mkdir(exist_ok=True)
         update_config_file(config=config, config_file_path=game_config_path)
-        if game_uuid not in self.verified_game_uuids:
-            # Veriefed game UUIDs are expected to have an accounts config file
-            self.update_game_accounts_config_file(game_uuid=game_uuid, accounts=())
-            self.verified_game_uuids.append(game_uuid)
-        self._cached_game_configs[game_uuid] = config
+        if game_id not in self.verified_game_config_ids:
+            # Veriefed game config IDs are expected to have an accounts config file
+            self.update_game_accounts_config_file(game_id=game_id, accounts=())
+            self.verified_game_config_ids.append(game_id)
+        self._cached_game_configs[game_id] = config
 
-    def delete_game_config(self, game_uuid: UUID) -> None:
+    def delete_game_config(self, game_id: GameConfigID) -> None:
         """Delete game config including all files and saved accounts"""
         with suppress(FileNotFoundError):
-            account_configs = self.read_game_accounts_config_file(game_uuid)
+            account_configs = self.read_game_accounts_config_file(game_id)
             for account_config in account_configs:
                 self.delete_game_account_keyring_info(
-                    game_uuid=game_uuid, game_account=account_config
+                    game_id=game_id, game_account=account_config
                 )
-        rmtree(self.get_game_config_dir(game_uuid=game_uuid))
-        if game_uuid in self.verified_game_uuids:
-            self.verified_game_uuids.remove(game_uuid)
-            del self._cached_game_configs[game_uuid]
-            del self._cached_game_accounts_configs[game_uuid]
+        rmtree(self.get_game_config_dir(game_id=game_id))
+        if game_id in self.verified_game_config_ids:
+            self.verified_game_config_ids.remove(game_id)
+            del self._cached_game_configs[game_id]
+            del self._cached_game_accounts_configs[game_id]
 
-    def get_game_accounts(self, game_uuid: UUID) -> tuple[GameAccountConfig, ...]:
+    def get_game_accounts(self, game_id: GameConfigID) -> tuple[GameAccountConfig, ...]:
         if not self.configs_are_verified:
             raise ConfigManagerNotSetupError("")
-        if game_uuid not in self.verified_game_uuids:
-            raise ValueError(f"Game UUID: {game_uuid} has not been verified")
+        if game_id not in self.verified_game_config_ids:
+            raise ValueError(f"Game config ID: {game_id} has not been verified")
 
         return self.get_merged_game_accounts_config(
-            self._cached_game_accounts_configs[game_uuid]
+            self._cached_game_accounts_configs[game_id]
         ).accounts
 
     def _read_game_accounts_config_file_full(
-        self, game_uuid: UUID
+        self, game_id: GameConfigID
     ) -> GameAccountsConfig:
         """
         Read and parse game accounts config file into `GameAccountsConfig`
@@ -611,18 +607,18 @@ class ConfigManager:
         """
         config = read_config_file(
             config_class=GameAccountsConfig,
-            config_file_path=self.get_game_accounts_config_path(game_uuid),
+            config_file_path=self.get_game_accounts_config_path(game_id),
             preconverter=partial(
                 _tables_to_array_of_tables,
                 array_name="accounts",
                 table_name_key_name="username",
             ),
         )
-        self._cached_game_accounts_configs[game_uuid] = config
+        self._cached_game_accounts_configs[game_id] = config
         return config
 
     def read_game_accounts_config_file(
-        self, game_uuid: UUID
+        self, game_id: GameConfigID
     ) -> tuple[GameAccountConfig, ...]:
         """
         Read and parse game accounts config file into tuple of
@@ -630,13 +626,13 @@ class ConfigManager:
         """
         if not self.configs_are_verified:
             raise ConfigManagerNotSetupError("")
-        if game_uuid not in self.verified_game_uuids:
-            raise ValueError(f"Game UUID: {game_uuid} has not been verified")
+        if game_id not in self.verified_game_config_ids:
+            raise ValueError(f"Game config ID: {game_id} has not been verified")
 
-        return self._cached_game_accounts_configs[game_uuid].accounts
+        return self._cached_game_accounts_configs[game_id].accounts
 
     def update_game_accounts_config_file(
-        self, game_uuid: UUID, accounts: tuple[GameAccountConfig, ...]
+        self, game_id: GameConfigID, accounts: tuple[GameAccountConfig, ...]
     ) -> None:
         """
         Replace contents of game accounts config file with `accounts`.
@@ -644,33 +640,33 @@ class ConfigManager:
         # Delete keyring info for any removed accounts
         with suppress(FileNotFoundError, ConfigFileError):
             existing_accounts = self._read_game_accounts_config_file_full(
-                game_uuid=game_uuid
+                game_id=game_id
             ).accounts
             updated_accounts_usernames = [account.username for account in accounts]
             for existing_account in existing_accounts:
                 if existing_account.username not in updated_accounts_usernames:
                     self.delete_game_account_keyring_info(
-                        game_uuid=game_uuid, game_account=existing_account
+                        game_id=game_id, game_account=existing_account
                     )
         config = GameAccountsConfig(accounts)
         update_config_file(
             config=config,
-            config_file_path=self.get_game_accounts_config_path(game_uuid),
+            config_file_path=self.get_game_accounts_config_path(game_id),
             postconverter=partial(
                 _array_of_tables_to_tables,
                 array_name="accounts",
                 table_name_key_name="username",
             ),
         )
-        self._cached_game_accounts_configs[game_uuid] = config
+        self._cached_game_accounts_configs[game_id] = config
 
     def _get_account_keyring_username(
-        self, game_uuid: UUID, game_account: GameAccountConfig
+        self, game_id: GameConfigID, game_account: GameAccountConfig
     ) -> str:
-        return f"{game_uuid}{game_account.username}"
+        return f"{game_id}{game_account.username}"
 
     def get_game_account_password(
-        self, game_uuid: UUID, game_account: GameAccountConfig
+        self, game_id: GameConfigID, game_account: GameAccountConfig
     ) -> str | None:
         """
         Get account password that is saved in keyring.
@@ -679,44 +675,44 @@ class ConfigManager:
         return keyring.get_password(
             service_name=__title__,
             username=self._get_account_keyring_username(
-                game_uuid=game_uuid, game_account=game_account
+                game_id=game_id, game_account=game_account
             ),
         )
 
     def save_game_account_password(
-        self, game_uuid: UUID, game_account: GameAccountConfig, password: str
+        self, game_id: GameConfigID, game_account: GameAccountConfig, password: str
     ) -> None:
         """Save account password with keyring"""
         keyring.set_password(
             service_name=__title__,
             username=self._get_account_keyring_username(
-                game_uuid=game_uuid, game_account=game_account
+                game_id=game_id, game_account=game_account
             ),
             password=password,
         )
 
     def delete_game_account_password(
-        self, game_uuid: UUID, game_account: GameAccountConfig
+        self, game_id: GameConfigID, game_account: GameAccountConfig
     ) -> None:
         """Delete account password saved with keyring"""
         with suppress(keyring.errors.PasswordDeleteError):
             keyring.delete_password(
                 service_name=__title__,
                 username=self._get_account_keyring_username(
-                    game_uuid=game_uuid, game_account=game_account
+                    game_id=game_id, game_account=game_account
                 ),
             )
 
     def _get_account_last_used_subscription_keyring_username(
-        self, game_uuid: UUID, game_account: GameAccountConfig
+        self, game_id: GameConfigID, game_account: GameAccountConfig
     ) -> str:
         base_keyring_username = self._get_account_keyring_username(
-            game_uuid=game_uuid, game_account=game_account
+            game_id=game_id, game_account=game_account
         )
         return f"{base_keyring_username}LastUsedSubscription"
 
     def get_game_account_last_used_subscription_name(
-        self, game_uuid: UUID, game_account: GameAccountConfig
+        self, game_id: GameConfigID, game_account: GameAccountConfig
     ) -> str | None:
         """
         Get name of the subscription that was last played with from keyring.
@@ -725,25 +721,28 @@ class ConfigManager:
         return keyring.get_password(
             service_name=__title__,
             username=self._get_account_last_used_subscription_keyring_username(
-                game_uuid=game_uuid, game_account=game_account
+                game_id=game_id, game_account=game_account
             ),
         )
 
     def save_game_account_last_used_subscription_name(
-        self, game_uuid: UUID, game_account: GameAccountConfig, subscription_name: str
+        self,
+        game_id: GameConfigID,
+        game_account: GameAccountConfig,
+        subscription_name: str,
     ) -> None:
         """Save last used subscription name with keyring"""
         keyring.set_password(
             service_name=__title__,
             username=self._get_account_last_used_subscription_keyring_username(
-                game_uuid=game_uuid, game_account=game_account
+                game_id=game_id, game_account=game_account
             ),
             password=subscription_name,
         )
 
     def delete_game_account_last_used_subscription_name(
         self,
-        game_uuid: UUID,
+        game_id: GameConfigID,
         game_account: GameAccountConfig,
     ) -> None:
         """Delete last used subscription name saved with keyring"""
@@ -751,26 +750,24 @@ class ConfigManager:
             keyring.delete_password(
                 service_name=__title__,
                 username=self._get_account_last_used_subscription_keyring_username(
-                    game_uuid=game_uuid, game_account=game_account
+                    game_id=game_id, game_account=game_account
                 ),
             )
 
     def delete_game_account_keyring_info(
-        self, game_uuid: UUID, game_account: GameAccountConfig
+        self, game_id: GameConfigID, game_account: GameAccountConfig
     ) -> None:
         """
         Delete all information for account saved with keyring. ex. password
         """
-        self.delete_game_account_password(
-            game_uuid=game_uuid, game_account=game_account
-        )
+        self.delete_game_account_password(game_id=game_id, game_account=game_account)
         self.delete_game_account_last_used_subscription_name(
-            game_uuid=game_uuid, game_account=game_account
+            game_id=game_id, game_account=game_account
         )
 
-    def get_ui_locale(self, game_uuid: UUID) -> OneLauncherLocale:
+    def get_ui_locale(self, game_id: GameConfigID) -> OneLauncherLocale:
         program_config = self.get_program_config()
-        game_config = self.get_game_config(game_uuid)
+        game_config = self.get_game_config(game_id)
         return (
             program_config.default_locale
             if program_config.always_use_default_locale_for_ui or not game_config.locale
