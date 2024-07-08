@@ -1,3 +1,4 @@
+from onelauncher.qtapp import get_qapp
 from onelauncher.ui.qtdesigner.custom_widgets import (
     QDialogWithStylePreview,
     QMainWindowWithStylePreview,
@@ -23,8 +24,7 @@ class GameNewsfeedBrowser(QtWidgets.QTextBrowser):
         self.setOpenExternalLinks(True)
         self.setOpenLinks(True)
         self.html: str | None = None
-        qapp: QtWidgets.QApplication = qApp  # type: ignore[name-defined]  # noqa: F821
-        qapp.styleHints().colorSchemeChanged.connect(self.updateStyling)
+        get_qapp().styleHints().colorSchemeChanged.connect(self.updateStyling)
 
     @override
     def setHtml(self, text: str) -> None:

@@ -49,6 +49,7 @@ import qtawesome
 from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
 
+from onelauncher.qtapp import get_qapp
 from onelauncher.ui.qtdesigner.custom_widgets import QWidgetWithStylePreview
 
 from .__about__ import __title__
@@ -202,8 +203,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         game_config = self.config_manager.get_game_config(self.game_uuid)
 
-        qapp: QtWidgets.QApplication = qApp  # type: ignore[name-defined]  # noqa: F821
-        color_scheme_changed = qapp.styleHints().colorSchemeChanged
+        color_scheme_changed = get_qapp().styleHints().colorSchemeChanged
 
         for source_tab_name in self.SOURCE_TAB_NAMES:
             self.ui.tabBarSource.addTab(source_tab_name)

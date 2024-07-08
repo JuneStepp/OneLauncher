@@ -33,6 +33,8 @@ from uuid import UUID
 
 from PySide6 import QtCore, QtWidgets
 
+from onelauncher.qtapp import get_qapp
+
 from .config import platform_dirs
 from .config_manager import ConfigManager
 from .game_launcher_local_config import GameLauncherLocalConfig
@@ -54,7 +56,7 @@ class PatchWindow(QtWidgets.QDialog):
         urlPatchServer: str,
     ):
         super().__init__(
-            qApp.activeWindow(),  # type: ignore[name-defined]  # noqa: F821
+            get_qapp().activeWindow(),
             QtCore.Qt.WindowType.FramelessWindowHint,
         )
         self.launcher_local_config = launcher_local_config
@@ -289,7 +291,6 @@ class PatchWindow(QtWidgets.QDialog):
         self.process_status_timer.start(100)
 
     def Run(self) -> None:
-        self.__app = QtCore.QCoreApplication.instance()
         self.exec()
 
 

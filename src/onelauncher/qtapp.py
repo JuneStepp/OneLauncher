@@ -27,16 +27,20 @@
 ###########################################################################
 import os
 import sys
+from functools import cache
 from pathlib import Path
 
 import qtawesome
 from PySide6 import QtCore, QtGui, QtWidgets
 
+from onelauncher.ui.style import ApplicationStyle
+
 from .__about__ import __title__, __version__
 from .resources import data_dir
 
 
-def setup_qtapplication() -> QtWidgets.QApplication:
+@cache
+def _setup_qapplication() -> QtWidgets.QApplication:
     application = QtWidgets.QApplication(sys.argv)
     # See https://github.com/zhiyiYo/PyQt-Frameless-Window/issues/50
     application.setAttribute(
@@ -67,3 +71,16 @@ def setup_qtapplication() -> QtWidgets.QApplication:
     application.styleHints().colorSchemeChanged.connect(set_qtawesome_defaults)
 
     return application
+
+
+@cache
+def get_qapp() -> QtWidgets.QApplication:
+    application = _setup_qapplication()
+    # Setup ApplicationStyle
+    _ = get_app_style()
+    return application
+
+
+@cache
+def get_app_style() -> ApplicationStyle:
+    return ApplicationStyle(_setup_qapplication())

@@ -37,6 +37,8 @@ import trio
 from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
 
+from onelauncher.qtapp import get_qapp
+
 from .__about__ import __title__
 from .config_manager import ConfigManager
 from .game_config import ClientType
@@ -65,7 +67,7 @@ class TabName(StrEnum):
 
 class SettingsWindow(FramelessQDialogWithStylePreview):
     def __init__(self, config_manager: ConfigManager, game_uuid: UUID):
-        super().__init__(QtCore.QCoreApplication.instance().activeWindow())  # type: ignore[union-attr]
+        super().__init__(get_qapp().activeWindow())
         self.titleBar.hide()
         self.config_manager = config_manager
         self.game_uuid = game_uuid

@@ -39,6 +39,8 @@ import qtawesome
 from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
 
+from onelauncher.qtapp import get_qapp
+
 from .__about__ import __title__
 from .addons.config import AddonsConfigSection
 from .config_manager import ConfigManager
@@ -125,8 +127,7 @@ class SetupWizard(QtWidgets.QWizard):
 
         self.add_available_languages_to_ui()
 
-        qapp: QtWidgets.QApplication = qApp  # type: ignore[name-defined]  # noqa: F821
-        color_scheme_changed = qapp.styleHints().colorSchemeChanged
+        color_scheme_changed = get_qapp().styleHints().colorSchemeChanged
 
         self.migrate_old_config_asked: bool = False
         self.ui.languageSelectionWizardPage.validatePage = (  # type: ignore[method-assign]

@@ -41,6 +41,8 @@ import attrs
 import certifi
 from PySide6 import QtCore, QtWidgets
 
+from onelauncher.qtapp import get_qapp
+
 from .config import platform_dirs
 from .ui_utilities import show_warning_message
 from .wine.config import WineConfigSection
@@ -88,7 +90,7 @@ class WineManagement:
             "",
             0,
             100,
-            qApp.activeWindow(),  # type: ignore[name-defined] # noqa: F821
+            get_qapp().activeWindow(),
             QtCore.Qt.WindowType.FramelessWindowHint,
         )
         dialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
@@ -169,7 +171,7 @@ class WineManagement:
             show_warning_message(
                 f"There was an error downloading '{url}'. "
                 "You may want to check your network connection.",
-                qApp.activeWindow(),  # type: ignore[name-defined]  # noqa: F821
+                get_qapp().activeWindow(),
             )
             return False
 

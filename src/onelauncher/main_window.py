@@ -42,6 +42,7 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
 from xmlschema import XMLSchemaValidationError
 
+from onelauncher.qtapp import get_app_style, get_qapp
 from onelauncher.ui.custom_widgets import FramelessQMainWindowWithStylePreview
 
 from . import __about__
@@ -80,7 +81,6 @@ from .ui.about_uic import Ui_dlgAbout
 from .ui.main_uic import Ui_winMain
 from .ui.select_subscription_uic import Ui_dlgSelectSubscription
 from .ui.start_game_window import StartGame
-from .ui.style import ApplicationStyle
 from .ui_utilities import show_message_box_details_as_markdown
 
 
@@ -112,9 +112,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         self.ui = Ui_winMain()
         self.ui.setupUi(self)
 
-        qapp: QtWidgets.QApplication = qApp  # type: ignore[name-defined]  # noqa: F821
-        self.app_style = ApplicationStyle(qapp)
-        color_scheme_changed = qapp.styleHints().colorSchemeChanged
+        color_scheme_changed = get_qapp().styleHints().colorSchemeChanged
         self.ui.btnExit.clicked.connect(self.close)
         get_exit_icon = partial(qtawesome.icon, "fa5s.times")
         self.ui.btnExit.setIcon(get_exit_icon())
@@ -206,7 +204,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
     def changeEvent(self, event: QtCore.QEvent) -> None:
         super().changeEvent(event)
         if event.type() == QtCore.QEvent.Type.ThemeChange:
-            self.app_style.update_base_font()
+            get_app_style().update_base_font()
 
     def setupBtnLoginMenu(self) -> None:
         """Sets up signals and context menu for btnLoginMenu"""
@@ -820,7 +818,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         # Without this, it will take a sec for the game banner geometry to adjust to the
         # image size. That behavior didn't look nice. The events are processed here,
         # because starting the Trio stuff is where the slowdown is.
-        self.app_style.qapp.processEvents(
+        get_qapp().processEvents(
             QtCore.QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents
             | QtCore.QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers
         )

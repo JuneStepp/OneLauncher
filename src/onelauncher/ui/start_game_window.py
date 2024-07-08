@@ -30,6 +30,7 @@ from datetime import UTC, datetime
 from uuid import UUID
 
 import attrs
+from onelauncher.qtapp import get_qapp
 from PySide6 import QtCore, QtWidgets
 
 from ..addons.startup_script import run_startup_script
@@ -66,7 +67,7 @@ class StartGame(QtWidgets.QDialog):
         self.ticket = ticket
 
         super().__init__(
-            qApp.activeWindow(),  # type: ignore[name-defined]  # noqa: F821
+            get_qapp().activeWindow(),
             QtCore.Qt.WindowType.FramelessWindowHint,
         )
 

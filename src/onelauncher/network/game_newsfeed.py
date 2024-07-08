@@ -7,7 +7,8 @@ from io import StringIO
 import feedparser
 from babel import Locale
 from babel.dates import format_datetime
-from PySide6 import QtCore, QtWidgets
+from onelauncher.qtapp import get_qapp
+from PySide6 import QtCore
 
 from .httpx_client import get_httpx_client
 
@@ -23,7 +24,7 @@ async def newsfeed_url_to_html(url: str, babel_locale: Locale) -> str:
     return newsfeed_xml_to_html(response.text, babel_locale, url)
 
 
-def _escape_feed_val(details: feedparser.util.FeedParserDict) -> str: # type: ignore[no-any-unimported]
+def _escape_feed_val(details: feedparser.util.FeedParserDict) -> str:  # type: ignore[no-any-unimported]
     """Return escaped value if the type is 'text/plain'. Otherwise, return the original value.
         See https://github.com/kurtmckee/feedparser/blame/b6917f83354a58348a16cf1106d64ea6622e24df/docs/html-sanitization.rst#L24-L31
         Summary is that values marked as 'text/plain' aren't sanitized.
@@ -38,10 +39,9 @@ def _escape_feed_val(details: feedparser.util.FeedParserDict) -> str: # type: ig
 
 
 def get_newsfeed_css() -> str:
-    qapp: QtWidgets.QApplication = qApp  # type: ignore[name-defined]  # noqa: F821
     news_entry_header_color = (
         "#ffd100"
-        if qapp.styleHints().colorScheme() == QtCore.Qt.ColorScheme.Dark
+        if get_qapp().styleHints().colorScheme() == QtCore.Qt.ColorScheme.Dark
         else "#be9b00"
     )
     return f"""

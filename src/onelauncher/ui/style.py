@@ -78,6 +78,10 @@ DIRECTIONS_SHORTHAND: tuple[tuple[tuple[Direction, ...], str], ...] = (
 
 
 class ApplicationStyle(QtCore.QObject):
+    """
+    Manages app stylesheet.
+    There should only ever be one instance of this class for every QApplication
+    """
     def __init__(self, qapp: QApplication) -> None:
         super().__init__()
         self.qapp = qapp

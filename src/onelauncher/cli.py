@@ -40,7 +40,7 @@ from .game_account_config import GameAccountConfig, GameAccountsConfig
 from .game_config import ClientType, GameConfig, GameType
 from .logs import setup_application_logging
 from .program_config import GamesSortingMode, ProgramConfig
-from .qtapp import setup_qtapplication
+from .qtapp import get_qapp
 from .resources import OneLauncherLocale
 from .setup_wizard import SetupWizard
 from .ui import qtdesigner
@@ -533,7 +533,7 @@ def main(
         get_merged_game_config=get_merged_game_config,
         get_merged_game_accounts_config=get_merged_game_accounts_config,
     )
-    qapp = setup_qtapplication()
+    qapp = get_qapp()
     entry = partial(_start_ui, config_manager=config_manager, game_arg=game)
     async_helper = AsyncHelper(partial(_main, entry=entry))
     QtCore.QTimer.singleShot(0, async_helper.launch_guest_run)
