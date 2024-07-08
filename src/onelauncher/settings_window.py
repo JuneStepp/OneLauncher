@@ -388,7 +388,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
                 if self.ui.wineExecutableLineEdit.text()
                 else None
             ),
-            debug_level=self.ui.wineDebugLineEdit.text() or None,
+            debug_level=self.ui.wineDebugLineEdit.text(),
         )
         self.config_manager.update_game_config_file(
             self.game_uuid,

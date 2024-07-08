@@ -36,9 +36,9 @@ Babel = "^2.12.1"
 # Be careful updating this. Some hacky code is currently being used to make it fully
 # async.
 zeep = "4.2.1"
-cachetools = "^5.3.1"
-trio = "^0.25.0"
-httpx = "^0.26.0"
+cachetools = "^5.3.3"
+trio = "^0.26.0"
+httpx = "^0.27.0"
 asyncache = { git = "https://github.com/JuneStepp/asyncache.git" }
 attrs = "^23.2.0"
 cattrs = { version = "^23.2.3", extras = ["tomlkit"] }
@@ -48,12 +48,12 @@ pysidesix-frameless-window = "^0.3.12"
 packaging = "^24.1"
 
 [tool.poetry.group.dev.dependencies]
-Nuitka = "^2.3.10"
-pytest = "^8.1.1"
+Nuitka = "^2.3.11"
+pytest = "^8.2.2"
 mypy = "^1.10.1"
-types-cachetools = "^5.3.0"
+types-cachetools = "^5.3.0.7"
 trio-typing = { extras = ["mypy"], version = "^0.10.0" }
-ruff = "^0.4.2"
+ruff = "^0.4.10"
 pytest-randomly = "^3.15.0"
 
 [tool.poetry.extras]
