@@ -39,7 +39,7 @@ import qtawesome
 from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
 
-from onelauncher.qtapp import get_qapp
+from onelauncher.qtapp import get_app_style, get_qapp
 
 from .__about__ import __title__
 from .addons.config import AddonsConfigSection
@@ -191,6 +191,18 @@ class SetupWizard(QtWidgets.QWizard):
                 else self.currentId() + 2
             )
 
+    @override
+    def changeEvent(self, event: QtCore.QEvent) -> None:
+        super().changeEvent(event)
+        # Update the app style on theme change, if the main window doesn't exist.
+        # Normally the main window does this.
+        if (
+            event.type() == QtCore.QEvent.Type.ThemeChange
+            and len(get_qapp().topLevelWidgets()) == 1
+            and get_qapp().topLevelWidgets()[0] == self
+        ):
+            get_app_style().update_base_font()
+
     def add_available_languages_to_ui(self) -> None:
         program_config = self.config_manager.read_program_config_file()
         for locale in available_locales.values():
@@ -222,7 +234,7 @@ class SetupWizard(QtWidgets.QWizard):
             messageBox.setInformativeText(
                 f"Found configuration data from a previous {__title__} release. Would you like to migrate the data?"
             )
-            migrate_config =  messageBox.exec() == messageBox.StandardButton.Yes
+            migrate_config = messageBox.exec() == messageBox.StandardButton.Yes
             self.migrate_old_config_asked = True
             if not migrate_config:
                 return True
