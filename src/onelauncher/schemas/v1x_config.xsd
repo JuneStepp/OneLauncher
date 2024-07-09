@@ -3,11 +3,11 @@
     <xs:element name="Settings">
         <xs:complexType>
             <xs:all>
-                <xs:element name="Default.Game" type="GameType" />
-                <xs:element name="LOTRO" type="Game" />
-                <xs:element name="LOTRO.Test" type="Game" />
-                <xs:element name="DDO" type="Game" />
-                <xs:element name="DDO.Test" type="Game" />
+                <xs:element name="Default.Game" type="GameType" minOccurs="0"/>
+                <xs:element name="LOTRO" type="Game" minOccurs="0"/>
+                <xs:element name="LOTRO.Test" type="Game" minOccurs="0"/>
+                <xs:element name="DDO" type="Game" minOccurs="0"/>
+                <xs:element name="DDO.Test" type="Game" minOccurs="0"/>
             </xs:all>
         </xs:complexType>
     </xs:element>
@@ -42,16 +42,16 @@
     </xs:simpleType>
     <xs:complexType name="Game">
         <xs:all>
-            <xs:element name="Wine.Program" type="xs:string" />
-            <xs:element name="Wine.Debug" type="xs:string" />
-            <xs:element name="Wine.Prefix" type="xs:string" />
-            <xs:element name="HiRes" type="bool" />
-            <xs:element name="Client" type="ClientType" />
-            <xs:element name="x64Client" type="bool" />
-            <xs:element name="Save.Password" type="bool" />
-            <xs:element name="Game.Directory" type="xs:string" />
-            <xs:element name="Language" type="Language" />
-            <xs:element name="PatchClient" type="xs:string" />   
+            <xs:element name="Wine.Program" type="xs:string" minOccurs="0"/>
+            <xs:element name="Wine.Debug" type="xs:string" minOccurs="0"/>
+            <xs:element name="Wine.Prefix" type="xs:string" minOccurs="0"/>
+            <xs:element name="HiRes" type="bool" minOccurs="0"/>
+            <xs:element name="Client" type="ClientType" minOccurs="0"/>
+            <xs:element name="x64Client" type="bool" minOccurs="0"/>
+            <xs:element name="Save.Password" type="bool" minOccurs="0"/>
+            <xs:element name="Game.Directory" type="xs:string" minOccurs="1"/>
+            <xs:element name="Language" type="Language" minOccurs="0"/>
+            <xs:element name="PatchClient" type="xs:string" minOccurs="0"/>   
             <xs:element name="Accounts" minOccurs="0">
                 <xs:complexType>
                     <xs:sequence>
