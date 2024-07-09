@@ -2121,9 +2121,9 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         """Only show relevant actions"""
         source_tab = self.SOURCE_TAB_NAMES[self.ui.tabBarSource.currentIndex()]
         if source_tab == "Installed":
-            addons_tab = self.tab_names[self.ui.stackedWidgetInstalled.currentIndex()]
+            addons_tab = self.tab_names[self.ui.tabBarInstalled.currentIndex()]
         elif source_tab == "Find More":
-            addons_tab = self.tab_names[self.ui.stackedWidgetRemote.currentIndex()]
+            addons_tab = self.tab_names[self.ui.tabBarRemote.currentIndex()]
         else:
             assert_never(source_tab)
         if addons_tab == "Plugins":
