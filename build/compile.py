@@ -23,7 +23,6 @@ def main(
     nuitka_arguments = [
         f"--output-dir={Path(__file__) / 'out'}",
         "--onefile" if onefile_mode else "--standalone",
-        "--static-libpython=yes",
         "--python-flag=-m",  # Package mode. Compile as "pakcage.__main__"
         "--python-flag=isolated",
         "--python-flag=no_docstrings",
@@ -45,9 +44,13 @@ def main(
         nuitka_arguments.append(f"--output-dir={out_dir}")
     if nuitka_deployment_mode:
         nuitka_arguments.append("--deployment")
+    if sys.platform != "win32":
+        # Can't use static libpython on Windows currently as far as I know
+        nuitka_arguments.append("--static-libpython=yes")
     if sys.platform == "win32":
         nuitka_arguments.extend(
             [
+                "--assume-yes-for-downloads",
                 "--windows-console-mode=attach",
                 "--windows-icon-from-ico=src/onelauncher/images/OneLauncherIcon.ico",
             ]
