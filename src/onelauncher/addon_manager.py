@@ -185,6 +185,9 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     MUSIC_URL = "https://api.lotrointerface.com/fav/OneLauncher-Music.xml"
     SKINS_DDO_URL = "https://api.lotrointerface.com/fav/OneLauncher-Themes-DDO.xml"
 
+    CATEGORY_UNMANAGED: Final = "Unmanaged"
+    """Category name for unmanaged addons"""
+
     def __init__(
         self,
         config_manager: ConfigManager,
@@ -374,12 +377,9 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.addRowToDB(table, addon_info)
 
         for skin in skins_list:
-            addon_info = AddonInfo()
-
-            addon_info[0] = skin.name
-            addon_info[5] = str(skin)
-            addon_info[1] = "Unmanaged"
-
+            addon_info = AddonInfo(
+                name=skin.name, file=str(skin), category=self.CATEGORY_UNMANAGED
+            )
             self.addRowToDB(table, addon_info)
 
         # Populate user visible table
@@ -442,17 +442,13 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.addRowToDB(table, addon_info)
 
         for music in music_list:
-            addon_info = AddonInfo()
-
-            addon_info[0] = music.stem
+            addon_info = AddonInfo(
+                name=music.stem, file=str(music), category=self.CATEGORY_UNMANAGED
+            )
             if music.suffix == ".abc":
-                song_name, addon_info[3] = self.parse_abc_file(music)
+                song_name, addon_info.author = self.parse_abc_file(music)
                 if song_name:
-                    addon_info[0] = song_name
-
-            addon_info[5] = str(music)
-            addon_info[1] = "Unmanaged"
-
+                    addon_info.name = song_name
             self.addRowToDB(table, addon_info)
 
         # Populate user visible table
@@ -535,7 +531,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 addon_info = self.getOnlineAddonInfo(addon_info, "tablePlugins")
             else:
                 addon_info = self.parseCompendiumFile(file, "Information")
-                addon_info[1] = "Unmanaged"
+                addon_info.category = self.CATEGORY_UNMANAGED
 
             self.addRowToDB(table, addon_info)
 
@@ -579,12 +575,12 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             f"SELECT Category, LatestRelease FROM {remote_addons_table} WHERE InterfaceID == ?",  # noqa: S608
             (addon_info[6],),
         ):
-            addon_info[1] = info[0]
-            addon_info[4] = info[1]
+            addon_info.category = info[0]
+            addon_info.latest_release = info[1]
 
         # Unmanaged if not in online cache
-        if not addon_info[1]:
-            addon_info[1] = "Unmanaged"
+        if not addon_info.category:
+            addon_info.category = self.CATEGORY_UNMANAGED
 
         return addon_info
 
@@ -684,10 +680,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
     def actionAddonImportSelected(self) -> None:
         # DDO doesn't support playing music from .abc files
-        if (
-            self.config_manager.get_game_config(self.game_id).game_type
-            == GameType.DDO
-        ):
+        if self.config_manager.get_game_config(self.game_id).game_type == GameType.DDO:
             addon_formats = "*.zip *.rar"
         else:
             addon_formats = "*.zip *.rar *.abc"
@@ -719,10 +712,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.installZipAddon(addon_path, interface_id)
 
     def installAbcFile(self, addon_path: Path) -> None:
-        if (
-            self.config_manager.get_game_config(self.game_id).game_type
-            == GameType.DDO
-        ):
+        if self.config_manager.get_game_config(self.game_id).game_type == GameType.DDO:
             self.add_error_log("DDO does not support .abc/music files")
             return
 
@@ -765,10 +755,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self, tmp_dir: CaseInsensitiveAbsolutePath, interface_id: str
     ) -> None:
         """Install plugin from temporary directory"""
-        if (
-            self.config_manager.get_game_config(self.game_id).game_type
-            == GameType.DDO
-        ):
+        if self.config_manager.get_game_config(self.game_id).game_type == GameType.DDO:
             self.add_error_log("DDO does not support plugins")
             return
 
@@ -895,10 +882,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     def install_music(
         self, tmp_dir: CaseInsensitiveAbsolutePath, interface_id: str, addon_name: str
     ) -> None | Literal[False]:
-        if (
-            self.config_manager.get_game_config(self.game_id).game_type
-            == GameType.DDO
-        ):
+        if self.config_manager.get_game_config(self.game_id).game_type == GameType.DDO:
             self.add_error_log("DDO does not support .abc/music files")
             return None
 
@@ -1353,7 +1337,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             elif column_name == "Category":
                 tbl_item.setText(addon_info.category)
                 # Set color to red if addon is unmanaged
-                if addon_info.category == "Unmanaged":
+                if addon_info.category == self.CATEGORY_UNMANAGED:
                     tbl_item.setForeground(QtGui.QColor("darkred"))
             elif column_name == "Version":
                 if addon_info.version.startswith("(Updated) "):
@@ -1379,6 +1363,13 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         table.setSortingEnabled(True)
 
     def addRowToDB(self, table: QtWidgets.QTableWidget, addon_info: AddonInfo) -> None:
+        if table in self.ui_tables_installed:
+            addon_info.file = str(
+                CaseInsensitiveAbsolutePath(addon_info.file).relative_to(
+                    self.data_folder
+                )
+            )
+
         question_marks = "?"
         for _ in range(len(addon_info) - 1):
             question_marks += ",?"
@@ -1507,7 +1498,13 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 f"SELECT InterfaceID, File, Name FROM {table.objectName()} WHERE rowid = ?",  # noqa: S608
                 (selected_row,),
             ):
-                selected_addons.append(selected_addon)
+                selected_addons.append(
+                    Addon(
+                        interface_id=selected_addon[0],
+                        file=str(self.data_folder / selected_addon[1]),
+                        name=selected_addon[2],
+                    )
+                )
                 details = details + selected_name + "\n"
 
         return selected_addons, details
@@ -1785,27 +1782,29 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             nodes = tag.childNodes
             for node in nodes:
                 if node.nodeName == "UIName":
-                    addon_info[0] = GetText(node.childNodes)
+                    addon_info.name = GetText(node.childNodes)
                     # Sanitize
-                    addon_info[0] = addon_info[0].replace("/", "-").replace("\\", "-")
+                    addon_info.name = addon_info.name.replace("/", "-").replace(
+                        "\\", "-"
+                    )
                 elif node.nodeName == "UIAuthorName":
-                    addon_info[3] = GetText(node.childNodes)
+                    addon_info.author = GetText(node.childNodes)
                 elif node.nodeName == "UICategory":
-                    addon_info[1] = GetText(node.childNodes)
+                    addon_info.category = GetText(node.childNodes)
                 elif node.nodeName == "UID":
-                    addon_info[6] = GetText(node.childNodes)
+                    addon_info.interface_id = GetText(node.childNodes)
                 elif node.nodeName == "UIVersion":
-                    addon_info[2] = GetText(node.childNodes)
+                    addon_info.version = GetText(node.childNodes)
                 elif node.nodeName == "UIUpdated":
-                    addon_info[4] = strftime(
+                    addon_info.latest_release = strftime(
                         "%Y-%m-%d", localtime(int(GetText(node.childNodes)))
                     )
                 elif node.nodeName == "UIFileURL":
-                    addon_info[5] = GetText(node.childNodes)
+                    addon_info.file = GetText(node.childNodes)
 
             # Prepends name with (Installed) if already installed
-            if addon_info[6] in installed_IDs:
-                addon_info[0] = "(Installed) " + addon_info[0]
+            if addon_info.interface_id in installed_IDs:
+                addon_info.name = f"(Installed) {addon_info.name}"
 
             self.addRowToDB(table, addon_info)
 
@@ -1974,7 +1973,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             (interface_ID,),
         ):
             if file[0]:
-                return file[0]
+                return str(self.data_folder / file[0])
         raise ValueError("No addon File founnd for interface ID", interface_ID)
 
     def showSelectedOnLotrointerface(self) -> None:
@@ -2055,7 +2054,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                         ).text(),
                     ),
                 ):
-                    file = item[0]
+                    file = str(self.data_folder / item[0])
             else:
                 file = self.getAddonFileFromInterfaceID(interface_ID, table_installed)
 
@@ -2251,7 +2250,14 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             for addon in self.c.execute(
                 f"SELECT InterfaceID, File, Name FROM {table.objectName()} WHERE Version LIKE '(Outdated) %'"  # noqa: S608
             ):
-                self.updateAddon(addon, table)
+                self.updateAddon(
+                    Addon(
+                        interface_id=addon[0],
+                        file=str(self.data_folder / addon[1]),
+                        name=addon[2],
+                    ),
+                    table,
+                )
 
         self.resetRemoteAddonsTables()
         self.searchSearchBarContents()
