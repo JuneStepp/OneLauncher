@@ -1687,7 +1687,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self.searchSearchBarContents()
 
     def loadPluginsIfNotDone(self) -> None:
-        if self.isTableEmpty(self.ui.tableSkinsInstalled):
+        if self.isTableEmpty(self.ui.tablePluginsInstalled):
             self.getInstalledPlugins()
 
     def loadSkinsIfNotDone(self) -> None:
