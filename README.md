@@ -23,11 +23,27 @@ An enhanced launcher for both [LOTRO](https://www.lotro.com/) and [DDO](https://
 
 ## Installation
 
-The easiest way to get OneLauncher is with a pre-built installer. Linux users should make sure a recent version of Wine is installed.
+The easiest way to get OneLauncher is with a [compiled release](https://Github.com/JuneStepp/OneLauncher/releases/latest). It can also be run with Python Poetry or Nix.
 
-- [**Installers**](https://Github.com/JuneStepp/OneLauncher/releases/latest)
-- [Wine instructions](https://github.com/lutris/docs/blob/master/WineDependencies.md#distribution-specific-instructions)
+- [Latest Release](https://Github.com/JuneStepp/OneLauncher/releases/latest)
+- [System Requirements](#system-requirements)
 - [Running from source code](CONTRIBUTING.md#development-install)
+
+### System Requirements
+
+#### Windows
+
+Windows 10 (1809 or later) or Windows 11 is required. These are what [Qt6 supports](https://doc.qt.io/qt-6/windows.html).
+
+#### Linux
+
+Most people should just need to [install WINE](https://github.com/lutris/docs/blob/master/WineDependencies.md#distribution-specific-instructions). Review the rest of these requirements if you have trouble after that.
+
+- WINE dependencies. See [these commands](https://github.com/lutris/docs/blob/master/WineDependencies.md#distribution-specific-instructions).
+- [OS version supported by Qt](https://doc.qt.io/qt-6/linux.html#supported-configurations)
+- Either `libxcb-cursor0` or `xcb-cursor0` if using X11.
+- `libz`
+- A Secret Service backend such as Gnome Keyring or KWallet
 
 ## Command Line Usage
 
