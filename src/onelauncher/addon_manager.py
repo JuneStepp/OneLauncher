@@ -1031,25 +1031,22 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         invalid_folder_names = [
             "ui",
             "skins",
-            "Plugins",
-            "Music",
-            "My Documents",
-            "Documents",
-            "The Lord of the Rings Online",
-            "Dungeons and Dragons Online",
-            "Dungeons & Dragons Online",
+            "plugins",
+            "music",
+            "my documents",
+            "documents",
+            "the lord of the rings online",
+            "dungeons and dragons online",
+            "dungeons & dragons online",
         ]
         with TemporaryDirectory() as tmp_dir_name:
             tmp_dir = Path(tmp_dir_name)
 
-            while True:
+            while True: # This outer loop is to check for nested invalid directories.
                 invalid_dir = None
-                for potential_invalid_path in addon_dir.glob("*"):
-                    if (
-                        potential_invalid_path.is_dir()
-                        and potential_invalid_path.name in invalid_folder_names
-                    ):
-                        invalid_dir = potential_invalid_path
+                for potential_invalid_dir in addon_dir.glob("*/"):
+                    if potential_invalid_dir.name.lower() in invalid_folder_names:
+                        invalid_dir = potential_invalid_dir
                         # Move everything from the invalid directory to a temporary one.
                         # This is done to prevent issues when a folder in the invalid folder
                         # has the same name as the invalid folder.
@@ -1059,7 +1056,9 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                         invalid_dir.rmdir()
 
                         # Move files that were originally in the invalid folder
-                        # to the root addon_dir
+                        # to the root addon_dir. 
+                        # Now the whole loop can run again to check for nested invalid
+                        # folders that have now been moved to the root addon_dir.
                         for path in tmp_dir.glob("*"):
                             move(str(path), str(addon_dir))
 
