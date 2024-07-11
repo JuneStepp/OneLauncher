@@ -43,7 +43,13 @@ from onelauncher.qtapp import get_app_style, get_qapp
 from .__about__ import __title__
 from .addons.config import AddonsConfigSection
 from .config_manager import ConfigManager
-from .game_config import GameConfig, GameConfigID, GameType, generate_game_config_id
+from .game_config import (
+    GameConfig,
+    GameConfigID,
+    GameType,
+    generate_game_config_id,
+    generate_game_name,
+)
 from .game_launcher_local_config import (
     GameLauncherLocalConfig,
     GameLauncherLocalConfigParseError,
@@ -568,18 +574,31 @@ class SetupWizard(QtWidgets.QWizard):
                     )
 
             # Remove any games that were not selected by the user.
-            not_selected_existing_games: list[GameConfigID] = [
+            not_selected_existing_game_ids: tuple[GameConfigID, ...] = tuple(
                 game_id
                 for game_id in existing_game_ids
                 if game_id not in selected_games
-            ]
-            for game_id in not_selected_existing_games:
+            )
+            for game_id in not_selected_existing_game_ids:
                 self.config_manager.delete_game_config(game_id=game_id)
 
+        existing_game_names = [
+            game_config.name
+            for game_id, game_config in selected_games.items()
+            if game_id in existing_game_ids
+        ]
         # Save games
         for game_id, game_config in selected_games.items():
+            if game_id in existing_game_ids:
+                name = game_config.name
+            else:
+                # Make sure that newly added games have unique names
+                name = generate_game_name(
+                    game_config=game_config, existing_game_names=existing_game_names
+                )
+                existing_game_names.append(name)
             self.config_manager.update_game_config_file(
-                game_id=game_id, config=game_config
+                game_id=game_id, config=attrs.evolve(game_config, name=name)
             )
 
 

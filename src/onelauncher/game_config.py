@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from datetime import datetime
 from enum import StrEnum
 from typing import TypeAlias
@@ -75,7 +76,7 @@ class GameConfig(Config):  # type: ignore[explicit-override]
 
     @name.default
     def _get_name_default(self) -> str:
-        return f"{self.game_type}" f"{' - Preview' if self.is_preview_client else ''}"
+        return generate_game_name(game_config=self)
 
     @override
     @staticmethod
@@ -89,6 +90,26 @@ class GameConfig(Config):  # type: ignore[explicit-override]
 
 
 GameConfigID: TypeAlias = str
+
+
+def generate_game_name(
+    game_config: GameConfig, existing_game_names: Iterable[str] = ()
+) -> str:
+    """
+    Generate default name for game based on its properties. The name can be made 
+    unique if `existing_game_names` are provided.
+    """
+    name = (
+        f"{game_config.game_type}"
+        f"{' - Preview' if game_config.is_preview_client else ''}"
+    )
+    if name not in existing_game_names:
+        return name
+
+    name_modifier = 2
+    while f"{name} {name_modifier}" in existing_game_names:
+        name_modifier += 1
+    return f"{name} {name_modifier}"
 
 
 def generate_game_config_id(game_config: GameConfig) -> GameConfigID:
