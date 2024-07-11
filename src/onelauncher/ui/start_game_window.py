@@ -38,7 +38,7 @@ from ..async_utils import app_cancel_scope
 from ..config import platform_dirs
 from ..config_manager import ConfigManager
 from ..game_launcher_local_config import GameLauncherLocalConfig
-from ..game_utilities import get_documents_config_dir
+from ..game_utilities import get_game_settings_dir
 from ..network.game_launcher_config import GameLauncherConfig
 from ..network.world import World
 from ..start_game import MissingLaunchArgumentError, get_qprocess
@@ -93,6 +93,7 @@ class StartGame(QtWidgets.QDialog):
         try:
             process = await get_qprocess(
                 game_launcher_config=self.game_launcher_config,
+                game_launcher_local_config=self.game_launcher_local_config,
                 game_config=self.config_manager.get_game_config(self.game_id),
                 default_locale=self.config_manager.get_program_config().default_locale,
                 world=self.world,
@@ -174,7 +175,8 @@ class StartGame(QtWidgets.QDialog):
                 run_startup_script(
                     script=script,
                     game_directory=game_config.game_directory,
-                    documents_config_dir=get_documents_config_dir(
+                    documents_config_dir=get_game_settings_dir(
+                        game_config=game_config,
                         launcher_local_config=self.game_launcher_local_config
                     ),
                 )

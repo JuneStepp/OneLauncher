@@ -3,6 +3,9 @@ from pathlib import Path
 
 from PySide6 import QtCore
 
+from onelauncher.game_launcher_local_config import GameLauncherLocalConfig
+from onelauncher.game_utilities import get_game_settings_dir
+
 from .game_config import ClientType, GameConfig
 from .network.game_launcher_config import GameLauncherConfig
 from .network.world import World
@@ -16,13 +19,14 @@ class MissingLaunchArgumentError(Exception):
 
 async def get_launch_args(
     game_launcher_config: GameLauncherConfig,
+    game_launcher_local_config: GameLauncherLocalConfig,
     game_config: GameConfig,
     default_locale: OneLauncherLocale,
     world: World,
     login_server: str,
     account_number: str,
     ticket: str,
-) -> str:
+) -> list[str]:
     """Return complete client launch arguments based on
        client_launch_args_template.
 
@@ -60,18 +64,31 @@ async def get_launch_args(
             f"Template has unrecognized launch arguments: {launch_args_template}"
         )
 
-    launch_args = launch_args_template
+    launch_args = launch_args_template.split(" ")
 
     # Tell the client that the high resolution texture dat file was not
     # updated. Client will not switch into high texture detail mode.
     if not game_config.high_res_enabled:
-        launch_args += game_launcher_config.high_res_patch_arg or " --HighResOutOfDate"
+        launch_args.append(
+            game_launcher_config.high_res_patch_arg or " --HighResOutOfDate"
+        )
+
+    # Setting the `--prefs` command configure both the game user preferences file and the
+    # game settings folder. The game settings folder is set to the folder of the
+    # user preferences file passed to `--prefs`.
+    # The filename "UserPreferences.ini" seems to be hardcoded into the launcher
+    # and client executables as the default.
+    game_settings_dir = get_game_settings_dir(
+        game_config=game_config, launcher_local_config=game_launcher_local_config
+    )
+    launch_args.extend(("--prefs", str(game_settings_dir / "UserPreferences.ini")))
 
     return launch_args
 
 
 async def get_qprocess(
     game_launcher_config: GameLauncherConfig,
+    game_launcher_local_config: GameLauncherLocalConfig,
     game_config: GameConfig,
     default_locale: OneLauncherLocale,
     world: World,
@@ -95,6 +112,7 @@ async def get_qprocess(
 
     launch_args = await get_launch_args(
         game_launcher_config=game_launcher_config,
+        game_launcher_local_config=game_launcher_local_config,
         game_config=game_config,
         default_locale=default_locale,
         world=world,
@@ -105,7 +123,7 @@ async def get_qprocess(
 
     process = QtCore.QProcess()
     process.setProgram(str(client_relative_path))
-    process.setArguments(launch_args.split(" "))
+    process.setArguments(launch_args)
     if os.name != "nt":
         edit_qprocess_to_use_wine(qprocess=process, wine_config=game_config.wine)
 

@@ -1,9 +1,11 @@
-from functools import cache
 from typing import Self, cast
 from xml.etree import ElementTree as ET
 from xml.etree.ElementTree import Element
 
+from asyncache import cached
+from cachetools import LRUCache
 from defusedxml import ElementTree  # type: ignore[import-untyped]
+from trio import Path
 
 from .game_config import GameType
 from .utilities import (
@@ -99,10 +101,10 @@ class GameLauncherLocalConfig:
             ) from e
 
     @classmethod
-    @cache
-    def from_game_dir(
+    @cached(LRUCache(maxsize=128))
+    async def from_game_dir(
         cls: type[Self],
-        *,
+        *, # Keyword only, so caching is consistant
         game_directory: CaseInsensitiveAbsolutePath,
         game_type: GameType,
     ) -> Self | None:
@@ -117,7 +119,9 @@ class GameLauncherLocalConfig:
             return None
         try:
             return cls.from_config_xml(
-                launcher_config_paths[0].read_text(encoding="UTF-8")
+                config_xml=await Path(launcher_config_paths[0]).read_text(
+                    encoding="UTF-8"
+                )
             )
         except GameLauncherLocalConfigParseError:
             return None
@@ -141,7 +145,10 @@ class GameLauncherLocalConfig:
             app_settings_element.append(element)
 
     def to_config_xml(self, existing_xml: str | None = None) -> str:
-        """Serialize into valid .launcherconfig text.
+        """
+        CODE NOT IN USE YET. TODO: Clear or idealy replace `GameLauncherLocalConfig.from_game`
+            cache when a launcher config file is updated.
+        Serialize into valid .launcherconfig text.
 
         Args:
             existing_xml (str | None, optional): Existing .launcherconfig text
@@ -172,7 +179,6 @@ class GameLauncherLocalConfig:
             app_settings, "Product.DocumentFolder", self.documents_config_dir_name
         )
 
-        GameLauncherLocalConfig.from_game_dir.cache_clear()
         ET.indent(root)
         pretty_xml_string: str = ElementTree.tostring(
             root, encoding="unicode", xml_declaration=True

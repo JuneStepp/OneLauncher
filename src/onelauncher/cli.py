@@ -114,6 +114,7 @@ def merge_game_config(
     high_res_enabled: bool | None,
     standard_game_launcher_filename: str | None,
     patch_client_filename: str | None,
+    game_settings_directory: Path | None,
     newsfeed: str | None,
     # Addons Section
     enabled_startup_scripts: list[Path] | None,
@@ -199,6 +200,11 @@ def merge_game_config(
             patch_client_filename
             if patch_client_filename is not None
             else game_config.patch_client_filename
+        ),
+        game_settings_directory=(
+            CaseInsensitiveAbsolutePath(game_settings_directory)
+            if game_settings_directory is not None
+            else game_config.game_settings_directory
         ),
         newsfeed=(newsfeed if newsfeed is not None else game_config.newsfeed),
         addons=addons_section,
@@ -435,6 +441,16 @@ def main(
     patch_client_filename: Annotated[
         Optional[str], GameOption(help=game_help("patch_client_filename"))
     ] = None,
+    game_settings_directory: Annotated[
+        Optional[Path],
+        GameOption(
+            help=game_help("game_settings_directory"),
+            exists=False,
+            file_okay=False,
+            dir_okay=True,
+            resolve_path=True,
+        ),
+    ] = None,
     newsfeed: Annotated[Optional[str], GameOption(help=game_help("newsfeed"))] = None,
     # Account options
     username: Annotated[
@@ -506,6 +522,7 @@ def main(
         high_res_enabled=high_res_enabled,
         standard_game_launcher_filename=standard_game_launcher_filename,
         patch_client_filename=patch_client_filename,
+        game_settings_directory=game_settings_directory,
         newsfeed=newsfeed,
         # Addons Section
         enabled_startup_scripts=startup_script,

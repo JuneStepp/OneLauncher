@@ -36,14 +36,19 @@ import trio
 from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
 
+from onelauncher.game_launcher_local_config import (
+    GameLauncherLocalConfig,
+)
 from onelauncher.qtapp import get_qapp
 
 from .__about__ import __title__
+from .config import platform_dirs
 from .config_manager import ConfigManager
 from .game_config import ClientType, GameConfigID
 from .game_utilities import (
     InvalidGameDirError,
     find_game_dir_game_type,
+    get_default_game_settings_dir,
 )
 from .network.game_launcher_config import GameLauncherConfig
 from .program_config import GamesSortingMode
@@ -146,7 +151,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
 
         self.ui.highResCheckBox.setChecked(game_config.high_res_enabled)
 
-        program_config = self.config_manager.get_program_config()
+        program_config = self.config_manager.read_program_config_file()
         self.add_languages_to_combobox(self.ui.gameLanguageComboBox)
         self.ui.gameLanguageComboBox.setCurrentText(
             game_config.locale.display_name
@@ -198,6 +203,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
         async with trio.open_nursery() as self.nursery:
             self.nursery.start_soon(self.indicate_unavailable_client_types)
             self.nursery.start_soon(self.setup_newsfeed_option)
+            self.nursery.start_soon(self.setup_game_settings_dir_option)
             # Will be canceled when the winddow is closed
             self.nursery.start_soon(trio.sleep_forever)
 
@@ -235,6 +241,29 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
 
         self.ui.gameNewsfeedLineEdit.setText(game_config.newsfeed or "")
 
+    async def setup_game_settings_dir_option(self) -> None:
+        self.ui.gameSettingsDirButton.clicked.connect(self.choose_game_settings_dir)
+
+        game_config = self.config_manager.read_game_config_file(self.game_id)
+        self.ui.gameSettingsDirLineEdit.setText(
+            str(game_config.game_settings_directory)
+            if game_config.game_settings_directory
+            else ""
+        )
+
+        # Try to set placeholder text to the default game settings directory
+        game_launcher_local_config = await GameLauncherLocalConfig.from_game_dir(
+            game_directory=game_config.game_directory, game_type=game_config.game_type
+        )
+        if game_launcher_local_config:
+            self.ui.gameSettingsDirLineEdit.setPlaceholderText(
+                str(
+                    get_default_game_settings_dir(
+                        launcher_local_config=game_launcher_local_config
+                    )
+                )
+            )
+
     def auto_manage_wine_checkbox_toggled(self, is_checked: bool) -> None:
         self.ui.winePrefixLabel.setEnabled(not is_checked)
         self.ui.winePrefixLineEdit.setEnabled(not is_checked)
@@ -250,6 +279,8 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             self.ui.browseGameConfigDirButton,
             self.ui.standardLauncherLabel,
             self.ui.standardLauncherLineEdit,
+            self.ui.gameSettingsDirLabel,
+            self.ui.gameSettingsDirWidget,
             self.ui.patchClientLabel,
             self.ui.patchClientLineEdit,
         ]
@@ -317,23 +348,13 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             edit_qprocess_to_use_wine(qprocess=process, wine_config=game_config.wine)
         process.startDetached()
 
-    def choose_game_dir(self) -> None:
-        gameDirLineEdit = self.ui.gameDirLineEdit.text()
-
-        if gameDirLineEdit == "":
-            if os.name == "nt":
-                starting_dir = Path(
-                    os.environ.get("PROGRAMFILES") or "C:/Program Files"
-                )
-            else:
-                starting_dir = Path("~").expanduser()
-        else:
-            starting_dir = Path(gameDirLineEdit)
-
+    def browse_for_directory(
+        self, start_dir: Path, caption: str
+    ) -> CaseInsensitiveAbsolutePath | None:
         filename = QtWidgets.QFileDialog.getExistingDirectory(
             self,
-            "Game Directory",
-            str(starting_dir),
+            caption,
+            str(start_dir),
             options=QtWidgets.QFileDialog.Option.ShowDirsOnly,
         )
 
@@ -341,6 +362,24 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             return None
 
         folder = CaseInsensitiveAbsolutePath(filename)
+        return folder
+
+    def choose_game_dir(self) -> None:
+        gameDirLineEdit = self.ui.gameDirLineEdit.text()
+
+        if gameDirLineEdit == "":
+            if os.name == "nt":
+                start_dir = Path(os.environ.get("PROGRAMFILES") or "C:/Program Files")
+            else:
+                start_dir = Path("~").expanduser()
+        else:
+            start_dir = Path(gameDirLineEdit)
+
+        folder = self.browse_for_directory(
+            start_dir=start_dir, caption="Game Directory"
+        )
+        if folder is None:
+            return None
         game_config = self.config_manager.read_game_config_file(self.game_id)
         with suppress(InvalidGameDirError):
             if find_game_dir_game_type(folder) == game_config.game_type:
@@ -351,6 +390,15 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
                     f"{game_config.game_type}.",
                     self,
                 )
+
+    def choose_game_settings_dir(self) -> None:
+        folder = self.browse_for_directory(
+            start_dir=platform_dirs.user_documents_path,
+            caption="Game Settings Directory",
+        )
+        if folder is None:
+            return None
+        self.ui.gameSettingsDirLineEdit.setText(str(folder))
 
     def start_setup_wizard(self, games_managing: bool = False) -> None:
         self.hide()
@@ -422,6 +470,11 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
                 standard_game_launcher_filename=(
                     self.ui.standardLauncherLineEdit.text() or None
                 ),
+                game_settings_directory=CaseInsensitiveAbsolutePath(
+                    self.ui.gameSettingsDirLineEdit.text()
+                )
+                if self.ui.gameSettingsDirLineEdit.text()
+                else None,
                 patch_client_filename=self.ui.patchClientLineEdit.text(),
             ),
         )

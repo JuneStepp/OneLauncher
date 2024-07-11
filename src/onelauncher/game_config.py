@@ -57,6 +57,13 @@ class GameConfig(Config):  # type: ignore[explicit-override]
         default="patchclient.dll",
         help="Name of the dll used for game patching. Ex. patchclient.dll",
     )
+    game_settings_directory: CaseInsensitiveAbsolutePath | None = config_field(
+        default=None,
+        help=(
+            "Custom game settings directory. This is where user "
+            "preferences, screenshots, and addons are stored."
+        ),
+    )
     newsfeed: str | None = config_field(
         default=None, help="URL of the feed (RSS, ATOM, ect) to show in the launcher"
     )

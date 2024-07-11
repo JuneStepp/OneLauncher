@@ -38,7 +38,7 @@ from onelauncher.qtapp import get_qapp
 from .config import platform_dirs
 from .config_manager import ConfigManager
 from .game_launcher_local_config import GameLauncherLocalConfig
-from .game_utilities import get_documents_config_dir
+from .game_utilities import get_default_game_settings_dir
 from .patching_progress_monitor import PatchingProgressMonitor
 from .ui.patching_window_uic import Ui_patchingDialog
 from .utilities import CaseInsensitiveAbsolutePath
@@ -229,7 +229,9 @@ class PatchWindow(QtWidgets.QDialog):
         self.process.start()
 
     def get_windows_patching_log_path(self) -> CaseInsensitiveAbsolutePath:
-        log_folder_name = get_documents_config_dir(
+        # The name of the log folder is the same as the default name of the
+        # game settings folder.
+        log_folder_name = get_default_game_settings_dir(
             launcher_local_config=self.launcher_local_config
         ).name
 

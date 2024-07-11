@@ -60,7 +60,7 @@ class GameServicesInfo:
     async def from_game_config(cls: type[Self], game_config: GameConfig) -> Self | None:
         """Simplified shortcut for getting `GameServicesInfo` object.
         Will return `None` if any exceptions are raised."""
-        game_launcher_local_config = GameLauncherLocalConfig.from_game_dir(
+        game_launcher_local_config = await GameLauncherLocalConfig.from_game_dir(
             game_directory=game_config.game_directory, game_type=game_config.game_type
         )
         if game_launcher_local_config is None:
@@ -118,7 +118,7 @@ class GameServicesInfo:
         }
 
     @staticmethod
-    async def _get_datacenter_dict( # type:ignore [misc]
+    async def _get_datacenter_dict(  # type:ignore [misc]
         gls_datacenter_service: str, game_datacenter_name: str
     ) -> dict[str, Any]:
         """Return dictionary of GetDatacenters SOAP operation response.
@@ -133,7 +133,7 @@ class GameServicesInfo:
         client = await get_soap_client(gls_datacenter_service)
 
         try:
-            return (await client.service.GetDatacenters(game=game_datacenter_name))[0] # type: ignore[no-any-return]
+            return (await client.service.GetDatacenters(game=game_datacenter_name))[0]  # type: ignore[no-any-return]
         except zeep.exceptions.Error as e:
             raise GLSServiceError("Error while parsing GetDatacenters response") from e
         except AttributeError as e:

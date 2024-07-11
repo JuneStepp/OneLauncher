@@ -1,7 +1,7 @@
 import contextlib
 
 from .config import platform_dirs
-from .game_config import GameType
+from .game_config import GameConfig, GameType
 from .game_launcher_local_config import (
     GameLauncherLocalConfig,
     GameLauncherLocalConfigParseError,
@@ -16,7 +16,6 @@ class InvalidGameDirError(ValueError):
 
 def find_game_dir_game_type(game_dir: CaseInsensitiveAbsolutePath) -> GameType:
     """Attempt to find the game type associated with a given folder.
-       Will return None, if `game_dir` appears to not be a valid game directory.
 
     Raises:
         InvalidGameDirError: `game_dir` is not a valid game directory
@@ -45,14 +44,25 @@ def find_game_dir_game_type(game_dir: CaseInsensitiveAbsolutePath) -> GameType:
         raise InvalidGameDirError("Game dir launcher config file wasn't valid") from e
 
 
-def get_documents_config_dir(
+def get_default_game_settings_dir(
     launcher_local_config: GameLauncherLocalConfig,
+) -> CaseInsensitiveAbsolutePath:
+    """
+    See `get_game_settings_dir`. This is the default for when the user has not customized it.
+    """
+    return CaseInsensitiveAbsolutePath(
+        platform_dirs.user_documents_path
+        / launcher_local_config.documents_config_dir_name
+    )
+
+
+def get_game_settings_dir(
+    game_config: GameConfig, launcher_local_config: GameLauncherLocalConfig
 ) -> CaseInsensitiveAbsolutePath:
     """
     The folder in the user documents dir that the game stores information in.
     This includes addons, screenshots, user config files, ect
     """
-    return CaseInsensitiveAbsolutePath(
-        platform_dirs.user_documents_path
-        / launcher_local_config.documents_config_dir_name
+    return game_config.game_settings_directory or get_default_game_settings_dir(
+        launcher_local_config=launcher_local_config
     )

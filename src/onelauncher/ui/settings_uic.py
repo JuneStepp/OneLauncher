@@ -193,16 +193,39 @@ class Ui_dlgSettings(object):
         self.patchClientLabel.setObjectName(u"patchClientLabel")
         self.patchClientLabel.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
 
-        self.formLayout_2.setWidget(6, QFormLayout.ItemRole.LabelRole, self.patchClientLabel)
+        self.formLayout_2.setWidget(7, QFormLayout.ItemRole.LabelRole, self.patchClientLabel)
 
         self.patchClientLineEdit = QLineEdit(self.pageGame)
         self.patchClientLineEdit.setObjectName(u"patchClientLineEdit")
 
-        self.formLayout_2.setWidget(6, QFormLayout.ItemRole.FieldRole, self.patchClientLineEdit)
+        self.formLayout_2.setWidget(7, QFormLayout.ItemRole.FieldRole, self.patchClientLineEdit)
 
         self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.formLayout_2.setItem(5, QFormLayout.ItemRole.FieldRole, self.verticalSpacer_2)
+
+        self.gameSettingsDirLabel = QLabel(self.pageGame)
+        self.gameSettingsDirLabel.setObjectName(u"gameSettingsDirLabel")
+
+        self.formLayout_2.setWidget(6, QFormLayout.ItemRole.LabelRole, self.gameSettingsDirLabel)
+
+        self.gameSettingsDirWidget = QWidget(self.pageGame)
+        self.gameSettingsDirWidget.setObjectName(u"gameSettingsDirWidget")
+        self.gameSettingsDirLayout = QHBoxLayout(self.gameSettingsDirWidget)
+        self.gameSettingsDirLayout.setObjectName(u"gameSettingsDirLayout")
+        self.gameSettingsDirLayout.setContentsMargins(0, 0, 0, 0)
+        self.gameSettingsDirLineEdit = QLineEdit(self.gameSettingsDirWidget)
+        self.gameSettingsDirLineEdit.setObjectName(u"gameSettingsDirLineEdit")
+
+        self.gameSettingsDirLayout.addWidget(self.gameSettingsDirLineEdit)
+
+        self.gameSettingsDirButton = QToolButton(self.gameSettingsDirWidget)
+        self.gameSettingsDirButton.setObjectName(u"gameSettingsDirButton")
+
+        self.gameSettingsDirLayout.addWidget(self.gameSettingsDirButton)
+
+
+        self.formLayout_2.setWidget(6, QFormLayout.ItemRole.FieldRole, self.gameSettingsDirWidget)
 
         self.stackedWidget.addWidget(self.pageGame)
         self.pageWine = QWidget()
@@ -419,6 +442,17 @@ class Ui_dlgSettings(object):
 #if QT_CONFIG(tooltip)
         self.patchClientLineEdit.setToolTip(QCoreApplication.translate("dlgSettings", u"Patch client DLL filename", None))
 #endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.gameSettingsDirLabel.setToolTip(QCoreApplication.translate("dlgSettings", u"<html><head/><body><p>The folder where user preferences, screenshots, and addons are stored. <span style=\" font-weight:700;\">Changing this does not move your existing files. It also won't take affect when using the official game launcher.</span></p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+        self.gameSettingsDirLabel.setText(QCoreApplication.translate("dlgSettings", u"Settings Directory", None))
+#if QT_CONFIG(tooltip)
+        self.gameSettingsDirLineEdit.setToolTip(QCoreApplication.translate("dlgSettings", u"<html><head/><body><p>The folder where user preferences, screenshots, and addons are stored. <span style=\" font-weight:700;\">Changing this does not move your existing files. It also won't take affect when using the official game launcher.</span></p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.gameSettingsDirButton.setToolTip(QCoreApplication.translate("dlgSettings", u"Select settings folder from filesystem", None))
+#endif // QT_CONFIG(tooltip)
+        self.gameSettingsDirButton.setText(QCoreApplication.translate("dlgSettings", u"...", None))
         self.autoManageWineLabel.setText(QCoreApplication.translate("dlgSettings", u"Auto Manage Wine", None))
 #if QT_CONFIG(tooltip)
         self.winePrefixLabel.setToolTip(QCoreApplication.translate("dlgSettings", u"Path to WINE prefix", None))

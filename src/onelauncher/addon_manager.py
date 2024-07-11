@@ -57,7 +57,7 @@ from .config import platform_dirs
 from .config_manager import ConfigManager
 from .game_config import GameConfigID, GameType
 from .game_launcher_local_config import GameLauncherLocalConfig
-from .game_utilities import get_documents_config_dir
+from .game_utilities import get_game_settings_dir
 from .ui.addon_manager_uic import Ui_winAddonManager
 from .utilities import CaseInsensitiveAbsolutePath
 
@@ -320,8 +320,9 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         self.openDB()
 
-        self.data_folder = get_documents_config_dir(
-            launcher_local_config=launcher_local_config
+        self.data_folder = get_game_settings_dir(
+            game_config=self.config_manager.get_game_config(self.game_id),
+            launcher_local_config=launcher_local_config,
         )
         if game_config.game_type == GameType.DDO:
             self.data_folder_skins = self.data_folder / "ui/skins"
