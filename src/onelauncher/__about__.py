@@ -25,6 +25,6 @@ version_parsed = Version(__version__)
 __copyright__ = "(C) 2019-2024 June Stepp"
 __copyright_history__ = (
     "Based on PyLotRO\n(C) 2009-2010 AJackson\n"
-    "Based on CLI launcher for LOTRO\n(C) 2007-2010 SNy\n"
+    "Based on LotROLinux\n(C) 2007-2008 AJackson\n"
     "Based on CLI launcher for LOTRO\n(C) 2007-2010 SNy"
 )
