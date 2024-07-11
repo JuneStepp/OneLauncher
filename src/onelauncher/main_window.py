@@ -721,13 +721,18 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             self.AddLog("Game directory not found", is_error=True)
             return False
 
-        with contextlib.suppress(InvalidGameDirError):
+        try:
             if (
                 find_game_dir_game_type(game_config.game_directory)
                 != game_config.game_type
             ):
-                self.AddLog("Game directory is not valid", is_error=True)
+                self.AddLog("Game directory game type does not match config", is_error=True)
                 return False
+        except InvalidGameDirError:
+            message = "Game directory is not valid"
+            logger.exception(message)
+            self.AddLog(message=message, is_error=True)
+            return False
 
         return True
 
