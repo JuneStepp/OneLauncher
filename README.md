@@ -1,115 +1,124 @@
-<img src="https://i.imgur.com/tlWsBoY.png" alt="OneLauncher window examples">
+# [OneLauncher](https://Github.com/JuneStepp/OneLauncher)
 
-OneLauncher is a custom launcher for The Lord of the Rings Online and Dungeons & Dragons Online
-for Linux, Windows, and Mac OS X (testers needed) based on PyLotRO by AJackson. PyLotRO
-was originally made to allow Linux and Mac players to enjoy LOTRO, but fell
-out of relevance once it was no longer needed. This project aims to make a launcher
-with new and interesting features that will always be available whether it's for private
-servers after the games have shut down, if the main launcher stops working on Linux, or
-if people see that it is The OneLauncher to Rule Them All and use it for that reason too.
-It is actually mainly being developed as a fun learning experience and to show my
-love for these games.
+![OneLauncher window examples](https://i.imgur.com/UtCIHSl.png)
 
-[OneLauncher](https://github.com/JuneStepp/OneLauncher)
-(c) 2019-2021 June Stepp
+[![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/junestepp/onelauncher?include_prereleases)](https://Github.com/JuneStepp/OneLauncher/releases/latest) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Based on [PyLotRO](https://github.com/nwestfal/pylotro)
-(C) 2009 AJackson
+An enhanced launcher for both [LOTRO](https://www.lotro.com/) and [DDO](https://www.ddo.com/) with many features including an addons manager for plugins, skins, and music.
 
-Based on [LotROLinux](https://web.archive.org/web/20120424132519/http://www.lotrolinux.com/)
-(C) 2007-2008 AJackson
+## Features
 
-Based on [CLI launcher for
-LOTRO](https://sny.name/LOTRO/) (C) 2007-2009 SNy
-
-# Features Overview
-
-- Patching and launching of LOTRO and DDO
-- Plugins, skins, and music manager
 - Multiple accounts support
 - Password saving
-- External scripting support for add-ons
-- Auto optimum WINE setup for Mac and Linux
-- Easy game detection
+- Plugins, skins, and music manager
+- External scripting support for addons
+- Auto WINE setup for Linux
+- Multiple clients support
+- *more*
 
-# Basic Usage
+## Installation
 
-Simply download the executable for your operating system from 
-[the releases page](https://Github.com/JuneStepp/OneLauncher/releases) and install it.
-If on Linux or Mac make sure WINE is installed, so all dependencies for the version OneLauncher
-installs are met.
+The easiest way to get OneLauncher is with a [compiled release](https://Github.com/JuneStepp/OneLauncher/releases/latest). It can also be run with Python Poetry or Nix.
 
-# Advanced Usage
+- [Latest Release](https://Github.com/JuneStepp/OneLauncher/releases/latest)
+- [System Requirements](#system-requirements)
+- [Running from source code](CONTRIBUTING.md#development-install)
 
-## Launch Arguments
+### System Requirements
 
-- `--game`: Specifies starting game. Accepted values are `LOTRO`, `DDO`, `LOTRO.Test`, and `DDO.Test`
-- `--language`: Specifies game client language. Accepted values are `EN`, `DE`, and `FR`
+#### Windows
 
-## Separate Settings Folders for Default and Preview Game Versions
+Windows 10 (1809 or later) or Windows 11 is required. These are what [Qt6 supports](https://doc.qt.io/qt-6/windows.html).
 
-OneLauncher supports custom game settings folders through the `ddo.launcherconfig` and `lotro.launcherconfig` files located in their respective game install folders. Changing the value for `Product.DocumentFolder` will register the new folder with both OneLauncher and the game. Setting different directory names for the normal and preview versions of games allows for completely separate in-game settings and add-ons between them. The only exception is that add-on startup scripts installed on both versions of the game will run on both versions if enabled for one. 
+#### Linux
 
-## Custom WINE Prefix
+Most people should just need to [install WINE](https://github.com/lutris/docs/blob/master/WineDependencies.md#distribution-specific-instructions). Review the rest of these requirements if you have trouble after that.
 
-A custom WINE prefix can be used by changing the WINE prefix path in the advanced section of the WINE settings tab. ESYNC, FSYNC and DXVK will not be automatically enabled on the custom prefix and the shipped version of WINE will not be kept up to date. A different WINE executable can be specified in the settings if that is an issue. The easiest way to enable the built-in prefix again is by re-running the setup wizard. Please don't complain about the games not working if there are only issues with your custom config.
+- WINE dependencies. See [these commands](https://github.com/lutris/docs/blob/master/WineDependencies.md#distribution-specific-instructions).
+- [OS version supported by Qt](https://doc.qt.io/qt-6/linux.html#supported-configurations)
+- Either `libxcb-cursor0` or `xcb-cursor0` if using X11.
+- `libz`
+- A Secret Service backend such as Gnome Keyring or KWallet
 
-# Development Install
+## Command Line Usage
 
-OneLauncher uses [Poetry](https://python-poetry.org) for dependency management. To get everything setup simply run `poetry install --no-root` in the root folder of the OneLauncher source code.
+All settings can be overridden from the command line. This is especially useful for making custom shortcuts. For example, loading the LOTRO preview client in French could be done with `--game lotro_preview --locale fr`.
 
-# To run from source
+```txt
+OneLauncher 2.0                                                                                                                                                           
+                                                                                                                                                                               
+  Usage: onelauncher [OPTIONS] COMMAND [ARGS]...                                                                                                                               
+                                                                                                                                                                               
+╭─ Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --version                       Print version and exit.                                                                                                                     │
+│ --install-completion            Install completion for the current shell.                                                                                                   │
+│ --show-completion               Show completion for the current shell, to copy it or customize the installation.                                                            │
+│ --help                -h        Show this message and exit.                                                                                                                 │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Program Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --default-locale                                                               TEXT                                 The default language for games and UI.                  │
+│ --always-use-default-locale-for-ui    --no-always-use-default-locale-for-ui                                         Use default language for UI regardless of game language │
+│ --games-sorting-mode                                                           [priority|last_played|alphabetical]  Order to show games in UI                               │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Game Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --game                                                        GAME_TYPE_OR_ID            Which game to load. (lotro, lotro_preview, ddo, ddo_preview, or a game config ID)  │
+│ --game-directory                                              DIRECTORY                  The game's install directory                                                       │
+│ --locale                                                      TEXT                       Language used for game                                                             │
+│ --client-type                                                 [WIN64|WIN32|WIN32Legacy]  Which version of the game client to use                                            │
+│ --high-res-enabled                   --no-high-res-enabled                               If the high resolution game files should be used                                   │
+│ --standard-game-launcher-filename                             TEXT                       The name of the standard game launcher executable. Ex. LotroLauncher.exe           │
+│ --patch-client-filename                                       TEXT                       Name of the dll used for game patching. Ex. patchclient.dll                        │
+│ --game-settings-directory                                     DIRECTORY                  Custom game settings directory. This is where user preferences, screenshots, and   │
+│                                                                                          addons are stored.                                                                 │
+│ --newsfeed                                                    TEXT                       URL of the feed (RSS, ATOM, ect) to show in the launcher                           │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Game Account Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --username                    TEXT  Login username                                                                                                                          │
+│ --display-name                TEXT  Name shown instead of account name                                                                                                      │
+│ --last-used-world-name        TEXT  World last logged into. Will be the default at next login                                                                               │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Game Addons Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --startup-script        FILE  Python scripts run before game launch. Paths are relative to the game's documents config directory                                            │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Game WINE Options ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --builtin-prefix-enabled       --no-builtin-prefix-enabled               If WINE should be automatically managed                                                            │
+│ --user-wine-executable-path                                   FILE       Path to the WINE executable to use when WINE isn't automatically managed                           │
+│ --user-prefix-path                                            DIRECTORY  Path to the WINE prefix to use when WINE isn't automatically managed                               │
+│ --wine-debug-level                                            TEXT       WINE debug level to use                                                                            │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
 
-`poetry run ./RunOneLauncher`
+## Contributing
 
-Or.
+See [CONTRIBUTING.md](CONTRIBUTING.md)
 
-`poetry run python RunOneLauncher`
+## Information For Addon Developers
 
-# To build
+### Getting Your Addon in OneLauncher
 
-This command is needed due to a bug when building with cx-freeze and Poetry
+I follow the RSS feed on [LotroInterface](https://lotrointerface.com) and will add any addons that look to be in the correct format. Compendium files are **not** required.
+You can open an issue or email me if your addon still needs to be added.
 
-`poetry run python -m pip install --force-reinstall pip setuptools wheel importlib-metadata cx-freeze==6.5.3`
+### Archive Format
 
-This is the actual build command
+- Addons must be uploaded as a zip!
+- Archive should have a descriptive name (i.e. not "skin" or "plugin")
+- It's okay but not recommended if the archive has no root folder, multiple root folders, or includes part of the path to the data folder like "ui/skins" or "Plugins".
 
-`poetry run python setup.py build`
+### Compendium Files
 
-The project can only be built for the os that the build script is run on,
-so it has to be built on every target os individually. The installers can be
-cross compiled with InstallBuilder though.
-
-# Add-on Manager Info For Developers
-
-## Getting Your Add-on in OneLauncher
-
-I follow the the RSS feed on [LotroInterface](https://lotrointerface.com) and will add any add-ons that look
-to be in the correct format. You can open an issue here or email me if you feel
-your add-on needs to be added.
-
-## Archive Format
-
-- Add-ons must be uploaded as a zip!
-- Zip should have descriptive name (i.e not "skin" or "plugin")
-- It's not recommended, but ok if zip has no root folder, multiple root folders, or includes part of the path to the data folder like "ui/skins" or "Plugins".
-
-## Compendium Files
-
-You don't need to make a compendium file unless you need dependencies to be auto installed or want a startup script to be run. One is auto generated during installation.
-
-Compendium files should be placed inside the top level directory of your add-on and their names follow the format:
+Compendium files should be placed inside the top-level directory of your addon, and their names follow the format:
 
 `{NAME}.{plugin/skin/music}compendium`
 An example is `Example Plugin.plugincompendium`
 
 The contents of compendium files follow the format:
 
-```
-<?xml version="1.0" ?>
+```xml
 <{Plugin/Skin/Music}Config>
     <Id>{LOTRO INTERFACE ID}</Id>
     <Name>{NAME}</Name>
+    <Description>{DESCRIPTION}</Description>
     <Version>{VERSION}</Version>
     <Author>{AUTHOR}</Author>
     <InfoUrl>http://www.lotrointerface.com/downloads/info{LOTRO INTERFACE ID}</InfoUrl>
@@ -119,23 +128,23 @@ The contents of compendium files follow the format:
         <descriptor>{AUTHOR}\{NAME}.plugin</descriptor>
         <!--More descriptors can be added if more plugins are part of the main plugin. This is a representation of the paths to all the .plugin files.-->
     </Descriptors>
-    <!--Dependencies can be added for any type of add-on. The dependency doesn't have to be of the same add-on type as what is dependent on it-->
+    <!--Dependencies can be added for any type of addon. The dependency doesn't have to be of the same addon type as what is dependent on it-->
     <Dependencies>
         <dependency>{INTERFACE ID OF DEPENDENCY}</dependency>
         <!--Any amount of dependencies are fine-->
     </Dependencies>
-    <!--An add-on can request permission to run a Python script at every game launch.-->
+    <!--An addon can request permission to run a Python script at every game launch.-->
     <StartupScript>{PATH TO PYTHON SCRIPT IN SAME FORMAT AS DESCRIPTORS}</StartupScript>
 </{Plugin/Skin/Music}Config>
 ```
 
 An example is:
 
-```
-<?xml version="1.0" ?>
+```xml
 <PluginConfig>
     <Id>314159</Id>
     <Name>Example Plugin</Name>
+    <Description>Does example things</Description>
     <Version>4.0.4</Version>
     <Author>June Stepp</Author>
     <InfoUrl>http://www.lotrointerface.com/downloads/info314159</InfoUrl>
@@ -152,27 +161,56 @@ An example is:
 </PluginConfig>
 ```
 
-## Patches
+There is a [vscode extension](https://github.com/lunarwtr/vscode-lotro-api) by @lunarwtr that can lint compendium and other related files. It includes [XML schemas](https://github.com/lunarwtr/vscode-lotro-api/tree/main/xsds) you can manually reference as well.
 
-Patches must follow the same format as the add-on that is being patched. The most common issue is leaving out folders farther up the tree from what is changed.
+### Patches
+
+Patches must follow the same format as the addon that is being patched. The most common issue is leaving out folders farther up the tree from what is changed.
 
 Here is a list of possible issues to keep in mind when making a patch:
 
-Make sure patch...
+Make sure patch…
 
-- Follows the exact same folder structure as the add-on being patched.
-- Doesn't edit the compendium file of the add-on being patched.
+- Follows the exact same folder structure as the addon being patched.
+- Doesn't edit the compendium file of the addon being patched.
 - Is installed after what is being patched.
 - Has clear name.
 
-## Collections
+### Collections
 
-Collections of add-ons can be made by listing the add-ons you would like in the collection as dependencies of your add-on. See the [Compendium Files](#Compendium-Files) section for how to add dependencies to your add-on.
+Collections of addons can be made by listing the addons you would like in the collection as dependencies of your addon. See the [Compendium Files](#compendium-files) section for how to add dependencies to your addon.
 
-## Dependencies
+### Dependencies
 
-Dependencies will be installed automatically after your add-on. See the [Compendium Files](#Compendium-Files) section for how to add dependencies to your add-on.
+Dependencies will be installed automatically after your addon. See the [Compendium Files](#compendium-files) section for how to add dependencies to your addon. Turbine Utilities uses ID `0`.
 
-## Startup Scripts
+### Startup Scripts
 
-Startup scripts are Python scripts that will be run before every game launch. When installing an add-on with a startup script the user will be prompted for permission for the script to run and shown the contents of the script. It is likely that users will not give permission for your script to run, so make sure to program in a message for that situation. See the [Compendium Files](#Compendium-Files) section for how to add a startup script to your add-on.
+Startup scripts are Python scripts that will be run before every game launch. When installing an addon with a startup script, the user will be prompted for permission for the script to run and shown the contents of the script. Addons should anticipate and handle the user not giving permission. See the [Compendium Files](#compendium-files) section for how to add a startup script to your addon.
+
+#### Builtin Variables
+
+These are pre-set variables that you can access in your startup script.
+
+- `__file__`: The string path to your startup script.
+- `__game_dir__`: The string path to the current game directory.
+- `__game_config_dir__`: The string path to the current game settings folder. This is normally "The Lord of the Rings Online" or "Dungeons and Dragons Online" in the user's documents folder, but it can be configured differently.
+
+## Custom Clients
+
+### OneLauncher Banner Image
+
+Game banner images are displayed above the newsfeed in OneLauncher and are normally expected to be 300x136 pixels. Images following the path `{Game Directory}/{Locale Resources Folder}/banner.png` will replace the default banner for that game and locale. If there is no image for a user's selected locale, the default image will be shown. An example path is `C://Program Files/Standing Stone Games/Lord of The Rings Online/en/banner.png`.
+
+## License
+
+GPLv3+ License. Copyright 2019-2024 - June Stepp.
+See the [LICENSE](LICENSE.md) file for details.
+
+The [Font Awesome](https://github.com/FortAwesome/Font-Awesome/blob/master/LICENSE.txt) font is licensed under the [SIL Open Font License](http://scripts.sil.org/OFL).
+
+The [Material Design Icons](https://github.com/Templarian/MaterialDesign/blob/master/LICENSE) font is licensed under the [Apache License Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+
+The Lord of the Rings Online is a trademark of Middle-earth Enterprises.
+Dungeons & Dragons Online is a trademark of Wizards of the Coast LLC.
+The Lord of the Rings Online and Dungeons & Dragons Online games and logos are owned by Standing Stone Games LLC. I am not affiliated with Standing Stone Games LLC, Middle-earth Enterprises, or Wizards of the Coast LLC in any way.

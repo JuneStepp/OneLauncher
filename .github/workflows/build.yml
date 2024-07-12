@@ -1,50 +1,84 @@
 name: build
 
+permissions:
+  contents: write # For making release
+
 on:
   push:
     tags:
       - "v*.*"
 
 jobs:
-  release:
+  build:
     name: Build for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, windows-latest]
+        os: [ubuntu-22.04, windows-latest]
         include:
-          - os: ubuntu-18.04
-            artifact_name: OneLauncher-Linux
+          - os: ubuntu-22.04
+            artifact_path_name: onelauncher.bin
+            artifact_rename: OneLauncher-Linux.bin
           - os: windows-latest
-            artifact_name: OneLauncher-Windows
-          # - os: macOs-10.15
-          #   artifact_name: OneLauncher-Mac
+            artifact_path_name: OneLauncher.msi
+            artifact_rename: OneLauncher-Windows.msi
 
     steps:
-      - uses: actions/checkout@v1
-      - name: Linux dependencies
+      - uses: actions/checkout@v4
+      - name: Install poetry
+        run: pipx install poetry
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "poetry"
+      - run: poetry install
+      - name: Install ccache for Nuitka
         if: runner.os == 'Linux'
+        run: sudo apt-get install -y ccache
+      - name: Setup Nuitka env variables
+        shell: bash
         run: |
-          sudo add-apt-repository ppa:jonathonf/backports
-          sudo apt-get update
-          sudo apt-get install sqlite3
-      - name: Set up Python
-        uses: actions/setup-python@v1
+          echo "NUITKA_CACHE_DIR=nuitka/cache" >> $GITHUB_ENV
+          echo "PYTHON_VERSION=$(python --version | awk '{print $2}' | cut -d '.' -f 1,2)" >> $GITHUB_ENV
+      - name: Cache Nuitka cache directory
+        if: ${{ !inputs.disable-cache }}
+        uses: actions/cache@v4
         with:
-          python-version: ^3.9.0
-      - name: Setup Poetry
-        run: |
-          pip install --upgrade pip
-          pip install poetry
-      - name: Install dependencies
-        run: poetry install --no-root
-      # Fixes bug in building with cx-freeze and Poetry
-      - name: Fix dependencies
-        run: poetry run python -m pip install --force-reinstall pip setuptools wheel importlib-metadata cx-freeze==6.5.3
+          path: ${{ env.NUITKA_CACHE_DIR }}
+          key: ${{ runner.os }}-${{ runner.arch }}-python-${{ env.PYTHON_VERSION }}-nuitka-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-python-${{ env.PYTHON_VERSION }}-
+            ${{ runner.os }}-${{ runner.arch }}-python-
+            ${{ runner.os }}-${{ runner.arch }}-
+      - name: Setup dotnet for building Windows installer
+        if: runner.os == 'Windows'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
       - name: Build
-        run: poetry run python setup.py build
+        run: poetry run python -m build
+      - name: Rename artifact
+        run: mv build/out/${{ matrix.artifact_path_name }} build/out/${{ matrix.artifact_rename }}
       - name: Upload build artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact_name }}
-          path: build
+          name: ${{ matrix.artifact_rename }}
+          path: build/out/${{ matrix.artifact_rename }}
+          if-no-files-found: error
+  release:
+    # Only make a release for new tags
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [build]
+    runs-on: ubuntu-latest
+    name: Make draft release and upload artifacts
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: build_artifacts/
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          fail_on_unmatched_files: true
+          files: "${{ github.workspace }}/build_artifacts/*/*"

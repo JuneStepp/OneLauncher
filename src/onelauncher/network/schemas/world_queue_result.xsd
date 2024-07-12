@@ -1,0 +1,26 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="Result">
+        <xs:complexType>
+            <xs:all>
+                <xs:element type="xs:string" name="Command" minOccurs="0" />
+                <xs:element type="HResultHex" name="HResult" minOccurs="1" />
+                <xs:element type="xs:string" name="QueueName" minOccurs="0" />
+                <xs:element type="hex" name="QueueNumber" minOccurs="0" />
+                <xs:element type="hex" name="NowServingNumber" minOccurs="0" />
+                <xs:element type="xs:string" name="LoginTier" minOccurs="0" />
+                <xs:element type="hex" name="ContextNumber" minOccurs="0" />
+            </xs:all>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:simpleType name="HResultHex">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="0[xX][A-Fa-f0-9]{8}" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="hex">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="0[xX][A-Fa-f0-9]+" />
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

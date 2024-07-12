@@ -1,0 +1,40 @@
+<!-- Originally taken from Plugin Compendium with permision from lunarwtr-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="Favorites">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="Ui"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Ui">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="UID"/>
+        <xs:element ref="UIName"/>
+        <xs:element ref="UIAuthorName"/>
+        <xs:element ref="UIVersion"/>
+        <xs:element ref="UIUpdated"/>
+        <xs:element ref="UIDownloads"/>
+        <xs:element ref="UICategory"/>
+        <xs:element ref="UIDescription"/>
+        <xs:element ref="UIFile"/>
+        <xs:element ref="UIMD5"/>
+        <xs:element ref="UISize"/>
+        <xs:element ref="UIFileURL"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="UID" type="xs:int"/>
+  <xs:element name="UIName" type="xs:string"/>
+  <xs:element name="UIAuthorName" type="xs:string"/>
+  <xs:element name="UIVersion" type="xs:string"/>
+  <xs:element name="UIUpdated" type="xs:long"/>
+  <xs:element name="UIDownloads" type="xs:int"/>
+  <xs:element name="UICategory" type="xs:string"/>
+  <xs:element name="UIDescription" type="xs:string"/>
+  <xs:element name="UIFile" type="xs:string"/>
+  <xs:element name="UIMD5" type="xs:string"/>
+  <xs:element name="UISize" type="xs:int"/>
+  <xs:element name="UIFileURL" type="xs:anyURI"/>
+</xs:schema>

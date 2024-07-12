@@ -1,0 +1,10 @@
+<Project Sdk="WixToolset.Sdk/5.0.0">
+    <PropertyGroup>
+        <OutputName>$(PRODUCT_NAME)</OutputName>
+        <InstallerPlatform>x64</InstallerPlatform>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="WixToolset.Ui.wixext" Version="5.0.0" />
+    </ItemGroup>
+</Project>

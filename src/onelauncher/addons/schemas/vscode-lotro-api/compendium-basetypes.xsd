@@ -1,0 +1,89 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="Id" type="xs:int">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                The ID on lotrointerface.com for your plugin, skin, or music.  This is the numeric portion in the URL that points to your resource.
+                For Example:  https://www.lotrointerface.com/downloads/info640-Waypoint.html would be 640
+            </xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:element name="Name" type="xs:string">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                The name of the plugin, skin, or music.  For a plugin, this should match the value in your .plugin file
+            </xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:element name="Version" type="xs:string">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                The Version of the plugin, skin, or music.  For a plugin, this should match the value in your .plugin file
+            </xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:element name="Author" type="xs:string">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                The author of the plugin, skin, or music.  For a plugin, this should match the value in your .plugin file
+            </xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:element name="InfoUrl" type="xs:anyURI">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                The url to view information about the plugin, skin, or music on lotrointerface.com
+                For Example: https://www.lotrointerface.com/downloads/info640-Waypoint.html
+            </xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:element name="DownloadUrl" type="xs:anyURI">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                The url to download the plugin, skin, or music on lotrointerface.com
+                For Example: https://www.lotrointerface.com/downloads/download640-Waypoint
+            </xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:element name="Descriptors">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element maxOccurs="unbounded" ref="descriptor" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="descriptor" type="xs:string">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                The path relative to a .plugin file that is to be installed
+                Use backslash "\\" for path separators
+            </xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:element name="Dependencies">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element minOccurs="0" maxOccurs="unbounded" ref="dependency" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="dependency" type="xs:int">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                The ID from lotrointerface.com of another plugin that is needed as a dependency for this plugin to operate.
+            </xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:element name="StartupScript" type="MappingURI">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                Relative path to an optional python script ran during startup
+                of One Launcher (https://github.com/JuneStepp/OneLauncher)
+            </xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:simpleType name="MappingURI">
+        <xs:restriction base="xs:anyURI">
+            <xs:pattern value="|(.*\.(py|Py|PY))" />
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>
