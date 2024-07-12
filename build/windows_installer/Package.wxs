@@ -14,6 +14,11 @@
     InstallerVersion="500"
   >
     <MediaTemplate EmbedCab="true" CompressionLevel="high" />
+    <!-- This fixes pre-release upgrades where the version difference can't be indicated
+     in the MSI version field. -->
+    <MajorUpgrade AllowSameVersionUpgrades="true"
+      DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+
     <Property Id="ARPURLINFOABOUT" Value="$(env.WEBSITE)" />
     <!-- <Property Id="DiskPrompt" Value="$(env.PRODUCT_NAME) Installation" /> -->
     <Icon Id="Icon.ico" SourceFile="$(env.ICON_PATH)" />
