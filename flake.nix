@@ -32,6 +32,9 @@
         backports-tarfile = super.backports-tarfile.overridePythonAttrs (old: {
           buildInputs = (old.buildInputs or []) ++ [super.setuptools];
         });
+        marko = super.marko.overridePythonAttrs (old: {
+          buildInputs = (old.buildInputs or []) ++ [super.pdm-backend];
+        });
       });
 
       # use impure flake in direnv to get live editing for mkPoetryEnv

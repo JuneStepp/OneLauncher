@@ -826,6 +826,22 @@ rtd = ["jupyter_sphinx", "mdit-py-plugins", "myst-parser", "pyyaml", "sphinx", "
 testing = ["coverage", "pytest", "pytest-cov", "pytest-regressions"]
 
 [[package]]
+name = "marko"
+version = "2.1.2"
+description = "A markdown parser with high extensibility."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "marko-2.1.2-py3-none-any.whl", hash = "sha256:c14aa7a77468aaaf53cf056dcd3d32398b9df4c3fb81f5e120dd37cbb9f8c859"},
+    {file = "marko-2.1.2.tar.gz", hash = "sha256:a9170006b879376e6845c91b1ae3dce2992772954b99b70175ff888537186011"},
+]
+
+[package.extras]
+codehilite = ["pygments"]
+repr = ["objprint"]
+toc = ["python-slugify"]
+
+[[package]]
 name = "mdurl"
 version = "0.1.2"
 description = "Markdown URL utilities"
@@ -4428,4 +4444,4 @@ old-kwallet = ["dbus-python"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "b75242bf2a663557ef3a47cbe175dbce4cd431e7516568ba8ce3b9f9e611d851"
+content-hash = "d41c03cbe46f6720bc2bba69b8eb6b10532bb1fdc655c2abeec550eb2605c0b9"
