@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.2.9 (2023-04-20)
+
+Update game server certificates.
+
+## 1.2.8 (2021-06-20)
+
+Just a quick fix for the in-game store with the 64-bit client on Windows.
+
+## 1.2.7 (2021-06-14)
+
+- Fixed getting the status of legendary servers
+- Downgraded SSL cipher level for game servers. Fixes connection for some Linux distros. Fix by @gtbX
+- Fixed no Keyring backend being chosen when program is compiled with Nuitka
+- Fixed window dragging on Wayland
+
 ## 1.2.6 (2021-04-29)
 
 This release implements some important fixes for the addon manager and adds the --language launch argument.
