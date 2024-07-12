@@ -1,11 +1,6 @@
 # [OneLauncher](https://Github.com/JuneStepp/OneLauncher)
 
-![OneLauncher window examples](https://i.imgur.com/NaSVZ7T.png)
-
-<p align="center"><a href="locale/de#onelauncher">Deutsch</a> | <span>English</span> | <a href="locale/fr#onelauncher">Français</a></p>
-<p align="center">Distributed on <a href="https://Github.com/JuneStepp/OneLauncher/releases">GitHub</a>, <a href="https://lotrointerface.com/downloads/info1098-OneLauncher-Add-onmanagerandlauncherforLOTROandDDO.html">LotroInterface</a>, and <a href="https://www.nexusmods.com/lotronline/mods/1?tab=description">NexusMods</a>.</p>
-
----
+![OneLauncher window examples](https://i.imgur.com/UtCIHSl.png)
 
 [![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/junestepp/onelauncher?include_prereleases)](https://Github.com/JuneStepp/OneLauncher/releases/latest) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
