@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0 (2024-07-16)
+
+After 3 years, nearly 400 commits, and more than a few postponed features, 2.0 does seem to be out. Here's my best shot at a very high level overview of what's changed:
+
+- Almost all code redesigned and vastly improved
+- Robust support for any number of current, past, future🤞, and custom game versions
+- UI is resizable, uses system theme, and adapts to font size and color changes on the fly
+- Full CLI for new config system
+- aaaand.. mo-ore
+
+Have fun playing some (*two*) games!
+
 ## 1.2.9 (2023-04-20)
 
 Update game server certificates.
