@@ -22,7 +22,7 @@ class Logger:
         )
         if version_parsed.is_devrelease:
             self.logger = setup_logging(
-                file_logging_level=logging.INFO, stream_logging_level=logging.DEBUG
+                file_logging_level=logging.DEBUG, stream_logging_level=logging.DEBUG
             )
         elif version_parsed.is_prerelease:
             self.logger = setup_logging(
