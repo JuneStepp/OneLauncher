@@ -177,7 +177,7 @@ class StartGame(QtWidgets.QDialog):
                     game_directory=game_config.game_directory,
                     documents_config_dir=get_game_settings_dir(
                         game_config=game_config,
-                        launcher_local_config=self.game_launcher_local_config
+                        launcher_local_config=self.game_launcher_local_config,
                     ),
                 )
             except FileNotFoundError:
@@ -206,9 +206,7 @@ class StartGame(QtWidgets.QDialog):
         self.ui.btnStop.setText("Abort")
         self.run_startup_scripts()
         self.process.start()
-        logger.info(
-            f"Game started with: {self.process.program(), self.process.arguments()}"
-        )
+        logger.info(f"{self.process.program} game executable started")
         self.ui.txtLog.append(f"Connecting to world: {self.world.name}")
 
         self.exec()

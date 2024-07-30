@@ -1,3 +1,4 @@
+import logging
 import os
 from pathlib import Path
 
@@ -11,6 +12,8 @@ from .network.game_launcher_config import GameLauncherConfig
 from .network.world import World
 from .resources import OneLauncherLocale
 from .wine_environment import edit_qprocess_to_use_wine
+
+logger = logging.getLogger("main")
 
 
 class MissingLaunchArgumentError(Exception):
@@ -37,40 +40,40 @@ async def get_launch_args(
     The game's launch arguents can be found by running the client with no arguments through WINE.
     As of 2024/07/10, the output for LOTRO is:
     ```text
-    -a, --account       : <string>: Specifies the account name to logon with.
-    --authserverurl : Auth server URL for refreshing the GLS ticket.
-    --chatserver    : Specify the chat server to use.
-    --connspeed     : <0.0-640.0>:Connection speed in Kilobits/sec for the server-client connection. 0 Defaults to speed searching
--r, --create        : <name> : Character Name you would like to create/play
-    --cwd           : Cause the client to change to the specified directory on startup.
-    --debug         : <32 bitfield>: Controls what kinds of debug outputs are enabled.
--f, --franchise     : <string>: Specifies the franchise name.
-    --gametype      : <string> : Specifies the game type used for supporturl and supportserviceurl.
-    --glsticket     : Load gls ticket data from specified registry key.
--z, --glsticketdirect: <string>: Specify ticket data.
-    --glsticketlifetime: The lifetime of GLS tickets.
-    --HighResOutOfDate: Tells the client that the high resolution texture dat file was not updated. We will not switch into very high texture detail..
--h, --host          : [host/IP]:Specifies where to find the server to talk to.
-    --keymap        : <file> : Base file for the keymap.  Will also look for <filename>c.extension and <filename>s.extension for meta keys
-    --language      : <string>: Language to run the client in.
-    --loadfile      : <file> : Specify a loadfile for an autogen'd character to run on startup
--m, --mps           : <monster play session>.wc : Monster Play Session to start with
-    --outport       : <1-65535>: Specify the outgoing network port to use.
--p, --port          : <1-65535>: Specify the server port to contact. See 'host'
-    --prefs         : <string>: Specify the preferences file to use.
-    --remotemouse   : Optimize for using a mouse over a remote connection.
-    --resource-set  : <string>: A comma separated list of available resource sets. The last set is the default.
-    --rodat         : noop. Left in for backward compatibility.
-    --safe          : Force SAFE display settings.
--s, --specify       : <race>,<class> : Race Class pair for a character you would like to create
-    --surveyurl     : <url> : URL to use for quest surveys
-    --usechat       : Specify that the client should connect to a chat server.
-    --useexiturl    : launch a browser using an exit url
--u, --user          : <name> : Character Name you would like to play
-    --voicenetdelay : <int>: Specifies the voice network delay threshold in milliseconds.
-    --voiceoff      : Disables the Voice chat system.
-    --wfilelog      : <64-bitmask> : activates file logging for the specified weenie event types. Alternately, logtype enums seperated by ',' are enummapped and or'ed together.
-    --wprintlog     : <64-bitmask> : activates print logging for the specified weenie event types. Alternately, logtype enums seperated by ',' are enummapped and or'ed together.
+            -a, --account       : <string>: Specifies the account name to logon with.
+            --authserverurl : Auth server URL for refreshing the GLS ticket.
+            --chatserver    : Specify the chat server to use.
+            --connspeed     : <0.0-640.0>:Connection speed in Kilobits/sec for the server-client connection. 0 Defaults to speed searching
+        -r, --create        : <name> : Character Name you would like to create/play
+            --cwd           : Cause the client to change to the specified directory on startup.
+            --debug         : <32 bitfield>: Controls what kinds of debug outputs are enabled.
+        -f, --franchise     : <string>: Specifies the franchise name.
+            --gametype      : <string> : Specifies the game type used for supporturl and supportserviceurl.
+            --glsticket     : Load gls ticket data from specified registry key.
+        -z, --glsticketdirect: <string>: Specify ticket data.
+            --glsticketlifetime: The lifetime of GLS tickets.
+            --HighResOutOfDate: Tells the client that the high resolution texture dat file was not updated. We will not switch into very high texture detail..
+        -h, --host          : [host/IP]:Specifies where to find the server to talk to.
+            --keymap        : <file> : Base file for the keymap.  Will also look for <filename>c.extension and <filename>s.extension for meta keys
+            --language      : <string>: Language to run the client in.
+            --loadfile      : <file> : Specify a loadfile for an autogen'd character to run on startup
+        -m, --mps           : <monster play session>.wc : Monster Play Session to start with
+            --outport       : <1-65535>: Specify the outgoing network port to use.
+        -p, --port          : <1-65535>: Specify the server port to contact. See 'host'
+            --prefs         : <string>: Specify the preferences file to use.
+            --remotemouse   : Optimize for using a mouse over a remote connection.
+            --resource-set  : <string>: A comma separated list of available resource sets. The last set is the default.
+            --rodat         : noop. Left in for backward compatibility.
+            --safe          : Force SAFE display settings.
+        -s, --specify       : <race>,<class> : Race Class pair for a character you would like to create
+            --surveyurl     : <url> : URL to use for quest surveys
+            --usechat       : Specify that the client should connect to a chat server.
+            --useexiturl    : launch a browser using an exit url
+        -u, --user          : <name> : Character Name you would like to play
+            --voicenetdelay : <int>: Specifies the voice network delay threshold in milliseconds.
+            --voiceoff      : Disables the Voice chat system.
+            --wfilelog      : <64-bitmask> : activates file logging for the specified weenie event types. Alternately, logtype enums seperated by ',' are enummapped and or'ed together.
+            --wprintlog     : <64-bitmask> : activates print logging for the specified weenie event types. Alternately, logtype enums seperated by ',' are enummapped and or'ed together.
     ```
 
     A couple aditional notes on these options:
@@ -79,7 +82,7 @@ async def get_launch_args(
     - The `--prefs` option also changes the game settings directory to the parent folder
     of the provided user preferences file path.
     - The `--cwd` option doesn't seem to work. `os.chdir()` is still needed on Windows.
-    
+
     """
     launch_args_template_mapping: dict[str, str | None] = {
         "{SUBSCRIPTION}": account_number,
@@ -131,6 +134,11 @@ async def get_launch_args(
     )
     launch_args.extend(("--prefs", str(game_settings_dir / "UserPreferences.ini")))
 
+    redacted_launch_args = tuple(
+        arg.replace(account_number, "******").replace(ticket, "******")
+        for arg in launch_args
+    )
+    logger.debug(f"Game launch arguments generated: {redacted_launch_args}")
     return launch_args
 
 
