@@ -27,6 +27,7 @@
 ###########################################################################
 import logging
 import sqlite3
+import ssl
 import urllib
 import xml.dom.minidom
 import xml.etree.ElementTree as ET
@@ -43,11 +44,14 @@ from xml.dom.minicompat import NodeList
 from xml.dom.minidom import Element
 
 import attrs
+import certifi
 import defusedxml.minidom  # type: ignore[import-untyped]
 import qtawesome
+from httpx import HTTPError
 from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
 
+from onelauncher.network.httpx_client import get_httpx_client_sync
 from onelauncher.qtapp import get_qapp
 from onelauncher.ui.qtdesigner.custom_widgets import QWidgetWithStylePreview
 
@@ -1042,7 +1046,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         with TemporaryDirectory() as tmp_dir_name:
             tmp_dir = Path(tmp_dir_name)
 
-            while True: # This outer loop is to check for nested invalid directories.
+            while True:  # This outer loop is to check for nested invalid directories.
                 invalid_dir = None
                 for potential_invalid_dir in addon_dir.glob("*/"):
                     if potential_invalid_dir.name.lower() in invalid_folder_names:
@@ -1056,7 +1060,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                         invalid_dir.rmdir()
 
                         # Move files that were originally in the invalid folder
-                        # to the root addon_dir. 
+                        # to the root addon_dir.
                         # Now the whole loop can run again to check for nested invalid
                         # folders that have now been moved to the root addon_dir.
                         for path in tmp_dir.glob("*"):
@@ -1760,22 +1764,19 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 installed_IDs.append(ID[0])
 
         try:
-            addons_file = (
-                urllib.request.urlopen(  # nosec  # noqa: S310
-                    favorites_url
-                )
-                .read()
-                .decode()
+            addons_file_response = get_httpx_client_sync(favorites_url).get(
+                favorites_url
             )
-        except (urllib.error.URLError, urllib.error.HTTPError) as error:
-            logger.error(error.reason, exc_info=True)
+            addons_file_response.raise_for_status()
+        except HTTPError:
+            logger.exception("")
             self.add_error_log(
                 "There was a network error. You may want to check your connection."
             )
             self.ui.tabBarSource.setCurrentIndex(0)
             return False
 
-        doc = defusedxml.minidom.parseString(addons_file)
+        doc = defusedxml.minidom.parseString(addons_file_response.text)
         tags = doc.getElementsByTagName("Ui")
         for tag in tags:
             addon_info = AddonInfo()
@@ -1821,7 +1822,10 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             try:
                 self.ui.progressBar.setValue(0)
                 self.ui.progressBar.setVisible(True)
-                urllib.request.urlretrieve(  # nosec  # noqa: S310
+                ssl._create_default_https_context = partial(
+                    ssl.create_default_context, cafile=certifi.where()
+                )
+                urllib.request.urlretrieve(  # noqa: S310
                     url, path, self.handleDownloadProgress
                 )
             except (urllib.error.URLError, urllib.error.HTTPError) as error:
