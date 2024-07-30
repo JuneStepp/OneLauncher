@@ -209,6 +209,8 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         game_config = self.config_manager.get_game_config(self.game_id)
 
+        self.setWindowTitle(f"Addons Manager - {game_config.name}")
+
         color_scheme_changed = get_qapp().styleHints().colorSchemeChanged
 
         for source_tab_name in self.SOURCE_TAB_NAMES:
