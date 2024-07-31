@@ -105,6 +105,10 @@ class QResizingPixmapLabel(QtWidgets.QLabel):
 class FixedWordWrapQLabel(QtWidgets.QLabel):
     """
     `QLabel` that calculates size correctly when word wrapping is enabled.
+
+    The label will still be the same width that it would have been
+    initially, but the height will be correct. Works good enough for
+    the current specific settings window use case.
     """
 
     @override
