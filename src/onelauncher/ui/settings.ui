@@ -509,7 +509,7 @@
         </widget>
        </item>
        <item row="1" column="0">
-        <widget class="QLabel" name="defaultLanguageForUILabel">
+        <widget class="FixedWordWrapQLabel" name="defaultLanguageForUILabel">
          <property name="toolTip">
           <string>Use the default language for OneLauncher even when the current game is set to a different language</string>
          </property>
@@ -683,6 +683,11 @@
    <extends>QWidget</extends>
    <header>qtabbar.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>FixedWordWrapQLabel</class>
+   <extends>QLabel</extends>
+   <header>.custom_widgets</header>
   </customwidget>
  </customwidgets>
  <resources/>

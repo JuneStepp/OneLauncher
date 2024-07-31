@@ -100,3 +100,24 @@ class QResizingPixmapLabel(QtWidgets.QLabel):
             scaled.setDevicePixelRatio(self.devicePixelRatioF())
             super().setPixmap(scaled)
             self.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+
+
+class FixedWordWrapQLabel(QtWidgets.QLabel):
+    """
+    `QLabel` that calculates size correctly when word wrapping is enabled.
+    """
+
+    @override
+    def minimumSizeHint(self) -> QtCore.QSize:
+        bounding_rect = self.fontMetrics().boundingRect(
+            QtCore.QRect(QtCore.QPoint(), self.sizeHint()),
+            QtCore.Qt.TextFlag.TextWordWrap,
+            self.text(),
+        )
+        return bounding_rect.size()
+
+    # I tried reimplementing `heightForWidth` like was done for `minimumSizeHint`, but
+    # that still gave the original QLabel behavior.
+    @override
+    def hasHeightForWidth(self) -> bool:
+        return False

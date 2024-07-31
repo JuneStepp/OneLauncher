@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (QAbstractButton, QApplication, QCheckBox, QComboB
     QStackedWidget, QTabBar, QToolButton, QVBoxLayout,
     QWidget)
 
-from .custom_widgets import FramelessQDialogWithStylePreview
+from .custom_widgets import FramelessQDialogWithStylePreview, FixedWordWrapQLabel
 from .qtdesigner.custom_widgets import QDialogWithStylePreview
 
 class Ui_dlgSettings(object):
@@ -301,7 +301,7 @@ class Ui_dlgSettings(object):
 
         self.formLayout_4.setWidget(0, QFormLayout.ItemRole.FieldRole, self.defaultLanguageComboBox)
 
-        self.defaultLanguageForUILabel = QLabel(self.pageProgram)
+        self.defaultLanguageForUILabel = FixedWordWrapQLabel(self.pageProgram)
         self.defaultLanguageForUILabel.setObjectName(u"defaultLanguageForUILabel")
         self.defaultLanguageForUILabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.defaultLanguageForUILabel.setWordWrap(True)
