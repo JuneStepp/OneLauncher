@@ -93,26 +93,34 @@ class World:
         """
         response = await get_httpx_client(status_server_url).get(status_server_url)
 
-        if response.status_code == httpx.codes.NOT_FOUND:
-            # Fix broken status URLs for LOTRO legendary servers
+        if response.status_code == httpx.codes.NOT_FOUND or not response.text:
+            # Fix broken status URLs for some LOTRO legendary servers
             if self._gls_datacenter_service:
                 parsed_status_url = urlparse(status_server_url)
-                if parsed_status_url.path.lower().endswith("/statusserver.aspx"):
-                    parsed_gls_service = urlparse(self._gls_datacenter_service)
+                parsed_gls_service = urlparse(self._gls_datacenter_service)
+                if (
+                    parsed_status_url.path.lower().endswith("/statusserver.aspx")
+                    and parsed_status_url.netloc.lower()
+                    != parsed_gls_service.netloc.lower()
+                ):
+                    # Some legendary servers have an IP that doesn't work instead of
+                    # a domain for the netloc. Having the domain also helps OneLauncher
+                    # enforce HTTPS correctly.
                     url_fixed_netloc = parsed_status_url._replace(
                         netloc=parsed_gls_service.netloc
                     )
-                    return await self._get_status_dict(urlunparse(url_fixed_netloc))
+                    # The "Mordor" legendary server path starts with "GLS.STG.DataCenterServer"
+                    # instead of "GLS.DataCenterServer".
+                    gls_path_prefix = parsed_gls_service.path.lower().split("/service.asmx", maxsplit=1)[0]
+                    url_fixed_path = url_fixed_netloc._replace(path=f"{gls_path_prefix}/StatusServer.aspx")
+                    return await self._get_status_dict(urlunparse(url_fixed_path))
 
-            # 404 response generally means world is unavailable
+            # 404 response generally means world is unavailable.
+            # Empty `response.text` also means the world is unavailable. Got an empty but
+            # successful response during an unexpected worlds downtime on 2024/30/31.
             raise WorldUnavailableError(f"{self} world unavailable")
 
         response.raise_for_status()
-
-        if not response.text:
-            # Got an empty but successful response during an unexpected
-            # worlds downtime on 2024/30/31.
-            raise WorldUnavailableError(f"{self} world unavailable")
 
         return self._WORLD_STATUS_SCHEMA.to_dict(response.text)  # type: ignore[return-value]
 
