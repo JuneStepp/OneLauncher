@@ -2,6 +2,8 @@ import logging
 
 from PySide6 import QtCore, QtWidgets
 
+logger = logging.getLogger(__name__)
+
 
 def show_warning_message(message: str, parent: QtWidgets.QWidget | None) -> None:
     message_box = QtWidgets.QMessageBox(parent)
@@ -30,6 +32,3 @@ def show_message_box_details_as_markdown(messageBox: QtWidgets.QMessageBox) -> N
             detailed_text_widget.setMarkdown(messageBox.detailedText())
             button.click()
             return
-
-
-logger = logging.getLogger("main")

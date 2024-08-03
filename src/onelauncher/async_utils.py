@@ -7,6 +7,11 @@ import trio
 from PySide6 import QtCore, QtWidgets
 from typing_extensions import override
 
+logger = logging.getLogger(__name__)
+
+# Top-level cancel scope. Canceling it will exit the program.
+app_cancel_scope = trio.CancelScope()
+
 
 class AsyncHelper(QtCore.QObject):
     class ReenterQtObject(QtCore.QObject):
@@ -68,9 +73,3 @@ class AsyncHelper(QtCore.QObject):
 
         if qapp := QtCore.QCoreApplication.instance():
             qapp.exit()
-
-
-logger = logging.getLogger("main")
-
-# Top-level cancel scope. Canceling it will exit the program.
-app_cancel_scope = trio.CancelScope()

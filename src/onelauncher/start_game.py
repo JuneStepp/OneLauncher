@@ -13,7 +13,7 @@ from .network.world import World
 from .resources import OneLauncherLocale
 from .wine_environment import edit_qprocess_to_use_wine
 
-logger = logging.getLogger("main")
+logger = logging.getLogger(__name__)
 
 
 class MissingLaunchArgumentError(Exception):

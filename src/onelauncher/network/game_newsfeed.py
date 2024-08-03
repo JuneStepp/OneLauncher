@@ -12,6 +12,8 @@ from PySide6 import QtCore
 
 from .httpx_client import get_httpx_client
 
+logger = logging.getLogger(__name__)
+
 
 async def newsfeed_url_to_html(url: str, babel_locale: Locale) -> str:
     """
@@ -129,6 +131,3 @@ def newsfeed_xml_to_html(
         </body>
     </html>
     """
-
-
-logger = logging.getLogger("main")

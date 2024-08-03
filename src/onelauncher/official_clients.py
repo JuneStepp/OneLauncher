@@ -38,6 +38,8 @@ import httpx
 from onelauncher import resources
 from onelauncher.game_config import GameType
 
+logger = logging.getLogger(__name__)
+
 LOTRO_GLS_PREVIEW_DOMAIN = "gls-bullroarer.lotro.com"
 LOTRO_GLS_DOMAINS: Final = [
     "gls.lotro.com",
@@ -174,6 +176,3 @@ def get_game_icon(game_type: GameType) -> Path:
             return resources.data_dir / "images/ddo_icon.ico"
         case _:
             assert_never(game_type)
-
-
-logger = logging.getLogger("main")

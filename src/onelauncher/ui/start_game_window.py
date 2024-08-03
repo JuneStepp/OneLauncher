@@ -44,6 +44,8 @@ from ..network.world import World
 from ..start_game import MissingLaunchArgumentError, get_qprocess
 from .start_game_uic import Ui_startGameDialog
 
+logger = logging.getLogger(__name__)
+
 
 class StartGame(QtWidgets.QDialog):
     def __init__(
@@ -210,6 +212,3 @@ class StartGame(QtWidgets.QDialog):
         self.ui.txtLog.append(f"Connecting to world: {self.world.name}")
 
         self.exec()
-
-
-logger = logging.getLogger("main")

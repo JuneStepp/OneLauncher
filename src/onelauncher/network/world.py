@@ -11,6 +11,8 @@ from typing_extensions import override
 from ..resources import data_dir
 from .httpx_client import get_httpx_client
 
+logger = logging.getLogger(__name__)
+
 
 class WorldUnavailableError(Exception):
     """World is unavailable."""
@@ -111,8 +113,12 @@ class World:
                     )
                     # The "Mordor" legendary server path starts with "GLS.STG.DataCenterServer"
                     # instead of "GLS.DataCenterServer".
-                    gls_path_prefix = parsed_gls_service.path.lower().split("/service.asmx", maxsplit=1)[0]
-                    url_fixed_path = url_fixed_netloc._replace(path=f"{gls_path_prefix}/StatusServer.aspx")
+                    gls_path_prefix = parsed_gls_service.path.lower().split(
+                        "/service.asmx", maxsplit=1
+                    )[0]
+                    url_fixed_path = url_fixed_netloc._replace(
+                        path=f"{gls_path_prefix}/StatusServer.aspx"
+                    )
                     return await self._get_status_dict(urlunparse(url_fixed_path))
 
             # 404 response generally means world is unavailable.
@@ -127,6 +133,3 @@ class World:
     @override
     def __str__(self) -> str:
         return self.name
-
-
-logger = logging.getLogger("main")

@@ -47,7 +47,7 @@ from .ui.error_message_uic import Ui_errorDialog
 from .utilities import CaseInsensitiveAbsolutePath
 from .wine.config import WineConfigSection
 
-logger = logging.getLogger("main")
+logger = logging.getLogger(__name__)
 
 
 class TyperGroup(TyperGroupBase):

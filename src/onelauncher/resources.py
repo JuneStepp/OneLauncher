@@ -10,6 +10,8 @@ import babel
 from PySide6.QtCore import QLocale
 from typing_extensions import override
 
+logger = logging.getLogger(__name__)
+
 
 @attrs.frozen
 class OneLauncherLocale:
@@ -171,8 +173,6 @@ def get_game_dir_available_locales(game_dir: Path) -> list[OneLauncherLocale]:
 
     return available_game_locales
 
-
-logger = logging.getLogger("main")
 
 data_dir = get_data_dir()
 available_locales = get_available_locales()

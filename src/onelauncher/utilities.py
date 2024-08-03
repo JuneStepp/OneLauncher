@@ -41,6 +41,8 @@ from typing_extensions import override
 if TYPE_CHECKING:
     from _typeshed import StrPath
 
+logger = logging.getLogger(__name__)
+
 
 class CaseInsensitiveAbsolutePath(Path):
     """
@@ -223,6 +225,3 @@ def parse_app_settings_config(config_text: str) -> dict[str, str]:
         attribs_dict = element.attrib
         config_dict[attribs_dict["key"]] = attribs_dict["value"]
     return config_dict
-
-
-logger = logging.getLogger("main")

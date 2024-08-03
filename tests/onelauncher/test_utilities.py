@@ -2,6 +2,8 @@ import logging
 import os
 from pathlib import Path
 
+import onelauncher
+import onelauncher.utilities
 import pytest
 from onelauncher.utilities import CaseInsensitiveAbsolutePath
 
@@ -47,7 +49,7 @@ class TestCaseInsensitiveAbsolutePath:
         assert CaseInsensitiveAbsolutePath(tmp_path / "FILE").name in ["file", "File"]
         assert caplog.record_tuples == [
             (
-                "main",
+                onelauncher.utilities.__name__,
                 logging.WARNING,
                 "Multiple matches found for case-insensitive path name with no exact "
                 "match. Using first one found.",
@@ -70,7 +72,7 @@ class TestCaseInsensitiveAbsolutePath:
         assert CaseInsensitiveAbsolutePath(tmp_path / "fIlE") == tmp_path / "fIlE"
         assert caplog.record_tuples == [
             (
-                "main",
+                onelauncher.utilities.__name__,
                 logging.WARNING,
                 "Multiple matches found for case-insensitive path name. One exact "
                 "match found. Using exact match.",

@@ -65,6 +65,8 @@ from .game_utilities import get_game_settings_dir
 from .ui.addon_manager_uic import Ui_winAddonManager
 from .utilities import CaseInsensitiveAbsolutePath
 
+logger = logging.getLogger(__name__)
+
 
 # Just to fix type hints
 class Document(xml.dom.minidom.Document):
@@ -2478,6 +2480,3 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 config=attrs.evolve(game_config, addons=updated_addons_section),
             )
             script_path.unlink(missing_ok=True)
-
-
-logger = logging.getLogger("main")

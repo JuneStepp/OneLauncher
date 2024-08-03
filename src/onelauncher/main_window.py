@@ -27,7 +27,6 @@
 ###########################################################################
 from __future__ import annotations
 
-import contextlib
 import logging
 from functools import partial
 from pathlib import Path
@@ -81,6 +80,8 @@ from .ui.main_uic import Ui_winMain
 from .ui.select_subscription_uic import Ui_dlgSelectSubscription
 from .ui.start_game_window import StartGame
 from .ui_utilities import show_message_box_details_as_markdown
+
+logger = logging.getLogger(__name__)
 
 
 class MainWindow(FramelessQMainWindowWithStylePreview):
@@ -726,7 +727,9 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                 find_game_dir_game_type(game_config.game_directory)
                 != game_config.game_type
             ):
-                self.AddLog("Game directory game type does not match config", is_error=True)
+                self.AddLog(
+                    "Game directory game type does not match config", is_error=True
+                )
                 return False
         except InvalidGameDirError:
             message = "Game directory is not valid"
@@ -998,6 +1001,3 @@ async def check_for_update() -> None:
         messageBox.exec()
     else:
         logger.info(f"{__about__.__title__} is up to date")
-
-
-logger = logging.getLogger("main")

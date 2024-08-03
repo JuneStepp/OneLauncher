@@ -72,6 +72,8 @@ from .v1x_config_migrator import (
 )
 from .wine.config import WineConfigSection
 
+logger = logging.getLogger(__name__)
+
 GameConfigIDRole: Final[int] = QtCore.Qt.ItemDataRole.UserRole + 1001
 GameConfigRole: Final[int] = QtCore.Qt.ItemDataRole.UserRole + 1000
 
@@ -600,6 +602,3 @@ class SetupWizard(QtWidgets.QWizard):
             self.config_manager.update_game_config_file(
                 game_id=game_id, config=attrs.evolve(game_config, name=name)
             )
-
-
-logger = logging.getLogger("main")

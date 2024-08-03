@@ -13,6 +13,8 @@ from zeep.wsdl.wsdl import Definition, Document
 
 from .httpx_client import get_httpx_client
 
+logger = logging.getLogger(__name__)
+
 
 class GLSServiceError(Exception):
     """Non-network error with the GLS service"""
@@ -69,7 +71,7 @@ class FullyAsyncTransport(AsyncTransport):
         try:
             response.raise_for_status()
         except httpx.HTTPStatusError as exc:
-            raise zeep.exceptions.TransportError( # type: ignore[no-untyped-call]
+            raise zeep.exceptions.TransportError(  # type: ignore[no-untyped-call]
                 status_code=response.status_code
             ) from exc
         return result
@@ -102,7 +104,7 @@ class AsyncDocument(Document):
             settings=self.settings,
         )
 
-        root_definitions = Definition(self, document, self.location) # type: ignore[no-untyped-call]
+        root_definitions = Definition(self, document, self.location)  # type: ignore[no-untyped-call]
         root_definitions.resolve_imports()
 
         # Make the wsdl definitions public
@@ -144,6 +146,3 @@ async def get_soap_client(gls_service: str) -> AsyncClient:
         return AsyncClient(wsdl=document, transport=transport, settings=settings)  # type: ignore[no-untyped-call]
     except zeep.exceptions.Error as e:
         raise GLSServiceError("Error while parsing the service description") from e
-
-
-logger = logging.getLogger("main")

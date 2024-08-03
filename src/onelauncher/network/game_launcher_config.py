@@ -15,6 +15,8 @@ from ..utilities import AppSettingsParseError, parse_app_settings_config
 from .game_services_info import GameServicesInfo
 from .httpx_client import get_httpx_client
 
+logger = logging.getLogger(__name__)
+
 
 class GameLauncherConfigParseError(KeyError):
     """Config doesn't match expected game launcher config format"""
@@ -292,6 +294,3 @@ class GameLauncherConfig:
         return self._newsfeed_url_template.replace(
             "{lang}", locale.lang_tag.split("-")[0]
         )
-
-
-logger = logging.getLogger("main")

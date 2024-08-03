@@ -47,6 +47,8 @@ from .config import platform_dirs
 from .ui_utilities import show_warning_message
 from .wine.config import WineConfigSection
 
+logger = logging.getLogger(__name__)
+
 # To use Proton, replace link with Proton build and uncomment
 # `self.proton_documents_symlinker()` in wine_setup in wine_management
 WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/7.22/wine-7.22-staging-tkg-amd64.tar.xz"
@@ -350,6 +352,3 @@ def edit_qprocess_to_use_wine(
     qprocess.setProgram(str(wine_path))
 
     qprocess.setProcessEnvironment(processEnvironment)
-
-
-logger = logging.getLogger("main")

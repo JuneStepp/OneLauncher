@@ -44,6 +44,8 @@ from .ui.patching_window_uic import Ui_patchingDialog
 from .utilities import CaseInsensitiveAbsolutePath
 from .wine_environment import edit_qprocess_to_use_wine
 
+logger = logging.getLogger(__name__)
+
 
 class PatchWindow(QtWidgets.QDialog):
     PatchPhase: TypeAlias = Literal["FullPatch", "FilesOnly", "DataOnly"]
@@ -293,6 +295,3 @@ class PatchWindow(QtWidgets.QDialog):
 
     def Run(self) -> None:
         self.exec()
-
-
-logger = logging.getLogger("main")

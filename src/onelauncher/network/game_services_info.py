@@ -11,6 +11,8 @@ from ..game_launcher_local_config import GameLauncherLocalConfig
 from .soap import GLSServiceError, get_soap_client
 from .world import World
 
+logger = logging.getLogger(__name__)
+
 
 class GameServicesInfo:
     def __init__(
@@ -138,6 +140,3 @@ class GameServicesInfo:
             raise GLSServiceError("Error while parsing GetDatacenters response") from e
         except AttributeError as e:
             raise GLSServiceError("Service has no GetDatacenters operation") from e
-
-
-logger = logging.getLogger("main")
