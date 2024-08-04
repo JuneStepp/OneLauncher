@@ -69,8 +69,8 @@ def main(
                 "--linux-icon=src/onelauncher/images/OneLauncherIcon.png",
             ]
         )
-    subprocess.run(
-        [  # noqa: S603
+    subprocess.run(  # noqa: S603
+        [
             sys.executable or "python",
             "-m",
             "nuitka",

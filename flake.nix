@@ -32,6 +32,9 @@
         backports-tarfile = super.backports-tarfile.overridePythonAttrs (old: {
           buildInputs = (old.buildInputs or []) ++ [super.setuptools];
         });
+        lxml = super.lxml.overridePythonAttrs (old: {
+          buildInputs = (old.buildInputs or []) ++ [pkgs.zlib];
+        });
         marko = super.marko.overridePythonAttrs (old: {
           buildInputs = (old.buildInputs or []) ++ [super.pdm-backend];
         });
@@ -79,7 +82,7 @@
           export NIX_PYTHON_ENV=${poetry_env}
         '';
       };
-      # The FHS environment can be used for testing compiled builds of OneLauncher, as 
+      # The FHS environment can be used for testing compiled builds of OneLauncher, as
       # well as the WINE binaies that get downloaded by default.
       devShells.fhs =
         (pkgs.buildFHSUserEnv

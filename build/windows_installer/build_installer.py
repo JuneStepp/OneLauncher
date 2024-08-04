@@ -27,8 +27,8 @@ def main(
     if out_dir:
         args.extend(("--output", str(out_dir)))
     args.extend(extra_args)
-    subprocess.run(
-        args,  # noqa: S603
+    subprocess.run(  # noqa: S603
+        args,
         env=env,
         cwd=Path(__file__).parent,
         check=True,

@@ -566,8 +566,8 @@ def designer() -> None:
         # Trick pyside6-designer into setting the right LD_PRELOAD path for Python
         # in Nix flake instead of the bare library name.
         env["PYENV_ROOT"] = nix_python
-    subprocess.run(
-        "pyside6-designer",  # noqa: S607, S603
+    subprocess.run(  # noqa: S603
+        "pyside6-designer",  # noqa: S607
         env=env,
         check=True,
     )

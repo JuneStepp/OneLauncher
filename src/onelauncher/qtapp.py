@@ -59,7 +59,7 @@ def _setup_qapplication() -> QtWidgets.QApplication:
         )
     )
 
-    # The Qt Windows style doesn't work with dark mode
+    # The Qt "Windows" style doesn't work with dark mode
     if os.name == "nt":
         application.setStyle("Fusion")
 

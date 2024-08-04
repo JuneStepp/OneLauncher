@@ -40,7 +40,7 @@ class Config(ABC):
 
 
 if TYPE_CHECKING:
-    from attr import (
+    from attrs import (
         _T,
         _ConverterType,
         _EqOrderType,

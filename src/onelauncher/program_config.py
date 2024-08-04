@@ -25,7 +25,7 @@ class GamesSortingMode(Enum):
 
 
 @attrs.frozen
-class ProgramConfig(Config):  # type: ignore[explicit-override]
+class ProgramConfig(Config):
     default_locale: OneLauncherLocale = config_field(
         default=get_default_locale(),
         help="The default language for games and UI.",

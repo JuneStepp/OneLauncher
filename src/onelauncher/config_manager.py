@@ -190,14 +190,14 @@ class ConfigFileError(Exception):
 
 
 @attrs.frozen(kw_only=True)
-class ConfigFileParseError(ConfigFileError):  # type: ignore[explicit-override]
+class ConfigFileParseError(ConfigFileError):
     """Error parsing config file"""
 
     msg: str = "Error parsing config file"
 
 
 @attrs.frozen(kw_only=True)
-class WrongConfigVersionError(ConfigFileError):  # type: ignore[explicit-override]
+class WrongConfigVersionError(ConfigFileError):
     msg: str = "Config file has wrong config version"
     config_file_version: Version
 
