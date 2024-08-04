@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "OneLauncher"
-version = "2.0"
+version = "2.0.1"
 description = "The OneLauncher to rule them all"
 readme = "README.md"
 authors = ["June Stepp <contact@junestepp.me>"]

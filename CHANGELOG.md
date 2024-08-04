@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.0.1 (2024-08-03)
+
+A few fixes including support for the Mordor Legendary World.
+
+- Fix Mordor Legendary World status URL
+- Use correct network certificates in Addons Manager
+- Improve handling of invalid XML in addon files
+- Include game name in addons manager window title
+- Add basic network connection retrying
+- Allow switch game and settings buttons to be used while network info is loading
+- Prevent settings label with word wrapping from clipping
+- Use root and `__name__` loggers
+- Redact user subscription and GLS ticket from logs
+- Raise file logging level for dev builds to debug
+- Update dependencies
+- Exclude build output directory from Mypy
+
 ## 2.0 (2024-07-16)
 
 After 3 years, nearly 400 commits, and more than a few postponed features, 2.0 does seem to be out. Here's my best shot at a very high level overview of what's changed:
