@@ -96,7 +96,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         self.config_manager = config_manager
         self.game_id: GameConfigID = starting_game_id or self.get_starting_game_id()
 
-        self.checked_for_program_update = False
+        self.network_setup_nursery: trio.Nursery | None = None
         self.addon_manager_window: AddonManagerWindow | None = None
         self.game_launcher_config: GameLauncherConfig | None = None
 
@@ -160,7 +160,8 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         async with trio.open_nursery() as self.nursery:
             self.setup_ui()
             self.show()
-            await self.InitialSetup()
+            self.nursery.start_soon(self.InitialSetup)
+            self.nursery.start_soon(check_for_update)
             # Will be canceled when the winddow is closed
             self.nursery.start_soon(trio.sleep_forever)
 
@@ -276,6 +277,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         self.ui.btnSwitchGame.setMenu(menu)
         # Needed for menu to show up for some reason
         self.ui.btnSwitchGame.menu()
+        self.ui.btnSwitchGame.setEnabled(True)
 
     def btnAboutSelected(self) -> None:
         dlgAbout = QtWidgets.QDialog(self, QtCore.Qt.WindowType.Popup)
@@ -778,6 +780,9 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         return True
 
     async def InitialSetup(self) -> None:
+        if self.network_setup_nursery:
+            self.network_setup_nursery.cancel_scope.cancel()
+
         # Keyring dependent
         self.ui.cboAccount.setEnabled(False)
         self.ui.txtPassword.setEnabled(False)
@@ -787,7 +792,6 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         self.ui.cboWorld.setEnabled(False)
         self.ui.btnLogin.setEnabled(False)
 
-        self.ui.btnOptions.setEnabled(False)
         self.ui.btnSwitchGame.setEnabled(False)
 
         self.ui.txtPassword.setText("")
@@ -831,12 +835,8 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             QtCore.QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents
             | QtCore.QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers
         )
-        async with trio.open_nursery() as nursery:
-            nursery.start_soon(self.game_initial_network_setup)
-
-            if not self.checked_for_program_update:
-                nursery.start_soon(check_for_update)
-        self.checked_for_program_update = True
+        async with trio.open_nursery() as self.network_setup_nursery:
+            self.network_setup_nursery.start_soon(self.game_initial_network_setup)
 
     async def game_initial_network_setup(self) -> None:
         try:
@@ -872,9 +872,6 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         self.ui.btnLogin.setEnabled(True)
 
         await self.load_newsfeed(self.game_launcher_config)
-
-        self.ui.btnOptions.setEnabled(True)
-        self.ui.btnSwitchGame.setEnabled(True)
 
     def load_worlds_list(self, game_services_info: GameServicesInfo) -> None:
         sorted_worlds = sorted(game_services_info.worlds, key=lambda world: world.name)
@@ -933,11 +930,6 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             if is_error:
                 logger.error(line)
                 formatted_line = f'<font color="red">{message}</font>'
-
-                # Enable buttons that won't normally get re-enabled if
-                # MainWindowThread gets frozen.
-                self.ui.btnOptions.setEnabled(True)
-                self.ui.btnSwitchGame.setEnabled(True)
             else:
                 logger.info(line)
                 formatted_line = line
