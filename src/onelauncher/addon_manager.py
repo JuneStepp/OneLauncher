@@ -380,6 +380,8 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         for skin in skins_list_compendium:
             addon_info = self.parseCompendiumFile(skin, "SkinConfig")
+            if addon_info is None:
+                continue
             addon_info = self.getOnlineAddonInfo(
                 addon_info, self.ui.tableSkins.objectName()
             )
@@ -447,6 +449,8 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         for music in music_list_compendium:
             addon_info = self.parseCompendiumFile(music, "MusicConfig")
+            if addon_info is None:
+                continue
             addon_info = self.getOnlineAddonInfo(addon_info, "tableMusic")
             self.addRowToDB(table, addon_info)
 
@@ -499,7 +503,14 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     ) -> None:
         """Removes plugin files from plugin_files that aren't managed by a compendium file"""
         for compendium_file in compendium_files:
-            doc = defusedxml.minidom.parse(str(compendium_file))
+            try:
+                doc = defusedxml.minidom.parse(str(compendium_file))
+            except xml.parsers.expat.ExpatError:
+                logger.warning(
+                    f"`.plugincompendium` file has invalid XML: {compendium_file}",
+                    exc_info=True,
+                )
+                continue
             nodes = doc.getElementsByTagName("Descriptors")[0].childNodes
 
             for node in nodes:
@@ -537,9 +548,13 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             # plugins
             if file.suffix == ".plugincompendium":
                 addon_info = self.parseCompendiumFile(file, "PluginConfig")
+                if addon_info is None:
+                    continue
                 addon_info = self.getOnlineAddonInfo(addon_info, "tablePlugins")
             else:
                 addon_info = self.parseCompendiumFile(file, "Information")
+                if addon_info is None:
+                    continue
                 addon_info.category = self.CATEGORY_UNMANAGED
 
             self.addRowToDB(table, addon_info)
@@ -554,11 +569,17 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 dependencies = f"{dependencies},{GetText(node.childNodes)}"
         return dependencies[1:]
 
-    def parseCompendiumFile(self, file: Path, tag: str) -> AddonInfo:
+    def parseCompendiumFile(self, file: Path, tag: str) -> AddonInfo | None:
         """Returns list of common values for compendium or .plugin files"""
         addon_info = AddonInfo()
 
-        doc = defusedxml.minidom.parse(str(file))
+        try:
+            doc = defusedxml.minidom.parse(str(file))
+        except xml.parsers.expat.ExpatError:
+            message = f"Compendium file has invalid XML: {file}"
+            logger.exception(message)
+            self.add_error_log(message)
+            return None
         nodes = doc.getElementsByTagName(tag)[0].childNodes
         for node in nodes:
             if node.nodeName == "Name":
@@ -1108,8 +1129,9 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             existing_compendium_values = self.parseCompendiumFile(
                 existing_compendium_file, f"{addon_type.title()}Config"
             )
-            dependencies = existing_compendium_values[7]
-            startup_python_script = existing_compendium_values[8]
+            if existing_compendium_values is not None:
+                dependencies = existing_compendium_values[7]
+                startup_python_script = existing_compendium_values[8]
             existing_compendium_file.unlink()
 
         for row in self.c.execute(
@@ -1526,7 +1548,14 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             else:
                 plugin_files = []
                 if self.checkAddonForDependencies(plugin, table):
-                    doc = defusedxml.minidom.parse(plugin[1])
+                    try:
+                        doc = defusedxml.minidom.parse(plugin[1])
+                    except xml.parsers.expat.ExpatError:
+                        logger.warning(
+                            f"`.plugincompendium` file has invalid XML: {plugin[1]}",
+                            exc_info=True,
+                        )
+                        continue
                     nodes = doc.getElementsByTagName("Descriptors")[0].childNodes
                     for node in nodes:
                         if node.nodeName == "descriptor":
@@ -1549,17 +1578,24 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             plugin_folder: CaseInsensitiveAbsolutePath | None = None
             for plugin_file in plugin_files:
                 if plugin_file.exists():
-                    doc = defusedxml.minidom.parse(str(plugin_file))
-                    nodes = doc.getElementsByTagName("Plugin")[0].childNodes
-                    for node in nodes:
-                        if node.nodeName == "Package":
-                            plugin_folder = self.data_folder_plugins / (
-                                "/".join(GetText(node.childNodes).split(".")[:2])
-                            )
+                    try:
+                        doc = defusedxml.minidom.parse(str(plugin_file))
+                    except xml.parsers.expat.ExpatError:
+                        logger.warning(
+                            f"`.plugin` file has invalid XML: {plugin_file}",
+                            exc_info=True,
+                        )
+                    else:
+                        nodes = doc.getElementsByTagName("Plugin")[0].childNodes
+                        for node in nodes:
+                            if node.nodeName == "Package":
+                                plugin_folder = self.data_folder_plugins / (
+                                    "/".join(GetText(node.childNodes).split(".")[:2])
+                                )
 
-                            # Removes plugin and all related files
-                            if plugin_folder.exists():
-                                rmtree(plugin_folder)
+                                # Removes plugin and all related files
+                                if plugin_folder.exists():
+                                    rmtree(plugin_folder)
 
                     plugin_file.unlink(missing_ok=True)
             Path(plugin[1]).unlink(missing_ok=True)
@@ -1584,8 +1620,9 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 skin_path = Path(skin[1]).parent
 
                 items_row = self.parseCompendiumFile(Path(skin[1]), "SkinConfig")
-                script = items_row[8]
-                self.uninstallStartupScript(script, self.data_folder_skins)
+                if items_row is not None:
+                    script = items_row[8]
+                    self.uninstallStartupScript(script, self.data_folder_skins)
             else:
                 skin_path = Path(skin[1])
             rmtree(skin_path)
@@ -1606,8 +1643,9 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 music_path = Path(music[1]).parent
 
                 items_row = self.parseCompendiumFile(Path(music[1]), "MusicConfig")
-                script = items_row[8]
-                self.uninstallStartupScript(script, self.data_folder_music)
+                if items_row is not None:
+                    script = items_row[8]
+                    self.uninstallStartupScript(script, self.data_folder_music)
             else:
                 music_path = Path(music[1])
 
@@ -1780,7 +1818,16 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.ui.tabBarSource.setCurrentIndex(0)
             return False
 
-        doc = defusedxml.minidom.parseString(addons_file_response.text)
+        try:
+            doc = defusedxml.minidom.parseString(addons_file_response.text)
+        except xml.parsers.expat.ExpatError:
+            message = (
+                "Addons feed has invalid XML. Please report this error if it continues."
+            )
+            logger.exception(message)
+            self.add_error_log(message)
+            return False
+
         tags = doc.getElementsByTagName("Ui")
         for tag in tags:
             addon_info = AddonInfo()
