@@ -78,6 +78,8 @@ DDO_PREVIEW_NEWS_URL_TEMPLATE: Final = "https://forums.ddo.com/index.php?forums/
 # lowering the security level. I'm not knowledgable on this topic though.
 OFFICIAL_CLIENT_CIPHERS: Final = "DEFAULT@SECLEVEL=1"
 
+CONNECTION_RETRIES: Final[int] = 3
+
 
 def is_official_game_server(url: str) -> bool:
     netloc = urlparse(url).netloc.lower()
@@ -153,18 +155,26 @@ def get_official_servers_ssl_context() -> ssl.SSLContext:
 @cache
 def get_official_servers_httpx_client() -> httpx.AsyncClient:
     """Return httpx client configured to work with official game servers"""
+    transport = httpx.AsyncHTTPTransport(
+        verify=get_official_servers_ssl_context(), retries=CONNECTION_RETRIES
+    )
     return httpx.AsyncClient(
         verify=get_official_servers_ssl_context(),
         event_hooks={"request": [_httpx_request_hook]},
+        transport=transport,
     )
 
 
 @cache
 def get_official_servers_httpx_client_sync() -> httpx.Client:
     """Return httpx client configured to work with official game servers"""
+    transport = httpx.HTTPTransport(
+        verify=get_official_servers_ssl_context(), retries=CONNECTION_RETRIES
+    )
     return httpx.Client(
         verify=get_official_servers_ssl_context(),
         event_hooks={"request": [_httpx_request_hook_sync]},
+        transport=transport,
     )
 
 
