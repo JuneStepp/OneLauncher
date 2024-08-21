@@ -40,11 +40,11 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
 from xmlschema import XMLSchemaValidationError
 
+from onelauncher.logs import ForwardLogsHandler
 from onelauncher.qtapp import get_app_style, get_qapp
 from onelauncher.ui.custom_widgets import FramelessQMainWindowWithStylePreview
 
-from . import __about__
-from .addon_manager import AddonManagerWindow
+from . import __about__, addon_manager
 from .config_manager import ConfigManager
 from .game_account_config import GameAccountConfig
 from .game_config import GameConfigID, GameType
@@ -79,7 +79,7 @@ from .ui.about_uic import Ui_dlgAbout
 from .ui.main_uic import Ui_winMain
 from .ui.select_subscription_uic import Ui_dlgSelectSubscription
 from .ui.start_game_window import StartGame
-from .ui_utilities import show_message_box_details_as_markdown
+from .ui_utilities import log_record_to_rich_text, show_message_box_details_as_markdown
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +97,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         self.game_id: GameConfigID = starting_game_id or self.get_starting_game_id()
 
         self.network_setup_nursery: trio.Nursery | None = None
-        self.addon_manager_window: AddonManagerWindow | None = None
+        self.addon_manager_window: addon_manager.AddonManagerWindow | None = None
         self.game_launcher_config: GameLauncherConfig | None = None
 
     def get_starting_game_id(self) -> GameConfigID:
@@ -110,9 +110,28 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             )[0]
         )
 
+    def addon_manager_error_log(self, record: logging.LogRecord) -> None:
+        self.ui.txtStatus.append(log_record_to_rich_text(record))
+        self.raise_()
+        self.activateWindow()
+
     def setup_ui(self) -> None:
         self.ui = Ui_winMain()
         self.ui.setupUi(self)
+
+        logger.addHandler(
+            ForwardLogsHandler(
+                new_log_callback=lambda record: self.ui.txtStatus.append(
+                    log_record_to_rich_text(record)
+                ),
+                level=logging.INFO,
+            )
+        )
+        addon_manager.logger.addHandler(
+            ForwardLogsHandler(
+                new_log_callback=self.addon_manager_error_log, level=logging.INFO
+            )
+        )
 
         color_scheme_changed = get_qapp().styleHints().colorSchemeChanged
         self.ui.btnExit.clicked.connect(self.close)
@@ -309,7 +328,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             return
 
         winPatch = PatchWindow(
-            gane_id=self.game_id,
+            game_id=self.game_id,
             config_manager=self.config_manager,
             launcher_local_config=self.game_launcher_local_config,
             urlPatchServer=game_services_info.patch_server,
@@ -334,16 +353,10 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             else:
                 self.addon_manager_window.deleteLater()
 
-        def addon_manager_error_log(message: str) -> None:
-            self.AddLog(message, is_error=True)
-            self.raise_()
-            self.activateWindow()
-
-        self.addon_manager_window = AddonManagerWindow(
+        self.addon_manager_window = addon_manager.AddonManagerWindow(
             config_manager=self.config_manager,
             game_id=self.game_id,
             launcher_local_config=self.game_launcher_local_config,
-            add_error_log=addon_manager_error_log,
         )
         self.addon_manager_window.show()
 
@@ -359,7 +372,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             game_type=new_game_type,
         )
         if not new_type_game_ids:
-            self.AddLog(f"<font color='#958e55'>No {new_game_type} games found</font>")
+            logger.error(f"No {new_game_type} games found to switch to")
             return
         self.game_id = new_type_game_ids[0]
         await self.InitialSetup()
@@ -374,13 +387,11 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             self.ui.txtPassword.text() == ""
             and self.ui.txtPassword.placeholderText() == ""
         ):
-            self.AddLog(
-                '<font color="#958e55">Please enter account name and password</font>'
-            )
+            logger.error("Please enter account name and password")
             return
 
         if not self.game_launcher_config:
-            self.AddLog("Game launcher network config isn't laoded")
+            logger.error("Game launcher network config isn't laoded")
             return
 
         await self.start_game(game_launcher_config=self.game_launcher_config)
@@ -483,7 +494,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
 
             del last_used_subscription_name
             logger.warning(
-                "last_used_subscription_name does not match any subscriptions."
+                "Last used subscription does not match any available subscriptions"
             )
 
         select_subscription_dialog = QtWidgets.QDialog(
@@ -503,13 +514,13 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             return selected_subscription
         else:
             self.resetFocus()
-            self.AddLog("No sub-account selected - aborting")
+            logger.error("No subscription selected")
             return None
 
     async def authenticate_account(
         self, account: GameAccountConfig
     ) -> login_account.AccountLoginResponse | None:
-        self.AddLog("Checking account details...")
+        logger.info("Checking account details...")
 
         game_config = self.config_manager.get_game_config(self.game_id)
         game_services_info = await GameServicesInfo.from_game_config(
@@ -529,18 +540,15 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                 or "",
             )
         except login_account.WrongUsernameOrPasswordError:
-            self.AddLog("Username or password is incorrect", True)
+            logger.exception("Username or password is incorrect")
             return None
         except httpx.HTTPError:
-            logger.exception("")
-            self.AddLog("Network error while authenticating account", True)
+            logger.exception("Network error while authenticating account")
             return None
         except GLSServiceError:
-            logger.exception("")
-            self.AddLog(
+            logger.exception(
                 "Non-network error with login service. Please report "
                 "this issue, if it continues.",
-                True,
             )
             return None
 
@@ -548,7 +556,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         if not self.ui.chkSavePassword.isChecked():
             self.ui.txtPassword.clear()
 
-        self.AddLog("Account authenticated")
+        logger.info("Account authenticated")
         return login_response
 
     async def start_game(self, game_launcher_config: GameLauncherConfig) -> None:
@@ -626,23 +634,18 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         try:
             selected_world_status = await selected_world.get_status()
         except httpx.HTTPError:
-            logger.exception("Network error while downloading world status xml")
-            self.AddLog("Network error while fetching world status", is_error=True)
+            logger.exception("Network error while fetching world status")
             return
         except WorldUnavailableError:
-            logger.exception("Login world unavailable")
-            self.AddLog(
+            logger.exception(
                 "Error fetching world status. You may want to check "
                 "the news feed for a scheduled down time.",
-                is_error=True,
             )
             return
         except XMLSchemaValidationError:
-            logger.exception("World status XML doesn't match schema")
-            self.AddLog(
+            logger.exception(
                 "World status info has incompatible format. Please report "
                 "this issue if using a supported game server",
-                is_error=True,
             )
             return
 
@@ -683,22 +686,20 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             try:
                 world_queue_result = await world_login_queue.join_queue()
             except httpx.HTTPError:
-                self.AddLog("Network error while joining world queue", is_error=True)
-                logger.exception("")
+                logger.exception("Network error while joining world queue")
                 return
             except (JoinWorldQueueFailedError, WorldQueueResultXMLParseError):
-                self.AddLog(
+                logger.exception(
                     "Non-network error joining world queue. "
                     "Please report this error if it continues"
                 )
-                logger.exception("")
                 return
             if world_queue_result.queue_number <= world_queue_result.now_serving_number:
                 break
             people_ahead_in_queue = (
                 world_queue_result.queue_number - world_queue_result.now_serving_number
             )
-            self.AddLog(f"Position in queue: {people_ahead_in_queue}")
+            logger.info(f"Position in queue: {people_ahead_in_queue}")
 
     def set_banner_image(self) -> None:
         game_config = self.config_manager.get_game_config(self.game_id)
@@ -721,7 +722,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
     def check_game_dir(self) -> bool:
         game_config = self.config_manager.get_game_config(self.game_id)
         if not game_config.game_directory.exists():
-            self.AddLog("Game directory not found", is_error=True)
+            logger.error("Game directory not found")
             return False
 
         try:
@@ -729,14 +730,10 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                 find_game_dir_game_type(game_config.game_directory)
                 != game_config.game_type
             ):
-                self.AddLog(
-                    "Game directory game type does not match config", is_error=True
-                )
+                logger.error("Game directory game type does not match config")
                 return False
         except InvalidGameDirError:
-            message = "Game directory is not valid"
-            logger.exception(message)
-            self.AddLog(message=message, is_error=True)
+            logger.exception("Game directory is not valid")
             return False
 
         return True
@@ -756,8 +753,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                 launcher_config_paths[0].read_text(encoding="UTF-8")
             )
         except GameLauncherLocalConfigParseError:
-            self.AddLog("Error parsing local launcher config", is_error=True)
-            logger.exception("")
+            logger.exception("Error parsing local launcher config")
             return False
 
         locale = (
@@ -767,13 +763,12 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         if not (
             game_config.game_directory / f"client_local_{locale.game_language_name}.dat"
         ).exists():
-            self.AddLog(
+            logger.error(
                 "There is no game language data for "  # noqa: S608
                 f"{locale.display_name} installed. "
                 f"You may have to select {locale.display_name}"
                 " in the standard game launcher and wait for the data to download."
                 " The standard game launcher can be opened from the settings menu.",
-                is_error=True,
             )
             return False
 
@@ -805,7 +800,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             '<html><body><p style="text-align:center;">Loading ...</p></body></html>'
         )
 
-        self.AddLog("Initializing, please wait...")
+        logger.info("Initializing, please wait...")
 
         # Handle when current game has been removed.
         if self.game_id not in self.config_manager.get_game_config_ids():
@@ -845,21 +840,16 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                 game_datacenter_name=self.game_launcher_local_config.datacenter_game_name,
             )
         except httpx.HTTPError:
-            logger.exception("")
-            self.AddLog(
-                message="Network error while fetching game services info", is_error=True
-            )
+            logger.exception("Network error while fetching game services info")
             return
         except GLSServiceError:
-            logger.exception("")
-            self.AddLog(
-                message="Non-network error with GLS datacenter service. Please report "
+            logger.exception(
+                "Non-network error with GLS datacenter service. Please report "
                 "this issue, if it continues.",
-                is_error=True,
             )
             return
 
-        self.AddLog("Fetched game services info", False)
+        logger.info("Fetched game services info")
 
         self.load_worlds_list(game_services_info)
         self.game_launcher_config = await self.get_game_launcher_config(
@@ -879,7 +869,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             self.ui.cboWorld.addItem(world.name, userData=world)
 
         self.setCurrentAccountWorld()
-        self.AddLog("World list obtained", False)
+        logger.info("World list obtained")
 
     async def get_game_launcher_config(
         self, game_launcher_config_url: str
@@ -888,18 +878,15 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             game_launcher_config = await GameLauncherConfig.from_url(
                 game_launcher_config_url
             )
-            self.AddLog("Game launcher configuration read", False)
+            logger.info("Game launcher configuration read")
             return game_launcher_config
         except httpx.HTTPError:
-            logger.exception("")
-            self.AddLog("Network error while retrieving game launcher config", True)
+            logger.exception("Network error while retrieving game launcher config")
             return None
         except GameLauncherConfigParseError:
-            logger.exception("")
-            self.AddLog(
+            logger.exception(
                 "Game launcher config has incompatible format. Please report "
                 "this issue if using a supported game server",
-                True,
             )
             return None
 
@@ -915,7 +902,6 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                 )
             )
         except httpx.HTTPError:
-            self.AddLog("Network error while downloading newsfeed", True)
             logger.exception("Network error while downloading newsfeed")
 
     def ClearLog(self) -> None:
@@ -923,17 +909,6 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
 
     def ClearNews(self) -> None:
         self.ui.txtFeed.setText("")
-
-    def AddLog(self, message: str, is_error: bool = False) -> None:
-        for line in message.splitlines():
-            # Make line red if it is an error
-            if is_error:
-                logger.error(line)
-                formatted_line = f'<font color="red">{message}</font>'
-            else:
-                logger.info(line)
-                formatted_line = line
-            self.ui.txtStatus.append(formatted_line)
 
 
 async def check_for_update() -> None:
@@ -943,12 +918,11 @@ async def check_for_update() -> None:
         return
     repository_url = __about__.__project_url__
     if not repository_url:
-        logger.warning("No repository URL available. Will not check for updates.")
+        logger.warning("No updates URL available")
         return
     if "github.com" not in repository_url.lower():
         logger.warning(
-            "Repository URL is not at github.com. The system for update notifications"
-            " only supports this site."
+            "Repository URL is not at github.com. Update checking is currently only supported for github.com"
         )
         return
 

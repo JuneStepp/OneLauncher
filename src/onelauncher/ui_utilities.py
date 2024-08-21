@@ -32,3 +32,11 @@ def show_message_box_details_as_markdown(messageBox: QtWidgets.QMessageBox) -> N
             detailed_text_widget.setMarkdown(messageBox.detailedText())
             button.click()
             return
+
+def log_record_to_rich_text(record: logging.LogRecord) -> str:
+    if record.levelno == logging.WARNING:
+        return f"<font color='#958e55'>{record.message}</font>"
+    elif record.levelno >= logging.ERROR:
+        return f'<font color="red">{record.message}</font>'
+    else:
+        return record.message

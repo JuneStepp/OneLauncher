@@ -33,7 +33,9 @@ from typing import Literal, TypeAlias, assert_never
 from PySide6 import QtCore, QtWidgets
 
 from onelauncher.game_config import GameConfigID
+from onelauncher.logs import ExternalProcessLogsFilter, ForwardLogsHandler
 from onelauncher.qtapp import get_qapp
+from onelauncher.ui_utilities import log_record_to_rich_text
 
 from .config import platform_dirs
 from .config_manager import ConfigManager
@@ -52,7 +54,7 @@ class PatchWindow(QtWidgets.QDialog):
 
     def __init__(
         self,
-        gane_id: GameConfigID,
+        game_id: GameConfigID,
         config_manager: ConfigManager,
         launcher_local_config: GameLauncherLocalConfig,
         urlPatchServer: str,
@@ -71,6 +73,16 @@ class PatchWindow(QtWidgets.QDialog):
         else:
             self.setWindowTitle("Patching WINE Output")
 
+        self.process_logging_adapter = logging.LoggerAdapter(logger)
+        logger.addFilter(ExternalProcessLogsFilter())
+        ui_logging_handler = ForwardLogsHandler(
+            new_log_callback=lambda record: self.ui.txtLog.append(
+                log_record_to_rich_text(record)
+            ),
+            level=logging.INFO,
+        )
+        logger.addHandler(ui_logging_handler)
+
         self.ui.btnSave.setText("Save Log")
         self.ui.btnSave.setEnabled(False)
         self.ui.progressBar.reset()
@@ -87,14 +99,11 @@ class PatchWindow(QtWidgets.QDialog):
             self.process_status_timer = QtCore.QTimer()
             self.process_status_timer.timeout.connect(self.activelyShowProcessStatus)
 
-        game_config = config_manager.get_game_config(game_id=gane_id)
+        game_config = config_manager.get_game_config(game_id=game_id)
         patch_client = game_config.game_directory / game_config.patch_client_filename
 
         # Make sure patch_client exists
         if not patch_client.exists():
-            self.ui.txtLog.append(
-                f'<font color="Red">Patch client {patch_client} not found</font>'
-            )
             logger.error(f"Patch client {patch_client} not found")
             return
 
@@ -165,17 +174,17 @@ class PatchWindow(QtWidgets.QDialog):
 
     def readOutput(self) -> None:
         line = self.process.readAllStandardOutput().toStdString()
-        self.ui.txtLog.append(line)
+        if line.strip():
+            self.process_logging_adapter.debug(line)
 
         progress = self.progress_monitor.feed_line(line)
         self.ui.progressBar.setMaximum(progress.total_iterations)
         self.ui.progressBar.setValue(progress.current_iterations)
-        logger.debug(f"Patcher: {line}")
 
     def readErrors(self) -> None:
         line = self.process.readAllStandardError().toStdString()
-        self.ui.txtLog.append(line)
-        logger.debug(f"Patcher: {line}")
+        if line.strip():
+            self.process_logging_adapter.warn(line)
 
     def resetButtons(self) -> None:
         self.patching_finished = True
@@ -188,9 +197,9 @@ class PatchWindow(QtWidgets.QDialog):
         self.ui.progressBar.setMaximum(1)
         self.ui.progressBar.reset()
         if self.aborted:
-            self.ui.txtLog.append("<b>***  Aborted  ***</b>")
+            logger.info("***  Aborted  ***<")
         elif self.get_process_arguments() is None:
-            self.ui.txtLog.append("<b>***  Finished  ***</b>")
+            logger.info("***  Finished  ***")
 
     def btnStopClicked(self) -> None:
         if self.patching_finished:
@@ -266,7 +275,10 @@ class PatchWindow(QtWidgets.QDialog):
             self.patch_log_file = self.get_windows_patching_log_path().open(mode="r")
 
         self.process.start()
-        self.ui.txtLog.append("<b>***  Started  ***</b>")
+        self.process_logging_adapter.extra = {
+            ExternalProcessLogsFilter.EXTERNAL_PROCESS_ID_KEY: self.process.processId()
+        }
+        logger.info("***  Started  ***")
 
         if os.name == "nt":
             self.process_status_timer.start(100)
@@ -285,8 +297,7 @@ class PatchWindow(QtWidgets.QDialog):
                 if ":" in line:
                     line = line.split(": ", maxsplit=1)[1]
 
-                self.ui.txtLog.append(line)
-                logger.debug(f"Patcher: {line}")
+                self.process_logging_adapter.info(line)
         else:
             # Add "..." if log is not giving indicator of patching progress
             self.ui.txtLog.append("...")

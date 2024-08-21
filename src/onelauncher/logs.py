@@ -1,9 +1,13 @@
 import logging
 import sys
+from collections.abc import Callable
 from functools import partial
 from logging.handlers import RotatingFileHandler
 from platform import platform
 from types import TracebackType
+from typing import Final
+
+from typing_extensions import override
 
 from .__about__ import __title__, __version__, version_parsed
 from .config import platform_dirs
@@ -19,10 +23,10 @@ def log_basic_info(logger: logging.Logger) -> None:
 
 
 def handle_uncaught_exceptions(
-    logger: logging.Logger,
     exc_type: type[BaseException],
     exc_value: BaseException,
     exc_traceback: TracebackType | None,
+    logger: logging.Logger,
 ) -> None:
     """Handler for uncaught exceptions that will write to the logs"""
     if issubclass(exc_type, KeyboardInterrupt):
@@ -74,7 +78,7 @@ def setup_application_logging() -> None:
     stream_format = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
     stream_handler.setFormatter(stream_format)
     file_format = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(lineno)d - %(message)s"
+        "%(asctime)s - %(process)d - %(name)s - %(levelname)s - %(lineno)d - %(message)s"
     )
     file_handler.setFormatter(file_format)
 
@@ -86,3 +90,36 @@ def setup_application_logging() -> None:
     sys.excepthook = partial(handle_uncaught_exceptions, logger=logger)
 
     log_basic_info(logger=logger)
+
+
+class ForwardLogsHandler(logging.Handler):
+    """
+    Send new log records to `new_log_callback`. Useful for showing log messages in a UI
+    """
+
+    def __init__(
+        self, new_log_callback: Callable[[logging.LogRecord], None], level: int = 0
+    ) -> None:
+        super().__init__(level)
+        self.new_log_callback = new_log_callback
+
+    @override
+    def emit(self, record: logging.LogRecord) -> None:
+        self.format(record=record)
+        self.new_log_callback(record)
+
+
+class ExternalProcessLogsFilter(logging.Filter):
+    """
+    Filter that sets the `LogRecord` process ID to the value for the key
+    `EXTERNAL_PROCESS_ID_KEY` in the `extra` logging keyward argument.
+    Used when logging output from external processes.
+    """
+
+    EXTERNAL_PROCESS_ID_KEY: Final = "externalProcessID"
+
+    @override
+    def filter(self, record: logging.LogRecord) -> bool:
+        if hasattr(record, self.EXTERNAL_PROCESS_ID_KEY):
+            record.process = getattr(record, self.EXTERNAL_PROCESS_ID_KEY)
+        return True

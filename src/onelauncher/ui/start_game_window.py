@@ -30,7 +30,9 @@ from datetime import UTC, datetime
 
 import attrs
 from onelauncher.game_config import GameConfigID
+from onelauncher.logs import ExternalProcessLogsFilter, ForwardLogsHandler
 from onelauncher.qtapp import get_qapp
+from onelauncher.ui_utilities import log_record_to_rich_text
 from PySide6 import QtCore, QtWidgets
 
 from ..addons.startup_script import run_startup_script
@@ -76,6 +78,17 @@ class StartGame(QtWidgets.QDialog):
         self.ui = Ui_startGameDialog()
         self.ui.setupUi(self)
 
+        self.process_logging_adapter = logging.LoggerAdapter(logger)
+        logger.addFilter(ExternalProcessLogsFilter())
+        logger.addHandler(
+            ForwardLogsHandler(
+                new_log_callback=lambda record: self.ui.txtLog.append(
+                    log_record_to_rich_text(record)
+                ),
+                level=logging.INFO,
+            )
+        )
+
         self.ui.btnStart.setText("Close")
         self.ui.btnStart.setEnabled(False)
         self.ui.btnSave.setText("Save Log")
@@ -104,23 +117,21 @@ class StartGame(QtWidgets.QDialog):
                 ticket=self.ticket,
             )
         except MissingLaunchArgumentError:
-            self.ui.txtLog.append(
-                '<font color="red">Game launch argument missing. '
-                "Please report this error if using a supported server.< /font >"
+            logger.exception(
+                "Game launch argument missing. Please report this error if using a supported server."
             )
-            logger.exception("Launch argument missing")
             self.reset_buttons()
             return None
 
         def readOutput() -> None:
-            text = process.readAllStandardOutput().toStdString()
-            self.ui.txtLog.append(text)
-            logger.debug(f"Game: {text}")
+            self.process_logging_adapter.debug(
+                process.readAllStandardOutput().toStdString()
+            )
 
         def readErrors() -> None:
-            text = process.readAllStandardError().toStdString()
-            self.ui.txtLog.append(text)
-            logger.debug(f"Game: {text}")
+            self.process_logging_adapter.warn(
+                process.readAllStandardError().toStdString()
+            )
 
         process.readyReadStandardOutput.connect(readOutput)
         process.readyReadStandardError.connect(readErrors)
@@ -132,9 +143,9 @@ class StartGame(QtWidgets.QDialog):
     ) -> None:
         self.reset_buttons()
         if self.aborted:
-            self.ui.txtLog.append("<b>***  Aborted  ***</b>")
+            logger.info("***  Aborted  ***")
         else:
-            self.ui.txtLog.append("<b>***  Finished  ***</b>")
+            logger.info("***  Finished  ***")
 
     def reset_buttons(self) -> None:
         self.game_finished = True
@@ -171,9 +182,7 @@ class StartGame(QtWidgets.QDialog):
         game_config = self.config_manager.get_game_config(self.game_id)
         for script in game_config.addons.enabled_startup_scripts:
             try:
-                self.ui.txtLog.append(
-                    f"Running '{script.relative_path}' startup script..."
-                )
+                logger.info(f"Running '{script.relative_path}' startup script...")
                 run_startup_script(
                     script=script,
                     game_directory=game_config.game_directory,
@@ -183,13 +192,11 @@ class StartGame(QtWidgets.QDialog):
                     ),
                 )
             except FileNotFoundError:
-                self.ui.txtLog.append(
+                logger.exception(
                     f"'{script.relative_path}' startup script does not exist"
                 )
             except SyntaxError as e:
-                self.ui.txtLog.append(
-                    f"'{script.relative_path}' ran into syntax error: {e}"
-                )
+                logger.exception(f"'{script.relative_path}' ran into syntax error: {e}")
 
     async def start_game(self) -> None:
         self.config_manager.update_game_config_file(
@@ -208,7 +215,9 @@ class StartGame(QtWidgets.QDialog):
         self.ui.btnStop.setText("Abort")
         self.run_startup_scripts()
         self.process.start()
-        logger.info(f"{self.process.program} game executable started")
-        self.ui.txtLog.append(f"Connecting to world: {self.world.name}")
+        self.process_logging_adapter.extra = {
+            ExternalProcessLogsFilter.EXTERNAL_PROCESS_ID_KEY: self.process.processId()
+        }
+        logger.info("Game started")
 
         self.exec()
