@@ -108,10 +108,9 @@ class AddonInfo(Sequence[str]):
         return len(attrs.astuple(self))
 
     @overload
-    def __getitem__(self, int: int, /) -> str: ...  # noqa: A002
-
+    def __getitem__(self, int: int, /) -> str: ...
     @overload
-    def __getitem__(self, slice: slice, /) -> Sequence[str]: ...  # noqa: A002
+    def __getitem__(self, slice: slice, /) -> Sequence[str]: ...
 
     @override
     def __getitem__(self, key: int | slice) -> str | tuple[str, ...]:

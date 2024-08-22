@@ -54,12 +54,12 @@ _CONFIG_HELP_METADATA = "__config_help"
 
 
 @overload
-def config_field( # type: ignore[misc]
+def config_field(  # type: ignore[misc]
     *,
     default: None = ...,
     validator: None = ...,
-    repr: _ReprArgType = ...,  # noqa: A002
-    hash: bool | None = ...,  # noqa: A002
+    repr: _ReprArgType = ...,
+    hash: bool | None = ...,
     init: bool = ...,
     metadata: Mapping[Any, Any] | None = ...,
     converter: None = ...,
@@ -69,8 +69,8 @@ def config_field( # type: ignore[misc]
     order: bool | None = ...,
     on_setattr: _OnSetAttrArgType | None = ...,
     alias: str | None = ...,
-    type: type | None = ...,  # noqa: A002
-    help: str | None = ...,  # noqa: A002
+    type: type | None = ...,
+    help: str | None = ...,
 ) -> Any: ...  # noqa: ANN401
 
 
@@ -79,8 +79,8 @@ def config_field(  # type: ignore[misc]
     *,
     default: None = ...,
     validator: _ValidatorArgType[_T] | None = ...,
-    repr: _ReprArgType = ...,  # noqa: A002
-    hash: bool | None = ...,  # noqa: A002
+    repr: _ReprArgType = ...,
+    hash: bool | None = ...,
     init: bool = ...,
     metadata: Mapping[Any, Any] | None = ...,
     converter: _ConverterType | None = ...,
@@ -90,8 +90,8 @@ def config_field(  # type: ignore[misc]
     order: _EqOrderType | None = ...,
     on_setattr: _OnSetAttrArgType | None = ...,
     alias: str | None = ...,
-    type: type | None = ...,  # noqa: A002
-    help: str | None = ...,  # noqa: A002
+    type: type | None = ...,
+    help: str | None = ...,
 ) -> _T:
     """
     This form catches an explicit None or no default and infers the type from
@@ -105,8 +105,8 @@ def config_field(  # type: ignore[misc]
     *,
     default: _T,
     validator: _ValidatorArgType[_T] | None = ...,
-    repr: _ReprArgType = ...,  # noqa: A002
-    hash: bool | None = ...,  # noqa: A002
+    repr: _ReprArgType = ...,
+    hash: bool | None = ...,
     init: bool = ...,
     metadata: Mapping[Any, Any] | None = ...,
     converter: _ConverterType | None = ...,
@@ -116,8 +116,8 @@ def config_field(  # type: ignore[misc]
     order: _EqOrderType | None = ...,
     on_setattr: _OnSetAttrArgType | None = ...,
     alias: str | None = ...,
-    type: type | None = ...,  # noqa: A002
-    help: str | None = ...,  # noqa: A002
+    type: type | None = ...,
+    help: str | None = ...,
 ) -> _T:
     """
     This form catches an explicit default argument.
@@ -130,8 +130,8 @@ def config_field(  # type: ignore[misc]
     *,
     default: _T | None = ...,
     validator: _ValidatorArgType[_T] | None = ...,
-    repr: _ReprArgType = ...,  # noqa: A002
-    hash: bool | None = ...,  # noqa: A002
+    repr: _ReprArgType = ...,
+    hash: bool | None = ...,
     init: bool = ...,
     metadata: Mapping[Any, Any] | None = ...,
     converter: _ConverterType | None = ...,
@@ -141,8 +141,8 @@ def config_field(  # type: ignore[misc]
     order: _EqOrderType | None = ...,
     on_setattr: _OnSetAttrArgType | None = ...,
     alias: str | None = ...,
-    type: type | None = ...,  # noqa: A002
-    help: str | None = ...,  # noqa: A002
+    type: type | None = ...,
+    help: str | None = ...,
 ) -> Any:  # noqa: ANN401
     """
     This form covers type=non-Type: e.g. forward references (str), Any
@@ -236,7 +236,7 @@ def unstructure_config(
     destructured = base_unstructure_func(obj)
     # Convert config vals to `ConfigValWithMetadata`.
     # There's probably? a reason for checking that it's a dict here. I'm too tired to investigate more.
-    if isinstance(destructured, dict) and attrs.has(type(obj)): # type: ignore[redundant-expr]
+    if isinstance(destructured, dict) and attrs.has(type(obj)):  # type: ignore[redundant-expr]
         for attribute in attrs.fields_dict(type(obj)).values():
             if attribute.name in destructured:
                 destructured_val = destructured[attribute.name]
