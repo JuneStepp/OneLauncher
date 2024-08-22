@@ -200,6 +200,9 @@ class PatchWindow(QtWidgets.QDialog):
             logger.info("***  Aborted  ***<")
         elif self.get_process_arguments() is None:
             logger.info("***  Finished  ***")
+            # Let user know that patching is finished if the window isn't currently
+            # focussed.
+            self.activateWindow()
 
     def btnStopClicked(self) -> None:
         if self.patching_finished:
