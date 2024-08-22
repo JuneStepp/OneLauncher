@@ -36,23 +36,16 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="btnStop">
-       <property name="text">
-        <string>Stop</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="btnSave">
-       <property name="text">
-        <string>Save Log</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QPushButton" name="btnStart">
        <property name="text">
         <string>Start</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnStop">
+       <property name="text">
+        <string>Stop</string>
        </property>
       </widget>
      </item>
@@ -60,6 +53,11 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>btnStart</tabstop>
+  <tabstop>btnStop</tabstop>
+  <tabstop>txtLog</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

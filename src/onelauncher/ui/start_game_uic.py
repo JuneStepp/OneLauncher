@@ -39,24 +39,21 @@ class Ui_startGameDialog(object):
 
         self.horizontalLayout.addItem(self.horizontalSpacer)
 
-        self.btnStart = QPushButton(startGameDialog)
-        self.btnStart.setObjectName(u"btnStart")
+        self.btnAbort = QPushButton(startGameDialog)
+        self.btnAbort.setObjectName(u"btnAbort")
 
-        self.horizontalLayout.addWidget(self.btnStart)
+        self.horizontalLayout.addWidget(self.btnAbort)
 
-        self.btnStop = QPushButton(startGameDialog)
-        self.btnStop.setObjectName(u"btnStop")
+        self.btnQuit = QPushButton(startGameDialog)
+        self.btnQuit.setObjectName(u"btnQuit")
 
-        self.horizontalLayout.addWidget(self.btnStop)
-
-        self.btnSave = QPushButton(startGameDialog)
-        self.btnSave.setObjectName(u"btnSave")
-
-        self.horizontalLayout.addWidget(self.btnSave)
+        self.horizontalLayout.addWidget(self.btnQuit)
 
 
         self.verticalLayout.addLayout(self.horizontalLayout)
 
+        QWidget.setTabOrder(self.btnAbort, self.btnQuit)
+        QWidget.setTabOrder(self.btnQuit, self.txtLog)
 
         self.retranslateUi(startGameDialog)
 
@@ -65,8 +62,7 @@ class Ui_startGameDialog(object):
 
     def retranslateUi(self, startGameDialog: QDialog) -> None:
         startGameDialog.setWindowTitle(QCoreApplication.translate("startGameDialog", u"MainWindow", None))
-        self.btnStart.setText(QCoreApplication.translate("startGameDialog", u"Start", None))
-        self.btnStop.setText(QCoreApplication.translate("startGameDialog", u"Stop", None))
-        self.btnSave.setText(QCoreApplication.translate("startGameDialog", u"Save Log", None))
+        self.btnAbort.setText(QCoreApplication.translate("startGameDialog", u"Abort", None))
+        self.btnQuit.setText(QCoreApplication.translate("startGameDialog", u"Quit", None))
     # retranslateUi
 

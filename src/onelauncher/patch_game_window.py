@@ -37,7 +37,6 @@ from onelauncher.logs import ExternalProcessLogsFilter, ForwardLogsHandler
 from onelauncher.qtapp import get_qapp
 from onelauncher.ui_utilities import log_record_to_rich_text
 
-from .config import platform_dirs
 from .config_manager import ConfigManager
 from .game_launcher_local_config import GameLauncherLocalConfig
 from .game_utilities import get_default_game_settings_dir
@@ -83,12 +82,9 @@ class PatchWindow(QtWidgets.QDialog):
         )
         logger.addHandler(ui_logging_handler)
 
-        self.ui.btnSave.setText("Save Log")
-        self.ui.btnSave.setEnabled(False)
         self.ui.progressBar.reset()
         self.ui.btnStop.setText("Close")
         self.ui.btnStart.setText("Patch")
-        self.ui.btnSave.clicked.connect(self.btnSaveClicked)
         self.ui.btnStop.clicked.connect(self.btnStopClicked)
         self.ui.btnStart.clicked.connect(self.btnStartClicked)
 
@@ -189,7 +185,6 @@ class PatchWindow(QtWidgets.QDialog):
     def resetButtons(self) -> None:
         self.patching_finished = True
         self.ui.btnStop.setText("Close")
-        self.ui.btnSave.setEnabled(True)
         self.ui.btnStart.setEnabled(True)
         self.progress_monitor.reset()
         # Make sure it's not showing a busy indicator
@@ -213,15 +208,6 @@ class PatchWindow(QtWidgets.QDialog):
 
             if self.process.state() != self.process.ProcessState.Running:
                 self.resetButtons()
-
-    def btnSaveClicked(self) -> None:
-        filename = QtWidgets.QFileDialog.getSaveFileName(
-            self, "Save log file", str(platform_dirs.user_log_path)
-        )[0]
-
-        if filename != "":
-            with open(filename, "w") as outfile:
-                outfile.write(self.ui.txtLog.toPlainText())
 
     def processFinished(
         self, exitCode: int, exitStatus: QtCore.QProcess.ExitStatus
@@ -270,7 +256,6 @@ class PatchWindow(QtWidgets.QDialog):
         self.phase_index = 0
         self.ui.btnStart.setEnabled(False)
         self.ui.btnStop.setText("Abort")
-        self.ui.btnSave.setEnabled(False)
 
         # Get log file to read patching details from, since
         # rundll32 doesn't provide output on Windows

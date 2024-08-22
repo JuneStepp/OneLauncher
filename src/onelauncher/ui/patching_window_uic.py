@@ -41,24 +41,21 @@ class Ui_patchingDialog(object):
 
         self.horizontalLayout.addWidget(self.progressBar)
 
-        self.btnStop = QPushButton(patchingDialog)
-        self.btnStop.setObjectName(u"btnStop")
-
-        self.horizontalLayout.addWidget(self.btnStop)
-
-        self.btnSave = QPushButton(patchingDialog)
-        self.btnSave.setObjectName(u"btnSave")
-
-        self.horizontalLayout.addWidget(self.btnSave)
-
         self.btnStart = QPushButton(patchingDialog)
         self.btnStart.setObjectName(u"btnStart")
 
         self.horizontalLayout.addWidget(self.btnStart)
 
+        self.btnStop = QPushButton(patchingDialog)
+        self.btnStop.setObjectName(u"btnStop")
+
+        self.horizontalLayout.addWidget(self.btnStop)
+
 
         self.verticalLayout.addLayout(self.horizontalLayout)
 
+        QWidget.setTabOrder(self.btnStart, self.btnStop)
+        QWidget.setTabOrder(self.btnStop, self.txtLog)
 
         self.retranslateUi(patchingDialog)
 
@@ -68,8 +65,7 @@ class Ui_patchingDialog(object):
     def retranslateUi(self, patchingDialog: QDialog) -> None:
         patchingDialog.setWindowTitle(QCoreApplication.translate("patchingDialog", u"MainWindow", None))
         self.progressBar.setFormat(QCoreApplication.translate("patchingDialog", u"%p% (%v/%m)", None))
-        self.btnStop.setText(QCoreApplication.translate("patchingDialog", u"Stop", None))
-        self.btnSave.setText(QCoreApplication.translate("patchingDialog", u"Save Log", None))
         self.btnStart.setText(QCoreApplication.translate("patchingDialog", u"Start", None))
+        self.btnStop.setText(QCoreApplication.translate("patchingDialog", u"Stop", None))
     # retranslateUi
 
