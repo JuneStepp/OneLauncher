@@ -80,6 +80,9 @@
           export QT_PLUGIN_PATH=${poetry_env}/${poetry_env.python.sitePackages}/PySide6/Qt/plugins:$QT_PLUGIN_PATH
           # Used in OneLauncher script
           export NIX_PYTHON_ENV=${poetry_env}
+
+          # Help IDEs can find the right Python environment
+          ln --force --no-target-directory --symbolic "${poetry_env}" ./.venv
         '';
       };
       # The FHS environment can be used for testing compiled builds of OneLauncher, as
