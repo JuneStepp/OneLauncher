@@ -33,9 +33,7 @@ platformdirs = "^4.2.2"
 xmlschema = "^3.3.2"
 feedparser = "^6.0.11"
 Babel = "^2.16.0"
-# Be careful updating this. Some hacky code is currently being used to make it fully
-# async.
-zeep = "4.2.1"
+zeep = { git = "https://github.com/JuneStepp/python-zeep.git" }
 cachetools = "^5.4.0"
 trio = "0.26.0"
 httpx = "^0.27.0"
@@ -99,7 +97,7 @@ ignore = [
     "PLR0913", # too-many-arguments
     "PLR0915", # too-many-statements
     "PLR0912", # too-many-branches
-    "S113" # request-without-timeout. httpx has default timeouts
+    "S113",    # request-without-timeout. httpx has default timeouts
 ]
 
 [tool.ruff.lint.per-file-ignores]

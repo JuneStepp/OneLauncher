@@ -3941,17 +3941,6 @@ files = [
 pytest = "*"
 
 [[package]]
-name = "pytz"
-version = "2024.1"
-description = "World timezone definitions, modern and historical"
-optional = false
-python-versions = "*"
-files = [
-    {file = "pytz-2024.1-py2.py3-none-any.whl", hash = "sha256:328171f4e3623139da4983451950b28e95ac706e13f3f2630a879749e7a8b319"},
-    {file = "pytz-2024.1.tar.gz", hash = "sha256:2a29735ea9c18baf14b448846bde5a48030ed267578472d8955cd0e7443a9812"},
-]
-
-[[package]]
 name = "pywin32"
 version = "306"
 description = "Python for Window Extensions"
@@ -4302,27 +4291,30 @@ name = "zeep"
 version = "4.2.1"
 description = "A Python SOAP client"
 optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "zeep-4.2.1-py3-none-any.whl", hash = "sha256:6754feb4c34a4b6d65fbc359252bf6654dcce3937bf1d95aae4402a60a8f5939"},
-    {file = "zeep-4.2.1.tar.gz", hash = "sha256:72093acfdb1d8360ed400869b73fbf1882b95c4287f798084c42ee0c1ff0e425"},
-]
+python-versions = ">=3.8"
+files = []
+develop = false
 
 [package.dependencies]
-attrs = ">=17.2.0"
+attrs = ">=23.2.0"
 isodate = ">=0.5.4"
-lxml = ">=4.6.0"
+lxml = ">=4.9.3"
 platformdirs = ">=1.4.0"
-pytz = "*"
-requests = ">=2.7.0"
+requests = ">=2.32.0"
 requests-file = ">=1.5.1"
 requests-toolbelt = ">=0.7.1"
 
 [package.extras]
 async = ["httpx (>=0.15.0)"]
 docs = ["sphinx (>=1.4.0)"]
-test = ["coverage[toml] (==5.2.1)", "flake8 (==3.8.3)", "flake8-blind-except (==0.1.1)", "flake8-debugger (==3.2.1)", "flake8-imports (==0.1.1)", "freezegun (==0.3.15)", "isort (==5.3.2)", "pretend (==1.0.9)", "pytest (==6.2.5)", "pytest-asyncio", "pytest-cov (==2.8.1)", "pytest-httpx", "requests-mock (>=0.7.0)"]
+test = ["coverage[toml] (==5.2.1)", "flake8 (==3.8.3)", "flake8-blind-except (==0.1.1)", "flake8-debugger (==3.2.1)", "flake8-imports (==0.1.1)", "freezegun (==0.3.15)", "isort (==5.11.2)", "pretend (==1.0.9)", "pytest (==7.4.4)", "pytest-asyncio (>=0.23.0)", "pytest-cov (==2.8.1)", "pytest-httpx", "requests_mock (>=0.7.0)"]
 xmlsec = ["xmlsec (>=0.6.1)"]
+
+[package.source]
+type = "git"
+url = "https://github.com/JuneStepp/python-zeep.git"
+reference = "HEAD"
+resolved_reference = "d4d34c2c54aca0bf9584cbd655388e55dd604371"
 
 [[package]]
 name = "zipp"
@@ -4457,4 +4449,4 @@ old-kwallet = ["dbus-python"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "c14f16537fdf25eb70e4ba415029b22e7acf9cf2f296ae1b6e1c6798b111649f"
+content-hash = "6ab3f2eb2ab3fc853ed0d65de37693d78fc26f5e3bd795b3aec8572d8143675f"
