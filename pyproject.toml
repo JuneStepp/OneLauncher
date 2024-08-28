@@ -35,7 +35,7 @@ feedparser = "^6.0.11"
 Babel = "^2.16.0"
 zeep = { git = "https://github.com/JuneStepp/python-zeep.git" }
 cachetools = "^5.4.0"
-trio = "0.26.0"
+trio = "^0.26.2"
 httpx = "^0.27.0"
 asyncache = { git = "https://github.com/JuneStepp/asyncache.git" }
 attrs = "^24.2.0"
@@ -46,7 +46,7 @@ pysidesix-frameless-window = "^0.3.12"
 packaging = "^24.1"
 
 [tool.poetry.group.dev.dependencies]
-Nuitka = "^2.4.7"
+Nuitka = "^2.4.8"
 pytest = "^8.3.2"
 mypy = "^1.11.1"
 types-cachetools = "^5.3.0.7"

@@ -906,12 +906,12 @@ files = [
 
 [[package]]
 name = "nuitka"
-version = "2.4.7"
+version = "2.4.8"
 description = "Python compiler with full language support and CPython compatibility"
 optional = false
 python-versions = "*"
 files = [
-    {file = "Nuitka-2.4.7.tar.gz", hash = "sha256:6e2ca3fd39954d11b54e371514b0607ae9259f17e225caa8526cfbe2d8abb3d3"},
+    {file = "Nuitka-2.4.8.tar.gz", hash = "sha256:ea04d15dde0d5967719d8181f26d714fe602a6cbd6c76df49ca8be7a45915d50"},
 ]
 
 [package.dependencies]
@@ -4194,13 +4194,13 @@ files = [
 
 [[package]]
 name = "trio"
-version = "0.26.0"
+version = "0.26.2"
 description = "A friendly Python library for async concurrency and I/O"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "trio-0.26.0-py3-none-any.whl", hash = "sha256:bb9c1b259591af941fccfbabbdc65bc7ed764bd2db76428454c894cd5e3d2032"},
-    {file = "trio-0.26.0.tar.gz", hash = "sha256:67c5ec3265dd4abc7b1d1ab9ca4fe4c25b896f9c93dac73713778adab487f9c4"},
+    {file = "trio-0.26.2-py3-none-any.whl", hash = "sha256:c5237e8133eb0a1d72f09a971a55c28ebe69e351c783fc64bc37db8db8bbe1d0"},
+    {file = "trio-0.26.2.tar.gz", hash = "sha256:0346c3852c15e5c7d40ea15972c4805689ef2cb8b5206f794c9c19450119f3a4"},
 ]
 
 [package.dependencies]
@@ -4449,4 +4449,4 @@ old-kwallet = ["dbus-python"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "6ab3f2eb2ab3fc853ed0d65de37693d78fc26f5e3bd795b3aec8572d8143675f"
+content-hash = "668f57a7df95b6d65dc8647a2f5a5980e5fdc4e78a3fef4a6bbb35d965be139f"
