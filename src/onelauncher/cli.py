@@ -586,7 +586,7 @@ async def _start_ui(config_manager: ConfigManager, game_arg: str | None) -> None
             isinstance(e, WrongConfigVersionError)
             and e.config_file_version < e.config_class.get_config_version()
         ):
-            # This is where code to handle config migrations for 2.0 config files should go.
+            # This is where code to handle config migrations from 2.0+ config files should go.
             raise e
         logger.exception("")
         dialog = QtWidgets.QDialog()
