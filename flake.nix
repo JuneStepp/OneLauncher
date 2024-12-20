@@ -88,7 +88,7 @@
       # The FHS environment can be used for testing compiled builds of OneLauncher, as
       # well as the WINE binaies that get downloaded by default.
       devShells.fhs =
-        (pkgs.buildFHSUserEnv
+        (pkgs.buildFHSEnv
           {
             name = "fhs-shell";
             targetPkgs = pkgs:
