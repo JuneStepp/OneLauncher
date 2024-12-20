@@ -3,7 +3,7 @@ from pathlib import Path
 
 from . import compile, convert_readme_to_bbcode
 
-out_dir = Path(__file__).parent / "out"
+out_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).parent / "out"
 out_dir.mkdir(exist_ok=True)
 
 bbcode_readme = convert_readme_to_bbcode.convert(
