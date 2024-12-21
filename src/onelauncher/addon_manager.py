@@ -1246,6 +1246,23 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             elif self.tab_names[index_remote] == "Music":
                 self.searchDB(self.ui.tableMusic, text)
 
+    def optimizeTableColumnWidths(self, table: QtWidgets.QTableWidget) -> None:
+        prioritized_column = self.TABLE_WIDGET_COLUMN_INDEXES["Name"]
+        table.resizeColumnToContents(prioritized_column)
+        columns_with = sum(
+            [
+                table.columnWidth(i)
+                for i in range(table.columnCount())
+                if not table.isColumnHidden(i)
+            ]
+        )
+        if columns_with > table.viewport().width():
+            table.horizontalHeader().setMaximumSectionSize(
+                table.fontMetrics().boundingRect("A Somewhat Long Addon Name").width()
+            )
+            table.resizeColumnToContents(prioritized_column)
+            table.horizontalHeader().setMaximumSectionSize(-1)
+
     def searchDB(self, table: QtWidgets.QTableWidget, text: str) -> None:
         table.clearContents()
         table.setRowCount(0)
@@ -1290,6 +1307,8 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 self.addRowToTable(
                     table, rowid=result[0], addon_info=AddonInfo(*result[1:])
                 )
+
+        self.optimizeTableColumnWidths(table)
 
     def isTableEmpty(self, table: QtWidgets.QTableWidget) -> bool:
         return not table.item(0, self.TABLE_WIDGET_COLUMN_INDEXES["Name"])
