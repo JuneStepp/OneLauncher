@@ -25,7 +25,9 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
+import html
 import logging
+import re
 import sqlite3
 import ssl
 import urllib
@@ -1783,6 +1785,23 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         return False
 
+    def unescape_lotrointerface_feed_unicode(self, escaped_string: str) -> str:
+        """
+        Convert feed escaped characters to Unicode characters. This shouold be used with
+        strings that have alread had the XML unesaaped.
+
+        Unicode characters in LotroInterface feeds are escaped with an ampersand followed
+        by the Unicode character number. Ex. `&1088`.
+        """
+        return html.unescape(
+            # Convert to HTML escape notation by adding `#`.
+            re.sub(
+                r"&(\d+);",
+                lambda match: f"&#{match.group(1)};",  # type: ignore[str-bytes-safe]
+                escaped_string,
+            )
+        )
+
     def getRemoteAddons(
         self, favorites_url: str, table: QtWidgets.QTableWidget
     ) -> bool:
@@ -1824,12 +1843,18 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             for node in nodes:
                 if node.nodeName == "UIName":
                     addon_info.name = GetText(node.childNodes)
+                    addon_info.name = self.unescape_lotrointerface_feed_unicode(
+                        addon_info.name
+                    )
                     # Sanitize
                     addon_info.name = addon_info.name.replace("/", "-").replace(
                         "\\", "-"
                     )
                 elif node.nodeName == "UIAuthorName":
                     addon_info.author = GetText(node.childNodes)
+                    addon_info.author = self.unescape_lotrointerface_feed_unicode(
+                        addon_info.author
+                    )
                 elif node.nodeName == "UICategory":
                     addon_info.category = GetText(node.childNodes)
                 elif node.nodeName == "UID":
