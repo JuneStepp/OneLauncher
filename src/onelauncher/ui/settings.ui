@@ -40,6 +40,9 @@
    </item>
    <item>
     <widget class="QStackedWidget" name="stackedWidget">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
      <widget class="QWidget" name="pageGameInfo">
       <layout class="QFormLayout" name="formLayout">
        <property name="leftMargin">
@@ -436,7 +439,7 @@
        <item row="3" column="0">
         <widget class="QLabel" name="wineDebugLabel">
          <property name="toolTip">
-          <string>Value for WINEDEBUG environment variable</string>
+          <string>Value for the WINEDEBUG environment variable</string>
          </property>
          <property name="text">
           <string>WINEDEBUG</string>
@@ -446,7 +449,7 @@
        <item row="3" column="1">
         <widget class="QLineEdit" name="wineDebugLineEdit">
          <property name="toolTip">
-          <string>Value for WINEDEBUG environment variable</string>
+          <string>Value for the WINEDEBUG environment variable</string>
          </property>
         </widget>
        </item>

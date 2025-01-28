@@ -377,6 +377,9 @@ class Ui_dlgSettings(object):
         self.retranslateUi(dlgSettings)
         self.settingsButtonBox.rejected.connect(dlgSettings.reject)
 
+        self.stackedWidget.setCurrentIndex(0)
+
+
         QMetaObject.connectSlotsByName(dlgSettings)
     # setupUi
 
@@ -469,11 +472,11 @@ class Ui_dlgSettings(object):
         self.wineExecutableLineEdit.setToolTip(QCoreApplication.translate("dlgSettings", u"Path to WINE executable", None))
 #endif // QT_CONFIG(tooltip)
 #if QT_CONFIG(tooltip)
-        self.wineDebugLabel.setToolTip(QCoreApplication.translate("dlgSettings", u"Value for WINEDEBUG environment variable", None))
+        self.wineDebugLabel.setToolTip(QCoreApplication.translate("dlgSettings", u"Value for the WINEDEBUG environment variable", None))
 #endif // QT_CONFIG(tooltip)
         self.wineDebugLabel.setText(QCoreApplication.translate("dlgSettings", u"WINEDEBUG", None))
 #if QT_CONFIG(tooltip)
-        self.wineDebugLineEdit.setToolTip(QCoreApplication.translate("dlgSettings", u"Value for WINEDEBUG environment variable", None))
+        self.wineDebugLineEdit.setToolTip(QCoreApplication.translate("dlgSettings", u"Value for the WINEDEBUG environment variable", None))
 #endif // QT_CONFIG(tooltip)
 #if QT_CONFIG(tooltip)
         self.defaultLanguageLabel.setToolTip(QCoreApplication.translate("dlgSettings", u"Default language to use for games", None))

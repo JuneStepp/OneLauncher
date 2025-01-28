@@ -24,4 +24,6 @@ class WineConfigSection:
         ),
     )
     # "fixme-all" disables fixme messages.
-    debug_level: str = config_field(default="fixme-all", help="WINE debug level to use")
+    debug_level: str = config_field(
+        default="fixme-all", help="Value for the WINEDEBUG environment variable"
+    )
