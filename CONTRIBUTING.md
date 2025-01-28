@@ -34,7 +34,7 @@ All code is strictly type checked with Mypy and both linted and formatted with R
 
 User interfaces are defined in `.ui` files that can be visually edited in pyside6-designer. You can use the command `onelauncher designer` to launch pyside6-designer with OneLauncher's plugins enabled.
 
-UI files must be compiled into Python to be used in OneLauncher. This can be done with `pyside6-uic src/onelauncher/example_window.ui -o src/onelauncher/ui/example_window_uic.py`, replacing "example_window" with the one being updated.
+UI files must be compiled into Python to be used in OneLauncher. This can be done with `pyside6-uic src/onelauncher/ui/example_window.ui -o src/onelauncher/ui/example_window_uic.py`, replacing "example_window" with the one being updated.
 
 ### QSS Classes
 
