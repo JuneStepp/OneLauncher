@@ -85,28 +85,5 @@
           ln --force --no-target-directory --symbolic "${poetry_env}" ./.venv
         '';
       };
-      # The FHS environment can be used for testing compiled builds of OneLauncher, as
-      # well as the WINE binaies that get downloaded by default.
-      devShells.fhs =
-        (pkgs.buildFHSEnv
-          {
-            name = "fhs-shell";
-            targetPkgs = pkgs:
-              [
-                # Generic dependencies for Nuitka binaries
-                pkgs.glibc
-                pkgs.libz
-                # So Qt can run on Wayland
-                pkgs.wayland
-              ]
-              # Dependencies for Qt to run
-              ++ pkgs.kdePackages.qtbase.propagatedBuildInputs
-              # Dependencies for WINE to run
-              ++ pkgs.wine64.buildInputs;
-            # Needed to run 32-bit executables with WINE
-            multiArch = true;
-            multiPkgs = pkgs: [pkgs.glibc] ++ pkgs.wine64.buildInputs;
-          })
-        .env;
     });
 }
