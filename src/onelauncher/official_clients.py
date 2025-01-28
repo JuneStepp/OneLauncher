@@ -132,7 +132,7 @@ def _httpx_request_hook_sync(request: httpx.Request) -> None:
                 )
         except OSError as e:
             raise httpx.RequestError(
-                "Connection error while verifying DDO preview " "GLS server IP"
+                "Connection error while verifying DDO preview GLS server IP"
             ) from e
 
         request.url = request.url.copy_with(host=DDO_GLS_PREVIEW_DOMAIN)
