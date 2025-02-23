@@ -65,6 +65,12 @@
       packages = {
         onelauncher = poetry_app;
         default = self.packages.${system}.onelauncher;
+        fhs-run =
+          (pkgs.steam-fhsenv-without-steam.override {
+            # steam-unwrapped = null;
+            extraPkgs = pkgs: [pkgs.libz];
+          })
+          .run;
       };
       devShells.default = pkgs.mkShell {
         inputsFrom = [poetry_env.env];
