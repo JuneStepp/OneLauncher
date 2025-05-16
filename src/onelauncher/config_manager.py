@@ -84,6 +84,8 @@ def convert_to_toml(
         else:
             val = unprocessed_val
         if isinstance(val, dict):
+            if not val:
+                continue
             table = tomlkit.table()
             convert_to_toml(val, table)
             container.add(key, table)

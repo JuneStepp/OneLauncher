@@ -7,7 +7,6 @@ import onelauncher.config_manager
 import pytest
 import tomlkit
 from onelauncher.config import ConfigFieldMetadata, ConfigValWithMetadata
-from onelauncher.game_config import GameConfig
 from onelauncher.program_config import ProgramConfig
 
 test_key_val_params: list[tuple[dict[str, Any], str]] = [
@@ -60,7 +59,6 @@ test_val_types_params: list[tuple[dict[str, Any], str]] = [
     ({"key": True}, "key = true\n"),
     ({"key": False}, "key = false\n"),
     ({"key": ["a", 2, True]}, 'key = ["a", 2, true]\n'),
-    ({"empty_table": {}}, "[empty_table]\n"),
     ({"array": [1, 2]}, "array = [1, 2]\n"),
     ({"empty_array": []}, "empty_array = []\n"),
     (
@@ -77,18 +75,18 @@ test_val_types_params: list[tuple[dict[str, Any], str]] = [
         },
         "key = 2000-02-12T02:24:19+07:00\n",
     ),
+    # Table
     (
-        {"tables": [{"key": "value"}, {"key": "value"}]},
+        {"table": {"key": "val"}},
         dedent(
             text="""\
-            [[tables]]
-            key = "value"
-
-            [[tables]]
-            key = "value"
+            [table]
+            key = "val"
             """
         ),
     ),
+    ({"empty_table": {}}, ""),
+    # Table with description
     (
         {
             "table": ConfigValWithMetadata(
@@ -99,6 +97,19 @@ test_val_types_params: list[tuple[dict[str, Any], str]] = [
             text="""\
             [table]
             key = "val"
+            """
+        ),
+    ),
+    # List of tables
+    (
+        {"tables": [{"key": "value"}, {"key": "value"}]},
+        dedent(
+            text="""\
+            [[tables]]
+            key = "value"
+
+            [[tables]]
+            key = "value"
             """
         ),
     ),
