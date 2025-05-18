@@ -22,7 +22,7 @@ version_parsed = Version(__version__)
 # __author__ = metadata.get("Author")  # noqa: ERA001
 # __author_email__ = metadata.get("Author-email")  # noqa: ERA001
 # __license__ = metadata.get("License")  # noqa: ERA001
-__copyright__ = "(C) 2019-2024 June Stepp"
+__copyright__ = "(C) 2019-2025 June Stepp"
 __copyright_history__ = (
     "Based on PyLotRO\n(C) 2009-2010 AJackson\n"
     "Based on LotROLinux\n(C) 2007-2008 AJackson\n"
