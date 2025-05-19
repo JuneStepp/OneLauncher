@@ -180,6 +180,12 @@ async def get_qprocess(
     process = QtCore.QProcess()
     process.setProgram(str(client_relative_path))
     process.setArguments(launch_args)
+
+    process_environment = QtCore.QProcessEnvironment.systemEnvironment()
+    for name, value in game_config.environment.items():
+        process_environment.insert(name, value)
+    process.setProcessEnvironment(process_environment)
+
     if os.name != "nt":
         edit_qprocess_to_use_wine(qprocess=process, wine_config=game_config.wine)
 

@@ -50,7 +50,7 @@ class GameConfig(Config):
     standard_game_launcher_filename: str | None = config_field(
         default=None,
         help=(
-            "The name of the standard game launcher executable. "
+            "Name of the standard game launcher executable. "
             "Ex. LotroLauncher.exe"
         ),
     )
@@ -67,6 +67,10 @@ class GameConfig(Config):
     )
     newsfeed: str | None = config_field(
         default=None, help="URL of the feed (RSS, ATOM, ect) to show in the launcher"
+    )
+    environment: dict[str, str] = config_field(
+        default={},
+        help="Environment variables to add to the game's environment",
     )
     last_played: datetime | None = None
     addons: AddonsConfigSection = config_field(
