@@ -51,11 +51,9 @@ logger = logging.getLogger(__name__)
 
 # To use Proton, replace link with Proton build and uncomment
 # `self.proton_documents_symlinker()` in wine_setup in wine_management
-WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/7.22/wine-7.22-staging-tkg-amd64.tar.xz"
-# This is the last DXVK release before 2.0, which has different system requirements.
-# See https://github.com/doitsujin/dxvk/releases/tag/v2.0.
+WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/10.8/wine-10.8-staging-tkg-amd64.tar.xz"
 DXVK_URL = (
-    "https://github.com/doitsujin/dxvk/releases/download/v1.10.3/dxvk-1.10.3.tar.gz"
+    "https://github.com/doitsujin/dxvk/releases/download/v2.6.1/dxvk-2.6.1.tar.gz"
 )
 
 
@@ -310,7 +308,7 @@ def edit_qprocess_to_use_wine(
             "Attempt to edit QProcess to use WINE on Windows. No changes were made."
         )
         return
-    processEnvironment = QtCore.QProcessEnvironment.systemEnvironment()
+    process_environment = qprocess.processEnvironment()
 
     prefix_path: Path | None
     if wine_config.builtin_prefix_enabled:
@@ -326,15 +324,15 @@ def edit_qprocess_to_use_wine(
             with path.open() as file:
                 file_data = file.read()
                 if int(file_data) >= ESYNC_MINIMUM_OPEN_FILE_LMIT:
-                    processEnvironment.insert("WINEESYNC", "1")
+                    process_environment.insert("WINEESYNC", "1")
 
         # Enables FSYNC. It overrides ESYNC and will only be used if
         # the required kernel patches are installed.
-        processEnvironment.insert("WINEFSYNC", "1")
+        process_environment.insert("WINEFSYNC", "1")
 
         # Add dll overrides for DirectX, so DXVK is used instead of wine3d
         # Disable mscoree and mshtml to avoid downloading wine mono and gecko.
-        processEnvironment.insert(
+        process_environment.insert(
             "WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10core=n;d3d9=n;mscoree=d;mshtml=d"
         )
     else:
@@ -342,13 +340,13 @@ def edit_qprocess_to_use_wine(
         wine_path = wine_config.user_wine_executable_path
 
     if prefix_path:
-        processEnvironment.insert("WINEPREFIX", str(prefix_path))
+        process_environment.insert("WINEPREFIX", str(prefix_path))
 
     if wine_config.debug_level:
-        processEnvironment.insert("WINEDEBUG", wine_config.debug_level)
+        process_environment.insert("WINEDEBUG", wine_config.debug_level)
 
     # Move current program to arguments and replace it with WINE.
     qprocess.setArguments([qprocess.program(), *qprocess.arguments()])
     qprocess.setProgram(str(wine_path))
 
-    qprocess.setProcessEnvironment(processEnvironment)
+    qprocess.setProcessEnvironment(process_environment)
