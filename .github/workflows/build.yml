@@ -25,6 +25,26 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      # `run_patch_client` C code
+      - name: Install mingw-w64 on Linux
+        if: runner.os == 'Linux'
+        run: sudo apt install mingw-w64
+      - name: Build `run_patch_client`
+        if: runner.os != 'Windows'
+        run: make -C src/run_patch_client
+      - name: Install mingw-w64 on Windows
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW32
+          install: mingw-w64-i686-toolchain make
+      - name: Build `run_patch_client` on Windows
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: make -C src/run_patch_client
+
+      # Poetry
       - name: Install poetry
         run: pipx install poetry
       - uses: actions/setup-python@v5
@@ -32,9 +52,11 @@ jobs:
           python-version: "3.11"
           cache: "poetry"
       - run: poetry install
+
+      # Nuitka cache
       - name: Install ccache for Nuitka
         if: runner.os == 'Linux'
-        run: sudo apt-get install -y ccache
+        run: sudo apt install -y ccache
       - name: Setup Nuitka env variables
         shell: bash
         run: |
@@ -50,11 +72,13 @@ jobs:
             ${{ runner.os }}-${{ runner.arch }}-python-${{ env.PYTHON_VERSION }}-
             ${{ runner.os }}-${{ runner.arch }}-python-
             ${{ runner.os }}-${{ runner.arch }}-
+
       - name: Setup dotnet for building Windows installer
         if: runner.os == 'Windows'
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+
       - name: Build
         run: poetry run python -m build
       - name: Rename artifact

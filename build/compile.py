@@ -31,6 +31,7 @@ def main(
         "--noinclude-setuptools-mode=nofollow",
         "--noinclude-unittest-mode=nofollow",
         "--enable-plugins=pyside6",
+        "--include-data-files=src/run_patch_client/run_ptch_client.exe=run_patch_client/run_ptch_client.exe",
         "--include-data-files=src/onelauncher/=onelauncher/=**/*.xsd",
         "--include-data-dir=src/onelauncher/images=onelauncher/images",
         "--include-data-dir=src/onelauncher/locale=onelauncher/locale",

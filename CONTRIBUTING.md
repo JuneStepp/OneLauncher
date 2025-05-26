@@ -9,6 +9,8 @@ Contributions and questions are always welcome! Here's just a couple of things t
 
 OneLauncher uses [Poetry](https://python-poetry.org) for dependency management. Run `poetry install` in the root folder of this repository to get everything set up. Once installed, OneLauncher can be started with `poetry run onelauncher`. Alternatively, [Nix can be used](#nix).
 
+For game patching support, extra C code must be compiled. Run `make -C src/run_patch_client` with mingw-w64 installed. Your mingw-w64 installation must have support for i686 builds.
+
 ### Nix
 
 OneLauncher comes with a [Nix](https://nixos.org/) flake for easily replicating the standard development environment. It can be used with [direnv](https://github.com/direnv/direnv) or the `nix develop` command. When using Nix, dependencies aren't installed with poetry. `poetry add`, ect can still be used for editing the dependency files, but `poetry run` should not be used.

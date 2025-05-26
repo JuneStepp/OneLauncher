@@ -35,14 +35,13 @@ from PySide6 import QtCore, QtWidgets
 from onelauncher.game_config import GameConfigID
 from onelauncher.logs import ExternalProcessLogsFilter, ForwardLogsHandler
 from onelauncher.qtapp import get_qapp
+from onelauncher.resources import data_dir
 from onelauncher.ui_utilities import log_record_to_rich_text
 
 from .config_manager import ConfigManager
 from .game_launcher_local_config import GameLauncherLocalConfig
-from .game_utilities import get_default_game_settings_dir
 from .patching_progress_monitor import PatchingProgressMonitor
 from .ui.patching_window_uic import Ui_patchingDialog
-from .utilities import CaseInsensitiveAbsolutePath
 from .wine_environment import edit_qprocess_to_use_wine
 
 logger = logging.getLogger(__name__)
@@ -66,11 +65,7 @@ class PatchWindow(QtWidgets.QDialog):
 
         self.ui = Ui_patchingDialog()
         self.ui.setupUi(self)
-
-        if os.name == "nt":
-            self.setWindowTitle("Patching Output")
-        else:
-            self.setWindowTitle("Patching WINE Output")
+        self.setWindowTitle("Patching Output")
 
         self.process_logging_adapter = logging.LoggerAdapter(logger)
         logger.addFilter(ExternalProcessLogsFilter())
@@ -90,10 +85,6 @@ class PatchWindow(QtWidgets.QDialog):
 
         self.aborted = False
         self.patching_finished = True
-
-        if os.name == "nt":
-            self.process_status_timer = QtCore.QTimer()
-            self.process_status_timer.timeout.connect(self.activelyShowProcessStatus)
 
         game_config = config_manager.get_game_config(game_id=game_id)
         patch_client = game_config.game_directory / game_config.patch_client_filename
@@ -121,20 +112,14 @@ class PatchWindow(QtWidgets.QDialog):
             )
             self.process.setProcessEnvironment(environment)
 
-        self.process.setProgram("rundll32.exe")
-        arguments = [
-            str(patch_client),
-            "Patch",
-            urlPatchServer,
-            "--language",
-            game_config.locale.game_language_name
-            if game_config.locale
-            else config_manager.get_program_config().default_locale.game_language_name,
-        ]
-
-        if game_config.high_res_enabled:
-            arguments.append("--highres")
-        self.process.setArguments(arguments)
+        patch_client_runner = (
+            data_dir.parent / "run_patch_client" / "run_ptch_client.exe"
+        )
+        if not patch_client_runner.exists():
+            logger.error("Cannot patch. run_ptch_client.exe is missing.")
+            self.ui.btnStart.setEnabled(False)
+        self.process.setProgram(str(patch_client_runner))
+        self.process.setArguments([str(patch_client)])
         if os.name != "nt":
             edit_qprocess_to_use_wine(
                 qprocess=self.process, wine_config=game_config.wine
@@ -142,7 +127,16 @@ class PatchWindow(QtWidgets.QDialog):
 
         # Arguments have to be gotten from self.process, because
         # they mey have been changed by edit_qprocess_to_use_wine().
-        self.base_patching_arguments = tuple(self.process.arguments())
+        self.base_process_arguments = tuple(self.process.arguments())
+        # Arguments to be passed to patchclient.dll
+        self.patch_client_arguments = (
+            urlPatchServer,
+            "--language",
+            game_config.locale.game_language_name
+            if game_config.locale
+            else config_manager.get_program_config().default_locale.game_language_name,
+            *(("--highres",) if game_config.high_res_enabled else ()),
+        )
         # Run file patching twiceto avoid problems when patchclient.dll
         # self-patches
         self.patch_phases: tuple[PatchWindow.PatchPhase, ...] = (
@@ -160,13 +154,18 @@ class PatchWindow(QtWidgets.QDialog):
             return None
         current_phase = self.patch_phases[self.phase_index]
         if current_phase == "FilesOnly":
-            return (*self.base_patching_arguments, "--filesonly")
+            phase_arg = "--filesonly"
         elif current_phase == "DataOnly":
-            return (*self.base_patching_arguments, "--dataonly")
+            phase_arg = "--dataonly"
         elif current_phase == "FullPatch":
-            return self.base_patching_arguments
+            phase_arg = ""
         else:
             assert_never(current_phase)
+
+        return (
+            *self.base_process_arguments,
+            " ".join([*self.patch_client_arguments, phase_arg]),
+        )
 
     def readOutput(self) -> None:
         line = self.process.readAllStandardOutput().toStdString()
@@ -180,7 +179,7 @@ class PatchWindow(QtWidgets.QDialog):
     def readErrors(self) -> None:
         line = self.process.readAllStandardError().toStdString()
         if line.strip():
-            self.process_logging_adapter.warn(line)
+            self.process_logging_adapter.warning(line)
 
     def resetButtons(self) -> None:
         self.patching_finished = True
@@ -222,33 +221,9 @@ class PatchWindow(QtWidgets.QDialog):
         if new_arguments is None:
             # finished
             self.resetButtons()
-            if os.name == "nt":
-                self.patch_log_file.close()
             return
         self.process.setArguments(new_arguments)
         self.process.start()
-
-    def get_windows_patching_log_path(self) -> CaseInsensitiveAbsolutePath:
-        # The name of the log folder is the same as the default name of the
-        # game settings folder.
-        log_folder_name = get_default_game_settings_dir(
-            launcher_local_config=self.launcher_local_config
-        ).name
-
-        game_logs_folder = (
-            CaseInsensitiveAbsolutePath(
-                os.environ.get("APPDATA")
-                or CaseInsensitiveAbsolutePath.home() / "AppData/Roaming"
-            ).parent
-            / "Local"
-            / log_folder_name
-        )
-
-        game_logs_folder.mkdir(parents=True, exist_ok=True)
-        patch_log_path = game_logs_folder / "PatchClient.log"
-        patch_log_path.unlink(missing_ok=True)
-        patch_log_path.touch()
-        return patch_log_path
 
     def btnStartClicked(self) -> None:
         self.aborted = False
@@ -257,40 +232,11 @@ class PatchWindow(QtWidgets.QDialog):
         self.ui.btnStart.setEnabled(False)
         self.ui.btnStop.setText("Abort")
 
-        # Get log file to read patching details from, since
-        # rundll32 doesn't provide output on Windows
-        if os.name == "nt":
-            self.patch_log_file = self.get_windows_patching_log_path().open(mode="r")
-
         self.process.start()
         self.process_logging_adapter.extra = {
             ExternalProcessLogsFilter.EXTERNAL_PROCESS_ID_KEY: self.process.processId()
         }
         logger.info("***  Started  ***")
-
-        if os.name == "nt":
-            self.process_status_timer.start(100)
-
-    def activelyShowProcessStatus(self) -> None:
-        """
-        Gives patching progress on Windows where rundll32
-        doesn't provide output.
-        """
-        if self.process.state() != QtCore.QProcess.ProcessState.Running:
-            return
-
-        if line := self.patch_log_file.readline().strip():
-            # Ignore information only relevent to log
-            if not line.startswith("//"):
-                if ":" in line:
-                    line = line.split(": ", maxsplit=1)[1]
-
-                self.process_logging_adapter.info(line)
-        else:
-            # Add "..." if log is not giving indicator of patching progress
-            self.ui.txtLog.append("...")
-
-        self.process_status_timer.start(100)
 
     def Run(self) -> None:
         self.exec()

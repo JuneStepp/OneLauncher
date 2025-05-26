@@ -72,7 +72,7 @@ class OneLauncherLocale:
 
 
 def get_data_dir() -> Path:
-    """Returns location equivalent to OneLauncher folder of source code."""
+    """Return directory equivalent to `src/onelauncher` in the source code."""
     if getattr(sys, "frozen", False):
         # Data location for frozen programs
         return Path(sys.executable).parent
