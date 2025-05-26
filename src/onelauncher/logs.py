@@ -3,6 +3,7 @@ import sys
 from collections.abc import Callable
 from functools import partial
 from logging.handlers import RotatingFileHandler
+from pathlib import Path
 from platform import platform
 from types import TracebackType
 from typing import Final
@@ -36,6 +37,18 @@ def handle_uncaught_exceptions(
     logger.critical(
         "Uncaught exception:", exc_info=(exc_type, exc_value, exc_traceback)
     )
+
+
+class RedactHomeDirFormatter(logging.Formatter):
+    """
+    Redact home directory from log messages. It often contains sensitive
+    information like the users's name.
+    """
+
+    @override
+    def format(self, record: logging.LogRecord) -> str:
+        unredacted = super().format(record)
+        return unredacted.replace(str(Path.home()), "<HOME>")
 
 
 def setup_application_logging() -> None:
@@ -77,7 +90,7 @@ def setup_application_logging() -> None:
     # Create formatters and add it to handlers
     stream_format = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
     stream_handler.setFormatter(stream_format)
-    file_format = logging.Formatter(
+    file_format = RedactHomeDirFormatter(
         "%(asctime)s - %(process)d - %(name)s - %(levelname)s - %(lineno)d - %(message)s"
     )
     file_handler.setFormatter(file_format)
