@@ -9,7 +9,7 @@ repository = "https://github.com/JuneStepp/OneLauncher"
 packages = [{ include = "onelauncher", from = "src" }]
 keywords = ["LOTRO", "DDO", "launcher", "addon-manager", "custom-launcher"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: End Users/Desktop",
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Operating System :: OS Independent",
