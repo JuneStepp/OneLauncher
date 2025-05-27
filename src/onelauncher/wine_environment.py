@@ -343,6 +343,8 @@ def edit_qprocess_to_use_wine(
         process_environment.insert("WINEPREFIX", str(prefix_path))
 
     process_environment.insert("WINEDEBUG", wine_config.debug_level or "-all")
+    if not process_environment.contains("DXVK_LOG_LEVEL"):
+        process_environment.insert("DXVK_LOG_LEVEL", "error")
 
     # Move current program to arguments and replace it with WINE.
     qprocess.setArguments([qprocess.program(), *qprocess.arguments()])
