@@ -4428,10 +4428,7 @@ cffi = {version = ">=1.11", markers = "platform_python_implementation == \"PyPy\
 [package.extras]
 cffi = ["cffi (>=1.11)"]
 
-[extras]
-old-kwallet = ["dbus-python"]
-
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "668f57a7df95b6d65dc8647a2f5a5980e5fdc4e78a3fef4a6bbb35d965be139f"
+content-hash = "7112e8d3a877566a0465f580a794b1363a7a611c7ddeec81c10227abad71ae9f"
