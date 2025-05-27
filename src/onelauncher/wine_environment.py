@@ -342,8 +342,7 @@ def edit_qprocess_to_use_wine(
     if prefix_path:
         process_environment.insert("WINEPREFIX", str(prefix_path))
 
-    if wine_config.debug_level:
-        process_environment.insert("WINEDEBUG", wine_config.debug_level)
+    process_environment.insert("WINEDEBUG", wine_config.debug_level or "-all")
 
     # Move current program to arguments and replace it with WINE.
     qprocess.setArguments([qprocess.program(), *qprocess.arguments()])

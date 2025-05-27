@@ -19,11 +19,8 @@ class WineConfigSection:
     )
     user_prefix_path: Path | None = config_field(
         default=None,
-        help=(
-            "Path to the WINE prefix to use when WINE isn't automatically " "managed"
-        ),
+        help="Path to the WINE prefix to use when WINE isn't automatically managed",
     )
-    # "fixme-all" disables fixme messages.
-    debug_level: str = config_field(
-        default="fixme-all", help="Value for the WINEDEBUG environment variable"
+    debug_level: str | None = config_field(
+        default=None, help="Value for the WINEDEBUG environment variable"
     )

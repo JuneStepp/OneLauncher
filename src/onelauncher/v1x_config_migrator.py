@@ -53,7 +53,7 @@ class V1xStatupScripts:
 @attrs.frozen(kw_only=True)
 class V1xGameConfig:
     wine_program: Path | None = None
-    wine_debug: str = "fixme-all"
+    wine_debug: str | None = None
     wine_prefix: Path | None = None
     high_res_enabled: bool = True
     client_type: ClientType = ClientType.WIN64
