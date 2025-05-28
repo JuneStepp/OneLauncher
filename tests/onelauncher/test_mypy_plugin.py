@@ -6,6 +6,7 @@ import mypy.plugins.attrs
 import mypy.version
 import pytest
 from mypy.options import Options
+
 from onelauncher import mypy_plugin
 from onelauncher.config import config_field
 

@@ -1,6 +1,7 @@
 from functools import partial
 
 import pytest
+
 from onelauncher.game_config import ClientType
 from onelauncher.network.game_launcher_config import GameLauncherConfig
 
@@ -27,7 +28,7 @@ def get_mock_game_launcher_config_partial() -> partial[GameLauncherConfig]:
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_game_launcher_config() -> GameLauncherConfig:
     return get_mock_game_launcher_config_partial()()
 

@@ -874,9 +874,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         self.handleStartupScriptActivationPrompt(table, interface_id)
         logger.debug(
-            "Installed plugin corresponding to "
-            f"{plugin_files} )"
-            f"{compendium_files}"
+            f"Installed plugin corresponding to {plugin_files} ){compendium_files}"
         )
 
         self.installAddonRemoteDependencies(f"{table.objectName()}Installed")

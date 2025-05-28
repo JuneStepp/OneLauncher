@@ -29,11 +29,12 @@ import logging
 from datetime import UTC, datetime
 
 import attrs
+from PySide6 import QtCore, QtWidgets
+
 from onelauncher.game_config import GameConfigID
 from onelauncher.logs import ExternalProcessLogsFilter, ForwardLogsHandler
 from onelauncher.qtapp import get_qapp
 from onelauncher.ui_utilities import log_record_to_rich_text
-from PySide6 import QtCore, QtWidgets
 
 from ..addons.startup_script import run_startup_script
 from ..async_utils import app_cancel_scope
@@ -125,7 +126,7 @@ class StartGame(QtWidgets.QDialog):
             )
 
         def readErrors() -> None:
-            self.process_logging_adapter.warn(
+            self.process_logging_adapter.warning(
                 process.readAllStandardError().toStdString()
             )
 

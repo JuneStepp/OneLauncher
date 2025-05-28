@@ -5,8 +5,9 @@ from typing import cast
 from urllib.parse import urlparse, urlunparse
 
 import marko
-from onelauncher.__about__ import __project_url__
 from typing_extensions import override
+
+from onelauncher.__about__ import __project_url__
 
 
 class HTMLToBBCodeParser(HTMLParser):
@@ -151,4 +152,3 @@ class BBCodeRenderer(marko.renderer.Renderer):
 def convert(readme_text: str) -> str:
     markdown_class = marko.Markdown(renderer=BBCodeRenderer)
     return markdown_class.convert(readme_text)
-

@@ -149,8 +149,7 @@ class GameLauncherConfig:
             ) from e
         except NoGameClientFilenameError as e:
             raise GameLauncherConfigParseError(
-                "Config doesn't include any client filenames of a "
-                "suppored client type"
+                "Config doesn't include any client filenames of a suppored client type"
             ) from e
 
     @classmethod

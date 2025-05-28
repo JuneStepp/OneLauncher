@@ -82,6 +82,7 @@ class ApplicationStyle(QtCore.QObject):
     Manages app stylesheet.
     There should only ever be one instance of this class for every QApplication
     """
+
     def __init__(self, qapp: QApplication) -> None:
         super().__init__()
         self.qapp = qapp
@@ -107,14 +108,14 @@ class ApplicationStyle(QtCore.QObject):
         stylesheet += dedent(f"""
             * {{
                 font-size: {self._font_base.pointSizeF()}pt;
-                icon-size: {self.rem_to_px(TYPE_SCALE['base'])}px;
+                icon-size: {self.rem_to_px(TYPE_SCALE["base"])}px;
             }}
             """)
         if qtdesigner_version:
             # Set placeholder banner for better style preview in QtDesigner
             stylesheet += dedent(f"""
                 QLabel#imgGameBanner {{
-                    qproperty-pixmap: url({((data_dir / Path('images/LOTRO_banner.png')).as_posix())})
+                    qproperty-pixmap: url({((data_dir / Path("images/LOTRO_banner.png")).as_posix())})
                 }}
             """)
         stylesheet += self._get_font_size_qss()
@@ -144,7 +145,7 @@ class ApplicationStyle(QtCore.QObject):
             stylesheet += dedent(f"""
                 *[{CLASS_PROPERTY}~="icon-{scale_prefix}"] {{
                     qproperty-iconSize: {self.rem_to_px(rem)}px;
-                    {f"qproperty-icon: url({ (data_dir / Path('images/placeholder_icon.svg')).as_posix()});" if qtdesigner_version else ""}
+                    {f"qproperty-icon: url({(data_dir / Path('images/placeholder_icon.svg')).as_posix()});" if qtdesigner_version else ""}
                 }}""")
         return stylesheet
 

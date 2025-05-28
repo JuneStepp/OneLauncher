@@ -91,7 +91,9 @@ class AccountLoginResponse:
         return self._session_ticket
 
     @classmethod
-    def from_soap_response_dict(cls: type[Self], login_response_dict: dict[str, Any]) -> Self:  # type:ignore [misc]
+    def from_soap_response_dict(  # type:ignore [misc]
+        cls: type[Self], login_response_dict: dict[str, Any]
+    ) -> Self:
         """Construct from dictionary SOAP response
         of LoginAccount operation. See `login_account`."""
 

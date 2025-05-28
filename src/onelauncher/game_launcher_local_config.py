@@ -104,7 +104,7 @@ class GameLauncherLocalConfig:
     @cached(LRUCache(maxsize=128))
     async def from_game_dir(
         cls: type[Self],
-        *, # Keyword only, so caching is consistant
+        *,  # Keyword only, so caching is consistant
         game_directory: CaseInsensitiveAbsolutePath,
         game_type: GameType,
     ) -> Self | None:

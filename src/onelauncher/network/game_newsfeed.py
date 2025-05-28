@@ -7,8 +7,9 @@ from io import StringIO
 import feedparser
 from babel import Locale
 from babel.dates import format_datetime
-from onelauncher.qtapp import get_qapp
 from PySide6 import QtCore
+
+from onelauncher.qtapp import get_qapp
 
 from .httpx_client import get_httpx_client
 

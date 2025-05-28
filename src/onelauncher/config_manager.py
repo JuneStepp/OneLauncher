@@ -249,7 +249,7 @@ def read_config_file(
     elif config_file_version != config_class.get_config_version():
         raise WrongConfigVersionError(
             msg=f"Config file's version is too "
-            f"{'low' if config_file_version < config_class.get_config_version() else'high'}.",
+            f"{'low' if config_file_version < config_class.get_config_version() else 'high'}.",
             config_class=config_class,
             config_file_path=config_file_path,
             config_file_version=config_file_version,

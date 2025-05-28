@@ -10,14 +10,13 @@ class WineConfigSection:
     builtin_prefix_enabled: bool = config_field(
         default=True, help="If WINE should be automatically managed"
     )
-    user_wine_executable_path: Path | None = config_field(
+    user_wine_executable_path: Path | None = config_field(  # noqa: RUF009
         default=None,
         help=(
-            "Path to the WINE executable to use when WINE isn't "
-            "automatically managed"
+            "Path to the WINE executable to use when WINE isn't automatically managed"
         ),
     )
-    user_prefix_path: Path | None = config_field(
+    user_prefix_path: Path | None = config_field(  # noqa: RUF009
         default=None,
         help="Path to the WINE prefix to use when WINE isn't automatically managed",
     )

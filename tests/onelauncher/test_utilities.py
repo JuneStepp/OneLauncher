@@ -2,9 +2,10 @@ import logging
 import os
 from pathlib import Path
 
+import pytest
+
 import onelauncher
 import onelauncher.utilities
-import pytest
 from onelauncher.utilities import CaseInsensitiveAbsolutePath
 
 

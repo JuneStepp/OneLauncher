@@ -1,3 +1,5 @@
+from PySide6.QtDesigner import QPyDesignerCustomWidgetCollection
+
 from onelauncher.ui.qtdesigner.custom_widgets import (
     QDialogWithStylePreview,
     QMainWindowWithStylePreview,
@@ -6,7 +8,6 @@ from onelauncher.ui.qtdesigner.custom_widgets import (
 from onelauncher.ui.qtdesigner.style_preview_plugin import (
     CustomStylesheetPlugin,
 )
-from PySide6.QtDesigner import QPyDesignerCustomWidgetCollection
 
 if __name__ == "__main__":
     QPyDesignerCustomWidgetCollection.addCustomWidget(

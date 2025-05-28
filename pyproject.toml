@@ -50,7 +50,7 @@ ChangeLog = "https://github.com/JuneStepp/OneLauncher/blob/main/CHANGES.md"
 onelauncher = "onelauncher.cli:app"
 
 [dependency-groups]
-lint = ["mypy>=1.11.1", "types-cachetools>=5.3.0.7", "ruff==0.5.7"]
+lint = ["mypy>=1.11.1", "types-cachetools>=5.3.0.7", "ruff>=0.11.11"]
 test = [
     "pytest>=8.3.2",
     "pytest-randomly>=3.15.0",
@@ -96,7 +96,6 @@ select = [
     "ASYNC", # flake8-async
     "ANN",   # flake8-annotations
     "A",     # flake8-builtins
-    "CPY",   # flake8-copyright
     "FA",    # flake8-future-annotations
     "T20",   # flake8-print
     "FIX",   # flake8-fixme
@@ -105,7 +104,6 @@ select = [
     "PT",    # flake8-pytest-style
 ]
 ignore = [
-    "ANN101",  # missing-type-self
     "PLR0913", # too-many-arguments
     "PLR0915", # too-many-statements
     "PLR0912", # too-many-branches
@@ -113,6 +111,7 @@ ignore = [
 ]
 per-file-ignores."tests/**.py" = ["S101"] # assert
 flake8-annotations.mypy-init-return = true
+flake8-bugbear.extend-immutable-calls = ["onelauncher.config.config_field"]
 
 [tool.ruff.format]
 docstring-code-format = true

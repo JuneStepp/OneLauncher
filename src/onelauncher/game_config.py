@@ -49,10 +49,7 @@ class GameConfig(Config):
     )
     standard_game_launcher_filename: str | None = config_field(
         default=None,
-        help=(
-            "Name of the standard game launcher executable. "
-            "Ex. LotroLauncher.exe"
-        ),
+        help=("Name of the standard game launcher executable. Ex. LotroLauncher.exe"),
     )
     patch_client_filename: str = config_field(
         default="patchclient.dll",
@@ -100,7 +97,7 @@ def generate_game_name(
     game_config: GameConfig, existing_game_names: Iterable[str] = ()
 ) -> str:
     """
-    Generate default name for game based on its properties. The name can be made 
+    Generate default name for game based on its properties. The name can be made
     unique if `existing_game_names` are provided.
     """
     name = (

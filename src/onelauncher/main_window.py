@@ -307,8 +307,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         ui.lblDescription.setText(__about__.__description__)
         if __about__.__project_url__:
             ui.lblRepoWebsite.setText(
-                f"<a href='{__about__.__project_url__}'>"
-                f"{__about__.__project_url__}</a>"
+                f"<a href='{__about__.__project_url__}'>{__about__.__project_url__}</a>"
             )
         else:
             ui.lblRepoWebsite.hide()
@@ -938,7 +937,7 @@ async def check_for_update() -> None:
         response.raise_for_status()
     except httpx.HTTPError:
         logger.exception(
-            f"Network error while checking for " f"{__about__.__title__} updates"
+            f"Network error while checking for {__about__.__title__} updates"
         )
         return
     release_dictionary = response.json()

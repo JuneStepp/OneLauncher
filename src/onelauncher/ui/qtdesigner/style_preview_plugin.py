@@ -1,6 +1,7 @@
-from onelauncher.ui.style import ApplicationStyle
 from PySide6 import QtDesigner, QtGui, QtWidgets
 from typing_extensions import override
+
+from onelauncher.ui.style import ApplicationStyle
 
 
 class CustomStylesheetPlugin(QtDesigner.QDesignerCustomWidgetInterface):

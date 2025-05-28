@@ -106,7 +106,7 @@ async def get_launch_args(
         if arg_key in launch_args_template:
             if arg_val is None:
                 raise MissingLaunchArgumentError(
-                    f"{arg_key} launch argument is in template, " "but has None value"
+                    f"{arg_key} launch argument is in template, but has None value"
                 )
             launch_args_template = launch_args_template.replace(arg_key, arg_val)
 

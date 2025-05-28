@@ -3,9 +3,10 @@ from pathlib import Path
 from textwrap import dedent
 from typing import Any
 
-import onelauncher.config_manager
 import pytest
 import tomlkit
+
+import onelauncher.config_manager
 from onelauncher.config import ConfigFieldMetadata, ConfigValWithMetadata
 from onelauncher.program_config import ProgramConfig
 

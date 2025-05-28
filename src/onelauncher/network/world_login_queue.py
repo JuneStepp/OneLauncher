@@ -72,7 +72,9 @@ class WorldLoginQueue:
         )
 
         try:
-            queue_result_dict: dict[str, Any] = self._WORLD_QUEUE_RESULT_SCHEMA.to_dict(response.text) # type: ignore[assignment]
+            queue_result_dict: dict[str, Any] = self._WORLD_QUEUE_RESULT_SCHEMA.to_dict(
+                response.text
+            )  # type: ignore[assignment]
         except xmlschema.XMLSchemaValidationError as e:
             raise WorldQueueResultXMLParseError(
                 "Queue XML result doesn't match schema"
