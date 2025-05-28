@@ -7,19 +7,19 @@ Contributions and questions are always welcome! Here's just a couple of things t
 
 ## Development Install
 
-OneLauncher uses [Poetry](https://python-poetry.org) for dependency management. Run `poetry install` in the root folder of this repository to get everything set up. Once installed, OneLauncher can be started with `poetry run onelauncher`. Alternatively, [Nix can be used](#nix).
+OneLauncher uses [uv](https://docs.astral.sh/uv/getting-started/installation/) for dependency management. Run `uv run onelauncher` in the root folder of this repository to install and start OneLauncher. Alternatively, [Nix can be used](#nix).
 
 For game patching support, extra C code must be compiled. Run `make -C src/run_patch_client` with mingw-w64 installed. Your mingw-w64 installation must have support for i686 builds.
 
 ### Nix
 
-OneLauncher comes with a [Nix](https://nixos.org/) flake for easily replicating the standard development environment. It can be used with [direnv](https://github.com/direnv/direnv) or the `nix develop` command. When using Nix, dependencies aren't installed with poetry. `poetry add`, ect can still be used for editing the dependency files, but `poetry run` should not be used.
+OneLauncher comes with a [Nix](https://nixos.org/) flake for easily replicating the standard development environment. It can be used with [direnv](https://github.com/direnv/direnv) or the `nix develop` command. 
 
 The compiled builds can be tested on NixOS with `nix run .#fhs-run build/out/onelauncher.bin`.
 
 ## Building
 
-Build by running `poetry run python -m build` in the project's root directory. This will output everything to "build/out".
+Build by running `uv run python -m build` in the project's root directory. This will output everything to "build/out".
 Individual scripts can also be called to skip parts of the build or pass arguments to the build tool.
 
 The .NET CLI is required for building the Windows installer.

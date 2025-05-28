@@ -18,7 +18,7 @@ An enhanced launcher for both [LOTRO](https://www.lotro.com/) and [DDO](https://
 
 ## Installation
 
-The easiest way to get OneLauncher is with a [compiled release](https://Github.com/JuneStepp/OneLauncher/releases/latest). It can also be run with Python Poetry or Nix.
+The easiest way to get OneLauncher is with a [compiled release](https://Github.com/JuneStepp/OneLauncher/releases/latest). It can also be run with Python or Nix.
 
 - [Latest Release](https://Github.com/JuneStepp/OneLauncher/releases/latest)
 - [System Requirements](#system-requirements)

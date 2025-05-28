@@ -29,7 +29,7 @@ jobs:
       # `run_patch_client` C code
       - name: Install mingw-w64 on Linux
         if: runner.os == 'Linux'
-        run: sudo apt install mingw-w64
+        run: sudo apt-get install mingw-w64
       - name: Build `run_patch_client`
         if: runner.os != 'Windows'
         run: make -C src/run_patch_client
@@ -44,19 +44,23 @@ jobs:
         shell: msys2 {0}
         run: make -C src/run_patch_client
 
-      # Poetry
-      - name: Install poetry
-        run: pipx install poetry
-      - uses: actions/setup-python@v5
+      # uv
+      # Can't use uv python with Nuitka yet
+      # See https://github.com/Nuitka/Nuitka/issues/3331
+      - name: Install Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: "poetry"
-      - run: poetry install
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          activate-environment: true
+      - run: uv sync --locked --no-dev --group build
 
       # Nuitka cache
       - name: Install ccache for Nuitka
         if: runner.os == 'Linux'
-        run: sudo apt install -y ccache
+        run: sudo apt-get install -y ccache
       - name: Setup Nuitka env variables
         shell: bash
         run: |
@@ -80,7 +84,7 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Build
-        run: poetry run python -m build
+        run: python -m build
       - name: Rename artifact
         run: mv build/out/${{ matrix.artifact_path_name }} build/out/${{ matrix.artifact_rename }}
       - name: Upload build artifact
