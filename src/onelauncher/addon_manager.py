@@ -195,6 +195,8 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     CATEGORY_UNMANAGED: Final = "Unmanaged"
     """Category name for unmanaged addons"""
 
+    ADDONS_CACHE_PATH = platform_dirs.user_cache_path / "addons_cache.sqlite"
+
     def __init__(
         self,
         config_manager: ConfigManager,
@@ -613,16 +615,15 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         Opens addons_cache database and creates new database if
         one doesn't exist or the current one has an outdated structure
         """
-        addons_cache_db_path = platform_dirs.user_cache_path / "addons_cache.sqlite"
-        if addons_cache_db_path.exists():
+        if self.ADDONS_CACHE_PATH.exists():
             # Connects to addons_cache database
-            self.conn = sqlite3.connect(str(addons_cache_db_path))
+            self.conn = sqlite3.connect(str(self.ADDONS_CACHE_PATH))
             self.c = self.conn.cursor()
 
             # Replace old database if its structure is out of date
             if self.isCurrentDBOutdated():
                 self.closeDB()
-                addons_cache_db_path.unlink()
+                self.ADDONS_CACHE_PATH.unlink()
                 self.createDB()
         else:
             self.createDB()
@@ -676,9 +677,8 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
     def createDB(self) -> None:
         """Creates ans sets up addons_cache database"""
-        self.conn = sqlite3.connect(
-            str(platform_dirs.user_cache_path / "addons_cache.sqlite")
-        )
+        self.ADDONS_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        self.conn = sqlite3.connect(str(self.ADDONS_CACHE_PATH))
         self.c = self.conn.cursor()
 
         for table in self.TABLE_LIST:
