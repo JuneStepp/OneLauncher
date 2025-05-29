@@ -117,8 +117,10 @@ flake8-bugbear.extend-immutable-calls = ["onelauncher.config.config_field"]
 docstring-code-format = true
 
 [tool.pytest.ini_options]
-addopts = ["--import-mode=importlib"]
+addopts = ["--import-mode=importlib", "--strict-markers", "--strict-config"]
 testpaths = ["tests"]
+filterwarnings = ["error"]
+xfail_strict = true
 
 [tool.mypy]
 plugins = ["onelauncher.mypy_plugin"]
