@@ -482,22 +482,6 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         subscriptions: list[login_account.GameSubscription],
         account_config: GameAccountConfig,
     ) -> login_account.GameSubscription | None:
-        if (
-            last_used_subscription_name
-            := self.config_manager.get_game_account_last_used_subscription_name(
-                self.game_id, account_config
-            )
-        ):
-            for subscription in subscriptions:
-                if subscription.name == last_used_subscription_name:
-                    del last_used_subscription_name
-                    return subscription
-
-            del last_used_subscription_name
-            logger.warning(
-                "Last used subscription does not match any available subscriptions"
-            )
-
         select_subscription_dialog = QtWidgets.QDialog(
             self, QtCore.Qt.WindowType.FramelessWindowHint
         )
@@ -506,6 +490,18 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
 
         for subscription in subscriptions:
             ui.subscriptionsComboBox.addItem(subscription.description, subscription)
+
+        # Select last used subscription
+        if (
+            last_used_subscription_name
+            := self.config_manager.get_game_account_last_used_subscription_name(
+                self.game_id, account_config
+            )
+        ):
+            for i, subscription in enumerate(subscriptions):
+                if subscription.name == last_used_subscription_name:
+                    ui.subscriptionsComboBox.setCurrentIndex(i)
+                    break
 
         if select_subscription_dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
             selected_subscription: login_account.GameSubscription = (
