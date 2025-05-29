@@ -25,6 +25,8 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
+from __future__ import annotations
+
 import html
 import logging
 import re
@@ -40,7 +42,15 @@ from pathlib import Path
 from shutil import copy, copytree, move, rmtree
 from tempfile import TemporaryDirectory
 from time import localtime, strftime
-from typing import Final, Literal, NamedTuple, TypeAlias, assert_never, overload
+from typing import (
+    TYPE_CHECKING,
+    Final,
+    Literal,
+    NamedTuple,
+    TypeAlias,
+    assert_never,
+    overload,
+)
 from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minicompat import NodeList
 from xml.dom.minidom import Element
@@ -67,6 +77,9 @@ from .game_utilities import get_game_settings_dir
 from .ui.addon_manager_uic import Ui_winAddonManager
 from .utilities import CaseInsensitiveAbsolutePath
 
+if TYPE_CHECKING:
+    from xml.dom.minidom import _ElementChildren
+
 logger = logging.getLogger(__name__)
 
 
@@ -76,7 +89,7 @@ class Document(xml.dom.minidom.Document):
     # The type hints for this didn't include the return type or that it accepts
     # `EMPTY_NAMESPACE` which is equal to `None`.
     def createElementNS(self, namespaceURI: str | None, qualifiedName: str) -> Element:
-        return super().createElementNS(namespaceURI, qualifiedName)  # type: ignore[arg-type,no-any-return]
+        return super().createElementNS(namespaceURI, qualifiedName)
 
 
 class Addon(NamedTuple):
@@ -122,9 +135,9 @@ class AddonInfo(Sequence[str]):
         setattr(self, tuple(attrs.asdict(self).keys())[index], value)
 
 
-def GetText(nodelist: NodeList[Element]) -> str:
+def GetText(nodelist: NodeList[_ElementChildren]) -> str:
     return "".join(
-        node.data  # type: ignore[attr-defined]
+        node.data  # type: ignore[union-attr]
         for node in nodelist
         if node.nodeType in [node.TEXT_NODE, node.CDATA_SECTION_NODE]
     )
@@ -563,7 +576,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     def getAddonDependencies(self, dependencies_node: Element) -> str:
         dependencies = ""
         for node in dependencies_node.childNodes:
-            if node.nodeName == "dependency":
+            if node.nodeName == "dependency" and node.childNodes:
                 dependencies = f"{dependencies},{GetText(node.childNodes)}"
         return dependencies[1:]
 
@@ -1282,16 +1295,10 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                         addon_info.name, QtCore.Qt.MatchFlag.MatchExactly
                     ):
                         if (
-                            int(
-                                (
-                                    table.item(
-                                        item.row(),
-                                        self.TABLE_WIDGET_COLUMN_INDEXES["ID"],
-                                    )
-                                ).text()
+                            id_item := table.item(
+                                item.row(), self.TABLE_WIDGET_COLUMN_INDEXES["ID"]
                             )
-                            == rowid
-                        ):
+                        ) and (int(id_item.text()) == rowid):
                             duplicate = True
                             break
                     if not duplicate:
@@ -1397,7 +1404,8 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         if disable_row:
             for i in range(table.columnCount()):
-                table.item(rows, i).setFlags(QtCore.Qt.ItemFlag.NoItemFlags)
+                if item := table.item(rows, i):
+                    item.setFlags(QtCore.Qt.ItemFlag.NoItemFlags)
 
         table.setSortingEnabled(True)
 
@@ -1526,12 +1534,12 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         for item in table.selectedItems()[0 :: (table.columnCount() - 1)]:
             # Gets db row id for selected row
             selected_row = int(
-                (table.item(item.row(), self.TABLE_WIDGET_COLUMN_INDEXES["ID"])).text()
+                (table.item(item.row(), self.TABLE_WIDGET_COLUMN_INDEXES["ID"])).text()  # type: ignore [union-attr]
             )
 
             selected_name = table.item(
                 item.row(), self.TABLE_WIDGET_COLUMN_INDEXES["Name"]
-            ).text()
+            ).text()  # type: ignore [union-attr]
 
             for selected_addon in self.c.execute(
                 f"SELECT InterfaceID, File, Name FROM {table.objectName()} WHERE rowid = ?",  # noqa: S608
@@ -1966,8 +1974,10 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         version_item = self.context_menu_selected_table.item(
             self.context_menu_selected_row, self.TABLE_WIDGET_COLUMN_INDEXES["Version"]
         )
-        version_color = version_item.foreground().color()
-        if version_color in [QtGui.QColor("crimson"), QtGui.QColor("green")]:
+        if version_item and version_item.foreground().color() in [
+            QtGui.QColor("crimson"),
+            QtGui.QColor("green"),
+        ]:
             menu.addAction(self.ui.actionUpdateAddon)
 
         # If addon has a statup script
@@ -1997,12 +2007,14 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     def getTableRowInterfaceID(
         self, table: QtWidgets.QTableWidget, row: int
     ) -> str | None:
-        addon_db_id = table.item(row, self.TABLE_WIDGET_COLUMN_INDEXES["ID"]).text()
+        addon_db_id_item = table.item(row, self.TABLE_WIDGET_COLUMN_INDEXES["ID"])
+        if not addon_db_id_item:
+            return None
 
         interface_ID: str
         for interface_ID in self.c.execute(
             f"SELECT InterfaceID FROM {table.objectName()} WHERE rowid = ?",  # noqa: S608
-            (addon_db_id,),
+            (addon_db_id_item.text(),),
         ):
             if interface_ID[0]:
                 return interface_ID[0]
@@ -2134,7 +2146,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 for item in self.c.execute(
                     f"SELECT File FROM {table_installed.objectName()} WHERE rowid=?",  # noqa: S608
                     (
-                        table_installed.item(
+                        table_installed.item(  # type: ignore [union-attr]
                             row, self.TABLE_WIDGET_COLUMN_INDEXES["ID"]
                         ).text(),
                     ),
@@ -2149,7 +2161,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         return Addon(
             interface_id=interface_ID,
             file=file,
-            name=table.item(row, self.TABLE_WIDGET_COLUMN_INDEXES["Name"]).text(),
+            name=table.item(row, self.TABLE_WIDGET_COLUMN_INDEXES["Name"]).text(),  # type: ignore [union-attr]
         )
 
     def getRemoteOrLocalTableFromOne(

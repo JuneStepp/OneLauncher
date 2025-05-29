@@ -20,7 +20,7 @@ class GameSubscription(NamedTuple):
     additional_info: str | None
 
     @classmethod
-    def from_dict(cls: type[Self], subscription_dict: dict[str, Any]) -> Self:  # type:ignore [misc]
+    def from_dict(cls: type[Self], subscription_dict: dict[str, Any]) -> Self:
         """
         Construct from a `subscription_dict` of the "GameSubscription" list
         in the dictionary SOAP response of LoginAccount operation.
@@ -91,7 +91,7 @@ class AccountLoginResponse:
         return self._session_ticket
 
     @classmethod
-    def from_soap_response_dict(  # type:ignore [misc]
+    def from_soap_response_dict(
         cls: type[Self], login_response_dict: dict[str, Any]
     ) -> Self:
         """Construct from dictionary SOAP response

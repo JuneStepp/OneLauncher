@@ -52,7 +52,7 @@ _CONFIG_HELP_METADATA = "__config_help"
 
 
 @overload
-def config_field(  # type: ignore[misc]
+def config_field(
     *,
     default: None = ...,
     validator: None = ...,
@@ -73,7 +73,7 @@ def config_field(  # type: ignore[misc]
 
 
 @overload
-def config_field(  # type: ignore[misc]
+def config_field(
     *,
     default: None = ...,
     validator: _ValidatorArgType[_T] | None = ...,
@@ -99,7 +99,7 @@ def config_field(  # type: ignore[misc]
 
 
 @overload
-def config_field(  # type: ignore[misc]
+def config_field(
     *,
     default: _T,
     validator: _ValidatorArgType[_T] | None = ...,
@@ -124,7 +124,7 @@ def config_field(  # type: ignore[misc]
 
 
 @overload
-def config_field(  # type: ignore[misc]
+def config_field(
     *,
     default: _T | None = ...,
     validator: _ValidatorArgType[_T] | None = ...,
@@ -201,7 +201,7 @@ class ConfigFieldMetadata:
     help: str | None = None
 
     @classmethod
-    def from_attribute(cls: type[Self], attribute: attrs.Attribute[Any]) -> Self:  # type: ignore[misc]
+    def from_attribute(cls: type[Self], attribute: attrs.Attribute[Any]) -> Self:
         """
         Raises:
             NotConfigAttributeError: Attribute doesn't have config metadata

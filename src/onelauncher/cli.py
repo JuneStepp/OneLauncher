@@ -618,8 +618,8 @@ async def _start_ui(config_manager: ConfigManager, game_arg: str | None) -> None
 
     # Just run the games selection portion of the setup wizard
     if not config_manager.get_game_config_ids():
-        QtWidgets.QMessageBox.information(  # type: ignore[call-overload]
-            None,
+        QtWidgets.QMessageBox.information(
+            None,  # type: ignore[arg-type]
             "No Games Found",
             f"No games have been registered with {__title__}.\n Opening games management wizard.",
         )

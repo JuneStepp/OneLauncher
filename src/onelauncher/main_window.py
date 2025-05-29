@@ -30,6 +30,7 @@ from __future__ import annotations
 import logging
 from functools import partial
 from pathlib import Path
+from typing import cast
 
 import attrs
 import httpx
@@ -167,10 +168,11 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             lambda: self.nursery.start_soon(self.btnSwitchGameClicked)
         )
 
-        self.ui.cboAccount.lineEdit().setClearButtonEnabled(True)
+        account_line_edit = cast(QtWidgets.QLineEdit, self.ui.cboAccount.lineEdit())
+        account_line_edit.setClearButtonEnabled(True)
         # Accounts combo box item selection signal
         self.ui.cboAccount.currentIndexChanged.connect(self.accounts_index_changed)
-        self.ui.cboAccount.lineEdit().textEdited.connect(self.user_edited_account_name)
+        account_line_edit.textEdited.connect(self.user_edited_account_name)
         self.ui.chkSaveAccount.toggled.connect(self.chk_save_account_toggled)
 
         self.setupMousePropagation()

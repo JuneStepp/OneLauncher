@@ -95,7 +95,7 @@ class WineManagement:
         )
         dialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
         dialog.setAutoClose(False)
-        dialog.setCancelButton(None)  # type: ignore[arg-type]
+        dialog.setCancelButton(None)
         return dialog
 
     def wine_setup(self) -> None:

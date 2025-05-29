@@ -100,7 +100,7 @@ class GameServicesInfo:
         return self._worlds
 
     @staticmethod
-    def _get_worlds(  # type:ignore [misc]
+    def _get_worlds(
         datacenter_dict: dict[str, Any], gls_datacenter_service: str | None
     ) -> set[World]:
         """Return set of game `World` objects
@@ -120,7 +120,7 @@ class GameServicesInfo:
         }
 
     @staticmethod
-    async def _get_datacenter_dict(  # type:ignore [misc]
+    async def _get_datacenter_dict(
         gls_datacenter_service: str, game_datacenter_name: str
     ) -> dict[str, Any]:
         """Return dictionary of GetDatacenters SOAP operation response.
