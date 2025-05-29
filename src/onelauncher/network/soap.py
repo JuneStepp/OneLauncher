@@ -15,6 +15,10 @@ from .httpx_client import get_httpx_client
 
 logger = logging.getLogger(__name__)
 
+# `zeep.transports` includes full web requests in debug logs. That means sensitive
+# information like user passwords can end up in logs.
+logging.getLogger("zeep.transports").setLevel(logging.INFO)
+
 
 class GLSServiceError(Exception):
     """Non-network error with the GLS service"""
