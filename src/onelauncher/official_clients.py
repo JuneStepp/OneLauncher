@@ -79,6 +79,7 @@ DDO_PREVIEW_NEWS_URL_TEMPLATE: Final = "https://forums.ddo.com/index.php?forums/
 OFFICIAL_CLIENT_CIPHERS: Final = "DEFAULT@SECLEVEL=1"
 
 CONNECTION_RETRIES: Final[int] = 3
+TIMEOUT: Final = httpx.Timeout(timeout=6.0, read=10.0)
 
 
 def is_official_game_server(url: str) -> bool:
@@ -159,6 +160,7 @@ def get_official_servers_httpx_client() -> httpx.AsyncClient:
         verify=get_official_servers_ssl_context(), retries=CONNECTION_RETRIES
     )
     return httpx.AsyncClient(
+        timeout=TIMEOUT,
         verify=get_official_servers_ssl_context(),
         event_hooks={"request": [_httpx_request_hook]},
         transport=transport,
@@ -172,6 +174,7 @@ def get_official_servers_httpx_client_sync() -> httpx.Client:
         verify=get_official_servers_ssl_context(), retries=CONNECTION_RETRIES
     )
     return httpx.Client(
+        timeout=TIMEOUT,
         verify=get_official_servers_ssl_context(),
         event_hooks={"request": [_httpx_request_hook_sync]},
         transport=transport,
