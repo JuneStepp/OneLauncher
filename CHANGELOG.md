@@ -1,5 +1,61 @@
 # Changelog
 
+## 2.0.2 (2025-06-03)
+
+This update has quite a few small fixes and improvements. The full changelog is below.
+
+**If you are a Linux user with a very old Nvidia GPU (Kepler or earlier), this update may cause issues. A recent game update necessitated updating DXVK to a version that doesn't support those cards.**
+
+### Features
+
+- Use logging system for UI log messages
+- Activate window when patching finishes
+- Remove "Save Log" buttons from patch and game windows
+- Improve column widths in addons manager
+- Don't show empty tables in config toml
+- Add `environment` game config option
+- Allow setting `wine.debug_level` to None
+- Set `DXVK_LOG_LEVEL` to `error` by default
+
+### Fixes
+
+- Make antivirus false positives less likely
+- Unescape LotroInterface feed Unicode characters
+- [**breaking**] Update WINE and DXVK
+- Game patch monitoring on all platforms and WINE versions
+- Redact home directory from log files
+- Don't have platformdirs auto-create directories
+- Update typing
+- Don't let Zeep log SOAP requests in debug logs
+- Partially fix sub-accounts selection regression
+- Increase official server connection timeouts
+
+### Build
+
+- Symlink Nix Python to .venv for IDE discovery
+- Remove broken FHS dev shell
+- Allow setting build out dir in command line arg
+- Add libz to FHS as required by Nuitka
+- *(deps)* Use custom fork of Zeep
+- *(deps)* Remove `old-kwallet` extra dependencies
+- Switch to uv for dependency management
+- Don't use upper bounds for dependency versions
+- Update dependencies
+- Allow manually starting GitHub build workflow
+
+### Documentation
+
+- Fix some QSS class names
+- Update WINE `debug_level` setting description
+- Fix `pyside6-uic` command typo
+- Update copyright year
+- Update pyproject development status
+
+### Testing
+
+- Add `test_allow_uknown_config_keys`
+- Increase strictness of pytest config
+
 ## 2.0.1 (2024-08-03)
 
 A few fixes including support for the Mordor Legendary World.

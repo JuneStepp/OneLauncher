@@ -467,7 +467,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/8a/13/7ba2c0b38b974b666
 
 [[package]]
 name = "onelauncher"
-version = "2.0.1"
+version = "2.0.2"
 source = { editable = "." }
 dependencies = [
     { name = "asyncache" },
