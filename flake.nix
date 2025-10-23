@@ -37,15 +37,12 @@
         python = pkgs.python311;
 
         workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = ./.; };
-        # Create package overlay from workspace.
+
         overlay = workspace.mkPyprojectOverlay {
           # Prefer prebuilt binary wheels as a package source.
           # Sdists are less likely to "just work" because of the metadata missing from uv.lock.
-          # Binary wheels are more likely to, but may still require overrides for library dependencies.
           sourcePreference = "wheel";
         };
-
-        # Extend generated overlay with build fixups
         pyprojectOverrides = final: prev: {
           onelauncher = prev.onelauncher.overrideAttrs (old: {
             passthru = old.passthru // {
@@ -120,8 +117,13 @@
             pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
               autoPatchelfIgnoreMissingDeps = [
                 "libmysqlclient.so.21"
+                "libfbclient.so.2"
+                "libclntsh.so.23.1"
                 "libmimerapi.so"
                 "libQt6EglFsKmsGbmSupport.so*"
+                "libQt6QuickShapesDesignHelpers.so.6"
+                "libQt6QuickVectorImageHelpers.so.6"
+                "libtiff.so.5"
               ];
               preFixup = ''
                 addAutoPatchelfSearchPath ${final.shiboken6}/${final.python.sitePackages}/shiboken6
@@ -154,13 +156,13 @@
 
         # Construct package set
         pythonSet =
-          # Use base package set from pyproject.nix builders
+          # Use base package set from pyproject.nix builders.
           (pkgs.callPackage pyproject-nix.build.packages {
             inherit python;
           }).overrideScope
             (
               nixpkgs.lib.composeManyExtensions [
-                pyproject-build-systems.overlays.default
+                pyproject-build-systems.overlays.wheel
                 overlay
                 pyprojectOverrides
               ]
@@ -194,7 +196,6 @@
 
         devShells.default =
           let
-            # Create an overlay enabling editable mode for all local dependencies.
             editableOverlay = workspace.mkEditablePyprojectOverlay {
               # Use environment variable
               root = "$REPO_ROOT";
@@ -202,16 +203,14 @@
               # members = [ "onelauncher" ];
             };
 
-            # Override previous set with our overrideable overlay.
             editablePythonSet = pythonSet.overrideScope (
               nixpkgs.lib.composeManyExtensions [
                 editableOverlay
 
-                # Apply fixups for building an editable package of your workspace packages
                 (final: prev: {
                   onelauncher = prev.onelauncher.overrideAttrs (old: {
-                    # It's a good idea to filter the sources going into an editable build
-                    # so the editable package doesn't have to be rebuilt on every change.
+                    # Filter the sources going into an editable build so the editable
+                    # package doesn't have to be rebuilt on every change.
                     src = nixpkgs.lib.fileset.toSource {
                       root = old.src;
                       fileset = nixpkgs.lib.fileset.unions [
@@ -233,13 +232,10 @@
                         editables = [ ];
                       };
                   });
-
                 })
               ]
             );
 
-            # Build virtual environment, with local packages being editable.
-            #
             # Enable all optional dependencies for development.
             virtualenv = editablePythonSet.mkVirtualEnv "onelauncher-dev-env" workspace.deps.all;
 
@@ -253,13 +249,10 @@
             ];
 
             env = {
-              # Don't create venv using uv
+              # Don't create venv using `uv`.
               UV_NO_SYNC = "1";
 
-              # Force uv to use Python interpreter from venv
-              UV_PYTHON = "${virtualenv}/bin/python";
-
-              # Prevent uv from downloading managed Python's
+              UV_PYTHON = pythonSet.python.interpreter;
               UV_PYTHON_DOWNLOADS = "never";
 
               # Used in OneLauncher script

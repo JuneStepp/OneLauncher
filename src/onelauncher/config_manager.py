@@ -75,6 +75,8 @@ def convert_to_toml(
     Convert unstructured config data to toml. None values are commented out.
     Config values can also have help text that is put in a comment above them.
     """
+    tables: list[tuple[str, Table]] = []
+
     for key, unprocessed_val in data_dict.items():
         if isinstance(unprocessed_val, ConfigValWithMetadata):
             metadata = unprocessed_val.metadata
@@ -88,7 +90,7 @@ def convert_to_toml(
                 continue
             table = tomlkit.table()
             convert_to_toml(val, table)
-            container.add(key, table)
+            tables.append((key, table))
         elif (
             isinstance(val, list)
             and len(val)
@@ -111,6 +113,11 @@ def convert_to_toml(
             container.add(key, tomlkit.string(val))
         else:
             container.add(key, tomlkit.item(val))
+
+    # Non-inline tables should be after other items. tomlkit will do this
+    # on its own, but mess up where the comments go.
+    for key, table in tables:
+        container.add(key, table)
 
 
 def _tables_to_array_of_tables(

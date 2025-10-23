@@ -30,6 +30,10 @@ class GameType(StrEnum):
 
 @attrs.frozen(kw_only=True)
 class GameConfig(Config):
+    addons: AddonsConfigSection = config_field(
+        help="Configuration related to game addons"
+    )
+    wine: WineConfigSection = config_field(help="WINE is not used on Windows")
     sorting_priority: int = -1
     game_type: GameType
     is_preview_client: bool
@@ -70,10 +74,6 @@ class GameConfig(Config):
         help="Environment variables to add to the game's environment",
     )
     last_played: datetime | None = None
-    addons: AddonsConfigSection = config_field(
-        help="Configuration related to game addons"
-    )
-    wine: WineConfigSection = config_field(help="WINE is not used on Windows")
 
     @name.default
     def _get_name_default(self) -> str:

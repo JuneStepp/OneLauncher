@@ -2395,7 +2395,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
     def updateSelectedAddons(self) -> None:
         table = self.getCurrentTable()
-        addons, details = self.getSelectedAddons(table)
+        addons, _ = self.getSelectedAddons(table)
 
         if not self.loadRemoteDataIfNotDone():
             return

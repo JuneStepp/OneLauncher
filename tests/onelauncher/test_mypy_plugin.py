@@ -37,7 +37,7 @@ def test_injecting_attrs_attrib_maker() -> None:
 
 
 def test_running_plugin_with_mypy() -> None:
-    normal_report, error_report, exit_status = mypy.api.run(
+    normal_report, _, _ = mypy.api.run(
         [str(Path(__file__).parent / "_test_mypy_plugin.mypy_test_data.py")]
     )
     assert (

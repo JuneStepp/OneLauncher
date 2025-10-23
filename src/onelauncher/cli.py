@@ -1,4 +1,3 @@
-# ruff: noqa: UP007
 from __future__ import annotations
 
 import inspect
@@ -12,7 +11,7 @@ from collections.abc import Awaitable, Callable, Iterator
 from enum import StrEnum
 from functools import partial
 from pathlib import Path
-from typing import Annotated, Optional, assert_never
+from typing import Annotated, assert_never
 
 import attrs
 import click
@@ -78,9 +77,9 @@ def version_calback(value: bool) -> None:
 def merge_program_config(
     program_config: ProgramConfig,
     *,
-    default_locale: Optional[str],
-    always_use_default_locale_for_ui: Optional[bool],
-    games_sorting_mode: Optional[GamesSortingMode],
+    default_locale: str | None,
+    always_use_default_locale_for_ui: bool | None,
+    games_sorting_mode: GamesSortingMode | None,
 ) -> ProgramConfig:
     """
     Merge `program_config` with CLI options. Any specified CLI options will
@@ -396,18 +395,18 @@ def main(
     ] = False,
     # Program options
     default_locale: Annotated[
-        Optional[str], ProgramOption(help=prog_help("default_locale"))
+        str | None, ProgramOption(help=prog_help("default_locale"))
     ] = None,
     always_use_default_locale_for_ui: Annotated[
-        Optional[bool],
+        bool | None,
         ProgramOption(help=prog_help("always_use_default_locale_for_ui")),
     ] = None,
     games_sorting_mode: Annotated[
-        Optional[GamesSortingMode], ProgramOption(help=prog_help("games_sorting_mode"))
+        GamesSortingMode | None, ProgramOption(help=prog_help("games_sorting_mode"))
     ] = None,
     # Game options
     game: Annotated[
-        Optional[str],
+        str | None,
         GameOption(
             help=(
                 "Which game to load. ([yellow]"
@@ -418,7 +417,7 @@ def main(
         ),
     ] = None,
     game_directory: Annotated[
-        Optional[Path],
+        Path | None,
         GameOption(
             help=game_help("game_directory"),
             exists=True,
@@ -427,22 +426,22 @@ def main(
             resolve_path=True,
         ),
     ] = None,
-    locale: Annotated[Optional[str], GameOption(help=game_help("locale"))] = None,
+    locale: Annotated[str | None, GameOption(help=game_help("locale"))] = None,
     client_type: Annotated[
-        Optional[ClientType],
+        ClientType | None,
         GameOption(help=game_help("client_type"), case_sensitive=False),
     ] = None,
     high_res_enabled: Annotated[
-        Optional[bool], GameOption(help=game_help("high_res_enabled"))
+        bool | None, GameOption(help=game_help("high_res_enabled"))
     ] = None,
     standard_game_launcher_filename: Annotated[
-        Optional[str], GameOption(help=game_help("standard_game_launcher_filename"))
+        str | None, GameOption(help=game_help("standard_game_launcher_filename"))
     ] = None,
     patch_client_filename: Annotated[
-        Optional[str], GameOption(help=game_help("patch_client_filename"))
+        str | None, GameOption(help=game_help("patch_client_filename"))
     ] = None,
     game_settings_directory: Annotated[
-        Optional[Path],
+        Path | None,
         GameOption(
             help=game_help("game_settings_directory"),
             exists=False,
@@ -451,23 +450,23 @@ def main(
             resolve_path=True,
         ),
     ] = None,
-    newsfeed: Annotated[Optional[str], GameOption(help=game_help("newsfeed"))] = None,
+    newsfeed: Annotated[str | None, GameOption(help=game_help("newsfeed"))] = None,
     # Account options
     username: Annotated[
-        Optional[str],
+        str | None,
         AccountOption(
             help=account_help("username"), autocompletion=_complete_username_arg
         ),
     ] = None,
     display_name: Annotated[
-        Optional[str], AccountOption(help=account_help("display_name"))
+        str | None, AccountOption(help=account_help("display_name"))
     ] = None,
     last_used_world_name: Annotated[
-        Optional[str], AccountOption(help=account_help("last_used_world_name"))
+        str | None, AccountOption(help=account_help("last_used_world_name"))
     ] = None,
     # Addons options
     startup_script: Annotated[
-        Optional[list[Path]],
+        list[Path] | None,
         AddonsOption(
             help=addons_help("enabled_startup_scripts"),
             file_okay=True,
@@ -478,10 +477,10 @@ def main(
     ] = None,
     # Game WINE options
     builtin_prefix_enabled: Annotated[
-        Optional[bool], WineOption(help=wine_help("builtin_prefix_enabled"))
+        bool | None, WineOption(help=wine_help("builtin_prefix_enabled"))
     ] = None,
     user_wine_executable_path: Annotated[
-        Optional[Path],
+        Path | None,
         WineOption(
             help=wine_help("user_wine_executable_path"),
             exists=True,
@@ -491,7 +490,7 @@ def main(
         ),
     ] = None,
     user_prefix_path: Annotated[
-        Optional[Path],
+        Path | None,
         WineOption(
             help=wine_help("user_prefix_path"),
             exists=True,
@@ -501,7 +500,7 @@ def main(
         ),
     ] = None,
     wine_debug_level: Annotated[
-        Optional[str], WineOption(help=wine_help("debug_level"))
+        str | None, WineOption(help=wine_help("debug_level"))
     ] = None,
 ) -> None:
     # Don't run when other command or autocompletion is invoked
@@ -566,7 +565,7 @@ def designer() -> None:
         # Trick pyside6-designer into setting the right LD_PRELOAD path for Python
         # in Nix flake instead of the bare library name.
         env["PYENV_ROOT"] = nix_python
-    subprocess.run(  # noqa: S603
+    subprocess.run(
         "pyside6-designer",  # noqa: S607
         env=env,
         check=True,
@@ -619,7 +618,7 @@ async def _start_ui(config_manager: ConfigManager, game_arg: str | None) -> None
     # Just run the games selection portion of the setup wizard
     if not config_manager.get_game_config_ids():
         QtWidgets.QMessageBox.information(
-            None,  # type: ignore[arg-type]
+            None,
             "No Games Found",
             f"No games have been registered with {__title__}.\n Opening games management wizard.",
         )
@@ -631,7 +630,7 @@ async def _start_ui(config_manager: ConfigManager, game_arg: str | None) -> None
 
     # Import has to be done here, because some code run when
     # main_window.py imports requires the QApplication to exist.
-    from .main_window import MainWindow
+    from .main_window import MainWindow  # noqa: PLC0415
 
     game_id = _parse_game_arg(game_arg, config_manager) if game_arg else None
     main_window = MainWindow(config_manager=config_manager, starting_game_id=game_id)

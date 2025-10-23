@@ -37,7 +37,7 @@ dependencies = [
     "asyncache",
     "attrs>=24.2.0",
     "cattrs[tomlkit]>=23.2.3",
-    "typer>=0.12.3",
+    "typer>=0.12.4",
     "packaging>=24.1",
 ]
 
@@ -51,11 +51,11 @@ onelauncher = "onelauncher.cli:app"
 
 [dependency-groups]
 lint = [
-    "mypy>=1.11.1",
+    "mypy>=1.18.2",
     "types-cachetools>=5.3.0.7",
-    "ruff>=0.11.11",
+    "ruff>=0.14.1",
     # Newer versions have better types
-    "PySide6-Essentials>=6.9.0",
+    "PySide6-Essentials>=6.10.0",
 ]
 test = [
     "pytest>=8.3.2",
