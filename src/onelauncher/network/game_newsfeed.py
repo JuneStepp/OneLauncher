@@ -124,9 +124,7 @@ def newsfeed_xml_to_html(
             <div style="width:auto">
                 {entries_html}
                 <div align="center">
-                    <a href="{feed_url or ""}">
-                        {"..." if feed_url else ""}
-                    </a>
+                    <a href="{feed_url or ""}">{"..." if feed_url else ""}</a>
                 </div>
             </div>
         </body>
