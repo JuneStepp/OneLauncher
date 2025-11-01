@@ -59,9 +59,9 @@ class CaseInsensitiveAbsolutePath(Path):
     """
 
     _flavour = (
-        pathlib._windows_flavour  # type: ignore[attr-defined]
+        pathlib.PureWindowsPath._flavour  # type: ignore[attr-defined]
         if os.name == "nt"
-        else pathlib._posix_flavour  # type: ignore[attr-defined]
+        else pathlib.PurePosixPath._flavour  # type: ignore[attr-defined]
     )
 
     def __new__(cls, *pathsegments: StrPath) -> Self:
