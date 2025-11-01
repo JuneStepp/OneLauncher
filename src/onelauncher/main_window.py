@@ -582,6 +582,45 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             subscription = game_subscriptions[0]
         account_number = subscription.name
 
+        selected_world: World = self.ui.cboWorld.currentData()
+
+        try:
+            selected_world_status = await selected_world.get_status()
+        except httpx.HTTPError:
+            logger.exception("Network error while fetching world status")
+            return
+        except WorldUnavailableError:
+            logger.exception(
+                "Error fetching world status. You may want to check "
+                "the news feed for a scheduled down time.",
+            )
+            return
+        except XMLSchemaValidationError:
+            logger.exception(
+                "World status info has incompatible format. Please report "
+                "this issue if using a supported game server",
+            )
+            return
+
+        if selected_world_status.queue_url != "":
+            await self.world_queue(
+                queueURL=selected_world_status.queue_url,
+                account_number=account_number,
+                login_response=login_response,
+                game_launcher_config=game_launcher_config,
+            )
+        game = StartGame(
+            game_id=self.game_id,
+            config_manager=self.config_manager,
+            game_launcher_local_config=self.game_launcher_local_config,
+            game_launcher_config=game_launcher_config,
+            world=selected_world,
+            login_server=selected_world_status.login_server,
+            account_number=account_number,
+            ticket=login_response.session_ticket,
+        )
+        await game.start_game()
+
         if self.ui.chkSaveAccount.isChecked():
             if len(game_subscriptions) > 1:
                 self.config_manager.save_game_account_last_used_subscription_name(
@@ -625,45 +664,6 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         else:
             self.config_manager.update_game_accounts_config_file(self.game_id, ())
         self.loadAllSavedAccounts()
-
-        selected_world: World = self.ui.cboWorld.currentData()
-
-        try:
-            selected_world_status = await selected_world.get_status()
-        except httpx.HTTPError:
-            logger.exception("Network error while fetching world status")
-            return
-        except WorldUnavailableError:
-            logger.exception(
-                "Error fetching world status. You may want to check "
-                "the news feed for a scheduled down time.",
-            )
-            return
-        except XMLSchemaValidationError:
-            logger.exception(
-                "World status info has incompatible format. Please report "
-                "this issue if using a supported game server",
-            )
-            return
-
-        if selected_world_status.queue_url != "":
-            await self.world_queue(
-                queueURL=selected_world_status.queue_url,
-                account_number=account_number,
-                login_response=login_response,
-                game_launcher_config=game_launcher_config,
-            )
-        game = StartGame(
-            game_id=self.game_id,
-            config_manager=self.config_manager,
-            game_launcher_local_config=self.game_launcher_local_config,
-            game_launcher_config=game_launcher_config,
-            world=selected_world,
-            login_server=selected_world_status.login_server,
-            account_number=account_number,
-            ticket=login_response.session_ticket,
-        )
-        await game.start_game()
 
     async def world_queue(
         self,
