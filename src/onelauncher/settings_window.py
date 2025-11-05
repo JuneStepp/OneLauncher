@@ -108,7 +108,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
                 )
             )
         )
-        self.ui.gameConfigIDLineEdit.setText(self.game_id)
+        self.ui.gameConfigIDLineEdit.setText(str(self.game_id))
         self.ui.gameDescriptionLineEdit.setText(game_config.description)
         self.ui.gameDirLineEdit.setText(str(game_config.game_directory))
         self.ui.browseGameConfigDirButton.clicked.connect(

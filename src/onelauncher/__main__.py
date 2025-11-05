@@ -1,3 +1,9 @@
-from .cli import app
+from . import cli
 
-app()
+
+def main() -> None:
+    cli.get_app()()
+
+
+if __name__ == "__main__":
+    main()

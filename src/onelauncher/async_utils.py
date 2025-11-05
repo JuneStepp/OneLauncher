@@ -1,16 +1,19 @@
 import logging
 from collections.abc import Awaitable, Callable
-from typing import Any
+from functools import partial
+from typing import Final
 
 import outcome
 import trio
 from PySide6 import QtCore, QtWidgets
 from typing_extensions import override
 
+from onelauncher.qtapp import get_qapp
+
 logger = logging.getLogger(__name__)
 
-# Top-level cancel scope. Canceling it will exit the program.
-app_cancel_scope = trio.CancelScope()
+app_cancel_scope: Final = trio.CancelScope()
+"""Top-level cancel scope. Canceling it will exit the program."""
 
 
 class AsyncHelper(QtCore.QObject):
@@ -32,11 +35,11 @@ class AsyncHelper(QtCore.QObject):
         """This is the QEvent that will be handled by the ReenterQtObject.
         self.fn is the next entry point of the Trio event loop."""
 
-        def __init__(self, fn: Callable[[], Any]):
+        def __init__(self, fn: Callable[[], object]):
             super().__init__(QtCore.QEvent.Type(QtCore.QEvent.Type.User + 1))
             self.fn = fn
 
-    def __init__(self, entry: Callable[[], Awaitable[Any]]):
+    def __init__(self, entry: Callable[[], Awaitable[object]]):
         super().__init__()
         self.reenter_qt = self.ReenterQtObject()
         self.entry = entry
@@ -53,7 +56,7 @@ class AsyncHelper(QtCore.QObject):
             strict_exception_groups=True,
         )
 
-    def next_guest_run_schedule(self, fn: Callable[[], Any]) -> None:
+    def next_guest_run_schedule(self, fn: Callable[[], object]) -> None:
         """
         This function serves to re-schedule the guest (Trio) event
         loop inside the host (Qt) event loop. It is called by Trio
@@ -64,7 +67,7 @@ class AsyncHelper(QtCore.QObject):
         """
         QtWidgets.QApplication.postEvent(self.reenter_qt, self.ReenterQtEvent(fn))
 
-    def trio_done_callback(self, run_outcome: outcome.Outcome[Any]) -> None:
+    def trio_done_callback(self, run_outcome: outcome.Outcome[object]) -> None:
         """This function is called by Trio when its event loop has
         finished."""
         if isinstance(run_outcome, outcome.Error):
@@ -73,3 +76,29 @@ class AsyncHelper(QtCore.QObject):
 
         if qapp := QtCore.QCoreApplication.instance():
             qapp.exit()
+
+
+async def _scope_entry(entry: Callable[[], Awaitable[None]]) -> None:
+    with app_cancel_scope:
+        await entry()
+
+
+def start_async(entry: Callable[[], Awaitable[None]]) -> int:
+    """
+    Returns:
+        int: Exit code
+    """
+    trio.run(partial(_scope_entry, entry=entry))
+    return 0
+
+
+def start_async_gui(entry: Callable[[], Awaitable[None]]) -> int:
+    """
+    Returns:
+        int: Exit code
+    """
+    qapp = get_qapp()
+    async_helper = AsyncHelper(partial(_scope_entry, entry=entry))
+    QtCore.QTimer.singleShot(0, async_helper.launch_guest_run)
+    # qapp.exec() won't return until trio event loop finishes.
+    return qapp.exec()

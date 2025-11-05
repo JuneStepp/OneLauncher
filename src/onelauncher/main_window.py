@@ -46,7 +46,7 @@ from onelauncher.qtapp import get_app_style, get_qapp
 from onelauncher.ui.custom_widgets import FramelessQMainWindowWithStylePreview
 
 from . import __about__, addon_manager
-from .config_manager import ConfigManager
+from .config_manager import ConfigManager, NoValidGamesError
 from .game_account_config import GameAccountConfig
 from .game_config import GameConfigID, GameType
 from .game_launcher_local_config import (
@@ -89,27 +89,17 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
     def __init__(
         self,
         config_manager: ConfigManager,
-        starting_game_id: GameConfigID | None = None,
+        game_id: GameConfigID,
     ) -> None:
         super().__init__(None)
         self.titleBar.hide()
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose, on=True)
         self.config_manager = config_manager
-        self.game_id: GameConfigID = starting_game_id or self.get_starting_game_id()
+        self.game_id: GameConfigID = game_id
 
         self.network_setup_nursery: trio.Nursery | None = None
         self.addon_manager_window: addon_manager.AddonManagerWindow | None = None
         self.game_launcher_config: GameLauncherConfig | None = None
-
-    def get_starting_game_id(self) -> GameConfigID:
-        last_played = self.config_manager.get_games_sorted_by_last_played()[0]
-        return (
-            last_played
-            if self.config_manager.get_game_config(last_played).last_played is not None
-            else self.config_manager.get_games_sorted(
-                self.config_manager.get_program_config().games_sorting_mode
-            )[0]
-        )
 
     def addon_manager_error_log(self, record: logging.LogRecord) -> None:
         self.ui.txtStatus.append(log_record_to_rich_text(record))
@@ -801,7 +791,11 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
 
         # Handle when current game has been removed.
         if self.game_id not in self.config_manager.get_game_config_ids():
-            self.game_id = self.get_starting_game_id()
+            try:
+                self.game_id = self.config_manager.get_initial_game()
+            except NoValidGamesError as e:
+                logger.exception(e.msg)
+                return
             await self.InitialSetup()
             return
 

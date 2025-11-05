@@ -42,50 +42,74 @@ Most people should just need to [install WINE](https://github.com/lutris/docs/bl
 
 ## Command Line Usage
 
-All settings can be overridden from the command line. This is especially useful for making custom shortcuts. For example, loading the LOTRO preview client in French could be done with `--game lotro_preview --locale fr`.
+All settings can be overridden from the command line. This is especially useful for making custom shortcuts. For example, loading the LOTRO preview client in French could be done with `--game lotro-preview --locale fr`.
 
 ```txt
-OneLauncher 2.0                                                                                                                                                           
-                                                                                                                                                                               
-  Usage: onelauncher [OPTIONS] COMMAND [ARGS]...                                                                                                                               
-                                                                                                                                                                               
-╭─ Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ --version                       Print version and exit.                                                                                                                     │
-│ --install-completion            Install completion for the current shell.                                                                                                   │
-│ --show-completion               Show completion for the current shell, to copy it or customize the installation.                                                            │
-│ --help                -h        Show this message and exit.                                                                                                                 │
-╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Program Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ --default-locale                                                               TEXT                                 The default language for games and UI.                  │
-│ --always-use-default-locale-for-ui    --no-always-use-default-locale-for-ui                                         Use default language for UI regardless of game language │
-│ --games-sorting-mode                                                           [priority|last_played|alphabetical]  Order to show games in UI                               │
-╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Game Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ --game                                                        GAME_TYPE_OR_ID            Which game to load. (lotro, lotro_preview, ddo, ddo_preview, or a game config ID)  │
-│ --game-directory                                              DIRECTORY                  The game's install directory                                                       │
-│ --locale                                                      TEXT                       Language used for game                                                             │
-│ --client-type                                                 [WIN64|WIN32|WIN32Legacy]  Which version of the game client to use                                            │
-│ --high-res-enabled                   --no-high-res-enabled                               If the high resolution game files should be used                                   │
-│ --standard-game-launcher-filename                             TEXT                       The name of the standard game launcher executable. Ex. LotroLauncher.exe           │
-│ --patch-client-filename                                       TEXT                       Name of the dll used for game patching. Ex. patchclient.dll                        │
-│ --game-settings-directory                                     DIRECTORY                  Custom game settings directory. This is where user preferences, screenshots, and   │
-│                                                                                          addons are stored.                                                                 │
-│ --newsfeed                                                    TEXT                       URL of the feed (RSS, ATOM, ect) to show in the launcher                           │
-╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Game Account Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ --username                    TEXT  Login username                                                                                                                          │
-│ --display-name                TEXT  Name shown instead of account name                                                                                                      │
-│ --last-used-world-name        TEXT  World last logged into. Will be the default at next login                                                                               │
-╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Game Addons Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ --startup-script        FILE  Python scripts run before game launch. Paths are relative to the game's documents config directory                                            │
-╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Game WINE Options ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ --builtin-prefix-enabled       --no-builtin-prefix-enabled               If WINE should be automatically managed                                                            │
-│ --user-wine-executable-path                                   FILE       Path to the WINE executable to use when WINE isn't automatically managed                           │
-│ --user-prefix-path                                            DIRECTORY  Path to the WINE prefix to use when WINE isn't automatically managed                               │
-│ --wine-debug-level                                            TEXT       WINE debug level to use                                                                            │
-╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+Usage: onelauncher COMMAND [OPTIONS]
+
+Environment variables can also be used. For example, --config-directory can be  
+set with ONELAUNCHER_CONFIG_DIRECTORY.
+
+╭─ Commands ───────────────────────────────────────────────────────────────────╮
+│ --help -h             Display this message and exit.                         │
+│ --install-completion  Install shell completion for this application.         │
+│ --version             Display application version.                           │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Parameters ─────────────────────────────────────────────────────────────────╮
+│ --game              Which game to load. Can be either a game type or game    │
+│                     config ID. [choices: lotro, lotro-preview, ddo,          │
+│                     ddo-preview]                                             │
+│ --config-directory  Where OneLauncher settings are stored [default:          │
+│                     /home/june/.config/onelauncher]                          │
+│ --games-directory   Where OneLauncher game specific data is stored [default: │
+│                     /home/june/.local/share/onelauncher/games]               │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Program Options ────────────────────────────────────────────────────────────╮
+│ --default-locale              Default language for games and UI              │
+│ --always-use-default-locale-  Use default language for UI regardless of game │
+│   for-ui --no-always-use-def  language                                       │
+│   ault-locale-for-ui                                                         │
+│ --games-sorting-mode          Order to show games in UI [choices: priority,  │
+│                               last-played, alphabetical]                     │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Game Options ───────────────────────────────────────────────────────────────╮
+│ --game-directory              The game's install directory                   │
+│ --locale                      Language used for game                         │
+│ --client-type                 Which version of the game client to use        │
+│                               [choices: win64, win32, win32-legacy,          │
+│                               win32-legacy]                                  │
+│ --high-res-enabled            If the high resolution game files should be    │
+│   --no-high-res-enabled       used                                           │
+│ --standard-game-launcher-fil  Name of the standard game launcher executable. │
+│   ename                       Ex. LotroLauncher.exe                          │
+│ --patch-client-filename       Name of the dll used for game patching. Ex.    │
+│                               patchclient.dll                                │
+│ --game-settings-directory     Custom game settings directory. This is where  │
+│                               user preferences, screenshots, and addons are  │
+│                               stored.                                        │
+│ --newsfeed                    URL of the feed (RSS, ATOM, ect) to show in    │
+│                               the launcher                                   │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Game Account Options ───────────────────────────────────────────────────────╮
+│ --username              Login username                                       │
+│ --display-name          Name shown instead of account name                   │
+│ --last-used-world-name  World last logged into. Will be the default at next  │
+│                         login                                                │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Game Addons Options ────────────────────────────────────────────────────────╮
+│ --startup-scripts          Python scripts run before game launch. Paths are  │
+│   --empty-startup-scripts  relative to the game's documents config directory │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Game WINE Options ──────────────────────────────────────────────────────────╮
+│ --builtin-prefix-enabled      If WINE should be automatically managed        │
+│   --no-builtin-prefix-enable                                                 │
+│   d                                                                          │
+│ --user-wine-executable-path   Path to the WINE executable to use when WINE   │
+│                               isn't automatically managed                    │
+│ --user-prefix-path            Path to the WINE prefix to use when WINE isn't │
+│                               automatically managed                          │
+│ --wine-debug-level            Value for the WINEDEBUG environment variable   │
+╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
 ## Contributing
