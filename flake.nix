@@ -44,8 +44,8 @@
           sourcePreference = "wheel";
         };
         pyprojectOverrides = final: prev: {
-          onelauncher = prev.onelauncher.overrideAttrs (old: {
-            passthru = old.passthru // {
+          onelauncher = prev.onelauncher.overrideAttrs (previousAttrs: {
+            passthru = previousAttrs.passthru // {
               # Add tests to Nix package
               tests =
                 let
@@ -53,7 +53,7 @@
                     onelauncher = [ "test" ];
                   };
                 in
-                (old.tests or { })
+                (previousAttrs.tests or { })
                 // {
                   pytest = pkgs.stdenv.mkDerivation {
                     name = "${final.onelauncher.name}-pytest";
@@ -180,10 +180,9 @@
             };
             default = self.packages.${system}.onelauncher;
             fhs-run =
-              (pkgs.steam-fhsenv-without-steam.override {
-                # steam-unwrapped = null;
+              (pkgs.steam.override {
                 extraPkgs = pkgs: [ pkgs.libz ];
-              }).run;
+              }).run-free;
           };
         apps = {
           onelauncher = flake-utils.lib.mkApp { drv = self.packages.${system}.onelauncher; };
