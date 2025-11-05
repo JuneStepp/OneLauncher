@@ -22,10 +22,9 @@ from .game_config import GameConfig, GameConfigID, GameType
 from .program_config import GamesSortingMode, ProgramConfig
 from .resources import OneLauncherLocale, available_locales
 
-PROGRAM_CONFIG_DEFAULT_PATH: Path = (
-    platform_dirs.user_config_path / f"{__title__.lower()}.toml"
-)
-GAMES_DIR_DEFAULT_PATH: Path = platform_dirs.user_data_path / "games"
+PROGRAM_CONFIG_DIR_DEFAULT: Path = platform_dirs.user_config_path
+PROGRAM_CONFIG_DEFAULT_NAME = f"{__title__.lower()}.toml"
+GAMES_DIR_DEFAULT: Path = platform_dirs.user_data_path / "games"
 
 
 def _structure_onelauncher_locale(
@@ -85,6 +84,7 @@ def convert_to_toml(
                 container.add(tomlkit.comment(metadata.help))
         else:
             val = unprocessed_val
+
         if isinstance(val, dict):
             if not val:
                 continue
@@ -319,17 +319,26 @@ class ConfigManagerNotSetupError(Exception):
     """Config manager hasn't been setup."""
 
 
-@attrs.define
+@attrs.frozen(kw_only=True)
+class NoValidGamesError(Exception):
+    msg: str = "There are no valid games registered."
+
+
+@attrs.define(kw_only=True)
 class ConfigManager:
     """
     Before use, configs must be verified with `verify_configs` method.
     """
 
-    get_merged_program_config: Callable[[ProgramConfig], ProgramConfig]
-    get_merged_game_config: Callable[[GameConfig], GameConfig]
-    get_merged_game_accounts_config: Callable[[GameAccountsConfig], GameAccountsConfig]
-    program_config_path: Path = PROGRAM_CONFIG_DEFAULT_PATH
-    games_dir_path: Path = GAMES_DIR_DEFAULT_PATH
+    get_merged_program_config: Callable[[ProgramConfig], ProgramConfig] = (
+        lambda config: config
+    )
+    get_merged_game_config: Callable[[GameConfig], GameConfig] = lambda config: config
+    get_merged_game_accounts_config: Callable[
+        [GameAccountsConfig], GameAccountsConfig
+    ] = lambda config: config
+    program_config_dir: Final[Path] = PROGRAM_CONFIG_DIR_DEFAULT
+    games_dir: Final[Path] = GAMES_DIR_DEFAULT
 
     GAME_CONFIG_FILE_NAME: Final[str] = attrs.field(default="config.toml", init=False)
     configs_are_verified: bool = attrs.field(default=False, init=False)
@@ -343,8 +352,8 @@ class ConfigManager:
     )
 
     def __attrs_post_init__(self) -> None:
-        self.program_config_path.parent.mkdir(parents=True, exist_ok=True)
-        self.games_dir_path.mkdir(parents=True, exist_ok=True)
+        self.program_config_dir.mkdir(parents=True, exist_ok=True)
+        self.games_dir.mkdir(parents=True, exist_ok=True)
 
     def verify_configs(self) -> None:
         """
@@ -373,14 +382,18 @@ class ConfigManager:
             self.verified_game_config_ids.append(game_id)
         self.configs_are_verified = True
 
+    @property
+    def program_config_path(self) -> Path:
+        return self.program_config_dir / PROGRAM_CONFIG_DEFAULT_NAME
+
     def get_game_config_dir(self, game_id: GameConfigID) -> Path:
-        return self.games_dir_path / game_id
+        return self.games_dir / str(game_id)
 
     def get_game_config_path(self, game_id: GameConfigID) -> Path:
         return self.get_game_config_dir(game_id) / self.GAME_CONFIG_FILE_NAME
 
     def get_game_id_from_config_path(self, config_path: Path) -> GameConfigID:
-        return config_path.parent.name
+        return GameConfigID(config_path.parent.name)
 
     def get_game_accounts_config_path(self, game_id: GameConfigID) -> Path:
         return self.get_game_config_dir(game_id) / "accounts.toml"
@@ -445,9 +458,7 @@ class ConfigManager:
     def _get_game_config_ids(self) -> tuple[GameConfigID, ...]:
         return tuple(
             self.get_game_id_from_config_path(config_path=config_file)
-            for config_file in self.games_dir_path.glob(
-                f"*/{self.GAME_CONFIG_FILE_NAME}"
-            )
+            for config_file in self.games_dir.glob(f"*/{self.GAME_CONFIG_FILE_NAME}")
         )
 
     def get_games_by_game_type(self, game_type: GameType) -> tuple[GameConfigID, ...]:
@@ -529,6 +540,21 @@ class ConfigManager:
         )
         return tuple(
             sorted(game_ids, key=lambda game_id: self.get_game_config(game_id).name)
+        )
+
+    def get_initial_game(self) -> GameConfigID:
+        """
+        Get which game has the highest priority/should be presented first.
+
+        Raises:
+            NoValidGamesError: No valid games are registered.
+        """
+        if not (games_by_last_played := self.get_games_sorted_by_last_played()):
+            raise NoValidGamesError()
+        return (
+            games_by_last_played[0]
+            if self.get_game_config(games_by_last_played[0]).last_played is not None
+            else self.get_games_sorted(self.get_program_config().games_sorting_mode)[0]
         )
 
     def get_game_config(self, game_id: GameConfigID) -> GameConfig:

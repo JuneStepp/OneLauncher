@@ -28,7 +28,7 @@ class GamesSortingMode(Enum):
 class ProgramConfig(Config):
     default_locale: OneLauncherLocale = config_field(
         default=get_default_locale(),
-        help="The default language for games and UI.",
+        help="Default language for games and UI",
     )
     always_use_default_locale_for_ui: bool = config_field(
         default=False, help="Use default language for UI regardless of game language"

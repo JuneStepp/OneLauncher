@@ -243,6 +243,20 @@
           pkgs.mkShell {
             packages = [
               virtualenv
+              (pkgs.runCommand "onelauncher-shell-completions"
+                {
+                  nativeBuildInputs = [
+                    self.packages.${system}.onelauncher
+                    pkgs.installShellFiles
+                  ];
+                }
+                ''
+                  installShellCompletion --cmd onelauncher \
+                      --bash <(onelauncher generate-shell-completion bash) \
+                      --fish <(onelauncher generate-shell-completion fish) \
+                      --zsh <(onelauncher generate-shell-completion zsh)
+                ''
+              )
               pkgs.uv
               # Used for Nuitka compilation caching
               pkgs.ccache

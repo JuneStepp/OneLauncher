@@ -1,7 +1,6 @@
 from collections.abc import Iterable
 from datetime import datetime
 from enum import StrEnum
-from typing import TypeAlias
 from uuid import uuid4
 
 import attrs
@@ -26,6 +25,17 @@ class ClientType(StrEnum):
 class GameType(StrEnum):
     LOTRO = "LOTRO"
     DDO = "DDO"
+
+
+class GameConfigID:
+    def __init__(self, game_id: str, /) -> None:
+        if not game_id:
+            raise ValueError("GameConfigID cannot be empty")
+        self._value: str = game_id
+
+    @override
+    def __str__(self) -> str:
+        return self._value
 
 
 @attrs.frozen(kw_only=True)
@@ -90,9 +100,6 @@ class GameConfig(Config):
         return f"A game config file for {__title__}"
 
 
-GameConfigID: TypeAlias = str
-
-
 def generate_game_name(
     game_config: GameConfig, existing_game_names: Iterable[str] = ()
 ) -> str:
@@ -114,7 +121,7 @@ def generate_game_name(
 
 
 def generate_game_config_id(game_config: GameConfig) -> GameConfigID:
-    return (
+    return GameConfigID(
         f"{uuid4()}-{game_config.game_type}"
         f"{'-Preview' if game_config.is_preview_client else ''}"
     )
