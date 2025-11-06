@@ -14,6 +14,8 @@ from cattrs.preconf.tomlkit import make_converter
 from packaging.version import InvalidVersion, Version
 from tomlkit.items import Comment, Table, Whitespace
 
+from onelauncher.logs import LogLevel
+
 from .__about__ import __title__
 from .addons.startup_script import StartupScript
 from .config import Config, ConfigValWithMetadata, platform_dirs, unstructure_config
@@ -47,18 +49,38 @@ def _unstructure_onelauncher_locale(locale: OneLauncherLocale) -> str:
     return locale.lang_tag
 
 
+def _unstructure_log_level(log_level: LogLevel) -> str:
+    return log_level.name.lower()
+
+
+def _structure_log_level(
+    log_level_name: str, conversion_type: type[LogLevel]
+) -> LogLevel:
+    try:
+        return LogLevel[log_level_name.upper()]
+    except KeyError as e:
+        raise ValueError(
+            "Invalid log level name. Valid options are: "
+            f"{[name.lower() for name in LogLevel._member_names_]}. "
+            f"Value provided was: {log_level_name}"
+        ) from e
+
+
 @cache
 def get_converter() -> cattrs.Converter:
     converter = make_converter()
 
+    converter.register_unstructure_hook(
+        OneLauncherLocale, _unstructure_onelauncher_locale
+    )
     converter.register_structure_hook(OneLauncherLocale, _structure_onelauncher_locale)
 
     converter.register_unstructure_hook(StartupScript, _unstructure_startup_script)
     converter.register_structure_hook(StartupScript, _structure_startup_script)
 
-    converter.register_unstructure_hook(
-        OneLauncherLocale, _unstructure_onelauncher_locale
-    )
+    converter.register_unstructure_hook(LogLevel, _unstructure_log_level)
+    converter.register_structure_hook(LogLevel, _structure_log_level)
+
     converter.register_unstructure_hook_func(
         check_func=attrs.has, func=partial(unstructure_config, converter)
     )

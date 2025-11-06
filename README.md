@@ -71,6 +71,9 @@ set with ONELAUNCHER_CONFIG_DIRECTORY.
 │   ault-locale-for-ui                                                         │
 │ --games-sorting-mode          Order to show games in UI [choices: priority,  │
 │                               last-played, alphabetical]                     │
+│ --log-verbosity               Minimum log severity that will be shown in the │
+│                               console and log file [choices: debug, info,    │
+│                               warning, error, critical]                      │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Game Options ───────────────────────────────────────────────────────────────╮
 │ --game-directory              The game's install directory                   │
