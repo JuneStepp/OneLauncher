@@ -40,7 +40,7 @@ from .config_manager import (
 )
 from .game_account_config import GameAccountConfig, GameAccountsConfig
 from .game_config import ClientType, GameConfig, GameConfigID, GameType
-from .logs import setup_application_logging
+from .logs import LogLevel, setup_application_logging
 from .program_config import GamesSortingMode, ProgramConfig
 from .resources import OneLauncherLocale
 from .ui import qtdesigner
@@ -80,6 +80,7 @@ def _merge_program_config(
     default_locale: OneLauncherLocale | None,
     always_use_default_locale_for_ui: bool | None,
     games_sorting_mode: GamesSortingMode | None,
+    log_verbosity: LogLevel | None,
 ) -> ProgramConfig:
     """
     Merge `program_config` with CLI options. Any specified CLI options will
@@ -94,6 +95,9 @@ def _merge_program_config(
             else program_config.always_use_default_locale_for_ui
         ),
         games_sorting_mode=(games_sorting_mode or program_config.games_sorting_mode),
+        log_verbosity=(
+            log_verbosity if log_verbosity is not None else program_config.log_verbosity
+        ),
     )
 
 
@@ -365,6 +369,11 @@ def get_app() -> cyclopts.App:
             GamesSortingMode | None,
             Parameter(group=ProgramGroup, help=prog_help("games_sorting_mode")),
         ] = None,
+        log_verbosity: Annotated[
+            LogLevel | None,
+            Parameter(group=ProgramGroup, help=prog_help("log_verbosity")),
+        ] = None,
+        # Game
         game: Annotated[
             _GameParamGameType | GameConfigID | None,
             Parameter(
@@ -380,6 +389,7 @@ def get_app() -> cyclopts.App:
             default_locale=default_locale,
             always_use_default_locale_for_ui=always_use_default_locale_for_ui,
             games_sorting_mode=games_sorting_mode,
+            log_verbosity=log_verbosity,
         )
         nonlocal _game_id
         if game is None:
@@ -497,7 +507,9 @@ def get_app() -> cyclopts.App:
             str | None, Parameter(group=WineGroup, help=wine_help("debug_level"))
         ] = None,
     ) -> int:
-        setup_application_logging()
+        setup_application_logging(
+            log_level_override=config_manager.get_program_config().log_verbosity
+        )
         config_manager.get_merged_game_config = partial(
             _merge_game_config,
             game_directory=game_directory,

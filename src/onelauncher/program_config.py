@@ -6,6 +6,7 @@ from typing_extensions import override
 
 from .__about__ import __title__
 from .config import Config, config_field
+from .logs import LogLevel
 from .resources import (
     OneLauncherLocale,
     get_default_locale,
@@ -35,6 +36,10 @@ class ProgramConfig(Config):
     )
     games_sorting_mode: GamesSortingMode = config_field(
         default=GamesSortingMode.PRIORITY, help="Order to show games in UI"
+    )
+    log_verbosity: LogLevel | None = config_field(
+        default=None,
+        help="Minimum log severity that will be shown in the console and log file",
     )
 
     @override

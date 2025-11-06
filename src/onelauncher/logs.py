@@ -1,6 +1,7 @@
 import logging
 import sys
 from collections.abc import Callable
+from enum import IntEnum
 from functools import partial
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
@@ -15,6 +16,14 @@ from .config import platform_dirs
 
 LOGS_DIR = platform_dirs.user_log_path
 MAIN_LOG_FILE_NAME = "main.log"
+
+
+class LogLevel(IntEnum):
+    DEBUG = logging.DEBUG
+    INFO = logging.INFO
+    WARNING = logging.WARNING
+    ERROR = logging.ERROR
+    CRITICAL = logging.CRITICAL
 
 
 def log_basic_info(logger: logging.Logger) -> None:
@@ -51,17 +60,20 @@ class RedactHomeDirFormatter(logging.Formatter):
         return unredacted.replace(str(Path.home()), "<HOME>")
 
 
-def setup_application_logging() -> None:
+def setup_application_logging(log_level_override: LogLevel | None = None) -> None:
     """Create root logger configured for running application"""
-    if version_parsed.is_devrelease:
-        file_logging_level = logging.DEBUG
-        stream_logging_level = logging.DEBUG
+    if log_level_override is not None:
+        file_logging_level = log_level_override
+        stream_logging_level = log_level_override
+    elif version_parsed.is_devrelease:
+        file_logging_level = LogLevel.DEBUG
+        stream_logging_level = LogLevel.INFO
     elif version_parsed.is_prerelease:
-        file_logging_level = logging.DEBUG
-        stream_logging_level = logging.WARNING
+        file_logging_level = LogLevel.DEBUG
+        stream_logging_level = LogLevel.WARNING
     else:
-        file_logging_level = logging.INFO
-        stream_logging_level = logging.WARNING
+        file_logging_level = LogLevel.INFO
+        stream_logging_level = LogLevel.WARNING
 
     # Make sure logs dir exists
     LOGS_DIR.mkdir(exist_ok=True, parents=True)
@@ -71,7 +83,7 @@ def setup_application_logging() -> None:
 
     # This is for the logger globally. Different handlers
     # attached to it have their own levels.
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(LogLevel.DEBUG)
 
     # Create handlers
     stream_handler = logging.StreamHandler()
