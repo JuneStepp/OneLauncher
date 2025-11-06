@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'setup_wizard.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.7.2
+## Created by: Qt User Interface Compiler version 6.10.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -47,7 +47,7 @@ class Ui_Wizard(object):
         self.languagesListWidget.setSizePolicy(sizePolicy)
         self.languagesListWidget.setFrameShape(QFrame.Shape.Box)
         self.languagesListWidget.setEditTriggers(QAbstractItemView.EditTrigger.CurrentChanged|QAbstractItemView.EditTrigger.DoubleClicked|QAbstractItemView.EditTrigger.EditKeyPressed|QAbstractItemView.EditTrigger.SelectedClicked)
-        self.languagesListWidget.setProperty("showDropIndicator", False)
+        self.languagesListWidget.setProperty(u"showDropIndicator", False)
         self.languagesListWidget.setWordWrap(True)
         self.languagesListWidget.setSortingEnabled(True)
 
@@ -161,7 +161,7 @@ class Ui_Wizard(object):
 
         self.gamesDeletionStatusListView = QListView(self.dataDeletionWizardPage)
         self.gamesDeletionStatusListView.setObjectName(u"gamesDeletionStatusListView")
-        self.gamesDeletionStatusListView.setProperty("showDropIndicator", False)
+        self.gamesDeletionStatusListView.setProperty(u"showDropIndicator", False)
         self.gamesDeletionStatusListView.setAlternatingRowColors(True)
         self.gamesDeletionStatusListView.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
 
@@ -171,6 +171,10 @@ class Ui_Wizard(object):
         self.finishedWizardPage = QWizardPage()
         self.finishedWizardPage.setObjectName(u"finishedWizardPage")
         Wizard.setPage(3, self.finishedWizardPage)
+#if QT_CONFIG(shortcut)
+        self.label.setBuddy(self.languagesListWidget)
+        self.alwaysUseDefaultLangForUILabel.setBuddy(self.alwaysUseDefaultLangForUICheckBox)
+#endif // QT_CONFIG(shortcut)
 
         self.retranslateUi(Wizard)
 
@@ -194,7 +198,7 @@ class Ui_Wizard(object):
         self.alwaysUseDefaultLangForUILabel.setText(QCoreApplication.translate("Wizard", u"Always Use Default Language For UI", None))
         self.gamesSelectionWizardPage.setTitle(QCoreApplication.translate("Wizard", u"Games Selection", None))
         self.gamesSelectionWizardPage.setSubTitle(QCoreApplication.translate("Wizard", u"Select your game installations. The first one will be the main game instance.", None))
-        self.gamesListWidget.setProperty("qssClass", [
+        self.gamesListWidget.setProperty(u"qssClass", [
             QCoreApplication.translate("Wizard", u"icon-xl", None)])
         self.gamesDiscoveryStatusLabel.setText("")
 #if QT_CONFIG(tooltip)
@@ -211,7 +215,7 @@ class Ui_Wizard(object):
         self.groupBox.setTitle(QCoreApplication.translate("Wizard", u"What should happen to existing game data?", None))
         self.keepDataRadioButton.setText(QCoreApplication.translate("Wizard", u"Keep it", None))
         self.resetDataRadioButton.setText(QCoreApplication.translate("Wizard", u"Reset it", None))
-        self.gamesDeletionStatusListView.setProperty("qssClass", [
+        self.gamesDeletionStatusListView.setProperty(u"qssClass", [
             QCoreApplication.translate("Wizard", u"icon-xl", None)])
         self.finishedWizardPage.setTitle(QCoreApplication.translate("Wizard", u"Setup Finished", None))
         self.finishedWizardPage.setSubTitle(QCoreApplication.translate("Wizard", u"That's it! You can always check out the settings menu or addons manager for extra customization.", None))

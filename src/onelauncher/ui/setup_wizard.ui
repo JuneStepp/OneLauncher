@@ -37,6 +37,9 @@
         <property name="alignment">
          <set>Qt::AlignmentFlag::AlignCenter</set>
         </property>
+        <property name="buddy">
+         <cstring>languagesListWidget</cstring>
+        </property>
        </widget>
       </item>
       <item>
@@ -100,6 +103,9 @@
         </property>
         <property name="text">
          <string>Always Use Default Language For UI</string>
+        </property>
+        <property name="buddy">
+         <cstring>alwaysUseDefaultLangForUICheckBox</cstring>
         </property>
        </widget>
       </item>

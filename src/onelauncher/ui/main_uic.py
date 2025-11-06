@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'main.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.7.2
+## Created by: Qt User Interface Compiler version 6.10.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -236,18 +236,18 @@ class Ui_winMain(object):
         self.verticalLayout_4.addLayout(self.horizontalLayout_4)
 
         winMain.setCentralWidget(self.centralwidget)
+#if QT_CONFIG(shortcut)
+        self.lblWorld.setBuddy(self.cboWorld)
+        self.lblAccount.setBuddy(self.cboAccount)
+        self.lblPassword.setBuddy(self.txtPassword)
+#endif // QT_CONFIG(shortcut)
         QWidget.setTabOrder(self.cboWorld, self.cboAccount)
         QWidget.setTabOrder(self.cboAccount, self.txtPassword)
-        QWidget.setTabOrder(self.txtPassword, self.chkSaveAccount)
+        QWidget.setTabOrder(self.txtPassword, self.btnLogin)
+        QWidget.setTabOrder(self.btnLogin, self.chkSaveAccount)
         QWidget.setTabOrder(self.chkSaveAccount, self.chkSavePassword)
         QWidget.setTabOrder(self.chkSavePassword, self.txtFeed)
-        QWidget.setTabOrder(self.txtFeed, self.btnMinimize)
-        QWidget.setTabOrder(self.btnMinimize, self.btnSwitchGame)
-        QWidget.setTabOrder(self.btnSwitchGame, self.btnOptions)
-        QWidget.setTabOrder(self.btnOptions, self.btnExit)
-        QWidget.setTabOrder(self.btnExit, self.btnAddonManager)
-        QWidget.setTabOrder(self.btnAddonManager, self.btnAbout)
-        QWidget.setTabOrder(self.btnAbout, self.txtStatus)
+        QWidget.setTabOrder(self.txtFeed, self.txtStatus)
 
         self.retranslateUi(winMain)
 
@@ -265,27 +265,27 @@ class Ui_winMain(object):
 #if QT_CONFIG(tooltip)
         self.btnOptions.setToolTip(QCoreApplication.translate("winMain", u"Settings", None))
 #endif // QT_CONFIG(tooltip)
-        self.btnOptions.setProperty("qssClass", [
+        self.btnOptions.setProperty(u"qssClass", [
             QCoreApplication.translate("winMain", u"icon-lg", None)])
 #if QT_CONFIG(tooltip)
         self.btnAddonManager.setToolTip(QCoreApplication.translate("winMain", u"Addon manager", None))
 #endif // QT_CONFIG(tooltip)
-        self.btnAddonManager.setProperty("qssClass", [
+        self.btnAddonManager.setProperty(u"qssClass", [
             QCoreApplication.translate("winMain", u"icon-lg", None)])
 #if QT_CONFIG(tooltip)
         self.btnAbout.setToolTip(QCoreApplication.translate("winMain", u"About", None))
 #endif // QT_CONFIG(tooltip)
-        self.btnAbout.setProperty("qssClass", [
+        self.btnAbout.setProperty(u"qssClass", [
             QCoreApplication.translate("winMain", u"icon-lg", None)])
 #if QT_CONFIG(tooltip)
         self.btnMinimize.setToolTip(QCoreApplication.translate("winMain", u"Minimize", None))
 #endif // QT_CONFIG(tooltip)
-        self.btnMinimize.setProperty("qssClass", [
+        self.btnMinimize.setProperty(u"qssClass", [
             QCoreApplication.translate("winMain", u"icon-lg", None)])
 #if QT_CONFIG(tooltip)
         self.btnExit.setToolTip(QCoreApplication.translate("winMain", u"Exit", None))
 #endif // QT_CONFIG(tooltip)
-        self.btnExit.setProperty("qssClass", [
+        self.btnExit.setProperty(u"qssClass", [
             QCoreApplication.translate("winMain", u"icon-lg", None)])
 #if QT_CONFIG(tooltip)
         self.lblWorld.setToolTip(QCoreApplication.translate("winMain", u"Game server", None))
@@ -297,7 +297,7 @@ class Ui_winMain(object):
 #if QT_CONFIG(tooltip)
         self.btnSwitchGame.setToolTip(QCoreApplication.translate("winMain", u"Switch game", None))
 #endif // QT_CONFIG(tooltip)
-        self.btnSwitchGame.setProperty("qssClass", [
+        self.btnSwitchGame.setProperty(u"qssClass", [
             QCoreApplication.translate("winMain", u"icon-xl", None)])
         self.lblAccount.setText(QCoreApplication.translate("winMain", u"Account", None))
         self.lblPassword.setText(QCoreApplication.translate("winMain", u"Password", None))
@@ -305,7 +305,7 @@ class Ui_winMain(object):
         self.btnLogin.setToolTip(QCoreApplication.translate("winMain", u"Start your adventure!", None))
 #endif // QT_CONFIG(tooltip)
         self.btnLogin.setText(QCoreApplication.translate("winMain", u"Play", None))
-        self.btnLogin.setProperty("qssClass", [
+        self.btnLogin.setProperty(u"qssClass", [
             QCoreApplication.translate("winMain", u"text-xl", None),
             QCoreApplication.translate("winMain", u"px-3.5", None),
             QCoreApplication.translate("winMain", u"py-2", None),
