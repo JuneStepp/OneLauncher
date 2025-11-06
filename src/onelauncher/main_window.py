@@ -855,7 +855,11 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         await self.load_newsfeed(self.game_launcher_config)
 
     def load_worlds_list(self, game_services_info: GameServicesInfo) -> None:
-        sorted_worlds = sorted(game_services_info.worlds, key=lambda world: world.name)
+        # Sort alphabetically with old worlds at the bottom.
+        sorted_worlds = sorted(
+            game_services_info.worlds,
+            key=lambda world: f"{2 if world.name.strip().lower().endswith('[old]') else 1}{world.name}",
+        )
         for world in sorted_worlds:
             self.ui.cboWorld.addItem(world.name, userData=world)
 
