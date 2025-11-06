@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'settings.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.7.2
+## Created by: Qt User Interface Compiler version 6.10.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (QAbstractButton, QApplication, QCheckBox, QComboB
     QStackedWidget, QTabBar, QToolButton, QVBoxLayout,
     QWidget)
 
-from .custom_widgets import FramelessQDialogWithStylePreview, FixedWordWrapQLabel
+from .custom_widgets import (FixedWordWrapQLabel, FramelessQDialogWithStylePreview)
 from .qtdesigner.custom_widgets import QDialogWithStylePreview
 
 class Ui_dlgSettings(object):
@@ -373,6 +373,26 @@ class Ui_dlgSettings(object):
 
         self.verticalLayout.addLayout(self.horizontalLayout)
 
+#if QT_CONFIG(shortcut)
+        self.gameNameLabel.setBuddy(self.gameNameLineEdit)
+        self.gameConfigIDLabel.setBuddy(self.gameConfigIDLineEdit)
+        self.gameDescriptionLabel.setBuddy(self.gameDescriptionLineEdit)
+        self.gameNewsfeedLabel.setBuddy(self.gameNewsfeedLineEdit)
+        self.gameDirLabel.setBuddy(self.gameDirLineEdit)
+        self.gameLanguageLabel.setBuddy(self.gameLanguageComboBox)
+        self.highResLabel.setBuddy(self.highResCheckBox)
+        self.clientLabel.setBuddy(self.clientTypeComboBox)
+        self.standardLauncherLabel.setBuddy(self.standardLauncherLineEdit)
+        self.patchClientLabel.setBuddy(self.patchClientLineEdit)
+        self.gameSettingsDirLabel.setBuddy(self.gameSettingsDirLineEdit)
+        self.autoManageWineLabel.setBuddy(self.autoManageWineCheckBox)
+        self.winePrefixLabel.setBuddy(self.winePrefixLineEdit)
+        self.wineExecutableLabel.setBuddy(self.wineExecutableLineEdit)
+        self.wineDebugLabel.setBuddy(self.wineDebugLineEdit)
+        self.defaultLanguageLabel.setBuddy(self.defaultLanguageComboBox)
+        self.defaultLanguageForUILabel.setBuddy(self.defaultLanguageForUICheckBox)
+        self.gamesSortingModeLabel.setBuddy(self.gamesSortingModeComboBox)
+#endif // QT_CONFIG(shortcut)
 
         self.retranslateUi(dlgSettings)
         self.settingsButtonBox.rejected.connect(dlgSettings.reject)

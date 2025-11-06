@@ -699,6 +699,19 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>txtSearchBar</tabstop>
+  <tabstop>tablePluginsInstalled</tabstop>
+  <tabstop>tableSkinsInstalled</tabstop>
+  <tabstop>tableMusicInstalled</tabstop>
+  <tabstop>tablePlugins</tabstop>
+  <tabstop>tableSkins</tabstop>
+  <tabstop>tableMusic</tabstop>
+  <tabstop>btnAddons</tabstop>
+  <tabstop>btnUpdateAll</tabstop>
+  <tabstop>btnCheckForUpdates</tabstop>
+  <tabstop>btnCheckForUpdates_2</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

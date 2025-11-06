@@ -233,6 +233,9 @@
              <property name="text">
               <string>World</string>
              </property>
+             <property name="buddy">
+              <cstring>cboWorld</cstring>
+             </property>
             </widget>
            </item>
            <item row="0" column="1">
@@ -275,6 +278,9 @@
              <property name="text">
               <string>Account</string>
              </property>
+             <property name="buddy">
+              <cstring>cboAccount</cstring>
+             </property>
             </widget>
            </item>
            <item row="1" column="1">
@@ -291,6 +297,9 @@
             <widget class="QLabel" name="lblPassword">
              <property name="text">
               <string>Password</string>
+             </property>
+             <property name="buddy">
+              <cstring>txtPassword</cstring>
              </property>
             </widget>
            </item>
@@ -461,15 +470,10 @@
   <tabstop>cboWorld</tabstop>
   <tabstop>cboAccount</tabstop>
   <tabstop>txtPassword</tabstop>
+  <tabstop>btnLogin</tabstop>
   <tabstop>chkSaveAccount</tabstop>
   <tabstop>chkSavePassword</tabstop>
   <tabstop>txtFeed</tabstop>
-  <tabstop>btnMinimize</tabstop>
-  <tabstop>btnSwitchGame</tabstop>
-  <tabstop>btnOptions</tabstop>
-  <tabstop>btnExit</tabstop>
-  <tabstop>btnAddonManager</tabstop>
-  <tabstop>btnAbout</tabstop>
   <tabstop>txtStatus</tabstop>
  </tabstops>
  <resources/>

@@ -62,6 +62,9 @@
          <property name="text">
           <string>Name</string>
          </property>
+         <property name="buddy">
+          <cstring>gameNameLineEdit</cstring>
+         </property>
         </widget>
        </item>
        <item row="0" column="1">
@@ -71,6 +74,9 @@
         <widget class="QLabel" name="gameConfigIDLabel">
          <property name="text">
           <string>Config ID</string>
+         </property>
+         <property name="buddy">
+          <cstring>gameConfigIDLineEdit</cstring>
          </property>
         </widget>
        </item>
@@ -86,6 +92,9 @@
          <property name="text">
           <string>Description</string>
          </property>
+         <property name="buddy">
+          <cstring>gameDescriptionLineEdit</cstring>
+         </property>
         </widget>
        </item>
        <item row="2" column="1">
@@ -95,6 +104,9 @@
         <widget class="QLabel" name="gameNewsfeedLabel">
          <property name="text">
           <string>Newsfeed URL</string>
+         </property>
+         <property name="buddy">
+          <cstring>gameNewsfeedLineEdit</cstring>
          </property>
         </widget>
        </item>
@@ -111,6 +123,9 @@
          </property>
          <property name="alignment">
           <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+         </property>
+         <property name="buddy">
+          <cstring>gameDirLineEdit</cstring>
          </property>
         </widget>
        </item>
@@ -191,6 +206,9 @@
          <property name="alignment">
           <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
          </property>
+         <property name="buddy">
+          <cstring>gameLanguageComboBox</cstring>
+         </property>
         </widget>
        </item>
        <item row="0" column="1">
@@ -210,6 +228,9 @@
          </property>
          <property name="alignment">
           <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+         </property>
+         <property name="buddy">
+          <cstring>highResCheckBox</cstring>
          </property>
         </widget>
        </item>
@@ -240,6 +261,9 @@
          <property name="alignment">
           <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
          </property>
+         <property name="buddy">
+          <cstring>clientTypeComboBox</cstring>
+         </property>
         </widget>
        </item>
        <item row="2" column="1">
@@ -259,6 +283,9 @@
          </property>
          <property name="alignment">
           <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+         </property>
+         <property name="buddy">
+          <cstring>standardLauncherLineEdit</cstring>
          </property>
         </widget>
        </item>
@@ -296,6 +323,9 @@
          <property name="alignment">
           <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
          </property>
+         <property name="buddy">
+          <cstring>patchClientLineEdit</cstring>
+         </property>
         </widget>
        </item>
        <item row="7" column="1">
@@ -325,6 +355,9 @@
          </property>
          <property name="text">
           <string>Settings Directory</string>
+         </property>
+         <property name="buddy">
+          <cstring>gameSettingsDirLineEdit</cstring>
          </property>
         </widget>
        </item>
@@ -384,6 +417,9 @@
          <property name="text">
           <string>Auto Manage Wine</string>
          </property>
+         <property name="buddy">
+          <cstring>autoManageWineCheckBox</cstring>
+         </property>
         </widget>
        </item>
        <item row="0" column="1">
@@ -403,6 +439,9 @@
          </property>
          <property name="text">
           <string>Wine Prefix</string>
+         </property>
+         <property name="buddy">
+          <cstring>winePrefixLineEdit</cstring>
          </property>
         </widget>
        </item>
@@ -424,6 +463,9 @@
          <property name="text">
           <string>Wine Executable</string>
          </property>
+         <property name="buddy">
+          <cstring>wineExecutableLineEdit</cstring>
+         </property>
         </widget>
        </item>
        <item row="2" column="1">
@@ -443,6 +485,9 @@
          </property>
          <property name="text">
           <string>WINEDEBUG</string>
+         </property>
+         <property name="buddy">
+          <cstring>wineDebugLineEdit</cstring>
          </property>
         </widget>
        </item>
@@ -496,6 +541,9 @@
          <property name="alignment">
           <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
          </property>
+         <property name="buddy">
+          <cstring>defaultLanguageComboBox</cstring>
+         </property>
         </widget>
        </item>
        <item row="0" column="1">
@@ -525,6 +573,9 @@
          <property name="wordWrap">
           <bool>true</bool>
          </property>
+         <property name="buddy">
+          <cstring>defaultLanguageForUICheckBox</cstring>
+         </property>
         </widget>
        </item>
        <item row="1" column="1">
@@ -550,6 +601,9 @@
          </property>
          <property name="alignment">
           <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+         </property>
+         <property name="buddy">
+          <cstring>gamesSortingModeComboBox</cstring>
          </property>
         </widget>
        </item>

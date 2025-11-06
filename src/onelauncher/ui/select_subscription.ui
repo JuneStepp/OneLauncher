@@ -33,6 +33,9 @@ Please select one</string>
      <property name="alignment">
       <set>Qt::AlignmentFlag::AlignCenter</set>
      </property>
+     <property name="buddy">
+      <cstring>subscriptionsComboBox</cstring>
+     </property>
     </widget>
    </item>
    <item>

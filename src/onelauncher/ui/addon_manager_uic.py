@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'addon_manager.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.7.2
+## Created by: Qt User Interface Compiler version 6.10.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -330,6 +330,16 @@ class Ui_winAddonManager(object):
 
         self.verticalLayout_9.addWidget(self.progressBar)
 
+        QWidget.setTabOrder(self.txtSearchBar, self.tablePluginsInstalled)
+        QWidget.setTabOrder(self.tablePluginsInstalled, self.tableSkinsInstalled)
+        QWidget.setTabOrder(self.tableSkinsInstalled, self.tableMusicInstalled)
+        QWidget.setTabOrder(self.tableMusicInstalled, self.tablePlugins)
+        QWidget.setTabOrder(self.tablePlugins, self.tableSkins)
+        QWidget.setTabOrder(self.tableSkins, self.tableMusic)
+        QWidget.setTabOrder(self.tableMusic, self.btnAddons)
+        QWidget.setTabOrder(self.btnAddons, self.btnUpdateAll)
+        QWidget.setTabOrder(self.btnUpdateAll, self.btnCheckForUpdates)
+        QWidget.setTabOrder(self.btnCheckForUpdates, self.btnCheckForUpdates_2)
 
         self.retranslateUi(winAddonManager)
 
@@ -365,7 +375,7 @@ class Ui_winAddonManager(object):
 #if QT_CONFIG(tooltip)
         self.btnAddons.setToolTip(QCoreApplication.translate("winAddonManager", u"Remove addons", None))
 #endif // QT_CONFIG(tooltip)
-        self.btnAddons.setProperty("qssClass", [
+        self.btnAddons.setProperty(u"qssClass", [
             QCoreApplication.translate("winAddonManager", u"icon-lg", None),
             QCoreApplication.translate("winAddonManager", u"px-2.5", None),
             QCoreApplication.translate("winAddonManager", u"py-1", None)])
@@ -379,7 +389,7 @@ class Ui_winAddonManager(object):
 #if QT_CONFIG(tooltip)
         self.btnCheckForUpdates_2.setToolTip(QCoreApplication.translate("winAddonManager", u"Check for updates", None))
 #endif // QT_CONFIG(tooltip)
-        self.progressBar.setProperty("qssClass", [
+        self.progressBar.setProperty(u"qssClass", [
             QCoreApplication.translate("winAddonManager", u"max-h-2", None)])
     # retranslateUi
 
