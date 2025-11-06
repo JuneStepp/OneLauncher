@@ -340,6 +340,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             return
 
         process = QtCore.QProcess()
+        process.setProcessEnvironment(QtCore.QProcessEnvironment.systemEnvironment())
         process.setWorkingDirectory(str(game_config.game_directory))
         process.setProgram(str(launcher_path))
         if disable_patching:
