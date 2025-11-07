@@ -29,7 +29,6 @@ class Ui_winMain(object):
         if not winMain.objectName():
             winMain.setObjectName(u"winMain")
         winMain.resize(790, 470)
-        winMain.setUnifiedTitleAndToolBarOnMac(False)
         self.actionPatch = QAction(winMain)
         self.actionPatch.setObjectName(u"actionPatch")
         self.actionLOTRO = QAction(winMain)

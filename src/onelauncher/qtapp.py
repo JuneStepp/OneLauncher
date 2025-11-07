@@ -63,6 +63,10 @@ def _setup_qapplication() -> QtWidgets.QApplication:
     if os.name == "nt":
         application.setStyle("Fusion")
 
+    # The Qt "Mac" style messes up bunch of alignment and styling.
+    if os.name == "nt" or sys.platform == "darwin":
+        application.setStyle("Fusion")
+
     def set_qtawesome_defaults() -> None:
         qtawesome.reset_cache()
         qtawesome.set_defaults(color=application.palette().windowText().color())
