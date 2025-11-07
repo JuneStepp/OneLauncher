@@ -41,7 +41,7 @@ from .resources import data_dir
 
 @cache
 def _setup_qapplication() -> QtWidgets.QApplication:
-    application = QtWidgets.QApplication(sys.argv)
+    application = QtWidgets.QApplication()
     # See https://github.com/zhiyiYo/PyQt-Frameless-Window/issues/50
     application.setAttribute(
         QtCore.Qt.ApplicationAttribute.AA_DontCreateNativeWidgetSiblings
