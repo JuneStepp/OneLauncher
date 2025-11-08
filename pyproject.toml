@@ -60,12 +60,19 @@ lint = [
 test = [
     "pytest>=8.3.2",
     "pytest-randomly>=3.15.0",
-    # Used to test mypy plugin
+    # Used to test mypy plugin.
     "mypy",
     "pytest-mock>=3.15.1",
     "pytest-trio>=0.8.0",
 ]
-build = ["Nuitka>=2.4.8", "marko>=2.1.2"]
+build = [
+    # See <https://github.com/Nuitka/Nuitka/issues/3647>.
+    # Waiting on version 2.8.5 to make it to PyPi.
+    "Nuitka>=2.4.8, <=2.7.15",
+    "marko>=2.1.2",
+    # For converting the icon image.
+    "ImageIO>=2.37.2 ; sys_platform == 'darwin'",
+]
 dev = [
     { include-group = "lint" },
     { include-group = "test" },
