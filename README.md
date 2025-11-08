@@ -12,7 +12,7 @@ An enhanced launcher for both [LOTRO](https://www.lotro.com/) and [DDO](https://
 - Password saving
 - Plugins, skins, and music manager
 - External scripting support for addons
-- Auto WINE setup for Linux
+- Auto WINE setup for Mac and Linux
 - Multiple clients support
 - *more*
 
