@@ -204,6 +204,6 @@ class StartGame(QtWidgets.QDialog):
         self.process_logging_adapter.extra = {
             ExternalProcessLogsFilter.EXTERNAL_PROCESS_ID_KEY: self.process.processId()
         }
-        logger.info("Game started")
+        logger.info("***  Started  ***")
 
         self.exec()
