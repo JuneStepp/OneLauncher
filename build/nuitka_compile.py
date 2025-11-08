@@ -63,6 +63,9 @@ def main(
                 f"--macos-app-name={__about__.__title__}",
                 f"--macos-app-version={__about__.__version__}",
                 "--macos-app-icon=src/onelauncher/images/OneLauncherIcon.png",
+                # To not conflict with the `onelauncher` folder.
+                f"--output-filename={__about__.__title__.lower()}.bin",
+                "--macos-create-app-bundle"
             ]
         )
     elif sys.platform == "linux":

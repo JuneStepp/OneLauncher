@@ -15,11 +15,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, windows-latest]
+        os: [ubuntu-22.04, macos-14, macos-15-intel, windows-latest]
         include:
           - os: ubuntu-22.04
             artifact_path_name: onelauncher.bin
             artifact_rename: OneLauncher-Linux.bin
+          - os: macos-14
+            artifact_path_name: onelauncher.zip
+            artifact_rename: OneLauncher-macOS-ARM64.zip
+          - os: macos-15-intel
+            artifact_path_name: onelauncher.zip
+            artifact_rename: OneLauncher-macOS-x86_64.zip
           - os: windows-latest
             artifact_path_name: OneLauncher.msi
             artifact_rename: OneLauncher-Windows.msi
@@ -31,6 +37,9 @@ jobs:
       - name: Install mingw-w64 on Linux
         if: runner.os == 'Linux'
         run: sudo apt-get install mingw-w64
+      - name: Install mingw-w64 on macOS
+        if: runner.os == 'macOS'
+        run: brew install mingw-w64
       - name: Build `run_patch_client`
         if: runner.os != 'Windows'
         run: make -C src/run_patch_client
@@ -59,9 +68,12 @@ jobs:
       - run: uv sync --locked --no-dev --group build
 
       # Nuitka cache
-      - name: Install ccache for Nuitka
+      - name: Install ccache for Nuitka on Linux
         if: runner.os == 'Linux'
         run: sudo apt-get install -y ccache
+      - name: Install ccache for Nuitka on MacOS
+        if: runner.os == 'macOS'
+        run: brew install ccache
       - name: Setup Nuitka env variables
         shell: bash
         run: |
@@ -86,6 +98,9 @@ jobs:
 
       - name: Build
         run: python -m build
+      - name: Make app zip on MacOS
+        if: runner.os == 'macOS'
+        run: ditto -c -k --keepParent build/out/onelauncher.app build/out/onelauncher.zip
       - name: Rename artifact
         run: mv build/out/${{ matrix.artifact_path_name }} build/out/${{ matrix.artifact_rename }}
       - name: Upload build artifact

@@ -1,7 +1,7 @@
 # Credits
 
 Lord of the Rings Online and Dungeons & Dragons Online
-Launcher for Linux, Mac OS X, and Windows.
+Launcher for Linux, macOS, and Windows.
 
 - [OneLauncher](https://github.com/JuneStepp/OneLauncher)
   (C) 2019-2025 June Stepp \<contact@junestepp.me\>
