@@ -67,7 +67,7 @@ jobs:
           activate-environment: true
       - run: uv sync --locked --no-dev --group build
 
-      # Nuitka cache
+      # Nuitka cache. Based on <https://github.com/Nuitka/Nuitka-Action/blob/main/action.yml>.
       - name: Install ccache for Nuitka on Linux
         if: runner.os == 'Linux'
         run: sudo apt-get install -y ccache
@@ -84,11 +84,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.NUITKA_CACHE_DIR }}
-          key: ${{ runner.os }}-${{ runner.arch }}-python-${{ env.PYTHON_VERSION }}-nuitka-${{ github.sha }}
+          key: nuitka-caching-${{ runner.os }}-${{ runner.arch }}-python-${{ env.PYTHON_VERSION }}-nuitka-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-${{ runner.arch }}-python-${{ env.PYTHON_VERSION }}-
-            ${{ runner.os }}-${{ runner.arch }}-python-
-            ${{ runner.os }}-${{ runner.arch }}-
+            nuitka-caching-${{ runner.os }}-${{ runner.arch }}-python-${{ env.PYTHON_VERSION }}-
+            nuitka-${{ runner.os }}-${{ runner.arch }}-python-${{ env.PYTHON_VERSION }}-
+            nuitka-${{ runner.os }}-${{ runner.arch }}-
 
       - name: Setup dotnet for building Windows installer
         if: runner.os == 'Windows'
