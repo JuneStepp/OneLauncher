@@ -51,9 +51,9 @@ logger = logging.getLogger(__name__)
 
 # To use Proton, replace link with Proton build and uncomment
 # `self.proton_documents_symlinker()` in wine_setup in wine_management
-WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/10.8/wine-10.8-staging-tkg-amd64.tar.xz"
+WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/10.19/wine-10.19-staging-tkg-amd64-wow64.tar.xz"
 DXVK_URL = (
-    "https://github.com/doitsujin/dxvk/releases/download/v2.6.1/dxvk-2.6.1.tar.gz"
+    "https://github.com/doitsujin/dxvk/releases/download/v2.7.1/dxvk-2.7.1.tar.gz"
 )
 
 
