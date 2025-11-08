@@ -30,10 +30,13 @@ import logging
 import lzma
 import os
 import ssl
+import sys
 import tarfile
 from functools import partial
 from pathlib import Path
 from shutil import move, rmtree
+from tempfile import TemporaryDirectory
+from typing import Final
 from urllib import request
 from urllib.error import HTTPError, URLError
 
@@ -49,12 +52,21 @@ from .wine.config import WineConfigSection
 
 logger = logging.getLogger(__name__)
 
-# To use Proton, replace link with Proton build and uncomment
-# `self.proton_documents_symlinker()` in wine_setup in wine_management
-WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/10.19/wine-10.19-staging-tkg-amd64-wow64.tar.xz"
-DXVK_URL = (
-    "https://github.com/doitsujin/dxvk/releases/download/v2.7.1/dxvk-2.7.1.tar.gz"
-)
+
+if sys.platform == "darwin":
+    WINE_VERSION = "staging-10.20"
+    WINE_URL = "https://github.com/Gcenx/macOS_Wine_builds/releases/download/10.20/wine-staging-10.20-osx64.tar.xz"
+    DXVK_VERSION = "1.10.3-20230507-repack"
+    DXVK_URL = "https://github.com/Gcenx/DXVK-macOS/releases/download/v1.10.3-20230507-repack/dxvk-macOS-async-v1.10.3-20230507-repack.tar.gz"
+else:
+    # To use Proton, replace link with Proton build and uncomment
+    # `self.proton_documents_symlinker()` in wine_setup in wine_management
+    WINE_VERSION = "10.19-staging-tkg-amd64-wow64"
+    WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/10.19/wine-10.19-staging-tkg-amd64-wow64.tar.xz"
+    DXVK_VERSION = "2.7.1"
+    DXVK_URL = (
+        "https://github.com/doitsujin/dxvk/releases/download/v2.7.1/dxvk-2.7.1.tar.gz"
+    )
 
 
 @attrs.define
@@ -69,9 +81,25 @@ class WineManagement:
     def __init__(self) -> None:
         self.is_setup = False
 
-        self.wine_path: Path | None = None
-        self.prefix_path = platform_dirs.user_cache_path / "wine/prefix"
-        self.downloads_path = platform_dirs.user_data_path / "wine"
+        self.prefix_path: Final[Path] = platform_dirs.user_cache_path / "wine/prefix"
+        self.prefix_system32: Final[Path] = (
+            self.prefix_path / "drive_c/windows/system32"
+        )
+        self.prefix_syswow64: Final[Path] = (
+            self.prefix_path / "drive_c/windows/syswow64"
+        )
+
+        self.downloads_path: Final[Path] = platform_dirs.user_data_path / "wine"
+
+        self.latest_wine_path: Final[Path] = (
+            platform_dirs.user_data_path / f"wine/wine-{WINE_VERSION}"
+        )
+        self.wine_binary_path: Final[Path] = self.latest_wine_path / "bin" / "wine"
+
+        self.latest_dxvk_path: Final[Path] = (
+            platform_dirs.user_data_path / f"wine/dxvk-{DXVK_VERSION}"
+        )
+
         self._dlgDownloader: QtWidgets.QProgressDialog | None = None
 
     @property
@@ -104,38 +132,24 @@ class WineManagement:
         # Uncomment line below when using Proton
         # self.proton_documents_symlinker()  # noqa: ERA001
 
-        self.latest_wine_version = WINE_URL.split("/download/")[1].split("/")[0]
-        latest_wine_path = (
-            platform_dirs.user_data_path / f"wine/wine-{self.latest_wine_version}"
-        )
-
-        if latest_wine_path.exists():
-            self.wine_path = latest_wine_path / "bin/wine"
+        if self.wine_binary_path.exists():
             return
 
         self.dlgDownloader.setLabelText("Downloading Wine...")
-        latest_wine_path_tar = (
-            latest_wine_path.parent / f"{latest_wine_path.name}.tar.xz"
-        )
 
-        if not self._downloader(WINE_URL, latest_wine_path_tar):
-            return
+        with TemporaryDirectory() as temp_dir_name:
+            download_path = Path(temp_dir_name) / "wine.tar.xz"
 
-        self.dlgDownloader.reset()
-        self.dlgDownloader.setLabelText("Extracting Wine...")
-        self.dlgDownloader.setValue(99)
-        self._wine_extractor(latest_wine_path_tar)
-        self.dlgDownloader.setValue(100)
+            if not self._downloader(WINE_URL, download_path):
+                return
 
-        self.wine_path = (
-            platform_dirs.user_data_path / f"wine/wine-{self.latest_wine_version}"
-        ) / "bin/wine"
+            self.dlgDownloader.reset()
+            self.dlgDownloader.setLabelText("Extracting Wine...")
+            self.dlgDownloader.setValue(99)
+            self._wine_extractor(download_path)
+            self.dlgDownloader.setValue(100)
 
     def dxvk_setup(self) -> None:
-        self.latest_dxvk_version = DXVK_URL.split("download/v")[1].split("/")[0]
-        self.latest_dxvk_path = (
-            platform_dirs.user_data_path / f"wine/dxvk-{self.latest_dxvk_version}"
-        )
         if self.latest_dxvk_path.exists():
             if not (
                 self.prefix_path / "drive_c/windows/system32/d3d11.dll"
@@ -144,17 +158,17 @@ class WineManagement:
             return
 
         self.dlgDownloader.setLabelText("Downloading DXVK...")
-        latest_dxvk_path_tar = (
-            self.latest_dxvk_path.parent / f"{self.latest_dxvk_path.name}.tar.gz"
-        )
-        if self._downloader(DXVK_URL, latest_dxvk_path_tar):
-            self.dlgDownloader.reset()
-            self.dlgDownloader.setLabelText("Extracting DXVK...")
-            self.dlgDownloader.setValue(99)
-            self._dxvk_extracor(latest_dxvk_path_tar)
-            self.dlgDownloader.setValue(100)
+        with TemporaryDirectory() as temp_dir_name:
+            download_path = Path(temp_dir_name) / "dxvk.tar.gz"
 
-            self._dxvk_injector()
+            if self._downloader(DXVK_URL, download_path):
+                self.dlgDownloader.reset()
+                self.dlgDownloader.setLabelText("Extracting DXVK...")
+                self.dlgDownloader.setValue(99)
+                self._dxvk_extracor(download_path)
+                self.dlgDownloader.setValue(100)
+
+        self._dxvk_injector()
 
     def _downloader(self, url: str, path: Path) -> bool:
         """Downloads file from url to path and shows progress with self.handle_download_progress"""
@@ -180,83 +194,59 @@ class WineManagement:
         percent = 100 * index * frame // size
         self.dlgDownloader.setValue(percent)
 
-    def _wine_extractor(self, path: Path) -> None:
-        path_no_suffix = path.parent / (path.with_suffix("").with_suffix(""))
+    def _wine_extractor(self, archive_path: Path) -> None:
+        with TemporaryDirectory() as temp_dir_name:
+            temp_dir = Path(temp_dir_name)
 
-        # Extracts tar.xz file
-        with lzma.open(path) as file, tarfile.open(fileobj=file) as tar:
-            tar.extractall(path_no_suffix, filter="data")
+            # Extract tar.xz archive.
+            with lzma.open(archive_path) as file, tarfile.open(fileobj=file) as tar:
+                tar.extractall(temp_dir, filter="data")
 
-        # Moves files from nested directory to main one
-        source_dir = next(path for path in path_no_suffix.glob("*") if path.is_dir())
-        move(source_dir, platform_dirs.user_data_path / "wine")
-        source_dir = platform_dirs.user_data_path / "wine" / source_dir.name
-        path_no_suffix.rmdir()
-        source_dir.rename(source_dir.parent / path_no_suffix.name)
+            source_dir = next(temp_dir.glob("*/"))
+            if sys.platform == "darwin":
+                source_dir = source_dir / "Contents" / "Resources" / "wine"
+            # Using `shutil.move` instead of `Path.rename`, so that it works across
+            # filesystems.
+            move(source_dir, self.latest_wine_path)
 
-        # Removes downloaded tar.xz
-        path.unlink()
-
-        # Removes old wine versions
+        # Remove old WINE versions.
         for folder in (platform_dirs.user_data_path / "wine").glob("*/"):
-            if folder.name.startswith("wine") and not folder.name.endswith(
-                self.latest_wine_version
-            ):
+            if folder.name.startswith("wine") and folder != self.latest_wine_path:
                 rmtree(folder)
 
-    def _dxvk_extracor(self, path: Path) -> None:
-        path_no_suffix = path.parent / (path.with_suffix("").with_suffix(""))
+    def _dxvk_extracor(self, archive_path: Path) -> None:
+        with TemporaryDirectory() as temp_dir_name:
+            temp_dir = Path(temp_dir_name)
 
-        # Extracts tar.gz file
-        with tarfile.open(path, "r:gz") as file:
-            file.extractall(
-                path_no_suffix.with_name(f"{path_no_suffix.name}_TEMP"), filter="data"
-            )
+            # Extract the tar.gz archive.
+            with tarfile.open(archive_path, "r:gz") as file:
+                file.extractall(temp_dir, filter="data")
 
-        # Moves files from nested directory to main one
-        source_dir = next(
-            iter(path_no_suffix.with_name(f"{path_no_suffix.name}_TEMP").glob("*/"))
-        )
-        move(
-            path_no_suffix.with_name(f"{path_no_suffix.name}_TEMP") / source_dir,
-            platform_dirs.user_data_path / "wine",
-        )
-        path_no_suffix.with_name(f"{path_no_suffix.name}_TEMP").rmdir()
+            source_dir = next(temp_dir.glob("*/"))
+            # Using `shutil.move` instead of `Path.rename`, so that it works across
+            # filesystems.
+            move(source_dir, self.latest_dxvk_path)
 
-        # Removes downloaded tar.gz
-        path.unlink()
-
-        # Removes old dxvk versions
+        # Remove old DXVK versions.
         for folder in (platform_dirs.user_data_path / "wine").glob("*/"):
-            if str(folder.name).startswith("dxvk") and not str(folder.name).endswith(
-                self.latest_dxvk_version
-            ):
+            if folder.name.startswith("dxvk") and folder != self.latest_dxvk_path:
                 rmtree(folder)
 
     def _dxvk_injector(self) -> None:
-        """Adds dxvk to the wine prefix"""
-        # Makes directories for dxvk dlls in case wine prefix hasn't been run
-        # yet
-        (self.prefix_path / "drive_c/windows/system32").mkdir(
-            parents=True, exist_ok=True
+        """Add DXVK to the WINE prefix"""
+        dlls = (
+            ("d3d10core.dll", "d3d11.dll")
+            if sys.platform == "darwin"
+            else ("dxgi.dll", "d3d10core.dll", "d3d11.dll", "d3d9.dll")
         )
-        (self.prefix_path / "drive_c/windows/syswow64").mkdir(
-            parents=True, exist_ok=True
-        )
+        for dll in dlls:
+            # Remove existing DLLs.
+            (self.prefix_system32 / dll).unlink(missing_ok=True)
+            (self.prefix_syswow64 / dll).unlink(missing_ok=True)
 
-        dll_list = ["dxgi.dll", "d3d10core.dll", "d3d11.dll", "d3d9.dll"]
-
-        for dll in dll_list:
-            system32_dll = self.prefix_path / "drive_c/windows/system32" / dll
-            syswow64_dll = self.prefix_path / "drive_c/windows/syswow64" / dll
-
-            # Removes current dlls
-            (system32_dll).unlink(missing_ok=True)
-            (syswow64_dll).unlink(missing_ok=True)
-
-            # Symlinks dxvk dlls in to wine prefix
-            system32_dll.symlink_to(self.latest_dxvk_path / "x64" / dll)
-            syswow64_dll.symlink_to(self.latest_dxvk_path / "x32" / dll)
+            # Symlink DXVK DLLs into the WINE prefix.
+            (self.prefix_system32 / dll).symlink_to(self.latest_dxvk_path / "x64" / dll)
+            (self.prefix_syswow64 / dll).symlink_to(self.latest_dxvk_path / "x32" / dll)
 
     def proton_documents_symlinker(self) -> None:
         """
@@ -283,7 +273,10 @@ class WineManagement:
         )
 
     def setup_files(self) -> None:
-        (platform_dirs.user_data_path / "wine").mkdir(parents=True, exist_ok=True)
+        self.downloads_path.mkdir(parents=True, exist_ok=True)
+        self.prefix_system32.mkdir(parents=True, exist_ok=True)
+        self.prefix_syswow64.mkdir(parents=True, exist_ok=True)
+
         self.prefix_path.mkdir(exist_ok=True, parents=True)
         self.downloads_path.mkdir(exist_ok=True, parents=True)
         self.wine_setup()
@@ -311,12 +304,13 @@ def edit_qprocess_to_use_wine(
     process_environment = qprocess.processEnvironment()
 
     prefix_path: Path | None
+    wine_path: Path | None
     if wine_config.builtin_prefix_enabled:
         if not wine_management.is_setup:
             wine_management.setup_files()
 
         prefix_path = wine_management.prefix_path
-        wine_path = wine_management.wine_path
+        wine_path = wine_management.wine_binary_path
 
         # Enables ESYNC if open file limit is high enough
         path = Path("/proc/sys/fs/file-max")
@@ -330,11 +324,24 @@ def edit_qprocess_to_use_wine(
         # the required kernel patches are installed.
         process_environment.insert("WINEFSYNC", "1")
 
-        # Add dll overrides for DirectX, so DXVK is used instead of wine3d
         # Disable mscoree and mshtml to avoid downloading wine mono and gecko.
-        process_environment.insert(
-            "WINEDLLOVERRIDES", "d3d11=n;dxgi=n;d3d10core=n;d3d9=n;mscoree=d;mshtml=d"
+        wine_dll_overrides: list[str] = ["mscoree=d", "mshtml=d"]
+        # Add dll overrides for DirectX, so DXVK is used instead of wine3d.
+        wine_dll_overrides.extend(
+            ("d3d11=n", "d3d10core=n")
+            if sys.platform == "darwin"
+            else ("d3d11=n", "dxgi=n", "d3d10core=n", "d3d9=n")
         )
+        process_environment.insert("WINEDLLOVERRIDES", ";".join(wine_dll_overrides))
+
+        if sys.platform == "darwin":
+            # "wine doesn't handle VK_ERROR_DEVICE_LOST correctly"
+            #     -- <https://github.com/Gcenx/macOS_Wine_builds/releases/tag/10.18>
+            process_environment.insert("MVK_CONFIG_RESUME_LOST_DEVICE", "1")
+
+            # See <https://github.com/KhronosGroup/MoltenVK/issues/2530>. LOTRO and DDO
+            # don't use DirectX12.
+            process_environment.insert("MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS", "0")
     else:
         prefix_path = wine_config.user_prefix_path
         wine_path = wine_config.user_wine_executable_path
@@ -348,6 +355,6 @@ def edit_qprocess_to_use_wine(
 
     # Move current program to arguments and replace it with WINE.
     qprocess.setArguments([qprocess.program(), *qprocess.arguments()])
-    qprocess.setProgram(str(wine_path))
+    qprocess.setProgram(str(wine_path) if wine_path else "")
 
     qprocess.setProcessEnvironment(process_environment)
