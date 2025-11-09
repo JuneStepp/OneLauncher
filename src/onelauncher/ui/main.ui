@@ -437,6 +437,36 @@
     <string>Dungeons and Dragons Online</string>
    </property>
   </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::AboutRole</enum>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
+   </property>
+   <property name="toolTip">
+    <string>Settings</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::PreferencesRole</enum>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+   <property name="toolTip">
+    <string>Exit</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::QuitRole</enum>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="0" margin="0"/>
  <customwidgets>
@@ -474,5 +504,54 @@
   <tabstop>txtStatus</tabstop>
  </tabstops>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>actionAbout</sender>
+   <signal>triggered()</signal>
+   <receiver>btnAbout</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>698</x>
+     <y>19</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSettings</sender>
+   <signal>triggered()</signal>
+   <receiver>btnOptions</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>22</x>
+     <y>19</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionExit</sender>
+   <signal>triggered()</signal>
+   <receiver>btnExit</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>766</x>
+     <y>19</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
