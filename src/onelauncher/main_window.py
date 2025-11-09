@@ -28,6 +28,7 @@
 from __future__ import annotations
 
 import logging
+import sys
 from functools import partial
 from pathlib import Path
 from typing import cast
@@ -166,6 +167,15 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         self.ui.chkSaveAccount.toggled.connect(self.chk_save_account_toggled)
 
         self.setupMousePropagation()
+
+        # Basic MacOS native menu bar support.
+        if sys.platform == "darwin":
+            global_menu_bar = QtWidgets.QMenuBar(parent=None)
+            menu = QtWidgets.QMenu()
+            menu.addActions(
+                (self.ui.actionAbout, self.ui.actionSettings, self.ui.actionExit)
+            )
+            global_menu_bar.addMenu(menu)
 
     async def run(self) -> None:
         async with trio.open_nursery() as self.nursery:
