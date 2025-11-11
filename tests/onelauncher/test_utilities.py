@@ -1,5 +1,5 @@
 import logging
-import os
+import sys
 from pathlib import Path
 
 import pytest
@@ -35,8 +35,8 @@ class TestCaseInsensitiveAbsolutePath:
         assert (CaseInsensitiveAbsolutePath(test_path)) == (test_path)
 
     @pytest.mark.skipif(
-        os.name == "nt",
-        reason="Windows filesystems are case-insentive already, so there can only be one match.",
+        sys.platform in ("win32", "darwin"),
+        reason="Windows and MacOS filesystems are case-insentive already by default, so there can only be one match.",
     )
     def test_multiple_matches(
         self, tmp_path: Path, caplog: pytest.LogCaptureFixture
@@ -59,8 +59,8 @@ class TestCaseInsensitiveAbsolutePath:
         caplog.clear()
 
     @pytest.mark.skipif(
-        os.name == "nt",
-        reason="Windows filesystems are case-insentive already, so there can only be one match.",
+        sys.platform in ("win32", "darwin"),
+        reason="Windows and MacOS filesystems are case-insentive already by default, so there can only be one match.",
     )
     def test_multiple_matches_with_one_exact_match(
         self, tmp_path: Path, caplog: pytest.LogCaptureFixture
@@ -81,8 +81,8 @@ class TestCaseInsensitiveAbsolutePath:
         ]
 
     @pytest.mark.skipif(
-        os.name == "nt",
-        reason="Extra permisions are needed to make symlinks on Windows",
+        sys.platform == "win32",
+        reason="Extra permisions are needed to make symlinks on Windows.",
     )
     def test_symlink(self, tmp_path: Path) -> None:
         folder = tmp_path / "folder"
@@ -95,8 +95,8 @@ class TestCaseInsensitiveAbsolutePath:
         )
 
     @pytest.mark.skipif(
-        os.name == "nt",
-        reason="Extra permisions are needed to make symlinks on Windows",
+        sys.platform == "win32",
+        reason="Extra permisions are needed to make symlinks on Windows.",
     )
     def test_broken_symlink(self, tmp_path: Path) -> None:
         folder = tmp_path / "folder"
