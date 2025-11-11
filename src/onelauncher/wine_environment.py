@@ -55,7 +55,7 @@ logger = logging.getLogger(__name__)
 
 if sys.platform == "darwin":
     WINE_URL = "https://github.com/Gcenx/macOS_Wine_builds/releases/download/10.18/wine-devel-10.18-osx64.tar.xz"
-    DXVK_URL = "https://github.com/3Shain/dxmt/releases/download/v0.70/dxmt-v0.70-builtin.tar.gz"
+    DXVK_URL = "https://github.com/Gcenx/DXVK-macOS/releases/download/v1.10.3-20230507-repack/dxvk-macOS-async-v1.10.3-20230507-repack.tar.gz"
 else:
     # To use Proton, replace link with Proton build and uncomment
     # `self.proton_documents_symlinker()` in wine_setup in wine_management
@@ -157,15 +157,9 @@ class WineManagement:
             platform_dirs.user_data_path / f"wine/wine-{self.latest_wine_version}"
         ) / "bin/wine"
 
-        if sys.platform == "darwin" and self.latest_dxvk_path.exists():
-            self._dxmt_injector()
-
     def dxvk_setup(self) -> None:
         if self.latest_dxvk_path.exists():
-            if sys.platform == "darwin":
-                if not (self.prefix_system32 / "winemetal.dll").is_symlink():
-                    self._dxmt_injector()
-            elif not (
+            if not (
                 self.prefix_path / "drive_c/windows/system32/d3d11.dll"
             ).is_symlink():
                 self._dxvk_injector()
@@ -182,10 +176,7 @@ class WineManagement:
                 self._dxvk_extracor(download_path)
                 self.dlgDownloader.setValue(100)
 
-        if sys.platform == "darwin":
-            self._dxmt_injector()
-        else:
-            self._dxvk_injector()
+        self._dxvk_injector()
 
     def _downloader(self, url: str, path: Path) -> bool:
         """Downloads file from url to path and shows progress with self.handle_download_progress"""
@@ -249,7 +240,12 @@ class WineManagement:
 
     def _dxvk_injector(self) -> None:
         """Add DXVK to the WINE prefix"""
-        for dll in ("dxgi.dll", "d3d10core.dll", "d3d11.dll", "d3d9.dll"):
+        dlls = (
+            ("d3d10core.dll", "d3d11.dll")
+            if sys.platform == "darwin"
+            else ("dxgi.dll", "d3d10core.dll", "d3d11.dll", "d3d9.dll")
+        )
+        for dll in dlls:
             # Remove existing DLLs.
             (self.prefix_system32 / dll).unlink(missing_ok=True)
             (self.prefix_syswow64 / dll).unlink(missing_ok=True)
@@ -257,31 +253,6 @@ class WineManagement:
             # Symlink DXVK DLLs into the WINE prefix.
             (self.prefix_system32 / dll).symlink_to(self.latest_dxvk_path / "x64" / dll)
             (self.prefix_syswow64 / dll).symlink_to(self.latest_dxvk_path / "x32" / dll)
-
-    def _dxmt_injector(self) -> None:
-        for dir_name in ("x86_64-windows", "x86_64-unix", "i386-windows"):
-            for dll_name in (
-                "winemetal.so",
-                "winemetal.dll",
-                "d3d11.dll",
-                "dxgi.dll",
-                "d3d10core.dll",
-            ):
-                if (dll_path := self.latest_dxvk_path / dir_name / dll_name).exists():
-                    target = (
-                        self.latest_wine_path / "lib" / "wine" / dir_name / dll_name
-                    )
-                    target.unlink(missing_ok=True)
-                    target.symlink_to(dll_path)
-
-        (self.prefix_system32 / "winemetal.dll").unlink(missing_ok=True)
-        (self.prefix_system32 / "winemetal.dll").symlink_to(
-            self.latest_dxvk_path / "x86_64-windows" / "winemetal.dll"
-        )
-        (self.prefix_syswow64 / "winemetal.dll").unlink(missing_ok=True)
-        (self.prefix_syswow64 / "winemetal.dll").symlink_to(
-            self.latest_dxvk_path / "i386-windows" / "winemetal.dll"
-        )
 
     def proton_documents_symlinker(self) -> None:
         """
@@ -360,10 +331,22 @@ def edit_qprocess_to_use_wine(
 
         # Disable mscoree and mshtml to avoid downloading wine mono and gecko.
         wine_dll_overrides: list[str] = ["mscoree=d", "mshtml=d"]
-        if sys.platform != "darwin":
-            # Add dll overrides for DirectX, so DXVK is used instead of wine3d.
-            wine_dll_overrides.extend(["d3d11=n", "dxgi=n", "d3d10core=n", "d3d9=n"])
+        # Add dll overrides for DirectX, so DXVK is used instead of wine3d.
+        wine_dll_overrides.extend(
+            ("d3d11=n", "d3d10core=n")
+            if sys.platform == "darwin"
+            else ("d3d11=n", "dxgi=n", "d3d10core=n", "d3d9=n")
+        )
         process_environment.insert("WINEDLLOVERRIDES", ";".join(wine_dll_overrides))
+
+        if sys.platform == "darwin":
+            # "wine doesn't handle VK_ERROR_DEVICE_LOST correctly"
+            #     -- <https://github.com/Gcenx/macOS_Wine_builds/releases/tag/10.18>
+            process_environment.insert("MVK_CONFIG_RESUME_LOST_DEVICE", "1")
+
+            # See <https://github.com/KhronosGroup/MoltenVK/issues/2530>. LOTRO and DDO
+            # don't use DirectX12.
+            process_environment.insert("MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS", "0")
     else:
         prefix_path = wine_config.user_prefix_path
         wine_path = wine_config.user_wine_executable_path
