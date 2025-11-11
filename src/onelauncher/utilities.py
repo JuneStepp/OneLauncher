@@ -68,9 +68,7 @@ class CaseInsensitiveAbsolutePath(Path):
         normal_path = Path(*pathsegments)
         if not normal_path.is_absolute():
             raise ValueError("Path is not absolute")
-        # Windows filesystems are already case-insensitive
-        if os.name == "nt":
-            return super().__new__(cls, *pathsegments)
+
         path = cls._get_real_path_from_fully_case_insensitive_path(normal_path)
         return super().__new__(cls, path)
 
@@ -80,15 +78,15 @@ class CaseInsensitiveAbsolutePath(Path):
     ) -> Path:
         """Return any found path that matches base_path when ignoring case"""
         parts = list(start_path.parts)
-        if known_to_exist_base_path is None and not os.path.exists(parts[0]):
-            # If root doesn't exist, nothing else can be checked
-            return start_path
+        if known_to_exist_base_path is None:
+            if not os.path.exists(parts[0]):
+                # If root doesn't exist, nothing else can be checked.
+                return start_path
 
-        if known_to_exist_base_path is not None:
-            start_index = len(known_to_exist_base_path.parts)
-        else:
-            # Range starts at 1 to ingore root which has already been checked
+            # Range starts at 1 to ingore root which has just been checked.
             start_index = 1
+        else:
+            start_index = len(known_to_exist_base_path.parts)
 
         for i in range(start_index, len(parts)):
             current_path_parts = parts if i == len(parts) - 1 else parts[: i + 1]
@@ -96,7 +94,7 @@ class CaseInsensitiveAbsolutePath(Path):
                 case_insensitive_name=current_path_parts[-1],
                 parent_dir=os.path.sep.join(current_path_parts[:-1]),
             )
-            # No version exists, so the original is just returned
+            # No version exists, so the original is just returned.
             if real_path_name is None:
                 return start_path
 
