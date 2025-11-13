@@ -312,18 +312,6 @@ def edit_qprocess_to_use_wine(
         prefix_path = wine_management.prefix_path
         wine_path = wine_management.wine_binary_path
 
-        # Enables ESYNC if open file limit is high enough
-        path = Path("/proc/sys/fs/file-max")
-        if path.exists():
-            with path.open() as file:
-                file_data = file.read()
-                if int(file_data) >= ESYNC_MINIMUM_OPEN_FILE_LMIT:
-                    process_environment.insert("WINEESYNC", "1")
-
-        # Enables FSYNC. It overrides ESYNC and will only be used if
-        # the required kernel patches are installed.
-        process_environment.insert("WINEFSYNC", "1")
-
         # Disable mscoree and mshtml to avoid downloading wine mono and gecko.
         wine_dll_overrides: list[str] = ["mscoree=d", "mshtml=d"]
         # Add dll overrides for DirectX, so DXVK is used instead of wine3d.
@@ -333,6 +321,17 @@ def edit_qprocess_to_use_wine(
             else ("d3d11=n", "dxgi=n", "d3d10core=n", "d3d9=n")
         )
         process_environment.insert("WINEDLLOVERRIDES", ";".join(wine_dll_overrides))
+
+        if sys.platform != "darwin":
+            # Enable ESYNC if open file limit is high enough.
+            if (path := Path("/proc/sys/fs/file-max")).exists() and int(
+                path.read_text()
+            ) >= ESYNC_MINIMUM_OPEN_FILE_LMIT:
+                process_environment.insert("WINEESYNC", "1")
+
+            # Enable FSYNC. It overrides ESYNC and will only be used if
+            # the required kernel patches are installed.
+            process_environment.insert("WINEFSYNC", "1")
 
         if sys.platform == "darwin":
             # "wine doesn't handle VK_ERROR_DEVICE_LOST correctly"
