@@ -1009,7 +1009,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             # of OneLauncher's upload of the utilities on LotroInterface.
             interface_id = "1064" if dependency == "0" else dependency
 
-            for item in self.c.execute(
+            for item in tuple(self.c.execute(
                 (
                     "SELECT File, Name FROM "  # noqa: S608
                     f"{self.getRemoteOrLocalTableFromOne(table, remote=True).objectName()} "
@@ -1017,7 +1017,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                     f"(SELECT InterfaceID FROM {table.objectName()})"
                 ),
                 (interface_id,),
-            ):
+            )):
                 self.installRemoteAddon(item[0], item[1], interface_id)
 
     def fix_improper_root_dir_addon(
@@ -2275,9 +2275,6 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         in installed table and '(Updated) ' in remote table. These
         are prepended to the Version column.
         """
-        if not self.loadRemoteDataIfNotDone():
-            return
-
         game_config = self.config_manager.get_game_config(self.game_id)
         if game_config.game_type != GameType.DDO:
             self.loadSkinsIfNotDone()
@@ -2301,10 +2298,10 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 )
             }
 
-            for addon in self.c.execute(
+            for addon in tuple(self.c.execute(
                 f"SELECT Version, InterfaceID, rowid FROM {table_installed.objectName()} WHERE"  # noqa: S608
                 f" InterfaceID != ''"
-            ):
+            )):
                 # Will raise KeyError if addon has Interface ID that isn't in
                 # remote table.
                 try:
@@ -2347,8 +2344,9 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         )
 
     def updateAll(self) -> None:
-        if not self.loadRemoteDataIfNotDone():
-            return None
+        if not self.loadRemoteAddons():
+            return
+        self.getOutOfDateAddons()
 
         if (
             self.config_manager.get_game_config(self.game_id).game_type
@@ -2359,8 +2357,10 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             tables = (self.ui.tableSkinsInstalled,)
 
         for table in tables:
-            for addon in self.c.execute(
-                f"SELECT InterfaceID, File, Name FROM {table.objectName()} WHERE Version LIKE '(Outdated) %'"  # noqa: S608
+            for addon in tuple(
+                self.c.execute(
+                    f"SELECT InterfaceID, File, Name FROM {table.objectName()} WHERE Version LIKE '(Outdated) %'"  # noqa: S608
+                )
             ):
                 self.updateAddon(
                     Addon(
@@ -2393,9 +2393,6 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self.setRemoteAddonToInstalled(addon, table_remote)
 
     def actionUpdateAddonSelected(self) -> None:
-        if not self.loadRemoteDataIfNotDone():
-            return
-
         table = self.context_menu_selected_table
         row = self.context_menu_selected_row
         addon = self.getAddonObjectFromRow(table, row, remote=False)
@@ -2411,9 +2408,6 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     def updateSelectedAddons(self) -> None:
         table = self.getCurrentTable()
         addons, _ = self.getSelectedAddons(table)
-
-        if not self.loadRemoteDataIfNotDone():
-            return
 
         if addons:
             for addon in addons:
@@ -2435,18 +2429,6 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 version.startswith("(Outdated) ") or version.startswith("(Updated) ")
             )
         return None
-
-    def loadRemoteDataIfNotDone(self) -> bool:
-        """
-        Loads remote addons and checks if addons have updates if not done yet
-        """
-        # If remote addons haven't been loaded then out of date addons haven't
-        # been found.
-        if not self.loadRemoteAddons():
-            return False
-        if self.ui.tableSkins not in self.tables_loaded:
-            self.getOutOfDateAddons()
-        return True
 
     def actionEnableStartupScriptSelected(self) -> None:
         if not self.context_menu_selected_interface_ID:
@@ -2501,10 +2483,10 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         """Returns path of startup script relative to game documents settings directory"""
         table_local = self.getRemoteOrLocalTableFromOne(table, remote=False)
         entry: tuple[str]
-        for entry in self.c.execute(
+        for entry in tuple(self.c.execute(
             f"SELECT StartupScript FROM {table_local.objectName()} WHERE InterfaceID = ?",  # noqa: S608
             (interface_ID,),
-        ):
+        )):
             if entry[0]:
                 script = entry[0].replace("\\", "/")
                 addon_data_folder_relative = self.getAddonTypeDataFolderFromTable(
