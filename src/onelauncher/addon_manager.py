@@ -328,6 +328,11 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.ui.tableSkins,
             self.ui.tableMusic,
         )
+        self.tables_loaded: set[QtWidgets.QTableWidget] = set()
+        """
+        Tables that have been loaded. Ex: `self.ui.tableSkinsInstalled` will be added
+        once local skins have been found and displayed.
+        """
         for table in self.ui_tables_installed + self.ui_tables_remote:
             table.setColumnCount(len(self.TABLE_WIDGET_COLUMNS))
             table.setHorizontalHeaderLabels(self.TABLE_WIDGET_COLUMNS)
@@ -1319,9 +1324,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 )
 
         self.optimizeTableColumnWidths(table)
-
-    def isTableEmpty(self, table: QtWidgets.QTableWidget) -> bool:
-        return not table.item(0, self.TABLE_WIDGET_COLUMN_INDEXES["Name"])
+        self.tables_loaded.add(table)
 
     def reloadSearch(self, table: QtWidgets.QTableWidget) -> None:
         """Re-searches the current search"""
@@ -1329,7 +1332,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
     def resetRemoteAddonsTables(self) -> None:
         for table in self.ui_tables_remote:
-            if not self.isTableEmpty(table):
+            if table in self.tables_loaded:
                 self.searchDB(table, "")
 
     def setRemoteAddonToUninstalled(
@@ -1363,10 +1366,10 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             ),
         )
 
-    # Adds row to a visible table. First value in list is row name
     def addRowToTable(
         self, table: QtWidgets.QTableWidget, rowid: int | str, addon_info: AddonInfo
     ) -> None:
+        """Add row to a visible table. First value in list is row name"""
         table.setSortingEnabled(False)
 
         rows = table.rowCount()
@@ -1754,15 +1757,15 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self.searchSearchBarContents()
 
     def loadPluginsIfNotDone(self) -> None:
-        if self.isTableEmpty(self.ui.tablePluginsInstalled):
+        if self.ui.tablePluginsInstalled not in self.tables_loaded:
             self.getInstalledPlugins()
 
     def loadSkinsIfNotDone(self) -> None:
-        if self.isTableEmpty(self.ui.tableSkinsInstalled):
+        if self.ui.tableSkinsInstalled not in self.tables_loaded:
             self.getInstalledSkins()
 
     def loadMusicIfNotDone(self) -> None:
-        if self.isTableEmpty(self.ui.tableMusicInstalled):
+        if self.ui.tableMusicInstalled not in self.tables_loaded:
             self.getInstalledMusic()
 
     def tabBarRemoteIndexChanged(self, index: int) -> None:
@@ -1792,7 +1795,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
             # Handle the first time this tab is swtiched to.
             # Populate remote addons tables if not done already.
-            if self.isTableEmpty(self.ui.tableSkins) and self.loadRemoteAddons():
+            if self.ui.tableSkins not in self.tables_loaded and self.loadRemoteAddons():
                 self.getOutOfDateAddons()
                 # Make sure correct stacked widget page is selected
                 self.tabBarRemoteIndexChanged(self.ui.tabBarRemote.currentIndex())
@@ -2441,7 +2444,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         # been found.
         if not self.loadRemoteAddons():
             return False
-        if self.isTableEmpty(self.ui.tableSkins):
+        if self.ui.tableSkins not in self.tables_loaded:
             self.getOutOfDateAddons()
         return True
 
