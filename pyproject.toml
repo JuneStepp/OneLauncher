@@ -122,7 +122,8 @@ ignore = [
     "PLR0913", # too-many-arguments
     "PLR0915", # too-many-statements
     "PLR0912", # too-many-branches
-    "S113",    # request-without-timeout. httpx has default timeouts
+    "S113",    # request-without-timeout. httpx has default timeouts.
+    "SIM116",  # if-else-block-instead-of-dict-lookup. Messes up typing.
 ]
 per-file-ignores."tests/**.py" = ["S101"] # assert
 flake8-annotations.mypy-init-return = true
