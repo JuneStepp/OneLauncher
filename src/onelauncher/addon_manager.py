@@ -1573,7 +1573,9 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 selected_addons.append(
                     Addon(
                         interface_id=selected_addon[0],
-                        file=str(self.data_folder / selected_addon[1]),
+                        file=selected_addon[1]
+                        if table in self.ui_tables_remote
+                        else str(self.data_folder / selected_addon[1]),
                         name=selected_addon[2],
                     )
                 )
