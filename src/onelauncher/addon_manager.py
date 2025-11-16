@@ -1584,6 +1584,8 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     def uninstallPlugins(
         self, plugins: list[Addon], table: QtWidgets.QTableWidget
     ) -> None:
+        table = self.getRemoteOrLocalTableFromOne(table, remote=False)
+
         for plugin in plugins:
             if plugin[1].endswith(".plugin"):
                 plugin_files = [Path(plugin[1])]
@@ -1657,6 +1659,8 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self.getInstalledPlugins()
 
     def uninstallSkins(self, skins: list[Addon], table: QtWidgets.QTableWidget) -> None:
+        table = self.getRemoteOrLocalTableFromOne(table, remote=False)
+
         for skin in skins:
             if skin[1].endswith(".skincompendium"):
                 skin_path = Path(skin[1]).parent
@@ -1682,6 +1686,8 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     def uninstallMusic(
         self, music_list: list[Addon], table: QtWidgets.QTableWidget
     ) -> None:
+        table = self.getRemoteOrLocalTableFromOne(table, remote=False)
+
         for music in music_list:
             if music[1].endswith(".musiccompendium"):
                 music_path = Path(music[1]).parent
