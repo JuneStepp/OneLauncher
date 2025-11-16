@@ -360,12 +360,12 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self.tabBarInstalledIndexChanged(self.ui.tabBarInstalled.currentIndex())
 
     def getInstalledSkins(self, folders_list: list[Path] | None = None) -> None:
-        if self.isTableEmpty(self.ui.tableSkinsInstalled):
-            folders_list = None
-
         self.data_folder_skins.mkdir(parents=True, exist_ok=True)
 
         if not folders_list:
+            self.c.execute(
+                f"DELETE FROM {self.ui.tableSkinsInstalled.objectName()}"  # nosec  # noqa: S608
+            )
             folders_list = [
                 path for path in self.data_folder_skins.glob("*") if path.is_dir()
             ]
@@ -387,13 +387,6 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     ) -> None:
         table = self.ui.tableSkinsInstalled
 
-        # Clears rows from db table if needed (This function is called to add
-        # newly installed skins after initial load as well)
-        if self.isTableEmpty(table):
-            self.c.execute(
-                f"DELETE FROM {table.objectName()}"  # nosec  # noqa: S608
-            )
-
         for skin in skins_list_compendium:
             addon_info = self.parseCompendiumFile(skin, "SkinConfig")
             if addon_info is None:
@@ -413,12 +406,10 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self.reloadSearch(self.ui.tableSkinsInstalled)
 
     def getInstalledMusic(self, folders_list: list[Path] | None = None) -> None:
-        if self.isTableEmpty(self.ui.tableMusicInstalled):
-            folders_list = None
-
         self.data_folder_music.mkdir(parents=True, exist_ok=True)
 
         if not folders_list:
+            self.c.execute(f"DELETE FROM {self.ui.tableMusicInstalled.objectName()}")  # noqa: S608
             folders_list = [
                 path for path in self.data_folder_music.glob("*") if path.is_dir()
             ]
@@ -458,11 +449,6 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     ) -> None:
         table = self.ui.tableMusicInstalled
 
-        # Clears rows from db table if needed (This function is called
-        # to add newly installed music after initial load as well)
-        if self.isTableEmpty(table):
-            self.c.execute("DELETE FROM tableMusicInstalled")
-
         for music in music_list_compendium:
             addon_info = self.parseCompendiumFile(music, "MusicConfig")
             if addon_info is None:
@@ -486,12 +472,10 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     def getInstalledPlugins(
         self, folders_list: list[CaseInsensitiveAbsolutePath] | None = None
     ) -> None:
-        if self.isTableEmpty(self.ui.tablePluginsInstalled):
-            folders_list = None
-
         self.data_folder_plugins.mkdir(parents=True, exist_ok=True)
 
         if not folders_list:
+            self.c.execute(f"DELETE FROM {self.ui.tablePluginsInstalled.objectName()}")  # noqa: S608
             folders_list = [
                 path for path in self.data_folder_plugins.glob("*") if path.is_dir()
             ]
@@ -551,11 +535,6 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         compendium_files: list[CaseInsensitiveAbsolutePath],
     ) -> None:
         table = self.ui.tablePluginsInstalled
-
-        # Clears rows from db table if needed (This function is called to
-        # add newly installed plugins after initial load as well)
-        if self.isTableEmpty(table):
-            self.c.execute("DELETE FROM tablePluginsInstalled")
 
         for file in compendium_files + plugin_files:
             # Sets tag for plugin file xml search and category for unmanaged
@@ -764,9 +743,8 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         logger.debug(f"ABC file installed at {addon_path}")
 
         # Plain .abc files are installed to base music directory,
-        # so what is scanned can't be controlled
-        self.ui.tableMusicInstalled.clearContents()
-        self.getInstalledMusic()
+        # so what is scanned can't be controlled.
+        self.getInstalledMusic(folders_list=None)
 
     def installZipAddon(
         self,
@@ -1656,8 +1634,6 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
             self.setRemoteAddonToUninstalled(plugin, self.ui.tablePlugins)
 
-        # Reloads plugins
-        table.clearContents()
         self.getInstalledPlugins()
 
     def uninstallSkins(self, skins: list[Addon], table: QtWidgets.QTableWidget) -> None:
@@ -1681,8 +1657,6 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
             self.setRemoteAddonToUninstalled(skin, self.ui.tableSkins)
 
-        # Reloads skins
-        table.clearContents()
         self.getInstalledSkins()
 
     def uninstallMusic(
@@ -1710,8 +1684,6 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
             self.setRemoteAddonToUninstalled(music, self.ui.tableMusic)
 
-        # Reloads music
-        table.clearContents()
         self.getInstalledMusic()
 
     def checkAddonForDependencies(
