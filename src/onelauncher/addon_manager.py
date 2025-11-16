@@ -92,6 +92,9 @@ class Document(xml.dom.minidom.Document):
         return super().createElementNS(namespaceURI, qualifiedName)
 
 
+AddonType = Literal["plugin", "music", "skin"]
+
+
 class Addon(NamedTuple):
     interface_id: str
     file: str
@@ -733,7 +736,11 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             for file in file_names[0]:
                 self.installAddon(Path(file))
 
-    def installAddon(self, addon_path: Path, interface_id: str = "") -> None:
+    def installAddon(
+        self,
+        addon_path: Path,
+        interface_id: str | None = None,
+    ) -> None:
         # Install .abc files
         if addon_path.suffix == ".abc":
             self.installAbcFile(addon_path)
@@ -741,7 +748,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         elif addon_path.suffix == ".rar":
             logger.error(
                 f"{__title__} does not support .rar archives, because it"
-                " is a proprietary format that would require and external "
+                " is a proprietary format that would require an external "
                 "program to extract"
             )
             return
@@ -761,7 +768,11 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self.ui.tableMusicInstalled.clearContents()
         self.getInstalledMusic()
 
-    def installZipAddon(self, addon_path: Path, interface_id: str) -> None:
+    def installZipAddon(
+        self,
+        addon_path: Path,
+        interface_id: str | None,
+    ) -> None:
         with TemporaryDirectory() as tmp_dir_name:
             tmp_dir = CaseInsensitiveAbsolutePath(tmp_dir_name)
 
@@ -786,10 +797,12 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                         is not False
                     ):
                         return
+            # Skins always have `SkinDefinition.xml` files but there aren't necessarily
+            # at any given directory level.
             self.install_skin(tmp_dir, interface_id, addon_path.stem)
 
     def install_plugin(
-        self, tmp_dir: CaseInsensitiveAbsolutePath, interface_id: str
+        self, tmp_dir: CaseInsensitiveAbsolutePath, interface_id: str | None
     ) -> None:
         """Install plugin from temporary directory"""
         if self.config_manager.get_game_config(self.game_id).game_type == GameType.DDO:
@@ -853,7 +866,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             compendium_file = self.generateCompendiumFile(
                 author_folder,
                 interface_id,
-                "Plugin",
+                "plugin",
                 table.objectName(),
                 existing_compendium_file,
             )
@@ -885,12 +898,13 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         self.addInstalledPluginsToDB(plugin_files, compendium_files)
 
-        self.handleStartupScriptActivationPrompt(table, interface_id)
+        if interface_id:
+            self.handleStartupScriptActivationPrompt(table, interface_id)
         logger.debug(
             f"Installed plugin corresponding to {plugin_files} ){compendium_files}"
         )
 
-        self.installAddonRemoteDependencies(f"{table.objectName()}Installed")
+        self.installAddonRemoteDependencies(self.ui.tablePluginsInstalled)
 
     def get_existing_compendium_file(
         self, tmp_search_dir: CaseInsensitiveAbsolutePath
@@ -913,7 +927,10 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         return None
 
     def install_music(
-        self, tmp_dir: CaseInsensitiveAbsolutePath, interface_id: str, addon_name: str
+        self,
+        tmp_dir: CaseInsensitiveAbsolutePath,
+        interface_id: str | None,
+        addon_name: str,
     ) -> None | Literal[False]:
         if self.config_manager.get_game_config(self.game_id).game_type == GameType.DDO:
             logger.error("DDO does not support .abc/music files")
@@ -936,7 +953,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.generateCompendiumFile(
                 root_dir,
                 interface_id,
-                "Music",
+                "music",
                 table.objectName(),
                 existing_compendium_file,
             )
@@ -947,15 +964,19 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         self.getInstalledMusic(folders_list=[root_dir])
 
-        self.handleStartupScriptActivationPrompt(table, interface_id)
+        if interface_id:
+            self.handleStartupScriptActivationPrompt(table, interface_id)
 
         logger.debug(f"{addon_name} music installed at {root_dir}")
 
-        self.installAddonRemoteDependencies(f"{table.objectName()}Installed")
+        self.installAddonRemoteDependencies(self.ui.tableMusicInstalled)
         return None
 
     def install_skin(
-        self, tmp_dir: CaseInsensitiveAbsolutePath, interface_id: str, addon_name: str
+        self,
+        tmp_dir: CaseInsensitiveAbsolutePath,
+        interface_id: str | None,
+        addon_name: str,
     ) -> None:
         table = self.ui.tableSkins
 
@@ -969,7 +990,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.generateCompendiumFile(
                 root_dir,
                 interface_id,
-                "Skin",
+                "skin",
                 table.objectName(),
                 existing_compendium_file,
             )
@@ -980,18 +1001,19 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         self.getInstalledSkins(folders_list=[root_dir])
 
-        self.handleStartupScriptActivationPrompt(table, interface_id)
+        if interface_id:
+            self.handleStartupScriptActivationPrompt(table, interface_id)
 
         logger.debug(f"{addon_name} skin installed at {root_dir}")
 
-        self.installAddonRemoteDependencies(f"{table.objectName()}Installed")
+        self.installAddonRemoteDependencies(table=self.ui.tableSkinsInstalled)
 
-    def installAddonRemoteDependencies(self, table_name: str) -> None:
+    def installAddonRemoteDependencies(self, table: QtWidgets.QTableWidget) -> None:
         """Installs the dependencies for the last installed addon"""
         # Get dependencies for last column in db
         dependencies: str | None = None
         for item in self.c.execute(
-            f"SELECT Dependencies FROM {table_name} ORDER BY rowid DESC LIMIT 1"  # noqa: S608
+            f"SELECT Dependencies FROM {table.objectName()} ORDER BY rowid DESC LIMIT 1"  # noqa: S608
         ):
             dependencies = item[0]
         if dependencies is None:
@@ -1001,11 +1023,16 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             if not dependency:
                 continue
             # 0 is the arbitrary ID for Turbine Utilities. 1064 is the ID
-            # of OneLauncher's upload of the utilities on LotroInterface
+            # of OneLauncher's upload of the utilities on LotroInterface.
             interface_id = "1064" if dependency == "0" else dependency
 
-            for item in self.c.execute(  # nosec
-                f"SELECT File, Name FROM {table_name.split('Installed')[0]} WHERE InterfaceID = ? AND InterfaceID NOT IN (SELECT InterfaceID FROM {table_name})",  # noqa: S608
+            for item in self.c.execute(
+                (
+                    "SELECT File, Name FROM "  # noqa: S608
+                    f"{self.getRemoteOrLocalTableFromOne(table, remote=True).objectName()} "
+                    "WHERE InterfaceID = ? AND InterfaceID NOT IN "
+                    f"(SELECT InterfaceID FROM {table.objectName()})"
+                ),
                 (interface_id,),
             ):
                 self.installRemoteAddon(item[0], item[1], interface_id)
@@ -1102,7 +1129,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self,
         tmp_addon_root_dir: CaseInsensitiveAbsolutePath,
         interface_id: str,
-        addon_type: str,
+        addon_type: AddonType,
         table: str,
         existing_compendium_file: CaseInsensitiveAbsolutePath | None = None,
     ) -> CaseInsensitiveAbsolutePath:
@@ -1118,7 +1145,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                                        while it is still in a temporary directory
                                        for propper .plugin file detection.
             interface_id (str): [description]
-            addon_type (str): The type of the addon. ("Plugin", "Music", "Skin")
+            addon_type (AddonType): The type of the addon.
             table (str): The database table name for the addon type. Used to get remote
                          addon information.
             existing_compendium_file (Path, optional): An existing compendium file to
@@ -1333,12 +1360,12 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self.c.execute(
             f"UPDATE {remote_table.objectName()} SET Name = ? WHERE InterfaceID == ?",  # nosec  # noqa: S608
             (
-                addon[2],
-                addon[0],
+                addon.name,
+                addon.interface_id,
             ),
         )
 
-        # Removes indicator that a new version of an installed addon is out if present.
+        # Remove indicator that a new version of an installed addon is out if present.
         # This is important, because addons are uninstalled and then reinstalled
         # during the update process.
         self.c.execute(
@@ -1442,17 +1469,15 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     def getUninstallFunctionFromTable(
         self, table: QtWidgets.QTableWidget
     ) -> Callable[[list[Addon], QtWidgets.QTableWidget], None]:
-        """Gives function to uninstall addon type for table"""
-        if "Skins" in table.objectName():
-            return self.uninstallSkins
-        elif "Plugins" in table.objectName():
+        """Return function to uninstall addon type for table"""
+        addon_type = self.get_addon_type_from_table(table)
+        if addon_type == "plugin":
             return self.uninstallPlugins
-        elif "Music" in table.objectName():
+        elif addon_type == "skin":
+            return self.uninstallSkins
+        elif addon_type == "music":
             return self.uninstallMusic
-        else:
-            raise IndexError(
-                f"{table.objectName()} doesn't correspond to addon type tab"
-            )
+        assert_never()
 
     def installRemoteAddons(self) -> None:
         table = self.getCurrentTable()
@@ -1460,7 +1485,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         addons, details = self.getSelectedAddons(table)
         if addons and details:
             for addon in addons:
-                self.installRemoteAddon(addon[1], addon[2], addon[0])
+                self.installRemoteAddon(addon.file, addon.name, addon.interface_id)
                 self.setRemoteAddonToInstalled(addon, table)
 
             self.resetRemoteAddonsTables()
@@ -1617,10 +1642,10 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                     plugin_file.unlink(missing_ok=True)
             Path(plugin.file).unlink(missing_ok=True)
 
-            # Remove author folder if there are no other plugins in it
+            # Remove author folder if there are no other plugins in it.
             if plugin_folder:
                 author_dir = plugin_folder.parent
-                if not list(author_dir.glob("*")):
+                if next(author_dir.iterdir(), None) is None:
                     author_dir.rmdir()
 
             logger.debug(f"{plugin} plugin uninstalled")
@@ -1962,7 +1987,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         # If addon is installed
         if (
-            self.context_menu_selected_table.objectName().endswith("Installed")
+            self.context_menu_selected_table in self.ui_tables_installed
             or QtCore.Qt.ItemFlag.ItemIsEnabled not in selected_item.flags()
         ):
             menu.addAction(self.ui.actionUninstallAddon)
@@ -2085,7 +2110,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
     def actionInstallAddonSelected(self) -> None:
         """
-        Installs addon selected by context menu. This function
+        Install addon selected by context menu. This function
         should only be called while in one of the remote/find more
         tabs of the UI.
         """
@@ -2095,7 +2120,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         if not addon:
             return
 
-        self.installRemoteAddon(addon[1], addon[2], addon[0])
+        self.installRemoteAddon(addon.file, addon.name, addon.interface_id)
         self.setRemoteAddonToInstalled(addon, table)
 
         self.resetRemoteAddonsTables()
@@ -2109,7 +2134,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             return
 
         if self.confirmationPrompt(
-            "Are you sure you want to uninstall this addon?", addon[2]
+            text="Are you sure you want to uninstall this addon?", details=addon.name
         ):
             uninstall_function = self.getUninstallFunctionFromTable(table)
 
@@ -2267,12 +2292,11 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.loadMusicIfNotDone()
 
         if game_config.game_type == GameType.LOTRO:
-            tables = self.TABLE_LIST[:3]
+            tables = self.ui_tables_installed
         else:
-            tables = ("tableSkinsInstalled",)
+            tables = (self.ui.tableSkinsInstalled,)
 
-        for db_table in tables:
-            table_installed: QtWidgets.QTableWidget = getattr(self.ui, db_table)
+        for table_installed in tables:
             table_remote = self.getRemoteOrLocalTableFromOne(
                 table_installed, remote=True
             )
@@ -2338,12 +2362,11 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.config_manager.get_game_config(self.game_id).game_type
             == GameType.LOTRO
         ):
-            tables = self.TABLE_LIST[:3]
+            tables = self.ui_tables_installed
         else:
-            tables = ("tableSkinsInstalled",)
+            tables = (self.ui.tableSkinsInstalled,)
 
-        for db_table in tables:
-            table = getattr(self.ui, db_table)
+        for table in tables:
             for addon in self.c.execute(
                 f"SELECT InterfaceID, File, Name FROM {table.objectName()} WHERE Version LIKE '(Outdated) %'"  # noqa: S608
             ):
@@ -2374,7 +2397,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             url = entry[0]
         if url is None:
             raise ValueError("Addon not found in DB", addon)
-        self.installRemoteAddon(url, addon[2], addon[0])
+        self.installRemoteAddon(url, addon.name, addon.interface_id)
         self.setRemoteAddonToInstalled(addon, table_remote)
 
     def actionUpdateAddonSelected(self) -> None:
@@ -2498,18 +2521,28 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 return addon_data_folder_relative / script
         return None
 
+    def get_addon_type_from_table(self, table: QtWidgets.QTableWidget) -> AddonType:
+        table_remote = self.getRemoteOrLocalTableFromOne(table, remote=True)
+        if table_remote is self.ui.tablePlugins:
+            return "plugin"
+        elif table_remote is self.ui.tableSkins:
+            return "skin"
+        elif table_remote is self.ui.tableMusic:
+            return "music"
+        else:
+            raise ValueError(f"Unhandled table: {table}")
+
     def getAddonTypeDataFolderFromTable(
         self, table: QtWidgets.QTableWidget
     ) -> CaseInsensitiveAbsolutePath:
-        table_name = table.objectName()
-        if "Plugins" in table_name:
+        addon_type = self.get_addon_type_from_table(table)
+        if addon_type == "plugin":
             return self.data_folder_plugins
-        elif "Skins" in table_name:
+        elif addon_type == "skin":
             return self.data_folder_skins
-        elif "Music" in table_name:
+        elif addon_type == "music":
             return self.data_folder_music
-        else:
-            raise ValueError("Addons table not recognized")
+        assert_never()
 
     def handleStartupScriptActivationPrompt(
         self, table: QtWidgets.QTableWidget, interface_ID: str
