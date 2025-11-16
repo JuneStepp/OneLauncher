@@ -2151,40 +2151,49 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         Gives list of information for addon. The information is:
         [Interface ID, URL/File (depending on if remote = True or False), Name]
         """
-        interface_ID = self.getTableRowInterfaceID(table, row)
-        if not interface_ID:
+        file: str | None = None
+
+        if interface_id := self.getTableRowInterfaceID(table, row):
+            if remote:
+                table_remote = self.getRemoteOrLocalTableFromOne(table, remote=True)
+                file = self.getAddonUrlFromInterfaceID(
+                    interface_id, table_remote, download_url=True
+                )
+            else:
+                table_installed = self.getRemoteOrLocalTableFromOne(table, remote=False)
+                file = self.getAddonFileFromInterfaceID(interface_id, table_installed)
+
+            if not file:
+                return None
+
+            return Addon(
+                interface_id=interface_id,
+                file=file,
+                name=table.item(row, self.TABLE_WIDGET_COLUMN_INDEXES["Name"]).text(),  # type: ignore [union-attr]
+            )
+
+        # Not possible without an interface ID.
+        if remote is True or table not in self.ui_tables_installed:
             return None
 
-        file = None
-        if remote:
-            table_remote = self.getRemoteOrLocalTableFromOne(table, remote=True)
-            file = self.getAddonUrlFromInterfaceID(
-                interface_ID, table_remote, download_url=True
-            )
-        else:
-            table_installed = self.getRemoteOrLocalTableFromOne(table, remote=False)
+        self.reloadSearch(table)
 
-            if table.objectName().endswith("Installed"):
-                self.reloadSearch(table_installed)
-
-                item: tuple[str]
-                for item in self.c.execute(
-                    f"SELECT File FROM {table_installed.objectName()} WHERE rowid=?",  # noqa: S608
-                    (
-                        table_installed.item(  # type: ignore [union-attr]
-                            row, self.TABLE_WIDGET_COLUMN_INDEXES["ID"]
-                        ).text(),
-                    ),
-                ):
-                    file = str(self.data_folder / item[0])
-            else:
-                file = self.getAddonFileFromInterfaceID(interface_ID, table_installed)
+        item: tuple[str]
+        for item in self.c.execute(
+            f"SELECT File FROM {table.objectName()} WHERE rowid=?",  # noqa: S608
+            (
+                table.item(  # type: ignore [union-attr]
+                    row, self.TABLE_WIDGET_COLUMN_INDEXES["ID"]
+                ).text(),
+            ),
+        ):
+            file = str(self.data_folder / item[0])
 
         if not file:
             return None
 
         return Addon(
-            interface_id=interface_ID,
+            interface_id="",
             file=file,
             name=table.item(row, self.TABLE_WIDGET_COLUMN_INDEXES["Name"]).text(),  # type: ignore [union-attr]
         )
