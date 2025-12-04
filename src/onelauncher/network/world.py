@@ -25,8 +25,6 @@ class WorldStatus:
 
     @property
     def queue_url(self) -> str:
-        """URL used to queue for world login.
-        Will be an empty string, if no queueing is needed."""
         return self._queue_url
 
     @property
@@ -73,12 +71,21 @@ class World:
             XMLSchemaValidationError: Status XML doesn't match schema
         """
         status_dict = await self._get_status_dict(self.status_server_url)
+
+        if not status_dict["queueurls"]:
+            # There have yet to be any modern examples of queue URLs not being
+            # returned when the world is up, but there has been at least one
+            # example of it hapening while the world is down.
+            # See <https://github.com/JuneStepp/OneLauncher/issues/87>.
+            raise WorldUnavailableError(f"{self} world unavailable")
         queue_urls: tuple[str, ...] = tuple(
             url for url in status_dict["queueurls"].split(";") if url
         )
+
         login_servers: tuple[str, ...] = tuple(
             server for server in status_dict["loginservers"].split(";") if server
         )
+
         return WorldStatus(queue_urls[0], login_servers[0])
 
     async def _get_status_dict(self, status_server_url: str) -> dict[str, Any]:

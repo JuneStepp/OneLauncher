@@ -646,7 +646,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             )
             return
 
-        if selected_world_status.queue_url != "":
+        if selected_world_status.queue_url:
             await self.world_queue(
                 queueURL=selected_world_status.queue_url,
                 account_number=account_number,
