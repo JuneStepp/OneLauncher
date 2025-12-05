@@ -126,50 +126,6 @@ class WineManagement:
         dialog.setCancelButton(None)
         return dialog
 
-    def wine_setup(self) -> None:
-        """Sets wine program and downloads wine if it is not there or a new version is needed"""
-
-        # Uncomment line below when using Proton
-        # self.proton_documents_symlinker()  # noqa: ERA001
-
-        if self.wine_binary_path.exists():
-            return
-
-        self.dlgDownloader.setLabelText("Downloading Wine...")
-
-        with TemporaryDirectory() as temp_dir_name:
-            download_path = Path(temp_dir_name) / "wine.tar.xz"
-
-            if not self._downloader(WINE_URL, download_path):
-                return
-
-            self.dlgDownloader.reset()
-            self.dlgDownloader.setLabelText("Extracting Wine...")
-            self.dlgDownloader.setValue(99)
-            self._wine_extractor(download_path)
-            self.dlgDownloader.setValue(100)
-
-    def dxvk_setup(self) -> None:
-        if self.latest_dxvk_path.exists():
-            if not (
-                self.prefix_path / "drive_c/windows/system32/d3d11.dll"
-            ).is_symlink():
-                self._dxvk_injector()
-            return
-
-        self.dlgDownloader.setLabelText("Downloading DXVK...")
-        with TemporaryDirectory() as temp_dir_name:
-            download_path = Path(temp_dir_name) / "dxvk.tar.gz"
-
-            if self._downloader(DXVK_URL, download_path):
-                self.dlgDownloader.reset()
-                self.dlgDownloader.setLabelText("Extracting DXVK...")
-                self.dlgDownloader.setValue(99)
-                self._dxvk_extracor(download_path)
-                self.dlgDownloader.setValue(100)
-
-        self._dxvk_injector()
-
     def _downloader(self, url: str, path: Path) -> bool:
         """Downloads file from url to path and shows progress with self.handle_download_progress"""
         try:
@@ -194,6 +150,53 @@ class WineManagement:
         percent = 100 * index * frame // size
         self.dlgDownloader.setValue(percent)
 
+    def wine_setup(self) -> None:
+        """Sets wine program and downloads wine if it is not there or a new version is needed"""
+
+        # Uncomment line below when using Proton
+        # self.proton_documents_symlinker()  # noqa: ERA001
+
+        if self.wine_binary_path.exists():
+            return
+
+        self.dlgDownloader.setLabelText("Downloading Wine...")
+
+        with TemporaryDirectory() as temp_dir_name:
+            download_path = Path(temp_dir_name) / "wine.tar.xz"
+
+            if not self._downloader(WINE_URL, download_path):
+                return
+
+            self.dlgDownloader.reset()
+            self.dlgDownloader.setLabelText("Extracting Wine...")
+            self.dlgDownloader.setValue(99)
+            self._wine_extractor(download_path)
+            self.dlgDownloader.setValue(100)
+
+    def proton_documents_symlinker(self) -> None:
+        """
+        Symlinks prefix documents folder to system documents folder.path
+        This is needed for Proton.
+        """
+        prefix_documents_folder = (
+            self.prefix_path / "drive_c/users/steamuser/My Documents"
+        )
+
+        # Will assume that the user has set something else up for now if the
+        # folder already exists
+        if prefix_documents_folder.exists():
+            return
+
+        # Make sure system documents folder and prefix documents root folder
+        # exists
+        platform_dirs.user_documents_path.mkdir(exist_ok=True)
+        prefix_documents_folder.parent.mkdir(exist_ok=True, parents=True)
+
+        # Make symlink to system documents folder
+        platform_dirs.user_documents_path.symlink_to(
+            prefix_documents_folder, target_is_directory=True
+        )
+
     def _wine_extractor(self, archive_path: Path) -> None:
         with TemporaryDirectory() as temp_dir_name:
             temp_dir = Path(temp_dir_name)
@@ -213,6 +216,27 @@ class WineManagement:
         for folder in (platform_dirs.user_data_path / "wine").glob("*/"):
             if folder.name.startswith("wine") and folder != self.latest_wine_path:
                 rmtree(folder)
+
+    def dxvk_setup(self) -> None:
+        if self.latest_dxvk_path.exists():
+            if not (
+                self.prefix_path / "drive_c/windows/system32/d3d11.dll"
+            ).is_symlink():
+                self._dxvk_injector()
+            return
+
+        self.dlgDownloader.setLabelText("Downloading DXVK...")
+        with TemporaryDirectory() as temp_dir_name:
+            download_path = Path(temp_dir_name) / "dxvk.tar.gz"
+
+            if self._downloader(DXVK_URL, download_path):
+                self.dlgDownloader.reset()
+                self.dlgDownloader.setLabelText("Extracting DXVK...")
+                self.dlgDownloader.setValue(99)
+                self._dxvk_extracor(download_path)
+                self.dlgDownloader.setValue(100)
+
+        self._dxvk_injector()
 
     def _dxvk_extracor(self, archive_path: Path) -> None:
         with TemporaryDirectory() as temp_dir_name:
@@ -247,30 +271,6 @@ class WineManagement:
             # Symlink DXVK DLLs into the WINE prefix.
             (self.prefix_system32 / dll).symlink_to(self.latest_dxvk_path / "x64" / dll)
             (self.prefix_syswow64 / dll).symlink_to(self.latest_dxvk_path / "x32" / dll)
-
-    def proton_documents_symlinker(self) -> None:
-        """
-        Symlinks prefix documents folder to system documents folder.path
-        This is needed for Proton.
-        """
-        prefix_documents_folder = (
-            self.prefix_path / "drive_c/users/steamuser/My Documents"
-        )
-
-        # Will assume that the user has set something else up for now if the
-        # folder already exists
-        if prefix_documents_folder.exists():
-            return
-
-        # Make sure system documents folder and prefix documents root folder
-        # exists
-        platform_dirs.user_documents_path.mkdir(exist_ok=True)
-        prefix_documents_folder.parent.mkdir(exist_ok=True, parents=True)
-
-        # Make symlink to system documents folder
-        platform_dirs.user_documents_path.symlink_to(
-            prefix_documents_folder, target_is_directory=True
-        )
 
     def setup_files(self) -> None:
         self.downloads_path.mkdir(parents=True, exist_ok=True)
