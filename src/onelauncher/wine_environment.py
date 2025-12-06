@@ -53,6 +53,8 @@ from .wine.config import WineConfigSection
 logger = logging.getLogger(__name__)
 
 
+MOLTENVK_VERSION = "1.2.10-cxp20241028-UE4hack-zeroinit"
+MOLTENVK_URL = "https://github.com/Sikarugir-App/MoltenVK/releases/download/v1.2.10/macos-1.2.10-cxp20241028-UE4hack-zeroinit.tar.xz"
 if sys.platform == "darwin":
     WINE_VERSION = "staging-10.20"
     WINE_URL = "https://github.com/Gcenx/macOS_Wine_builds/releases/download/10.20/wine-staging-10.20-osx64.tar.xz"
@@ -90,14 +92,15 @@ class WineManagement:
         )
 
         self.downloads_path: Final[Path] = platform_dirs.user_data_path / "wine"
-
         self.latest_wine_path: Final[Path] = (
-            platform_dirs.user_data_path / f"wine/wine-{WINE_VERSION}"
+            self.downloads_path / f"wine-{WINE_VERSION}"
         )
         self.wine_binary_path: Final[Path] = self.latest_wine_path / "bin" / "wine"
-
         self.latest_dxvk_path: Final[Path] = (
-            platform_dirs.user_data_path / f"wine/dxvk-{DXVK_VERSION}"
+            self.downloads_path / f"dxvk-{DXVK_VERSION}"
+        )
+        self.latest_moltenvk_path: Final[Path] = (
+            self.downloads_path / f"moltenvk-{MOLTENVK_VERSION}"
         )
 
         self._dlgDownloader: QtWidgets.QProgressDialog | None = None
@@ -213,7 +216,7 @@ class WineManagement:
             move(source_dir, self.latest_wine_path)
 
         # Remove old WINE versions.
-        for folder in (platform_dirs.user_data_path / "wine").glob("*/"):
+        for folder in self.downloads_path.glob("*/"):
             if folder.name.startswith("wine") and folder != self.latest_wine_path:
                 rmtree(folder)
 
@@ -252,7 +255,7 @@ class WineManagement:
             move(source_dir, self.latest_dxvk_path)
 
         # Remove old DXVK versions.
-        for folder in (platform_dirs.user_data_path / "wine").glob("*/"):
+        for folder in self.downloads_path.glob("*/"):
             if folder.name.startswith("dxvk") and folder != self.latest_dxvk_path:
                 rmtree(folder)
 
@@ -272,16 +275,67 @@ class WineManagement:
             (self.prefix_system32 / dll).symlink_to(self.latest_dxvk_path / "x64" / dll)
             (self.prefix_syswow64 / dll).symlink_to(self.latest_dxvk_path / "x32" / dll)
 
+    def moltenvk_setup(self) -> None:
+        if self.latest_moltenvk_path.exists():
+            self._moltenvk_injector()
+            return
+
+        self.dlgDownloader.setLabelText("Downloading MoltenVK...")
+
+        with TemporaryDirectory() as temp_dir_name:
+            download_path = Path(temp_dir_name) / "moltenvk.tar.xz"
+
+            if not self._downloader(MOLTENVK_URL, download_path):
+                return
+
+            self.dlgDownloader.reset()
+            self.dlgDownloader.setLabelText("Extracting MoltenVK...")
+            self.dlgDownloader.setValue(99)
+            self._moltenvk_extractor(download_path)
+            self.dlgDownloader.setValue(100)
+        
+        self._moltenvk_injector()
+
+    def _moltenvk_extractor(self, archive_path: Path) -> None:
+        with TemporaryDirectory() as temp_dir_name:
+            temp_dir = Path(temp_dir_name)
+
+            # Extract the tar.xz archive.
+            with lzma.open(archive_path) as file, tarfile.open(fileobj=file) as tar:
+                tar.extractall(temp_dir, filter="data")
+
+            source_dir = (
+                next(temp_dir.glob("*/")) / "Release" / "MoltenVK" / "dylib" / "macOS"
+            )
+            # Using `shutil.move` instead of `Path.rename`, so that it works across
+            # filesystems.
+            move(source_dir, self.latest_moltenvk_path)
+
+        # Remove old MoltenVK versions.
+        for folder in self.downloads_path.glob("*/"):
+            if (
+                folder.name.startswith("moltenvk")
+                and folder != self.latest_moltenvk_path
+            ):
+                rmtree(folder)
+    
+    def _moltenvk_injector(self) -> None:
+        wine_moltenvk = self.latest_wine_path / "lib" / "libMoltenVK.dylib"
+        wine_moltenvk.unlink(missing_ok=True)
+        wine_moltenvk.symlink_to(self.latest_moltenvk_path / "libMoltenVK.dylib")
+
     def setup_files(self) -> None:
         self.downloads_path.mkdir(parents=True, exist_ok=True)
         self.prefix_system32.mkdir(parents=True, exist_ok=True)
         self.prefix_syswow64.mkdir(parents=True, exist_ok=True)
 
-        self.prefix_path.mkdir(exist_ok=True, parents=True)
-        self.downloads_path.mkdir(exist_ok=True, parents=True)
         self.wine_setup()
         self.dlgDownloader.reset()
         self.dxvk_setup()
+        if sys.platform == "darwin":
+            self.dlgDownloader.reset()
+            # Must be after WINE setup, b/c it edits WINE files.
+            self.moltenvk_setup()
         self.dlgDownloader.close()
         self.is_setup = True
 
@@ -337,10 +391,6 @@ def edit_qprocess_to_use_wine(
             # "wine doesn't handle VK_ERROR_DEVICE_LOST correctly"
             #     -- <https://github.com/Gcenx/macOS_Wine_builds/releases/tag/10.18>
             process_environment.insert("MVK_CONFIG_RESUME_LOST_DEVICE", "1")
-
-            # See <https://github.com/KhronosGroup/MoltenVK/issues/2530>. LOTRO and DDO
-            # don't use DirectX12.
-            process_environment.insert("MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS", "0")
     else:
         prefix_path = wine_config.user_prefix_path
         wine_path = wine_config.user_wine_executable_path
