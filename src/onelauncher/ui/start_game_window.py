@@ -168,7 +168,7 @@ class StartGame(QtWidgets.QDialog):
         game_config = self.config_manager.get_game_config(self.game_id)
         for script in game_config.addons.enabled_startup_scripts:
             try:
-                logger.info(f"Running '{script.relative_path}' startup script...")
+                logger.info("Running '%s' startup script...", script.relative_path)
                 run_startup_script(
                     script=script,
                     game_directory=game_config.game_directory,
@@ -179,10 +179,10 @@ class StartGame(QtWidgets.QDialog):
                 )
             except FileNotFoundError:
                 logger.exception(
-                    f"'{script.relative_path}' startup script does not exist"
+                    "'%s' startup script does not exist", script.relative_path
                 )
-            except SyntaxError as e:
-                logger.exception(f"'{script.relative_path}' ran into syntax error: {e}")
+            except SyntaxError:
+                logger.exception("'%s' ran into syntax error", script.relative_path)
 
     async def start_game(self) -> None:
         self.config_manager.update_game_config_file(

@@ -373,7 +373,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             game_type=new_game_type,
         )
         if not new_type_game_ids:
-            logger.error(f"No {new_game_type} games found to switch to")
+            logger.error("No %s games found to switch to", new_game_type)
             return
         self.game_id = new_type_game_ids[0]
         await self.InitialSetup()
@@ -696,7 +696,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             people_ahead_in_queue = (
                 world_queue_result.queue_number - world_queue_result.now_serving_number
             )
-            logger.info(f"Position in queue: {people_ahead_in_queue}")
+            logger.info("Position in queue: %s", people_ahead_in_queue)
 
     def set_banner_image(self) -> None:
         game_config = self.config_manager.get_game_config(self.game_id)
@@ -761,11 +761,11 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             game_config.game_directory / f"client_local_{locale.game_language_name}.dat"
         ).exists():
             logger.error(
-                "There is no game language data for "  # noqa: S608
-                f"{locale.display_name} installed. "
-                f"You may have to select {locale.display_name}"
-                " in the standard game launcher and wait for the data to download."
+                "There is no game language data for %s installed. You may have to "
+                "select %s in the standard game launcher and wait for the data to download."
                 " The standard game launcher can be opened from the settings menu.",
+                locale.display_name,
+                locale.display_name,
             )
             return False
 
@@ -943,7 +943,7 @@ async def check_for_update() -> None:
         response.raise_for_status()
     except httpx.HTTPError:
         logger.exception(
-            f"Network error while checking for {__about__.__title__} updates"
+            "Network error while checking for %s updates", __about__.__title__
         )
         return
     release_dictionary = response.json()
@@ -971,4 +971,4 @@ async def check_for_update() -> None:
         show_message_box_details_as_markdown(messageBox)
         messageBox.exec()
     else:
-        logger.info(f"{__about__.__title__} is up to date")
+        logger.info("%s is up to date", __about__.__title__)

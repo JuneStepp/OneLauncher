@@ -345,7 +345,14 @@ class SetupWizard(QtWidgets.QWizard):
                     home_dir / ".local/share/Steam/steamapps/compatdata/",
                     "*",
                 ),
-                (home_dir / "Library" / "Application Support" / "Crossover" / "Bottles", "*/"),
+                (
+                    home_dir
+                    / "Library"
+                    / "Application Support"
+                    / "Crossover"
+                    / "Bottles",
+                    "*/",
+                ),
                 (home_dir / "games", "*/"),
             ]:
                 for path in prefix_search_start_dir.glob(glob_pattern):

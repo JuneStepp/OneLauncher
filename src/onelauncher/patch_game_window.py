@@ -91,7 +91,7 @@ class PatchWindow(QtWidgets.QDialog):
 
         # Make sure patch_client exists
         if not patch_client.exists():
-            logger.error(f"Patch client {patch_client} not found")
+            logger.error("Patch client %s not found", patch_client)
             return
 
         self.progress_monitor = PatchingProgressMonitor()

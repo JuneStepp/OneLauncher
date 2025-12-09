@@ -1,11 +1,11 @@
 from pathlib import Path
 from shutil import rmtree
 
+import cyclopts
 import pytest
 from PySide6 import QtWidgets
 from pytest_mock import MockerFixture
 
-import cyclopts
 from onelauncher import cli, main
 from onelauncher.addons.config import AddonsConfigSection
 from onelauncher.config_manager import (

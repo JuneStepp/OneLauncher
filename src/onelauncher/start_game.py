@@ -138,7 +138,7 @@ async def get_launch_args(
         arg.replace(account_number, "******").replace(ticket, "******")
         for arg in launch_args
     )
-    logger.debug(f"Game launch arguments generated: {redacted_launch_args}")
+    logger.debug("Game launch arguments generated: %s", redacted_launch_args)
     return launch_args
 
 

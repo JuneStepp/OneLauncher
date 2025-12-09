@@ -139,8 +139,8 @@ class WineManagement:
                 url, str(path), self._handle_download_progress
             )
             return True
-        except (URLError, HTTPError) as error:
-            logger.error(error.reason, exc_info=True)
+        except (URLError, HTTPError):
+            logger.exception("")
             show_warning_message(
                 f"There was an error downloading '{url}'. "
                 "You may want to check your network connection.",
@@ -293,7 +293,7 @@ class WineManagement:
             self.dlgDownloader.setValue(99)
             self._moltenvk_extractor(download_path)
             self.dlgDownloader.setValue(100)
-        
+
         self._moltenvk_injector()
 
     def _moltenvk_extractor(self, archive_path: Path) -> None:
@@ -318,7 +318,7 @@ class WineManagement:
                 and folder != self.latest_moltenvk_path
             ):
                 rmtree(folder)
-    
+
     def _moltenvk_injector(self) -> None:
         wine_moltenvk = self.latest_wine_path / "lib" / "libMoltenVK.dylib"
         wine_moltenvk.unlink(missing_ok=True)

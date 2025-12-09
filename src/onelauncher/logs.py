@@ -28,7 +28,7 @@ class LogLevel(IntEnum):
 
 def log_basic_info(logger: logging.Logger) -> None:
     logger.info("Logging started")
-    logger.info(f"{__title__}: {__version__}")
+    logger.info("%s: %s", __title__, __version__)
     logger.info(platform())
 
 
@@ -43,9 +43,7 @@ def handle_uncaught_exceptions(
         # call the default excepthook saved at __excepthook__
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
-    logger.critical(
-        "Uncaught exception:", exc_info=(exc_type, exc_value, exc_traceback)
-    )
+    logger.critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
 
 class RedactHomeDirFormatter(logging.Formatter):
@@ -80,6 +78,7 @@ def setup_application_logging(log_level_override: LogLevel | None = None) -> Non
 
     # Create or get custom logger
     logger = logging.getLogger()
+    logging.logThreads = False
 
     # This is for the logger globally. Different handlers
     # attached to it have their own levels.

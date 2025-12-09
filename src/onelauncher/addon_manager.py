@@ -512,7 +512,8 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 doc = defusedxml.minidom.parse(str(compendium_file))
             except xml.parsers.expat.ExpatError:
                 logger.warning(
-                    f"`.plugincompendium` file has invalid XML: {compendium_file}",
+                    "`.plugincompendium` file has invalid XML: %s",
+                    compendium_file,
                     exc_info=True,
                 )
                 continue
@@ -532,7 +533,9 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                         plugin_files.remove(file)
 
                     if not descriptor_path.exists():
-                        logger.error(f"{compendium_file} has misconfigured descriptors")
+                        logger.error(
+                            "%s has misconfigured descriptors", compendium_file
+                        )
 
     def addInstalledPluginsToDB(
         self,
@@ -574,7 +577,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         try:
             doc = defusedxml.minidom.parse(str(file))
         except xml.parsers.expat.ExpatError:
-            logger.exception(f"Compendium file has invalid XML: {file}")
+            logger.exception("Compendium file has invalid XML: %s", file)
             return None
         nodes = doc.getElementsByTagName(tag)[0].childNodes
         for node in nodes:
@@ -731,9 +734,10 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             return
         elif addon_path.suffix == ".rar":
             logger.error(
-                f"{__title__} does not support .rar archives, because it"
+                "%s does not support .rar archives, because it"
                 " is a proprietary format that would require an external "
-                "program to extract"
+                "program to extract",
+                __title__,
             )
             return
         elif addon_path.suffix == ".zip":
@@ -745,7 +749,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             return
 
         copy(str(addon_path), self.data_folder_music)
-        logger.debug(f"ABC file installed at {addon_path}")
+        logger.debug("ABC file installed at %s", addon_path)
 
         # Plain .abc files are installed to base music directory,
         # so what is scanned can't be controlled.
@@ -884,7 +888,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         if interface_id:
             self.handleStartupScriptActivationPrompt(table, interface_id)
         logger.debug(
-            f"Installed plugin corresponding to {plugin_files} ){compendium_files}"
+            "Installed plugin corresponding to %s %s", plugin_files, compendium_files
         )
 
         self.installAddonRemoteDependencies(self.ui.tablePluginsInstalled)
@@ -950,7 +954,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         if interface_id:
             self.handleStartupScriptActivationPrompt(table, interface_id)
 
-        logger.debug(f"{addon_name} music installed at {root_dir}")
+        logger.debug("%s music installed at %s", addon_name, root_dir)
 
         self.installAddonRemoteDependencies(self.ui.tableMusicInstalled)
         return None
@@ -987,7 +991,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         if interface_id:
             self.handleStartupScriptActivationPrompt(table, interface_id)
 
-        logger.debug(f"{addon_name} skin installed at {root_dir}")
+        logger.debug("%s skin installed at %s", addon_name, root_dir)
 
         self.installAddonRemoteDependencies(table=self.ui.tableSkinsInstalled)
 
@@ -1009,15 +1013,17 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             # of OneLauncher's upload of the utilities on LotroInterface.
             interface_id = "1064" if dependency == "0" else dependency
 
-            for item in tuple(self.c.execute(
-                (
-                    "SELECT File, Name FROM "  # noqa: S608
-                    f"{self.getRemoteOrLocalTableFromOne(table, remote=True).objectName()} "
-                    "WHERE InterfaceID = ? AND InterfaceID NOT IN "
-                    f"(SELECT InterfaceID FROM {table.objectName()})"
-                ),
-                (interface_id,),
-            )):
+            for item in tuple(
+                self.c.execute(
+                    (
+                        "SELECT File, Name FROM "  # noqa: S608
+                        f"{self.getRemoteOrLocalTableFromOne(table, remote=True).objectName()} "
+                        "WHERE InterfaceID = ? AND InterfaceID NOT IN "
+                        f"(SELECT InterfaceID FROM {table.objectName()})"
+                    ),
+                    (interface_id,),
+                )
+            ):
                 self.installRemoteAddon(item[0], item[1], interface_id)
 
     def fix_improper_root_dir_addon(
@@ -1579,7 +1585,8 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                         doc = defusedxml.minidom.parse(plugin[1])
                     except xml.parsers.expat.ExpatError:
                         logger.warning(
-                            f"`.plugincompendium` file has invalid XML: {plugin[1]}",
+                            "`.plugincompendium` file has invalid XML: %s",
+                            plugin[1],
                             exc_info=True,
                         )
                         continue
@@ -1609,7 +1616,8 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                         doc = defusedxml.minidom.parse(str(plugin_file))
                     except xml.parsers.expat.ExpatError:
                         logger.warning(
-                            f"`.plugin` file has invalid XML: {plugin_file}",
+                            "`.plugin` file has invalid XML: %s",
+                            plugin_file,
                             exc_info=True,
                         )
                     else:
@@ -1633,7 +1641,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 if next(author_dir.iterdir(), None) is None:
                     author_dir.rmdir()
 
-            logger.debug(f"{plugin} plugin uninstalled")
+            logger.debug("%s plugin uninstalled", plugin)
 
             self.setRemoteAddonToUninstalled(plugin, self.ui.tablePlugins)
 
@@ -1656,7 +1664,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 skin_path = Path(skin.file)
             rmtree(skin_path)
 
-            logger.debug(f"{skin} skin uninstalled")
+            logger.debug("%s skin uninstalled", skin)
 
             self.setRemoteAddonToUninstalled(skin, self.ui.tableSkins)
 
@@ -1683,7 +1691,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             else:
                 rmtree(music_path)
 
-            logger.debug(f"{music} music uninstalled")
+            logger.debug("%s music uninstalled", music)
 
             self.setRemoteAddonToUninstalled(music, self.ui.tableMusic)
 
@@ -2298,10 +2306,12 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 )
             }
 
-            for addon in tuple(self.c.execute(
-                f"SELECT Version, InterfaceID, rowid FROM {table_installed.objectName()} WHERE"  # noqa: S608
-                f" InterfaceID != ''"
-            )):
+            for addon in tuple(
+                self.c.execute(
+                    f"SELECT Version, InterfaceID, rowid FROM {table_installed.objectName()} WHERE"  # noqa: S608
+                    f" InterfaceID != ''"
+                )
+            ):
                 # Will raise KeyError if addon has Interface ID that isn't in
                 # remote table.
                 try:
@@ -2454,7 +2464,8 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             )
         else:
             logger.error(
-                f"'{full_script_path}' startup script does not exist, so it could not be enabled."
+                "'%s' startup script does not exist, so it could not be enabled.",
+                full_script_path,
             )
 
     def actionDisableStartupScriptSelected(self) -> None:
@@ -2483,10 +2494,12 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         """Returns path of startup script relative to game documents settings directory"""
         table_local = self.getRemoteOrLocalTableFromOne(table, remote=False)
         entry: tuple[str]
-        for entry in tuple(self.c.execute(
-            f"SELECT StartupScript FROM {table_local.objectName()} WHERE InterfaceID = ?",  # noqa: S608
-            (interface_ID,),
-        )):
+        for entry in tuple(
+            self.c.execute(
+                f"SELECT StartupScript FROM {table_local.objectName()} WHERE InterfaceID = ?",  # noqa: S608
+                (interface_ID,),
+            )
+        ):
             if entry[0]:
                 script = entry[0].replace("\\", "/")
                 addon_data_folder_relative = self.getAddonTypeDataFolderFromTable(

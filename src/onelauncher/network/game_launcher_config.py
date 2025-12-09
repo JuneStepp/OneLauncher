@@ -226,8 +226,9 @@ class GameLauncherConfig:
                 keys.pop(new_client_type_index)
 
             logger.warning(
-                f"No client_filename for {preferred_client_type} found. "
-                f"Returning filename for {new_client_type}"
+                "No client_filename for %s found. Returning filename for %s",
+                preferred_client_type,
+                new_client_type,
             )
 
         return client_filename, new_client_type or preferred_client_type

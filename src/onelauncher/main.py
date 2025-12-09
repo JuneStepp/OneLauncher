@@ -78,9 +78,7 @@ def verify_configs(config_manager: ConfigManager) -> bool:
     return True
 
 
-async def start_ui(
-    config_manager: ConfigManager, game_id: GameConfigID | None
-) -> None:
+async def start_ui(config_manager: ConfigManager, game_id: GameConfigID | None) -> None:
     # Run setup wizard.
     if not config_manager.program_config_path.exists():
         logger.info("No program config found. Starting setup wizard.")

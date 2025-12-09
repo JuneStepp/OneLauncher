@@ -65,7 +65,7 @@ def main(
                 "--macos-app-icon=src/onelauncher/images/OneLauncherIcon.png",
                 # To not conflict with the `onelauncher` folder.
                 f"--output-filename={__about__.__title__.lower()}.bin",
-                "--macos-create-app-bundle"
+                "--macos-create-app-bundle",
             ]
         )
     elif sys.platform == "linux":
