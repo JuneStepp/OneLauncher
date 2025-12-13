@@ -1,0 +1,40 @@
+name: Status checks
+on:
+  push:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  status_checks:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, macos-15-intel, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: "pyproject.toml"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          activate-environment: true
+      - run: uv sync --locked
+
+      - name: Install PySide6 dependencies on Linux
+        if: runner.os == 'Linux'
+        run: sudo apt-get install libegl1
+
+      - name: Lint
+        run: ruff check --output-format=github
+      - name: Type check
+        run: mypy .
+      - name: Unit test
+        run: pytest
+      - name: Check formatting
+        run: ruff format --check --output-format=github
