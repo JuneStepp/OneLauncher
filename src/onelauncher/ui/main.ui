@@ -311,7 +311,7 @@
             </widget>
            </item>
            <item row="5" column="0">
-            <widget class="QToolButton" name="btnLogin">
+            <widget class="QToolButton" name="btnStartGame">
              <property name="toolTip">
               <string>Start your adventure!</string>
              </property>
@@ -497,7 +497,7 @@
   <tabstop>cboWorld</tabstop>
   <tabstop>cboAccount</tabstop>
   <tabstop>txtPassword</tabstop>
-  <tabstop>btnLogin</tabstop>
+  <tabstop>btnStartGame</tabstop>
   <tabstop>chkSaveAccount</tabstop>
   <tabstop>chkSavePassword</tabstop>
   <tabstop>txtFeed</tabstop>

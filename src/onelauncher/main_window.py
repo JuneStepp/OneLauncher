@@ -42,8 +42,10 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
 from xmlschema import XMLSchemaValidationError
 
+from onelauncher.addons.startup_script import run_startup_script
 from onelauncher.logs import ForwardLogsHandler
 from onelauncher.qtapp import get_app_style, get_qapp
+from onelauncher.start_game import MissingLaunchArgumentError, start_game
 from onelauncher.ui.custom_widgets import FramelessQMainWindowWithStylePreview
 
 from . import __about__, addon_manager
@@ -58,6 +60,7 @@ from .game_launcher_local_config import (
 from .game_utilities import (
     InvalidGameDirError,
     find_game_dir_game_type,
+    get_game_settings_dir,
 )
 from .network import login_account
 from .network.game_launcher_config import (
@@ -80,7 +83,6 @@ from .settings_window import SettingsWindow
 from .ui.about_uic import Ui_dlgAbout
 from .ui.main_uic import Ui_winMain
 from .ui.select_subscription_uic import Ui_dlgSelectSubscription
-from .ui.start_game_window import StartGame
 from .ui_utilities import log_record_to_rich_text, show_message_box_details_as_markdown
 
 logger = logging.getLogger(__name__)
@@ -99,6 +101,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         self.game_id: GameConfigID = game_id
 
         self.network_setup_nursery: trio.Nursery | None = None
+        self.game_cancel_scope: trio.CancelScope | None = None
         self.addon_manager_window: addon_manager.AddonManagerWindow | None = None
         self.game_launcher_config: GameLauncherConfig | None = None
 
@@ -154,7 +157,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         color_scheme_changed.connect(
             lambda: self.ui.btnAddonManager.setIcon(get_addons_manager_icon())
         )
-        self.setupBtnLoginMenu()
+        self.setup_start_game_button()
         self.ui.btnSwitchGame.clicked.connect(
             lambda: self.nursery.start_soon(self.btnSwitchGameClicked)
         )
@@ -207,7 +210,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         mouse_ignore_list = [
             self.ui.btnAbout,
             self.ui.btnExit,
-            self.ui.btnLogin,
+            self.ui.btnStartGame,
             self.ui.btnMinimize,
             self.ui.btnOptions,
             self.ui.btnAddonManager,
@@ -230,23 +233,29 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         if event.type() == QtCore.QEvent.Type.ThemeChange:
             get_app_style().update_base_font()
 
-    def setupBtnLoginMenu(self) -> None:
-        """Sets up signals and context menu for btnLoginMenu"""
-        self.ui.btnLogin.clicked.connect(
-            lambda: self.nursery.start_soon(self.btnLoginClicked)
+    def reset_start_game_button(self) -> None:
+        self.ui.btnStartGame.setText("Play")
+        self.ui.btnStartGame.setToolTip("Start your adventure!")
+
+    def setup_start_game_button(self) -> None:
+        """Set up signals and context menu for `btnStartGame`"""
+        self.reset_start_game_button()
+
+        self.ui.btnStartGame.clicked.connect(
+            lambda: self.nursery.start_soon(self.start_game_button_clicked)
         )
         # Pressing enter in password box acts like pressing login button
         self.ui.txtPassword.returnPressed.connect(
-            lambda: self.nursery.start_soon(self.btnLoginClicked)
+            lambda: self.nursery.start_soon(self.start_game_button_clicked)
         )
 
         # Setup context menu
-        self.btnLoginMenu = QtWidgets.QMenu()
-        self.btnLoginMenu.addAction(self.ui.actionPatch)
+        self.btnStartGameMenu = QtWidgets.QMenu()
+        self.btnStartGameMenu.addAction(self.ui.actionPatch)
         self.ui.actionPatch.triggered.connect(
             lambda: self.nursery.start_soon(self.actionPatchSelected)
         )
-        self.ui.btnLogin.setMenu(self.btnLoginMenu)
+        self.ui.btnStartGame.setMenu(self.btnStartGameMenu)
 
     def setup_switch_game_button(self) -> None:
         """Set icon and dropdown options of switch game button according to current game"""
@@ -382,7 +391,33 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         self.game_id = new_game_id
         await self.InitialSetup()
 
-    async def btnLoginClicked(self) -> None:
+    def run_startup_scripts(self) -> None:
+        """Run enabled startup scripts"""
+        game_config = self.config_manager.get_game_config(self.game_id)
+        for script in game_config.addons.enabled_startup_scripts:
+            try:
+                logger.info("Running '%s' startup script...", script.relative_path)
+                run_startup_script(
+                    script=script,
+                    game_directory=game_config.game_directory,
+                    documents_config_dir=get_game_settings_dir(
+                        game_config=game_config,
+                        launcher_local_config=self.game_launcher_local_config,
+                    ),
+                )
+            except FileNotFoundError:
+                logger.exception(
+                    "'%s' startup script does not exist", script.relative_path
+                )
+            except SyntaxError:
+                logger.exception("'%s' ran into syntax error", script.relative_path)
+
+    async def start_game_button_clicked(self) -> None:
+        if self.game_cancel_scope:
+            logger.info("Game aborted")
+            self.game_cancel_scope.cancel()
+            return
+
         if self.ui.cboAccount.currentText() == "" or (
             self.ui.txtPassword.text() == ""
             and self.ui.txtPassword.placeholderText() == ""
@@ -652,17 +687,41 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                 login_response=login_response,
                 game_launcher_config=game_launcher_config,
             )
-        game = StartGame(
-            game_id=self.game_id,
-            config_manager=self.config_manager,
-            game_launcher_local_config=self.game_launcher_local_config,
-            game_launcher_config=game_launcher_config,
-            world=selected_world,
-            login_server=selected_world_status.login_server,
-            account_number=account_number,
-            ticket=login_response.session_ticket,
-        )
-        await game.start_game()
+        self.run_startup_scripts()
+        logger.info("Starting game")
+        self.ui.btnStartGame.setText("Abort")
+        self.ui.btnStartGame.setToolTip("Abort running game")
+        self.ui.btnSwitchGame.setEnabled(False)
+        self.ui.actionPatch.setEnabled(False)
+        self.ui.btnOptions.setEnabled(False)
+        with trio.CancelScope() as self.game_cancel_scope:
+            try:
+                return_code = await start_game(
+                    config_manager=self.config_manager,
+                    game_id=self.game_id,
+                    game_launcher_config=game_launcher_config,
+                    game_launcher_local_config=self.game_launcher_local_config,
+                    world=selected_world,
+                    login_server=selected_world_status.login_server,
+                    account_number=account_number,
+                    ticket=login_response.session_ticket,
+                )
+                if return_code != 0:
+                    logger.error("Game closed unexpectedly")
+                else:
+                    logger.info("Game finished")
+            except* MissingLaunchArgumentError:
+                logger.exception(
+                    "Game launch argument missing. Please report this error if using a supported server."
+                )
+            except* OSError:
+                logger.exception("Failed to start game")
+
+        self.game_cancel_scope = None
+        self.reset_start_game_button()
+        self.ui.btnSwitchGame.setEnabled(True)
+        self.ui.actionPatch.setEnabled(True)
+        self.ui.btnOptions.setEnabled(True)
 
     async def world_queue(
         self,
@@ -781,7 +840,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
 
         # Network loading dependent
         self.ui.cboWorld.setEnabled(False)
-        self.ui.btnLogin.setEnabled(False)
+        self.ui.btnStartGame.setEnabled(False)
 
         self.ui.btnSwitchGame.setEnabled(False)
 
@@ -859,7 +918,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             return
         # Enable UI elements that rely on what's been loaded.
         self.ui.cboWorld.setEnabled(True)
-        self.ui.btnLogin.setEnabled(True)
+        self.ui.btnStartGame.setEnabled(True)
 
         await self.load_newsfeed(self.game_launcher_config)
 

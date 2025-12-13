@@ -191,11 +191,11 @@ class Ui_winMain(object):
 
         self.layoutLogin.setWidget(2, QFormLayout.ItemRole.FieldRole, self.txtPassword)
 
-        self.btnLogin = QToolButton(self.widgetLogin)
-        self.btnLogin.setObjectName(u"btnLogin")
-        self.btnLogin.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
+        self.btnStartGame = QToolButton(self.widgetLogin)
+        self.btnStartGame.setObjectName(u"btnStartGame")
+        self.btnStartGame.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
 
-        self.layoutLogin.setWidget(5, QFormLayout.ItemRole.LabelRole, self.btnLogin)
+        self.layoutLogin.setWidget(5, QFormLayout.ItemRole.LabelRole, self.btnStartGame)
 
         self.widgetSaveSettings = QWidget(self.widgetLogin)
         self.widgetSaveSettings.setObjectName(u"widgetSaveSettings")
@@ -251,8 +251,8 @@ class Ui_winMain(object):
 #endif // QT_CONFIG(shortcut)
         QWidget.setTabOrder(self.cboWorld, self.cboAccount)
         QWidget.setTabOrder(self.cboAccount, self.txtPassword)
-        QWidget.setTabOrder(self.txtPassword, self.btnLogin)
-        QWidget.setTabOrder(self.btnLogin, self.chkSaveAccount)
+        QWidget.setTabOrder(self.txtPassword, self.btnStartGame)
+        QWidget.setTabOrder(self.btnStartGame, self.chkSaveAccount)
         QWidget.setTabOrder(self.chkSaveAccount, self.chkSavePassword)
         QWidget.setTabOrder(self.chkSavePassword, self.txtFeed)
         QWidget.setTabOrder(self.txtFeed, self.txtStatus)
@@ -322,10 +322,10 @@ class Ui_winMain(object):
         self.lblAccount.setText(QCoreApplication.translate("winMain", u"Account", None))
         self.lblPassword.setText(QCoreApplication.translate("winMain", u"Password", None))
 #if QT_CONFIG(tooltip)
-        self.btnLogin.setToolTip(QCoreApplication.translate("winMain", u"Start your adventure!", None))
+        self.btnStartGame.setToolTip(QCoreApplication.translate("winMain", u"Start your adventure!", None))
 #endif // QT_CONFIG(tooltip)
-        self.btnLogin.setText(QCoreApplication.translate("winMain", u"Play", None))
-        self.btnLogin.setProperty(u"qssClass", [
+        self.btnStartGame.setText(QCoreApplication.translate("winMain", u"Play", None))
+        self.btnStartGame.setProperty(u"qssClass", [
             QCoreApplication.translate("winMain", u"text-xl", None),
             QCoreApplication.translate("winMain", u"px-3.5", None),
             QCoreApplication.translate("winMain", u"py-2", None),
