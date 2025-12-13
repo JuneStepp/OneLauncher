@@ -6,6 +6,7 @@ from typing import Final
 import outcome
 import trio
 from PySide6 import QtCore, QtWidgets
+from trio.abc import ReceiveStream
 from typing_extensions import override
 
 from onelauncher.qtapp import get_qapp
@@ -102,3 +103,10 @@ def start_async_gui(entry: Callable[[], Awaitable[None]]) -> int:
     QtCore.QTimer.singleShot(0, async_helper.launch_guest_run)
     # qapp.exec() won't return until trio event loop finishes.
     return qapp.exec()
+
+
+async def for_each_in_stream(pipe: ReceiveStream, func: Callable[[str], None]) -> None:
+    async for chunk in pipe:
+        for line in chunk.decode("utf-8").split("\n"):
+            if stripped_line := line.strip():
+                func(stripped_line)

@@ -26,13 +26,12 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import logging
-from datetime import UTC, datetime
 
-import attrs
+import trio
 from PySide6 import QtCore, QtWidgets
 
 from onelauncher.game_config import GameConfigID
-from onelauncher.logs import ExternalProcessLogsFilter, ForwardLogsHandler
+from onelauncher.logs import ForwardLogsHandler
 from onelauncher.qtapp import get_qapp
 from onelauncher.ui_utilities import log_record_to_rich_text
 
@@ -43,7 +42,8 @@ from ..game_launcher_local_config import GameLauncherLocalConfig
 from ..game_utilities import get_game_settings_dir
 from ..network.game_launcher_config import GameLauncherConfig
 from ..network.world import World
-from ..start_game import MissingLaunchArgumentError, get_qprocess
+from ..start_game import MissingLaunchArgumentError, start_game
+from ..start_game import logger as start_game_logger
 from .start_game_uic import Ui_startGameDialog
 
 logger = logging.getLogger(__name__)
@@ -78,16 +78,14 @@ class StartGame(QtWidgets.QDialog):
         self.ui = Ui_startGameDialog()
         self.ui.setupUi(self)
 
-        self.process_logging_adapter = logging.LoggerAdapter(logger)
-        logger.addFilter(ExternalProcessLogsFilter())
-        logger.addHandler(
-            ForwardLogsHandler(
-                new_log_callback=lambda record: self.ui.txtLog.append(
-                    log_record_to_rich_text(record)
-                ),
-                level=logging.INFO,
-            )
+        self.ui_logs_handler = ForwardLogsHandler(
+            new_log_callback=lambda record: self.ui.txtLog.append(
+                log_record_to_rich_text(record)
+            ),
+            level=logging.INFO,
         )
+        logger.addHandler(self.ui_logs_handler)
+        start_game_logger.addHandler(self.ui_logs_handler)
 
         # Can't quit until program finishes or is aborted
         self.ui.btnQuit.setEnabled(False)
@@ -95,54 +93,9 @@ class StartGame(QtWidgets.QDialog):
         self.ui.btnAbort.clicked.connect(self.btnAbortClicked)
         self.ui.btnQuit.clicked.connect(self.btnQuitClicked)
 
-        self.aborted = False
         self.game_finished = False
 
         self.show()
-
-    async def get_qprocess(self) -> QtCore.QProcess | None:
-        """Return setup qprocess with connected signals"""
-        try:
-            process = await get_qprocess(
-                game_launcher_config=self.game_launcher_config,
-                game_launcher_local_config=self.game_launcher_local_config,
-                game_config=self.config_manager.get_game_config(self.game_id),
-                default_locale=self.config_manager.get_program_config().default_locale,
-                world=self.world,
-                login_server=self.login_server,
-                account_number=self.account_number,
-                ticket=self.ticket,
-            )
-        except MissingLaunchArgumentError:
-            logger.exception(
-                "Game launch argument missing. Please report this error if using a supported server."
-            )
-            self.reset_buttons()
-            return None
-
-        def readOutput() -> None:
-            self.process_logging_adapter.debug(
-                process.readAllStandardOutput().toStdString()
-            )
-
-        def readErrors() -> None:
-            self.process_logging_adapter.warning(
-                process.readAllStandardError().toStdString()
-            )
-
-        process.readyReadStandardOutput.connect(readOutput)
-        process.readyReadStandardError.connect(readErrors)
-        process.finished.connect(self.process_finished)
-        return process
-
-    def process_finished(
-        self, exit_code: int, exit_status: QtCore.QProcess.ExitStatus
-    ) -> None:
-        self.reset_buttons()
-        if self.aborted:
-            logger.info("***  Aborted  ***")
-        else:
-            logger.info("***  Finished  ***")
 
     def reset_buttons(self) -> None:
         self.game_finished = True
@@ -151,11 +104,12 @@ class StartGame(QtWidgets.QDialog):
 
     def btnAbortClicked(self) -> None:
         if self.game_finished:
+            start_game_logger.removeHandler(self.ui_logs_handler)
+            self.ui_logs_handler.close()
             self.close()
         else:
-            self.aborted = True
-            if self.process:
-                self.process.kill()
+            logger.info("***  Aborted  ***")
+            self.game_cancel_scope.cancel()
 
     def btnQuitClicked(self) -> None:
         if self.game_finished:
@@ -164,7 +118,7 @@ class StartGame(QtWidgets.QDialog):
             app_cancel_scope.cancel()
 
     def run_startup_scripts(self) -> None:
-        """Runs Python scripts from addons with one that is approved by user"""
+        """Run enabled startup scripts"""
         game_config = self.config_manager.get_game_config(self.game_id)
         for script in game_config.addons.enabled_startup_scripts:
             try:
@@ -185,25 +139,33 @@ class StartGame(QtWidgets.QDialog):
                 logger.exception("'%s' ran into syntax error", script.relative_path)
 
     async def start_game(self) -> None:
-        self.config_manager.update_game_config_file(
-            game_id=self.game_id,
-            config=attrs.evolve(
-                self.config_manager.read_game_config_file(self.game_id),
-                last_played=datetime.now(UTC),
-            ),
-        )
-
-        self.process = await self.get_qprocess()
-        if self.process is None:
-            return
-
         self.game_finished = False
         self.ui.btnAbort.setText("Abort")
         self.run_startup_scripts()
-        self.process.start()
-        self.process_logging_adapter.extra = {
-            ExternalProcessLogsFilter.EXTERNAL_PROCESS_ID_KEY: self.process.processId()
-        }
-        logger.info("***  Started  ***")
 
-        self.exec()
+        self.show()
+        logger.info("***  Started  ***")
+        with trio.CancelScope() as self.game_cancel_scope:
+            try:
+                return_code = await start_game(
+                    config_manager=self.config_manager,
+                    game_id=self.game_id,
+                    game_launcher_config=self.game_launcher_config,
+                    game_launcher_local_config=self.game_launcher_local_config,
+                    world=self.world,
+                    login_server=self.login_server,
+                    account_number=self.account_number,
+                    ticket=self.ticket,
+                )
+                if return_code != 0:
+                    logger.error("Game closed unexpectedly")
+                else:
+                    logger.info("***  Finished  ***")
+            except* MissingLaunchArgumentError:
+                logger.exception(
+                    "Game launch argument missing. Please report this error if using a supported server."
+                )
+            except* OSError:
+                logger.exception("Failed to start game")
+
+        self.reset_buttons()

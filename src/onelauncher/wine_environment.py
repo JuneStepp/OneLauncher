@@ -36,6 +36,7 @@ from functools import partial
 from pathlib import Path
 from shutil import move, rmtree
 from tempfile import TemporaryDirectory
+from types import MappingProxyType
 from typing import Final
 from urllib import request
 from urllib.error import HTTPError, URLError
@@ -346,16 +347,17 @@ wine_management = WineManagement()
 ESYNC_MINIMUM_OPEN_FILE_LMIT = 524288
 
 
-def edit_qprocess_to_use_wine(
-    qprocess: QtCore.QProcess, wine_config: WineConfigSection
-) -> None:
-    """Reconfigures QProcess to use WINE. The program and arguments must be pre-set!"""
+def get_wine_process_args(
+    command: tuple[str | Path, ...],
+    environment: MappingProxyType[str, str],
+    wine_config: WineConfigSection,
+) -> tuple[tuple[str | Path, ...], MappingProxyType[str, str]]:
+    """Configure `run_process` arguments to use WINE."""
     if os.name == "nt":
-        logger.warning(
-            "Attempt to edit QProcess to use WINE on Windows. No changes were made."
-        )
-        return
-    process_environment = qprocess.processEnvironment()
+        logger.warning("Attempt to use WINE on Windows. No changes were made.")
+        return command, environment
+
+    edited_environment = environment.copy()
 
     prefix_path: Path | None
     wine_path: Path | None
@@ -374,36 +376,34 @@ def edit_qprocess_to_use_wine(
             if sys.platform == "darwin"
             else ("d3d11=n", "dxgi=n", "d3d10core=n", "d3d9=n")
         )
-        process_environment.insert("WINEDLLOVERRIDES", ";".join(wine_dll_overrides))
+        edited_environment["WINEDLLOVERRIDES"] = ";".join(wine_dll_overrides)
 
         if sys.platform != "darwin":
             # Enable ESYNC if open file limit is high enough.
             if (path := Path("/proc/sys/fs/file-max")).exists() and int(
                 path.read_text()
             ) >= ESYNC_MINIMUM_OPEN_FILE_LMIT:
-                process_environment.insert("WINEESYNC", "1")
+                edited_environment["WINEESYNC"] = "1"
 
             # Enable FSYNC. It overrides ESYNC and will only be used if
             # the required kernel patches are installed.
-            process_environment.insert("WINEFSYNC", "1")
+            edited_environment["WINEFSYNC"] = "1"
 
         if sys.platform == "darwin":
             # "wine doesn't handle VK_ERROR_DEVICE_LOST correctly"
             #     -- <https://github.com/Gcenx/macOS_Wine_builds/releases/tag/10.18>
-            process_environment.insert("MVK_CONFIG_RESUME_LOST_DEVICE", "1")
+            edited_environment["MVK_CONFIG_RESUME_LOST_DEVICE"] = "1"
     else:
         prefix_path = wine_config.user_prefix_path
         wine_path = wine_config.user_wine_executable_path
 
     if prefix_path:
-        process_environment.insert("WINEPREFIX", str(prefix_path))
+        edited_environment["WINEPREFIX"] = str(prefix_path)
 
-    process_environment.insert("WINEDEBUG", wine_config.debug_level or "-all")
-    if not process_environment.contains("DXVK_LOG_LEVEL"):
-        process_environment.insert("DXVK_LOG_LEVEL", "error")
+    edited_environment["WINEDEBUG"] = wine_config.debug_level or "-all"
+    if "DXVK_LOG_LEVEL" not in edited_environment:
+        edited_environment["DXVK_LOG_LEVEL"] = "error"
 
-    # Move current program to arguments and replace it with WINE.
-    qprocess.setArguments([qprocess.program(), *qprocess.arguments()])
-    qprocess.setProgram(str(wine_path) if wine_path else "")
-
-    qprocess.setProcessEnvironment(process_environment)
+    return (wine_path if wine_path else "", *command), MappingProxyType(
+        edited_environment
+    )

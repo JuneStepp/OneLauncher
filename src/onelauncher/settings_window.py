@@ -25,11 +25,13 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
+import logging
 import os
 import re
 from contextlib import suppress
 from enum import StrEnum
 from pathlib import Path
+from types import MappingProxyType
 
 import attrs
 import trio
@@ -59,7 +61,9 @@ from .ui.custom_widgets import FramelessQDialogWithStylePreview
 from .ui.settings_uic import Ui_dlgSettings
 from .ui_utilities import show_warning_message
 from .utilities import CaseInsensitiveAbsolutePath
-from .wine_environment import edit_qprocess_to_use_wine
+from .wine_environment import get_wine_process_args
+
+logger = logging.getLogger(__name__)
 
 
 class TabName(StrEnum):
@@ -334,19 +338,28 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
     async def run_standard_game_launcher(self, disable_patching: bool = False) -> None:
         game_config = self.config_manager.get_game_config(self.game_id)
         launcher_path = await get_standard_game_launcher_path(game_config=game_config)
-
         if launcher_path is None:
             show_warning_message("No valid launcher executable found", self)
             return
 
-        process = QtCore.QProcess()
-        process.setProcessEnvironment(QtCore.QProcessEnvironment.systemEnvironment())
-        process.setWorkingDirectory(str(game_config.game_directory))
-        process.setProgram(str(launcher_path))
+        command: tuple[str | Path, ...] = (launcher_path,)
+        environment = MappingProxyType(os.environ)
         if disable_patching:
-            process.setArguments(["-skiprawdownload", "-disablepatch"])
+            command = (*command, "-skiprawdownload", "-disablepatch")
         if os.name != "nt":
-            edit_qprocess_to_use_wine(qprocess=process, wine_config=game_config.wine)
+            command, environment = get_wine_process_args(
+                command=command, environment=environment, wine_config=game_config.wine
+            )
+
+        process = QtCore.QProcess()
+        q_process_environment = QtCore.QProcessEnvironment()
+        for env_name, env_val in environment.items():
+            q_process_environment.insert(env_name, env_val)
+        process.setProcessEnvironment(q_process_environment)
+        process.setProgram(str(command[0]))
+        process.setArguments([str(arg) for arg in command[1:]])
+        process.setWorkingDirectory(str(game_config.game_directory))
+        logger.info("Starting standard game launcher: %s", launcher_path)
         process.startDetached()
 
     def browse_for_directory(

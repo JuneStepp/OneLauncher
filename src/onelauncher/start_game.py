@@ -1,19 +1,28 @@
 import logging
 import os
+import subprocess
+from datetime import UTC, datetime
+from functools import partial
 from pathlib import Path
+from types import MappingProxyType
 
-from PySide6 import QtCore
+import attrs
+import trio
 
+from onelauncher.async_utils import for_each_in_stream
+from onelauncher.config_manager import ConfigManager
 from onelauncher.game_launcher_local_config import GameLauncherLocalConfig
 from onelauncher.game_utilities import get_game_settings_dir
+from onelauncher.logs import ExternalProcessLogsFilter
 
-from .game_config import ClientType, GameConfig
+from .game_config import ClientType, GameConfig, GameConfigID
 from .network.game_launcher_config import GameLauncherConfig
 from .network.world import World
 from .resources import OneLauncherLocale
-from .wine_environment import edit_qprocess_to_use_wine
+from .wine_environment import get_wine_process_args
 
 logger = logging.getLogger(__name__)
+logger.addFilter(ExternalProcessLogsFilter())
 
 
 class MissingLaunchArgumentError(Exception):
@@ -29,7 +38,7 @@ async def get_launch_args(
     login_server: str,
     account_number: str,
     ticket: str,
-) -> list[str]:
+) -> tuple[str, ...]:
     """
     Return complete client launch arguments based on
         client_launch_args_template.
@@ -139,59 +148,85 @@ async def get_launch_args(
         for arg in launch_args
     )
     logger.debug("Game launch arguments generated: %s", redacted_launch_args)
-    return launch_args
+    return tuple(launch_args)
 
 
-async def get_qprocess(
+async def start_game(
+    config_manager: ConfigManager,
+    game_id: GameConfigID,
     game_launcher_config: GameLauncherConfig,
     game_launcher_local_config: GameLauncherLocalConfig,
-    game_config: GameConfig,
-    default_locale: OneLauncherLocale,
     world: World,
     login_server: str,
     account_number: str,
     ticket: str,
-) -> QtCore.QProcess:
-    """Return QProcess configured to start game client.
-
+) -> int:
+    """
     Raises:
         MissingLaunchArgumentError
+        OSError: Error encountered starting or communicating with the process
     """
-    client_filename, client_type = game_launcher_config.get_client_filename(
-        game_config.client_type
+    # Game was last played right now.
+    config_manager.update_game_config_file(
+        game_id=game_id,
+        config=attrs.evolve(
+            config_manager.read_game_config_file(game_id),
+            last_played=datetime.now(UTC),
+        ),
     )
-    # Fixes binary path for 64-bit client
-    if client_type == ClientType.WIN64:
-        client_relative_path = Path("x64") / client_filename
-    else:
-        client_relative_path = Path(client_filename)
+    game_config = config_manager.get_game_config(game_id)
 
     launch_args = await get_launch_args(
         game_launcher_config=game_launcher_config,
         game_launcher_local_config=game_launcher_local_config,
         game_config=game_config,
-        default_locale=default_locale,
+        default_locale=config_manager.get_program_config().default_locale,
         world=world,
         login_server=login_server,
         account_number=account_number,
         ticket=ticket,
     )
+    client_filename, client_type = game_launcher_config.get_client_filename(
+        game_config.client_type
+    )
+    # Fix binary path for 64-bit client.
+    if client_type == ClientType.WIN64:
+        client_relative_path = Path("x64") / client_filename
+    else:
+        client_relative_path = Path(client_filename)
 
-    process = QtCore.QProcess()
-    process.setProgram(str(client_relative_path))
-    process.setArguments(launch_args)
-
-    process_environment = QtCore.QProcessEnvironment.systemEnvironment()
-    for name, value in game_config.environment.items():
-        process_environment.insert(name, value)
-    process.setProcessEnvironment(process_environment)
-
+    command: tuple[str | Path, ...] = (
+        game_config.game_directory / client_relative_path,
+        *launch_args,
+    )
+    environment = MappingProxyType(os.environ.copy() | game_config.environment)
     if os.name != "nt":
-        edit_qprocess_to_use_wine(qprocess=process, wine_config=game_config.wine)
+        command, environment = get_wine_process_args(
+            command=command, environment=environment, wine_config=game_config.wine
+        )
 
-    process.setWorkingDirectory(str(game_config.game_directory))
-    # Just setting the QProcess working directory isn't enough on Windows
-    if os.name == "nt":
-        os.chdir(process.workingDirectory())
-
-    return process
+    async with trio.open_nursery() as nursery:
+        process: trio.Process = await nursery.start(
+            partial(
+                trio.run_process,
+                command,
+                check=False,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=environment,
+                cwd=game_config.game_directory,
+            )
+        )
+        process_logging_adapter = logging.LoggerAdapter(logger)
+        process_logging_adapter.extra = {
+            ExternalProcessLogsFilter.EXTERNAL_PROCESS_ID_KEY: process.pid
+        }
+        if process.stdout is None or process.stderr is None:
+            raise TypeError("Process pipe is `None`")
+        nursery.start_soon(
+            partial(for_each_in_stream, process.stdout, process_logging_adapter.debug)
+        )
+        nursery.start_soon(
+            partial(for_each_in_stream, process.stderr, process_logging_adapter.warning)
+        )
+        return await process.wait()

@@ -328,13 +328,12 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         if game_services_info is None:
             return
 
-        winPatch = PatchWindow(
+        patch_window = PatchWindow(
             game_id=self.game_id,
             config_manager=self.config_manager,
-            launcher_local_config=self.game_launcher_local_config,
-            urlPatchServer=game_services_info.patch_server,
+            patch_server_url=game_services_info.patch_server,
         )
-        winPatch.Run()
+        await patch_window.run()
         self.resetFocus()
 
     async def btnOptionsSelected(self) -> None:

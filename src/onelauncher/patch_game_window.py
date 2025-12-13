@@ -27,216 +27,133 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import logging
-import os
-from typing import Literal, TypeAlias, assert_never
 
+import trio
 from PySide6 import QtCore, QtWidgets
+from qtpy import QtGui
+from typing_extensions import override
 
 from onelauncher.game_config import GameConfigID
-from onelauncher.logs import ExternalProcessLogsFilter, ForwardLogsHandler
+from onelauncher.logs import ForwardLogsHandler
 from onelauncher.qtapp import get_qapp
-from onelauncher.resources import data_dir
 from onelauncher.ui_utilities import log_record_to_rich_text
 
 from .config_manager import ConfigManager
-from .game_launcher_local_config import GameLauncherLocalConfig
-from .patching_progress_monitor import PatchingProgressMonitor
+from .patch_game import PATCH_CLIENT_RUNNER, PatchingProgressMonitor, patch_game
+from .patch_game import logger as patch_game_logger
 from .ui.patching_window_uic import Ui_patchingDialog
-from .wine_environment import edit_qprocess_to_use_wine
 
 logger = logging.getLogger(__name__)
 
 
 class PatchWindow(QtWidgets.QDialog):
-    PatchPhase: TypeAlias = Literal["FullPatch", "FilesOnly", "DataOnly"]
-
     def __init__(
         self,
         game_id: GameConfigID,
         config_manager: ConfigManager,
-        launcher_local_config: GameLauncherLocalConfig,
-        urlPatchServer: str,
+        patch_server_url: str,
     ):
         super().__init__(
             get_qapp().activeWindow(),
             QtCore.Qt.WindowType.FramelessWindowHint,
         )
-        self.launcher_local_config = launcher_local_config
+        self.game_id = game_id
+        self.config_manager = config_manager
+        self.patch_server_url = patch_server_url
+
+        self.progress_monitor: PatchingProgressMonitor | None = None
 
         self.ui = Ui_patchingDialog()
         self.ui.setupUi(self)
         self.setWindowTitle("Patching Output")
 
-        self.process_logging_adapter = logging.LoggerAdapter(logger)
-        logger.addFilter(ExternalProcessLogsFilter())
-        ui_logging_handler = ForwardLogsHandler(
+        self.ui_logs_handler = ForwardLogsHandler(
             new_log_callback=lambda record: self.ui.txtLog.append(
                 log_record_to_rich_text(record)
             ),
             level=logging.INFO,
         )
-        logger.addHandler(ui_logging_handler)
+        logger.addHandler(self.ui_logs_handler)
+        patch_game_logger.addHandler(self.ui_logs_handler)
 
-        self.ui.progressBar.reset()
-        self.ui.btnStop.setText("Close")
-        self.ui.btnStart.setText("Patch")
-        self.ui.btnStop.clicked.connect(self.btnStopClicked)
-        self.ui.btnStart.clicked.connect(self.btnStartClicked)
-
-        self.aborted = False
         self.patching_finished = True
 
-        game_config = config_manager.get_game_config(game_id=game_id)
-        patch_client = game_config.game_directory / game_config.patch_client_filename
+    def setup_ui(self) -> None:
+        self.finished.connect(self.cleanup)
 
-        # Make sure patch_client exists
-        if not patch_client.exists():
-            logger.error("Patch client %s not found", patch_client)
-            return
+        self.ui.btnStart.setText("Patch")
+        self.ui.btnStop.clicked.connect(self.btnStopClicked)
+        self.ui.btnStart.clicked.connect(lambda: self.nursery.start_soon(self.start))
+        self.reset_buttons()
 
-        self.progress_monitor = PatchingProgressMonitor()
-
-        self.process = QtCore.QProcess()
-        self.process.readyReadStandardOutput.connect(self.readOutput)
-        self.process.readyReadStandardError.connect(self.readErrors)
-        self.process.finished.connect(self.processFinished)
-        self.process.setWorkingDirectory(str(game_config.game_directory))
-        if os.name == "nt":
-            # The directory with TTEPatchClient.dll has to be in the PATH for
-            # patchclient.dll to find it when OneLauncher is compilled with Nuitka.
-            environment = self.process.processEnvironment()
-            existing_path_var = environment.value("PATH", "")
-            environment.insert(
-                "PATH",
-                f"{f'{existing_path_var};' if existing_path_var else ''}{game_config.game_directory}",
-            )
-            self.process.setProcessEnvironment(environment)
-
-        patch_client_runner = (
-            data_dir.parent / "run_patch_client" / "run_ptch_client.exe"
-        )
-        if not patch_client_runner.exists():
+        if not PATCH_CLIENT_RUNNER.exists():
             logger.error("Cannot patch. run_ptch_client.exe is missing.")
             self.ui.btnStart.setEnabled(False)
-        self.process.setProgram(str(patch_client_runner))
-        self.process.setArguments([str(patch_client)])
-        if os.name != "nt":
-            edit_qprocess_to_use_wine(
-                qprocess=self.process, wine_config=game_config.wine
-            )
 
-        # Arguments have to be gotten from self.process, because
-        # they mey have been changed by edit_qprocess_to_use_wine().
-        self.base_process_arguments = tuple(self.process.arguments())
-        # Arguments to be passed to patchclient.dll
-        self.patch_client_arguments = (
-            urlPatchServer,
-            "--language",
-            game_config.locale.game_language_name
-            if game_config.locale
-            else config_manager.get_program_config().default_locale.game_language_name,
-            *(("--highres",) if game_config.high_res_enabled else ()),
-        )
-        # Run file patching twiceto avoid problems when patchclient.dll
-        # self-patches
-        self.patch_phases: tuple[PatchWindow.PatchPhase, ...] = (
-            "FilesOnly",
-            "FilesOnly",
-            "DataOnly",
-        )
-        self.phase_index: int = 0
-        if process_arguments := self.get_process_arguments():
-            self.process.setArguments(process_arguments)
+    async def run(self) -> None:
+        self.setup_ui()
+        self.open()
+        async with trio.open_nursery() as self.nursery:
+            self.nursery.start_soon(self.keep_progress_bar_updated)
+            # Will be canceled when the winddow is closed.
+            self.nursery.start_soon(trio.sleep_forever)
 
-    def get_process_arguments(self) -> tuple[str, ...] | None:
-        if self.phase_index > len(self.patch_phases) - 1 or self.phase_index < 0:
-            # Finished
-            return None
-        current_phase = self.patch_phases[self.phase_index]
-        if current_phase == "FilesOnly":
-            phase_arg = "--filesonly"
-        elif current_phase == "DataOnly":
-            phase_arg = "--dataonly"
-        elif current_phase == "FullPatch":
-            phase_arg = ""
-        else:
-            assert_never(current_phase)
+    def cleanup(self) -> None:
+        patch_game_logger.removeHandler(self.ui_logs_handler)
+        self.ui_logs_handler.close()
 
-        return (
-            *self.base_process_arguments,
-            " ".join([*self.patch_client_arguments, phase_arg]),
-        )
+        self.nursery.cancel_scope.cancel()
 
-    def readOutput(self) -> None:
-        line = self.process.readAllStandardOutput().toStdString()
-        if line.strip():
-            self.process_logging_adapter.debug(line)
+    @override
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
+        self.cleanup()
+        event.accept()
 
-        progress = self.progress_monitor.feed_line(line)
-        self.ui.progressBar.setMaximum(progress.total_iterations)
-        self.ui.progressBar.setValue(progress.current_iterations)
-
-    def readErrors(self) -> None:
-        line = self.process.readAllStandardError().toStdString()
-        if line.strip():
-            self.process_logging_adapter.warning(line)
-
-    def resetButtons(self) -> None:
+    def reset_buttons(self) -> None:
         self.patching_finished = True
         self.ui.btnStop.setText("Close")
         self.ui.btnStart.setEnabled(True)
-        self.progress_monitor.reset()
+
+        self.progress_monitor = None
         # Make sure it's not showing a busy indicator
         self.ui.progressBar.setMinimum(1)
         self.ui.progressBar.setMaximum(1)
         self.ui.progressBar.reset()
-        if self.aborted:
-            logger.info("***  Aborted  ***<")
-        elif self.get_process_arguments() is None:
-            logger.info("***  Finished  ***")
-            # Let user know that patching is finished if the window isn't currently
-            # focussed.
-            self.activateWindow()
 
     def btnStopClicked(self) -> None:
         if self.patching_finished:
             self.close()
         else:
-            self.process.kill()
-            self.aborted = True
+            self.patching_cancel_scope.cancel()
+            logger.info("***  Aborted  ***")
 
-            if self.process.state() != self.process.ProcessState.Running:
-                self.resetButtons()
+    async def keep_progress_bar_updated(self) -> None:
+        # Will be cancled once the patching window is closed.
+        while True:
+            if self.progress_monitor:
+                progress = self.progress_monitor.get_patching_progress()
+                self.ui.progressBar.setMaximum(progress.total_iterations)
+                self.ui.progressBar.setValue(progress.current_iterations)
+            await trio.sleep(0.1)
 
-    def processFinished(
-        self, exitCode: int, exitStatus: QtCore.QProcess.ExitStatus
-    ) -> None:
-        if self.aborted:
-            self.resetButtons()
-            return
-
-        self.phase_index += 1
-        # Handle remaining patching phases
-        new_arguments = self.get_process_arguments()
-        if new_arguments is None:
-            # finished
-            self.resetButtons()
-            return
-        self.process.setArguments(new_arguments)
-        self.process.start()
-
-    def btnStartClicked(self) -> None:
-        self.aborted = False
+    async def start(self) -> None:
         self.patching_finished = False
-        self.phase_index = 0
         self.ui.btnStart.setEnabled(False)
         self.ui.btnStop.setText("Abort")
 
-        self.process.start()
-        self.process_logging_adapter.extra = {
-            ExternalProcessLogsFilter.EXTERNAL_PROCESS_ID_KEY: self.process.processId()
-        }
-        logger.info("***  Started  ***")
+        self.progress_monitor = PatchingProgressMonitor()
 
-    def Run(self) -> None:
-        self.exec()
+        logger.info("***  Started  ***")
+        with trio.CancelScope() as self.patching_cancel_scope:
+            await patch_game(
+                patch_server_url=self.patch_server_url,
+                progress_monitor=self.progress_monitor,
+                game_id=self.game_id,
+                config_manager=self.config_manager,
+            )
+            logger.info("***  Finished  ***")
+
+        self.reset_buttons()
+        # Let user know that patching is finished if the window isn't currently
+        # focussed.
+        self.activateWindow()
