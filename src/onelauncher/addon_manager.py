@@ -1921,9 +1921,11 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         return True
 
-    # Downloads file from url to path and shows progress with
-    # self.handleDownloadProgress
     def downloader(self, url: str, path: Path) -> bool:
+        """
+        Download file from `url` to `path` and show progress with
+        `self.handleDownloadProgress`.
+        """
         if url.lower().startswith("http"):
             try:
                 self.ui.progressBar.setValue(0)
