@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 from collections.abc import Callable
 from enum import IntEnum
@@ -73,10 +74,9 @@ def setup_application_logging(log_level_override: LogLevel | None = None) -> Non
         file_logging_level = LogLevel.INFO
         stream_logging_level = LogLevel.WARNING
 
-    # Make sure logs dir exists
     LOGS_DIR.mkdir(exist_ok=True, parents=True)
 
-    # Create or get custom logger
+    # Create or get custom logger.
     logger = logging.getLogger()
     logging.logThreads = False
 
@@ -84,31 +84,28 @@ def setup_application_logging(log_level_override: LogLevel | None = None) -> Non
     # attached to it have their own levels.
     logger.setLevel(LogLevel.DEBUG)
 
-    # Create handlers
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(stream_logging_level)
-
-    log_file = LOGS_DIR / MAIN_LOG_FILE_NAME
-    file_handler = RotatingFileHandler(
-        filename=log_file,
-        mode="a",
-        maxBytes=10 * 1024 * 1024,
-        backupCount=2,
-        encoding=None,
-    )
-    file_handler.setLevel(file_logging_level)
-
-    # Create formatters and add it to handlers
     stream_format = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
     stream_handler.setFormatter(stream_format)
-    file_format = RedactHomeDirFormatter(
-        "%(asctime)s - %(process)d - %(name)s - %(levelname)s - %(lineno)d - %(message)s"
-    )
-    file_handler.setFormatter(file_format)
-
-    # Add handlers to the logger
     logger.addHandler(stream_handler)
-    logger.addHandler(file_handler)
+
+    # Don't log to file during testing.
+    if os.environ.get("PYTEST_VERSION") is None:
+        log_file = LOGS_DIR / MAIN_LOG_FILE_NAME
+        file_handler = RotatingFileHandler(
+            filename=log_file,
+            mode="a",
+            maxBytes=10 * 1024 * 1024,
+            backupCount=2,
+            encoding=None,
+        )
+        file_handler.setLevel(file_logging_level)
+        file_format = RedactHomeDirFormatter(
+            "%(asctime)s - %(process)d - %(name)s - %(levelname)s - %(lineno)d - %(message)s"
+        )
+        file_handler.setFormatter(file_format)
+        logger.addHandler(file_handler)
 
     # Setup handling of uncaught exceptions
     sys.excepthook = partial(handle_uncaught_exceptions, logger=logger)
