@@ -917,9 +917,6 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
 
 async def check_for_update() -> None:
     """Notifies user if their copy of OneLauncher is out of date"""
-    # Don't unecessarily check for updates during development
-    if __about__.version_parsed.is_devrelease:
-        return
     repository_url = __about__.__project_url__
     if not repository_url:
         logger.warning("No updates URL available")
