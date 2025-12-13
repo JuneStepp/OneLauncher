@@ -14,9 +14,6 @@ from onelauncher.config_manager import (
     ConfigManager,
 )
 from onelauncher.game_config import GameConfig, GameType, generate_game_config_id
-from onelauncher.main_window import MainWindow
-from onelauncher.qtapp import get_qapp
-from onelauncher.setup_wizard import SetupWizard
 from onelauncher.utilities import CaseInsensitiveAbsolutePath
 from onelauncher.wine.config import WineConfigSection
 
@@ -79,8 +76,7 @@ async def test_normal(
     assert app([]) == 0
     async_mock.assert_called_once()
 
-    get_qapp()
-    main_window_mock = mocker.patch.object(MainWindow, "run")
+    main_window_mock = mocker.patch.object(main, "MainWindow", autospec=True)
 
     await async_mock.call_args.kwargs["entry"]()
     main_window_mock.assert_called_once()
@@ -93,12 +89,12 @@ async def test_no_config(app: cyclopts.App, mocker: MockerFixture) -> None:
     assert app([]) == 0
     async_mock.assert_called_once()
 
-    get_qapp()
-    mock = mocker.patch.object(SetupWizard, "exec")
-    mock.return_value = QtWidgets.QDialog.DialogCode.Rejected
+    mock = mocker.patch.object(main, "SetupWizard")
+    mock_instance = mock.return_value
+    mock_instance.exec.return_value = QtWidgets.QDialog.DialogCode.Rejected
 
     await async_mock.call_args.kwargs["entry"]()
-    mock.assert_called_once()
+    mock_instance.exec.assert_called_once()
 
 
 async def test_no_games(
@@ -112,16 +108,15 @@ async def test_no_games(
     assert app([]) == 0
     async_mock.assert_called_once()
 
-    get_qapp()
     mocker.patch.object(QtWidgets.QMessageBox, "information")
-    spy = mocker.spy(main, "SetupWizard")
-    mock = mocker.patch.object(SetupWizard, "exec")
-    mock.return_value = QtWidgets.QDialog.DialogCode.Rejected
+    mock = mocker.patch.object(main, "SetupWizard")
+    mock_instance = mock.return_value
+    mock_instance.exec.return_value = QtWidgets.QDialog.DialogCode.Rejected
 
     await async_mock.call_args.kwargs["entry"]()
-    spy.assert_called_once()
-    assert spy.call_args.kwargs["game_selection_only"] is True
     mock.assert_called_once()
+    assert mock.call_args.kwargs["game_selection_only"] is True
+    mock_instance.exec.assert_called_once()
 
 
 def test_invalid_program_config(
@@ -173,8 +168,7 @@ async def test_invalid_program_config_load_backup(
     assert app([]) == 0
     async_mock.assert_called_once()
 
-    get_qapp()
-    main_window_mock = mocker.patch.object(MainWindow, "run")
+    main_window_mock = mocker.patch.object(main, "MainWindow", autospec=True)
 
     await async_mock.call_args.kwargs["entry"]()
     main_window_mock.assert_called_once()
