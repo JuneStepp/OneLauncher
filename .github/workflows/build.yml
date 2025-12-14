@@ -1,6 +1,6 @@
 name: Build
 
-permissions: { }
+permissions: {}
 
 on:
   push:
@@ -30,7 +30,9 @@ jobs:
             artifact_rename: OneLauncher-Windows.msi
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 v6.0.1
+        with:
+          persist-credentials: false
 
       # `run_patch_client` C code
       - name: Install mingw-w64 on Linux
@@ -44,7 +46,7 @@ jobs:
         run: make -C src/run_patch_client
       - name: Install mingw-w64 on Windows
         if: runner.os == 'Windows'
-        uses: msys2/setup-msys2@v2
+        uses: msys2/setup-msys2@4f806de0a5a7294ffabaff804b38a9b435a73bda # v2.30.0
         with:
           msystem: MINGW32
           install: mingw-w64-i686-toolchain make
@@ -57,11 +59,11 @@ jobs:
       # Can't use uv python with Nuitka yet
       # See https://github.com/Nuitka/Nuitka/issues/3331
       - name: Install Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version-file: "pyproject.toml"
       - name: Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@681c641aba71e4a1c380be3ab5e12ad51f415867 # v7.1.6
         with:
           activate-environment: true
       - run: uv sync --locked --no-dev --group build
@@ -80,7 +82,7 @@ jobs:
           echo "PYTHON_VERSION=$(python --version | awk '{print $2}' | cut -d '.' -f 1,2)" >> $GITHUB_ENV
       - name: Cache Nuitka cache directory
         if: ${{ !inputs.disable-cache }}
-        uses: actions/cache@v4
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: ${{ env.NUITKA_CACHE_DIR }}
           key: nuitka-caching-${{ runner.os }}-${{ runner.arch }}-python-${{ env.PYTHON_VERSION }}-nuitka-${{ github.sha }}
@@ -91,7 +93,7 @@ jobs:
 
       - name: Setup dotnet for building Windows installer
         if: runner.os == 'Windows'
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5.0.1
         with:
           dotnet-version: 8.0.x
 
@@ -103,7 +105,7 @@ jobs:
       - name: Rename artifact
         run: mv build/out/${{ matrix.artifact_path_name }} build/out/${{ matrix.artifact_rename }}
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: ${{ matrix.artifact_rename }}
           path: build/out/${{ matrix.artifact_rename }}
@@ -118,11 +120,11 @@ jobs:
       contents: write # For making the release.
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           path: build_artifacts/
       - name: Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@aec2ec56f94eb8180ceec724245f64ef008b89f5 # v2.4.0
         with:
           draft: true
           fail_on_unmatched_files: true
