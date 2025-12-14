@@ -163,7 +163,7 @@ class WineManagement:
         if self.wine_binary_path.exists():
             return
 
-        self.dlgDownloader.setLabelText("Downloading Wine...")
+        self.dlgDownloader.setLabelText("Downloading WINE...")
 
         with TemporaryDirectory() as temp_dir_name:
             download_path = Path(temp_dir_name) / "wine.tar.xz"
@@ -172,7 +172,7 @@ class WineManagement:
                 return
 
             self.dlgDownloader.reset()
-            self.dlgDownloader.setLabelText("Extracting Wine...")
+            self.dlgDownloader.setLabelText("Extracting WINE...")
             self.dlgDownloader.setValue(99)
             self._wine_extractor(download_path)
             self.dlgDownloader.setValue(100)
