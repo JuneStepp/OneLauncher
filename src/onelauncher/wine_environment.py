@@ -54,22 +54,24 @@ from .wine.config import WineConfigSection
 logger = logging.getLogger(__name__)
 
 
-MOLTENVK_VERSION = "1.2.10-cxp20241028-UE4hack-zeroinit"  # spellchecker:disable-line
-MOLTENVK_URL = "https://github.com/Sikarugir-App/MoltenVK/releases/download/v1.2.10/macos-1.2.10-cxp20241028-UE4hack-zeroinit.tar.xz"
 if sys.platform == "darwin":
-    WINE_VERSION = "staging-10.20"
-    WINE_URL = "https://github.com/Gcenx/macOS_Wine_builds/releases/download/10.20/wine-staging-10.20-osx64.tar.xz"
-    DXVK_VERSION = "1.10.3-20230507-repack"
-    DXVK_URL = "https://github.com/Gcenx/DXVK-macOS/releases/download/v1.10.3-20230507-repack/dxvk-macOS-async-v1.10.3-20230507-repack.tar.gz"
+    WINE_VERSION = "WS12WineSikarugir10.0_2"
+    WINE_URL = "https://github.com/Sikarugir-App/Engines/releases/download/v1.0/WS12WineSikarugir10.0_2.tar.xz"
+
 else:
     # To use Proton, replace link with Proton build and uncomment
     # `self.proton_documents_symlinker()` in wine_setup in wine_management
     WINE_VERSION = "10.20-staging-tkg-amd64-wow64"
     WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/10.20/wine-10.20-staging-tkg-amd64-wow64.tar.xz"
-    DXVK_VERSION = "2.7.1"
-    DXVK_URL = (
-        "https://github.com/doitsujin/dxvk/releases/download/v2.7.1/dxvk-2.7.1.tar.gz"
-    )
+
+DXVK_VERSION = "2.7.1"
+DXVK_URL = (
+    "https://github.com/doitsujin/dxvk/releases/download/v2.7.1/dxvk-2.7.1.tar.gz"
+)
+
+# macOS only. Includes DXVK.
+SIKARUGIR_FRAMEWORKS_VERSION = "Template-1.0.5"
+SIKARUGIR_FRAMEWORKS_URL = "https://github.com/Sikarugir-App/Wrapper/releases/download/v1.0/Template-1.0.5.tar.xz"
 
 
 @attrs.define
@@ -97,11 +99,12 @@ class WineManagement:
             self.downloads_path / f"wine-{WINE_VERSION}"
         )
         self.wine_binary_path: Final[Path] = self.latest_wine_path / "bin" / "wine"
+
         self.latest_dxvk_path: Final[Path] = (
             self.downloads_path / f"dxvk-{DXVK_VERSION}"
         )
-        self.latest_moltenvk_path: Final[Path] = (
-            self.downloads_path / f"moltenvk-{MOLTENVK_VERSION}"
+        self.latest_sikarugir_frameworks_path: Final[Path] = (
+            self.downloads_path / f"frameworks-{SIKARUGIR_FRAMEWORKS_VERSION}"
         )
 
         self._dlgDownloader: QtWidgets.QProgressDialog | None = None
@@ -210,8 +213,6 @@ class WineManagement:
                 tar.extractall(temp_dir, filter="data")
 
             source_dir = next(temp_dir.glob("*/"))
-            if sys.platform == "darwin":
-                source_dir = source_dir / "Contents" / "Resources" / "wine"
             # Using `shutil.move` instead of `Path.rename`, so that it works across
             # filesystems.
             move(source_dir, self.latest_wine_path)
@@ -276,28 +277,25 @@ class WineManagement:
             (self.prefix_system32 / dll).symlink_to(self.latest_dxvk_path / "x64" / dll)
             (self.prefix_syswow64 / dll).symlink_to(self.latest_dxvk_path / "x32" / dll)
 
-    def moltenvk_setup(self) -> None:
-        if self.latest_moltenvk_path.exists():
-            self._moltenvk_injector()
+    def sikarugir_frameworks_setup(self) -> None:
+        if self.latest_sikarugir_frameworks_path.exists():
             return
 
-        self.dlgDownloader.setLabelText("Downloading MoltenVK...")
+        self.dlgDownloader.setLabelText("Downloading WINE dependencies...")
 
         with TemporaryDirectory() as temp_dir_name:
-            download_path = Path(temp_dir_name) / "moltenvk.tar.xz"
+            download_path = Path(temp_dir_name) / "sikarugir_frameworks.tar.xz"
 
-            if not self._downloader(MOLTENVK_URL, download_path):
+            if not self._downloader(SIKARUGIR_FRAMEWORKS_URL, download_path):
                 return
 
             self.dlgDownloader.reset()
-            self.dlgDownloader.setLabelText("Extracting MoltenVK...")
+            self.dlgDownloader.setLabelText("Extracting WINE dependencies...")
             self.dlgDownloader.setValue(99)
-            self._moltenvk_extractor(download_path)
+            self._sikarugir_frameworks_extractor(download_path)
             self.dlgDownloader.setValue(100)
 
-        self._moltenvk_injector()
-
-    def _moltenvk_extractor(self, archive_path: Path) -> None:
+    def _sikarugir_frameworks_extractor(self, archive_path: Path) -> None:
         with TemporaryDirectory() as temp_dir_name:
             temp_dir = Path(temp_dir_name)
 
@@ -305,25 +303,18 @@ class WineManagement:
             with lzma.open(archive_path) as file, tarfile.open(fileobj=file) as tar:
                 tar.extractall(temp_dir, filter="data")
 
-            source_dir = (
-                next(temp_dir.glob("*/")) / "Release" / "MoltenVK" / "dylib" / "macOS"
-            )
+            source_dir = next(temp_dir.glob("*/")) / "Contents" / "Frameworks"
             # Using `shutil.move` instead of `Path.rename`, so that it works across
             # filesystems.
-            move(source_dir, self.latest_moltenvk_path)
+            move(source_dir, self.latest_sikarugir_frameworks_path)
 
-        # Remove old MoltenVK versions.
+        # Remove old versions.
         for folder in self.downloads_path.glob("*/"):
             if (
-                folder.name.startswith("moltenvk")
-                and folder != self.latest_moltenvk_path
+                folder.name.startswith("frameworks")
+                and folder != self.latest_sikarugir_frameworks_path
             ):
                 rmtree(folder)
-
-    def _moltenvk_injector(self) -> None:
-        wine_moltenvk = self.latest_wine_path / "lib" / "libMoltenVK.dylib"
-        wine_moltenvk.unlink(missing_ok=True)
-        wine_moltenvk.symlink_to(self.latest_moltenvk_path / "libMoltenVK.dylib")
 
     def setup_files(self) -> None:
         self.downloads_path.mkdir(parents=True, exist_ok=True)
@@ -332,11 +323,10 @@ class WineManagement:
 
         self.wine_setup()
         self.dlgDownloader.reset()
-        self.dxvk_setup()
         if sys.platform == "darwin":
-            self.dlgDownloader.reset()
-            # Must be after WINE setup, b/c it edits WINE files.
-            self.moltenvk_setup()
+            self.sikarugir_frameworks_setup()
+        else:
+            self.dxvk_setup()
         self.dlgDownloader.close()
         self.is_setup = True
 
@@ -371,11 +361,8 @@ def get_wine_process_args(
         # Disable mscoree and mshtml to avoid downloading wine mono and gecko.
         wine_dll_overrides: list[str] = ["mscoree=d", "mshtml=d"]
         # Add dll overrides for DirectX, so DXVK is used instead of wine3d.
-        wine_dll_overrides.extend(
-            ("d3d11=n", "d3d10core=n")
-            if sys.platform == "darwin"
-            else ("d3d11=n", "dxgi=n", "d3d10core=n", "d3d9=n")
-        )
+        if sys.platform != "darwin":
+            wine_dll_overrides.extend(("d3d11=n", "dxgi=n", "d3d10core=n", "d3d9=n"))
         edited_environment["WINEDLLOVERRIDES"] = ";".join(wine_dll_overrides)
 
         if sys.platform != "darwin":
@@ -390,6 +377,26 @@ def get_wine_process_args(
             edited_environment["WINEFSYNC"] = "1"
 
         if sys.platform == "darwin":
+            edited_environment["DYLD_FALLBACK_LIBRARY_PATH"] = ":".join(
+                str(path)
+                for path in (
+                    (wine_management.latest_sikarugir_frameworks_path / "moltenvkcx"),
+                    (wine_management.latest_wine_path / "lib"),
+                    (wine_management.latest_wine_path / "lib64"),
+                    wine_management.latest_sikarugir_frameworks_path,
+                    Path("/opt/wine/lib"),
+                    Path("/usr/lib"),
+                    Path("/usr/libexec"),
+                    Path("/usr/lib/system"),
+                )
+            )
+            edited_environment["WINEDLLPATH_PREPEND"] = str(
+                wine_management.latest_sikarugir_frameworks_path
+                / "renderer"
+                / "dxvk"
+                / "wine"
+            )
+
             # "wine doesn't handle VK_ERROR_DEVICE_LOST correctly"
             #     -- <https://github.com/Gcenx/macOS_Wine_builds/releases/tag/10.18>
             edited_environment["MVK_CONFIG_RESUME_LOST_DEVICE"] = "1"
