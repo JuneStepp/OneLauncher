@@ -154,7 +154,7 @@ async def patch_game(
 
     if os.name == "nt":
         # The directory with TTEPatchClient.dll has to be in the PATH for
-        # patchclient.dll to find it when OneLauncher is compilled with Nuitka.
+        # patchclient.dll to find it when OneLauncher is compiled with Nuitka.
         environment = MappingProxyType(
             environment
             | {

@@ -23,7 +23,7 @@ def main(
     nuitka_arguments = [
         f"--output-dir={Path(__file__) / 'out'}",
         "--onefile" if onefile_mode else "--standalone",
-        "--python-flag=-m",  # Package mode. Compile as "pakcage.__main__"
+        "--python-flag=-m",  # Package mode. Compile as "package.__main__"
         "--python-flag=isolated",
         "--python-flag=no_docstrings",
         "--warn-unusual-code",

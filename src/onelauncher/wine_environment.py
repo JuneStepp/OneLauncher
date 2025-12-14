@@ -54,7 +54,7 @@ from .wine.config import WineConfigSection
 logger = logging.getLogger(__name__)
 
 
-MOLTENVK_VERSION = "1.2.10-cxp20241028-UE4hack-zeroinit"
+MOLTENVK_VERSION = "1.2.10-cxp20241028-UE4hack-zeroinit"  # spellchecker:disable-line
 MOLTENVK_URL = "https://github.com/Sikarugir-App/MoltenVK/releases/download/v1.2.10/macos-1.2.10-cxp20241028-UE4hack-zeroinit.tar.xz"
 if sys.platform == "darwin":
     WINE_VERSION = "staging-10.20"
@@ -237,12 +237,12 @@ class WineManagement:
                 self.dlgDownloader.reset()
                 self.dlgDownloader.setLabelText("Extracting DXVK...")
                 self.dlgDownloader.setValue(99)
-                self._dxvk_extracor(download_path)
+                self._dxvk_extractor(download_path)
                 self.dlgDownloader.setValue(100)
 
         self._dxvk_injector()
 
-    def _dxvk_extracor(self, archive_path: Path) -> None:
+    def _dxvk_extractor(self, archive_path: Path) -> None:
         with TemporaryDirectory() as temp_dir_name:
             temp_dir = Path(temp_dir_name)
 
@@ -344,7 +344,7 @@ class WineManagement:
 wine_management = WineManagement()
 
 
-ESYNC_MINIMUM_OPEN_FILE_LMIT = 524288
+ESYNC_MINIMUM_OPEN_FILE_LIMIT = 524288
 
 
 def get_wine_process_args(
@@ -382,7 +382,7 @@ def get_wine_process_args(
             # Enable ESYNC if open file limit is high enough.
             if (path := Path("/proc/sys/fs/file-max")).exists() and int(
                 path.read_text()
-            ) >= ESYNC_MINIMUM_OPEN_FILE_LMIT:
+            ) >= ESYNC_MINIMUM_OPEN_FILE_LIMIT:
                 edited_environment["WINEESYNC"] = "1"
 
             # Enable FSYNC. It overrides ESYNC and will only be used if

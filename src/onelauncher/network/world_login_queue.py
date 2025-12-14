@@ -12,7 +12,7 @@ class JoinWorldQueueResult(NamedTuple):
 
 
 class WorldQueueResultXMLParseError(Exception):
-    """Error with content/formatting of world queue respone XML"""
+    """Error with content/formatting of world queue response XML"""
 
 
 class JoinWorldQueueFailedError(Exception):
@@ -64,7 +64,7 @@ class WorldLoginQueue:
         Raises:
             HTTPError: Network error
             WorldQueueResultXMLParseError: Error with content/formatting of
-                                           world queue respone XML
+                                           world queue response XML
             JoinWorldQueueFailedError: Failed to join world login queue
         """
         response = await get_httpx_client(self._login_queue_url).post(

@@ -23,7 +23,7 @@
                             <xs:element name="Version" type="xs:string">
                                 <xs:annotation>
                                     <xs:documentation xml:lang="en">
-                                        The version that will be displayed in the "/plugins list", "/plugins refresh" and plugin manager lists. This value can also be used programatically for tagging saved data and automatically processing data updates.
+                                        The version that will be displayed in the "/plugins list", "/plugins refresh" and plugin manager lists. This value can also be used programmatically for tagging saved data and automatically processing data updates.
                                     </xs:documentation>
                                 </xs:annotation>
                             </xs:element>
@@ -37,7 +37,7 @@
                             <xs:element minOccurs="0" name="Image" type="xs:string">
                                 <xs:annotation>
                                     <xs:documentation xml:lang="en">
-                                        The realtive path to a .JPG or .TGA file. Note, if the file is greater than 32x32 it will be cropped to 32x32. If the image is less than 32x32 it will be tiled. This image will be displayed in the Turbine Plugin Manager
+                                        The relative path to a .JPG or .TGA file. Note, if the file is greater than 32x32 it will be cropped to 32x32. If the image is less than 32x32 it will be tiled. This image will be displayed in the Turbine Plugin Manager
                                     </xs:documentation>
                                 </xs:annotation>
                             </xs:element>

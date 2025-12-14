@@ -1,4 +1,4 @@
-<!-- Originally taken from Plugin Compendium with permision from lunarwtr-->
+<!-- Originally taken from Plugin Compendium with permission from lunarwtr-->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
   <xs:element name="Favorites">
     <xs:complexType>

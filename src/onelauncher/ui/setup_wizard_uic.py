@@ -210,7 +210,7 @@ class Ui_Wizard(object):
 #endif // QT_CONFIG(tooltip)
         self.upPriorityButton.setText(QCoreApplication.translate("Wizard", u"\u2191", None))
         self.addGameButton.setText(QCoreApplication.translate("Wizard", u"Add Game", None))
-        self.dataDeletionWizardPage.setTitle(QCoreApplication.translate("Wizard", u"Exisiting Games Data", None))
+        self.dataDeletionWizardPage.setTitle(QCoreApplication.translate("Wizard", u"Existing Games Data", None))
         self.dataDeletionWizardPage.setSubTitle(QCoreApplication.translate("Wizard", u"Some of your game installations are already registered with OneLauncher. You can choose to have their settings and accounts either kept or reset. Unselected games are always removed.", None))
         self.groupBox.setTitle(QCoreApplication.translate("Wizard", u"What should happen to existing game data?", None))
         self.keepDataRadioButton.setText(QCoreApplication.translate("Wizard", u"Keep it", None))

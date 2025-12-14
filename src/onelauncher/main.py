@@ -25,7 +25,7 @@ def show_invalid_config_dialog(
     """
     Returns:
         None: When `backup_available` is `False`.
-        bool: Wether the user wants to load the backup.
+        bool: Whether the user wants to load the backup.
     """
     _ = get_qapp()
     dialog = QtWidgets.QDialog()
@@ -48,7 +48,7 @@ def verify_configs(config_manager: ConfigManager) -> bool:
     the configs are valid.
 
     Returns:
-        bool: Wether the configs after valid after all user prompting/potential backup
+        bool: Whether the configs after valid after all user prompting/potential backup
               loading.
     """
     try:

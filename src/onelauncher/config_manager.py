@@ -35,8 +35,8 @@ def _structure_onelauncher_locale(
     return available_locales[lang_tag]
 
 
-def _unstructure_startup_script(startup_scirpt: StartupScript) -> str:
-    return str(startup_scirpt.relative_path)
+def _unstructure_startup_script(startup_script: StartupScript) -> str:
+    return str(startup_script.relative_path)
 
 
 def _structure_startup_script(

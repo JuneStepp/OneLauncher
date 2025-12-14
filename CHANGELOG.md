@@ -53,7 +53,7 @@ This update has quite a few small fixes and improvements. The full changelog is 
 
 ### Testing
 
-- Add `test_allow_uknown_config_keys`
+- Add `test_allow_unknown_config_keys`
 - Increase strictness of pytest config
 
 ## 2.0.1 (2024-08-03)

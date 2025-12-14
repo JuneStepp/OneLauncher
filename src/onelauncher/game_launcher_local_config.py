@@ -104,7 +104,7 @@ class GameLauncherLocalConfig:
     @cached(LRUCache(maxsize=128))
     async def from_game_dir(
         cls: type[Self],
-        *,  # Keyword only, so caching is consistant
+        *,  # Keyword only, so caching is consistent
         game_directory: CaseInsensitiveAbsolutePath,
         game_type: GameType,
     ) -> Self | None:
@@ -146,7 +146,7 @@ class GameLauncherLocalConfig:
 
     def to_config_xml(self, existing_xml: str | None = None) -> str:
         """
-        CODE NOT IN USE YET. TODO: Clear or idealy replace `GameLauncherLocalConfig.from_game`
+        CODE NOT IN USE YET. TODO: Clear or ideally replace `GameLauncherLocalConfig.from_game`
             cache when a launcher config file is updated.
         Serialize into valid .launcherconfig text.
 

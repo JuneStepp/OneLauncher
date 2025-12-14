@@ -34,7 +34,7 @@ def find_game_dir_game_type(game_dir: CaseInsensitiveAbsolutePath) -> GameType:
     with contextlib.suppress(ValueError):
         return GameType(launcher_config_path.stem.upper())
 
-    # Try determing game type from datacenter game name
+    # Try determining game type from datacenter game name
     try:
         launcher_config = GameLauncherLocalConfig.from_config_xml(
             launcher_config_path.read_text(encoding="UTF-8")
@@ -61,7 +61,7 @@ def get_game_settings_dir(
 ) -> CaseInsensitiveAbsolutePath:
     """
     The folder in the user documents dir that the game stores information in.
-    This includes addons, screenshots, user config files, ect
+    This includes addons, screenshots, user config files, etc
     """
     return game_config.game_settings_directory or get_default_game_settings_dir(
         launcher_local_config=launcher_local_config

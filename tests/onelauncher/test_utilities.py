@@ -36,7 +36,7 @@ class TestCaseInsensitiveAbsolutePath:
 
     @pytest.mark.skipif(
         sys.platform in ("win32", "darwin"),
-        reason="Windows and MacOS filesystems are case-insentive already by default, so there can only be one match.",
+        reason="Windows and MacOS filesystems are case-insensitive already by default, so there can only be one match.",
     )
     def test_multiple_matches(
         self, tmp_path: Path, caplog: pytest.LogCaptureFixture
@@ -60,7 +60,7 @@ class TestCaseInsensitiveAbsolutePath:
 
     @pytest.mark.skipif(
         sys.platform in ("win32", "darwin"),
-        reason="Windows and MacOS filesystems are case-insentive already by default, so there can only be one match.",
+        reason="Windows and MacOS filesystems are case-insensitive already by default, so there can only be one match.",
     )
     def test_multiple_matches_with_one_exact_match(
         self, tmp_path: Path, caplog: pytest.LogCaptureFixture
@@ -82,7 +82,7 @@ class TestCaseInsensitiveAbsolutePath:
 
     @pytest.mark.skipif(
         sys.platform == "win32",
-        reason="Extra permisions are needed to make symlinks on Windows.",
+        reason="Extra permissions are needed to make symlinks on Windows.",
     )
     def test_symlink(self, tmp_path: Path) -> None:
         folder = tmp_path / "folder"
@@ -96,7 +96,7 @@ class TestCaseInsensitiveAbsolutePath:
 
     @pytest.mark.skipif(
         sys.platform == "win32",
-        reason="Extra permisions are needed to make symlinks on Windows.",
+        reason="Extra permissions are needed to make symlinks on Windows.",
     )
     def test_broken_symlink(self, tmp_path: Path) -> None:
         folder = tmp_path / "folder"
@@ -157,7 +157,7 @@ class TestCaseInsensitiveAbsolutePath:
     def test_relative_to_is_normal_path(self, tmp_path: Path) -> None:
         """
         `PurePath.relative_to` by its nature generates non-absolute paths.
-        Thus, `CaseInsenstivieAbsolutePath.relative_to` should a regular path
+        Thus, `CaseInsensitiveAbsolutePath.relative_to` should a regular path
         """
         relative_to_path = CaseInsensitiveAbsolutePath(
             tmp_path / "somepath"

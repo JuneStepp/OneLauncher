@@ -46,7 +46,7 @@ async def get_launch_args(
     Raises:
         MissingLaunchArgumentError
 
-    The game's launch arguents can be found by running the client with no arguments through WINE.
+    The game's launch arguments can be found by running the client with no arguments through WINE.
     As of 2024/07/10, the output for LOTRO is:
     ```text
             -a, --account       : <string>: Specifies the account name to logon with.
@@ -81,11 +81,11 @@ async def get_launch_args(
         -u, --user          : <name> : Character Name you would like to play
             --voicenetdelay : <int>: Specifies the voice network delay threshold in milliseconds.
             --voiceoff      : Disables the Voice chat system.
-            --wfilelog      : <64-bitmask> : activates file logging for the specified weenie event types. Alternately, logtype enums seperated by ',' are enummapped and or'ed together.
-            --wprintlog     : <64-bitmask> : activates print logging for the specified weenie event types. Alternately, logtype enums seperated by ',' are enummapped and or'ed together.
+            --wfilelog      : <64-bitmask> : activates file logging for the specified weenie event types. Alternately, logtype enums separated by ',' are enummapped and or'ed together.
+            --wprintlog     : <64-bitmask> : activates print logging for the specified weenie event types. Alternately, logtype enums separated by ',' are enummapped and or'ed together.
     ```
 
-    A couple aditional notes on these options:
+    A couple additional notes on these options:
     - When possible, the information from `GameLauncherConfig` should be used over hard
     coded values.
     - The `--prefs` option also changes the game settings directory to the parent folder

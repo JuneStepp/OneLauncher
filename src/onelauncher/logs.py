@@ -133,7 +133,7 @@ class ForwardLogsHandler(logging.Handler):
 class ExternalProcessLogsFilter(logging.Filter):
     """
     Filter that sets the `LogRecord` process ID to the value for the key
-    `EXTERNAL_PROCESS_ID_KEY` in the `extra` logging keyward argument.
+    `EXTERNAL_PROCESS_ID_KEY` in the `extra` logging keyword argument.
     Used when logging output from external processes.
     """
 

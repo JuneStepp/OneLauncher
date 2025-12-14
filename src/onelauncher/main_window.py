@@ -426,7 +426,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             return
 
         if not self.game_launcher_config:
-            logger.error("Game launcher network config isn't laoded")
+            logger.error("Game launcher network config isn't loaded")
             return
 
         await self.start_game(game_launcher_config=self.game_launcher_config)
@@ -436,7 +436,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         # No selection
         if new_index == -1:
             self.ui.chkSaveAccount.setChecked(False)
-            # In case it's still in it's inital unchecked state.
+            # In case it's still in it's initial unchecked state.
             self.chk_save_account_toggled(self.ui.chkSaveAccount.isChecked())
             return
 

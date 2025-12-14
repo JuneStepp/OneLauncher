@@ -320,7 +320,7 @@ def get_app() -> cyclopts.App:
         if isinstance(value, _GameParamGameType | GameConfigID) and _config_manager:
             parse_game_arg(game_arg=value, config_manager=_config_manager)
 
-    # --- Comands ---
+    # --- Commands ---
     # They all return an exit code integer.
 
     @app.meta.meta.default

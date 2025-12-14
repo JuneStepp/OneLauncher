@@ -128,7 +128,7 @@ class PatchWindow(QtWidgets.QDialog):
             logger.info("***  Aborted  ***")
 
     async def keep_progress_bar_updated(self) -> None:
-        # Will be cancled once the patching window is closed.
+        # Will be canceled once the patching window is closed.
         while True:
             if self.progress_monitor:
                 progress = self.progress_monitor.get_patching_progress()

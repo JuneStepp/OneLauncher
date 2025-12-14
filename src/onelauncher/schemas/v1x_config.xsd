@@ -60,7 +60,7 @@
                          element. -->
                         <xs:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
                     </xs:sequence>
-                    <!-- Assert that the only chilren each account can have is either 1 or 0 World elements.. -->
+                    <!-- Assert that the only children each account can have is either 1 or 0 World elements.. -->
                     <xs:assert test="every $child in * satisfies count($child/World) = 0 or count($child/World) = 1" />
                     <xs:assert test="every $child in * satisfies count($child/World) = count($child/*)" />
                     <!-- The world elements should not have any children -->

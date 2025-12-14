@@ -36,5 +36,7 @@ jobs:
         run: mypy .
       - name: Unit test
         run: pytest
+      - name: Check for spelling mistakes
+        run: typos
       - name: Check formatting
         run: ruff format --check --output-format=github

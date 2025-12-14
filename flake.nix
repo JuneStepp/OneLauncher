@@ -222,7 +222,7 @@
                     # Hatchling (our build system) has a dependency on the `editables` package when building editables.
                     #
                     # In normal Python flows this dependency is dynamically handled, and doesn't need to be explicitly declared.
-                    # This behaviour is documented in PEP-660.
+                    # This behavior is documented in PEP-660.
                     #
                     # With Nix the dependency needs to be explicitly declared.
                     nativeBuildInputs =

@@ -58,10 +58,10 @@ class CaseInsensitiveAbsolutePath(Path):
     addon folders or anything else used by the games or in the WINE prefixes.
     """
 
-    _flavour = (
-        pathlib._windows_flavour  # type: ignore[attr-defined]
+    _flavour = (  # spellchecker:disable-line
+        pathlib._windows_flavour  # type: ignore[attr-defined] # spellchecker:disable-line
         if os.name == "nt"
-        else pathlib._posix_flavour  # type: ignore[attr-defined]
+        else pathlib._posix_flavour  # type: ignore[attr-defined] # spellchecker:disable-line
     )
 
     def __new__(cls, *pathsegments: StrPath) -> Self:
@@ -83,7 +83,7 @@ class CaseInsensitiveAbsolutePath(Path):
                 # If root doesn't exist, nothing else can be checked.
                 return start_path
 
-            # Range starts at 1 to ingore root which has just been checked.
+            # Range starts at 1 to ignore root which has just been checked.
             start_index = 1
         else:
             start_index = len(known_to_exist_base_path.parts)

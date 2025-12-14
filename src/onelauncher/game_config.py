@@ -77,7 +77,7 @@ class GameConfig(Config):
         ),
     )
     newsfeed: str | None = config_field(
-        default=None, help="URL of the feed (RSS, ATOM, ect) to show in the launcher"
+        default=None, help="URL of the feed (RSS, ATOM, etc) to show in the launcher"
     )
     environment: dict[str, str] = config_field(
         default={},

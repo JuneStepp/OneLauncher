@@ -46,7 +46,7 @@ class V1xGameAccounts:
 
 
 @attrs.frozen
-class V1xStatupScripts:
+class V1xStartupScripts:
     startup_scripts: tuple[StartupScript, ...] = ()
 
 
@@ -63,7 +63,7 @@ class V1xGameConfig:
     language: OneLauncherLocale | None = None
     patch_client: str = "patchclient.dll"
     accounts: V1xGameAccounts | None = None
-    startup_scripts: V1xStatupScripts | None = None
+    startup_scripts: V1xStartupScripts | None = None
 
 
 V1xGameType: TypeAlias = Literal["LOTRO", "LOTRO.Test", "DDO", "DDO.Test"]
@@ -167,11 +167,11 @@ def get_converter() -> cattrs.Converter:
     )
     converter.register_structure_hook(V1xGameConfig, game_config_structure_hook)
     structure_startup_scripts = cattrs.gen.make_dict_structure_fn(
-        V1xStatupScripts,
+        V1xStartupScripts,
         converter=converter,
         startup_scripts=cattrs.override(rename="script"),
     )
-    converter.register_structure_hook(V1xStatupScripts, structure_startup_scripts)
+    converter.register_structure_hook(V1xStartupScripts, structure_startup_scripts)
     converter.register_structure_hook(bool, _structure_bool)
     converter.register_structure_hook(ClientType, _structure_client_type)
     converter.register_structure_hook(OneLauncherLocale, _structure_locale)

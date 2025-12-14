@@ -298,7 +298,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.actionShowAddonInFileManagerSelected
         )
 
-        # Will only show when a downlaod is hapenning
+        # Will only show when a download is happening
         self.ui.progressBar.setVisible(False)
 
         get_check_for_updates_icon = partial(qtawesome.icon, "fa5s.sync-alt")
@@ -638,7 +638,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         """
 
         tables_dict: dict[str, list[str]] = {}
-        # SQL returns all the columns in all the tables labled with what table
+        # SQL returns all the columns in all the tables labeled with what table
         # they're from
         column_data: tuple[str, str]
         for column_data in self.c.execute(
@@ -1070,7 +1070,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         """Scans temp folder for invalid folder names like "ui" or
            "plugins" and moves stuff out of them. Addon authors put
            files in invalid folders when they want the user to extract
-           the file somewere higher up the folder tree than where their
+           the file somewhere higher up the folder tree than where their
            work ends up. This is usually done for user convenience.
 
         Args:
@@ -1132,7 +1132,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                                        case of plugins it should be the author's
                                        name. This has to be the addon root dir
                                        while it is still in a temporary directory
-                                       for propper .plugin file detection.
+                                       for proper .plugin file detection.
             interface_id (str): [description]
             addon_type (AddonType): The type of the addon.
             table (str): The database table name for the addon type. Used to get remote
@@ -1801,7 +1801,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         elif self.SOURCE_TAB_NAMES[index] == "Find More":
             self.ui.stackedWidgetSource.setCurrentWidget(self.ui.pageRemote)
 
-            # Handle the first time this tab is swtiched to.
+            # Handle the first time this tab is switched to.
             # Populate remote addons tables if not done already.
             if self.ui.tableSkins not in self.tables_loaded and self.loadRemoteAddons():
                 self.getOutOfDateAddons()
@@ -1829,7 +1829,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     def unescape_lotrointerface_feed_unicode(self, escaped_string: str) -> str:
         """
         Convert feed escaped characters to Unicode characters. This shouold be used with
-        strings that have alread had the XML unesaaped.
+        strings that have already had the XML unesaaped.
 
         Unicode characters in LotroInterface feeds are escaped with an ampersand followed
         by the Unicode character number. Ex. `&1088`.
@@ -1998,7 +1998,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         ]:
             menu.addAction(self.ui.actionUpdateAddon)
 
-        # If addon has a statup script
+        # If addon has a startup script
         if self.context_menu_selected_interface_ID:
             relative_script_path = self.getRelativeStartupScriptFromInterfaceID(
                 table=self.context_menu_selected_table,

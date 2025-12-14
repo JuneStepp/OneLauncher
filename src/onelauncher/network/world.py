@@ -75,7 +75,7 @@ class World:
         if not status_dict["queueurls"]:
             # There have yet to be any modern examples of queue URLs not being
             # returned when the world is up, but there has been at least one
-            # example of it hapening while the world is down.
+            # example of it happening while the world is down.
             # See <https://github.com/JuneStepp/OneLauncher/issues/87>.
             raise WorldUnavailableError(f"{self} world unavailable")
         queue_urls: tuple[str, ...] = tuple(

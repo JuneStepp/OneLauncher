@@ -2,7 +2,7 @@ import importlib.metadata
 
 from packaging.version import Version
 
-# Metadata has been temporily manually entered to work with Nuitka.
+# Metadata has been temporarily manually entered to work with Nuitka.
 # See https://github.com/Nuitka/Nuitka/issues/2965
 
 # metadata = importlib.metadata.metadata(__package__)   # noqa: ERA001

@@ -18,11 +18,6 @@ class GameAccountConfig:
 
 
 @attrs.frozen
-class GameAcccountNoUsername(GameAccountConfig):
-    username: str = attrs.field(default="", init=False)
-
-
-@attrs.frozen
 class GameAccountsConfig(Config):
     accounts: tuple[GameAccountConfig, ...]
 
