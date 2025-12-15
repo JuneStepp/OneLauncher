@@ -1,6 +1,8 @@
 import logging
+from types import MappingProxyType
 from typing import Self
 
+import attrs
 from asyncache import cached
 from cachetools import TTLCache
 from httpx import HTTPError
@@ -22,72 +24,34 @@ class GameLauncherConfigParseError(KeyError):
     """Config doesn't match expected game launcher config format"""
 
 
-class NoGameClientFilenameError(Exception):
-    """No game client filenames for any supported client type provided"""
-
-
+@attrs.frozen
 class GameLauncherConfig:
-    def __init__(
-        self,
-        client_win64_filename: str | None,
-        client_win32_filename: str | None,
-        client_win32_legacy_filename: str | None,
-        client_launch_args_template: str,
-        client_crash_server_arg: str | None,
-        client_auth_server_arg: str | None,
-        client_gls_ticket_lifetime_arg: str | None,
-        client_default_upload_throttle_mbps_arg: str | None,
-        client_bug_url_arg: str | None,
-        client_support_url_arg: str | None,
-        client_support_service_url_arg: str | None,
-        high_res_patch_arg: str | None,
-        patching_product_code: str,
-        login_queue_url: str,
-        login_queue_params_template: str,
-        newsfeed_url_template: str,
-    ) -> None:
-        """
-        Raises:
-            NoGameClientFilenameError: All game client filenames are None.
-
-        """
-        self._client_win64_filename = client_win64_filename
-        self._client_win32_filename = client_win32_filename
-        self._client_win32_legacy_filename = client_win32_legacy_filename
-        self._client_launch_args_template = client_launch_args_template
-        self._client_crash_server_arg = client_crash_server_arg
-        self._client_auth_server_arg = client_auth_server_arg
-        self._client_gls_ticket_lifetime_arg = client_gls_ticket_lifetime_arg
-        self._client_default_upload_throttle_mbps_arg = (
-            client_default_upload_throttle_mbps_arg
-        )
-        self._client_bug_url_arg = client_bug_url_arg
-        self._client_support_url_arg = client_support_url_arg
-        self._client_support_service_url_arg = client_support_service_url_arg
-        self._high_res_patch_arg = high_res_patch_arg
-        self._patching_product_code = patching_product_code
-        self._login_queue_url = login_queue_url
-        self._login_queue_params_template = login_queue_params_template
-        if newsfeed_url_template == DDO_PREVIEW_BROKEN_NEWS_URL_TEMPLATE:
-            # Fix broken DDO Preview server newsfeed URL
-            self._newsfeed_url_template = DDO_PREVIEW_NEWS_URL_TEMPLATE
-        else:
-            self._newsfeed_url_template = newsfeed_url_template
-
-        # Dictionary is ordered according to client type similarity from a user
-        # perspective. See unit tests for `self.get_client_filename`
-        self.client_type_mapping = {
-            ClientType.WIN64: self._client_win64_filename,
-            ClientType.WIN32: self._client_win32_filename,
-            ClientType.WIN32_LEGACY: self._client_win32_legacy_filename,
-        }
-
-        # Raise error if all client filenames in `self.client_type_mapping` are
-        # `None`
-        if not [val for val in self.client_type_mapping.values() if val is not None]:
-            raise NoGameClientFilenameError(
-                "All client filenames are `None`. At least one must be provided."
-            )
+    _client_win64_filename: str | None
+    _client_win32_filename: str | None
+    _client_win32_legacy_filename: str | None
+    client_launch_args_template: str
+    client_crash_server_arg: str | None
+    client_auth_server_arg: str | None
+    """Auth server URL for refreshing the GLS ticket."""
+    client_gls_ticket_lifetime_arg: str | None
+    """The lifetime of GLS tickets."""
+    client_default_upload_throttle_mbps_arg: str | None
+    client_bug_url_arg: str | None
+    """The url that should be used for reporting bugs."""
+    client_support_url_arg: str | None
+    """URL that should be used for in game support."""
+    client_support_service_url_arg: str | None
+    """URL that should be used for auto submission of in game support tickets."""
+    high_res_patch_arg: str | None
+    """
+    Argument used to tell the client that the high resolution
+    texture dat file was not updated. This will cause
+    the client to not switch into high-res textures mode.
+    """
+    patching_product_code: str
+    login_queue_url: str
+    login_queue_params_template: str
+    _newsfeed_url_template: str
 
     @classmethod
     def from_xml(cls: type[Self], appsettings_config_xml: str) -> Self:
@@ -112,7 +76,12 @@ class GameLauncherConfig:
             ):
                 # In past game versions, there was only one client. It was
                 # accessed with "GameClient.Filename"
-                client_win32_legacy_filename = config_dict["GameClient.Filename"]
+                client_win32_legacy_filename = config_dict.get("GameClient.Filename")
+
+                if not client_win32_legacy_filename:
+                    raise GameLauncherConfigParseError(
+                        "Config doesn't include any client filenames of a supported client type"
+                    )
 
             if "GameClient.WIN32.ArgTemplate" in config_dict:
                 arg_template = config_dict["GameClient.WIN32.ArgTemplate"]
@@ -146,10 +115,6 @@ class GameLauncherConfig:
         except KeyError as e:
             raise GameLauncherConfigParseError(
                 "Config doesn't include a required value"
-            ) from e
-        except NoGameClientFilenameError as e:
-            raise GameLauncherConfigParseError(
-                "Config doesn't include any client filenames of a supported client type"
             ) from e
 
     @classmethod
@@ -190,6 +155,18 @@ class GameLauncherConfig:
     def get_specific_client_filename(self, client_type: ClientType) -> str | None:
         """Return filename or None if unavailable, for client of type `client_type`"""
         return self.client_type_mapping[client_type]
+
+    @property
+    def client_type_mapping(self) -> MappingProxyType[ClientType, str | None]:
+        # Dictionary is ordered according to client type similarity from a user
+        # perspective. See unit tests for `self.get_client_filename`
+        return MappingProxyType(
+            {
+                ClientType.WIN64: self._client_win64_filename,
+                ClientType.WIN32: self._client_win32_filename,
+                ClientType.WIN32_LEGACY: self._client_win32_legacy_filename,
+            }
+        )
 
     def get_client_filename(
         self, preferred_client_type: ClientType | None = None
@@ -233,64 +210,11 @@ class GameLauncherConfig:
 
         return client_filename, new_client_type or preferred_client_type
 
-    @property
-    def client_launch_args_template(self) -> str:
-        return self._client_launch_args_template
-
-    @property
-    def client_crash_server_arg(self) -> str | None:
-        return self._client_crash_server_arg
-
-    @property
-    def client_auth_server_arg(self) -> str | None:
-        """Auth server URL for refreshing the GLS ticket."""
-        return self._client_auth_server_arg
-
-    @property
-    def client_gls_ticket_lifetime_arg(self) -> str | None:
-        """The lifetime of GLS tickets."""
-        return self._client_gls_ticket_lifetime_arg
-
-    @property
-    def client_default_upload_throttle_mbps_arg(self) -> str | None:
-        return self._client_default_upload_throttle_mbps_arg
-
-    @property
-    def client_bug_url_arg(self) -> str | None:
-        """The url that should be used for reporting bugs."""
-        return self._client_bug_url_arg
-
-    @property
-    def client_support_url_arg(self) -> str | None:
-        """URL that should be used for in game support."""
-        return self._client_support_url_arg
-
-    @property
-    def client_support_service_url_arg(self) -> str | None:
-        """URL that should be used for auto submission of in game support tickets."""
-        return self._client_support_service_url_arg
-
-    @property
-    def high_res_patch_arg(self) -> str | None:
-        """
-        Argument used to tell the client that the high resolution
-        texture dat file was not updated. This will cause
-        the client to not switch into high-res textures mode."""
-        return self._high_res_patch_arg
-
-    @property
-    def patching_product_code(self) -> str:
-        return self._patching_product_code
-
-    @property
-    def login_queue_url(self) -> str:
-        return self._login_queue_url
-
-    @property
-    def login_queue_params_template(self) -> str:
-        return self._login_queue_params_template
-
     def get_newfeed_url(self, locale: OneLauncherLocale) -> str:
-        return self._newsfeed_url_template.replace(
-            "{lang}", locale.lang_tag.split("-")[0]
-        )
+        if self._newsfeed_url_template == DDO_PREVIEW_BROKEN_NEWS_URL_TEMPLATE:
+            # Fix broken DDO Preview server newsfeed URL.
+            newsfeed_url_template = DDO_PREVIEW_NEWS_URL_TEMPLATE
+        else:
+            newsfeed_url_template = self._newsfeed_url_template
+
+        return newsfeed_url_template.replace("{lang}", locale.lang_tag.split("-")[0])
