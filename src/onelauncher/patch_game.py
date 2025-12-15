@@ -177,8 +177,9 @@ async def patch_game(
     )
     try:
         async with trio.open_nursery() as nursery:
-            for phase in patch_phases:
+            for i, phase in enumerate(patch_phases):
                 progress_monitor.reset()
+                logger.info("Phase %s/%s", i + 1, len(patch_phases))
                 process: trio.Process = await nursery.start(
                     partial(
                         trio.run_process,
