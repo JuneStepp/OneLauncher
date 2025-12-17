@@ -41,31 +41,31 @@ from onelauncher.game_config import GameType
 logger = logging.getLogger(__name__)
 
 LOTRO_GLS_PREVIEW_DOMAIN = "gls-bullroarer.lotro.com"
-LOTRO_GLS_DOMAINS: Final = [
+LOTRO_GLS_DOMAINS: Final = (
     "gls.lotro.com",
     "gls-auth.lotro.com",  # Same as gls.lotro.com
     LOTRO_GLS_PREVIEW_DOMAIN,
-]
+)
 # Same as main gls domain, but ssl certificate isn't valid for this domain.
 LOTRO_GLS_INVALID_SSL_DOMAIN: Final = "moria.gls.lotro.com"
 
 DDO_GLS_PREVIEW_DOMAIN: Final = "gls-lm.ddo.com"
 DDO_GLS_PREVIEW_IP: Final = "198.252.160.33"
-DDO_GLS_DOMAINS: Final = [
+DDO_GLS_DOMAINS: Final = (
     "gls.ddo.com",
     "gls-auth.ddo.com",  # Same as gls.ddo.com
     DDO_GLS_PREVIEW_DOMAIN,
-]
+)
 
 # Forums where RSS feeds used as newsfeeds are
-LOTRO_FORMS_DOMAINS: Final = [
+LOTRO_FORMS_DOMAINS: Final = (
     "forums.lotro.com",
     "forums-old.lotro.com",
-]
-DDO_FORMS_DOMAINS: Final = [
+)
+DDO_FORMS_DOMAINS: Final = (
     "forums.ddo.com",
     "forums-old.ddo.com",
-]
+)
 # DDO preview client provides broken news URL template. This info is used
 # to fix it.
 DDO_PREVIEW_BROKEN_NEWS_URL_TEMPLATE: Final = (
@@ -90,7 +90,7 @@ def is_official_game_server(url: str) -> bool:
         + LOTRO_FORMS_DOMAINS
         + DDO_GLS_DOMAINS
         + DDO_FORMS_DOMAINS
-        + [LOTRO_GLS_INVALID_SSL_DOMAIN, DDO_GLS_PREVIEW_IP]
+        + (LOTRO_GLS_INVALID_SSL_DOMAIN, DDO_GLS_PREVIEW_IP)
     )
 
 
