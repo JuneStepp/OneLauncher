@@ -2,24 +2,46 @@ import logging
 import os
 import subprocess
 from functools import partial
+from math import log, trunc
 from pathlib import Path
 from types import MappingProxyType
 from typing import Literal, TypeAlias, assert_never
+from uuid import uuid4
 
 import attrs
+import httpx
 import trio
+from httpx import HTTPError
+from xmlschema import XMLSchemaValidationError
 
 from onelauncher.async_utils import for_each_in_stream
 from onelauncher.config_manager import ConfigManager
 from onelauncher.game_config import GameConfigID
 from onelauncher.logs import ExternalProcessLogsFilter
+from onelauncher.network.akamai import (
+    PatchingDownloadFile,
+    PatchingDownloadList,
+    SplashscreenDownloadFile,
+    SplashscreenDownloadList,
+)
+from onelauncher.network.game_launcher_config import GameLauncherConfig
+from onelauncher.network.httpx_client import get_httpx_client
 from onelauncher.resources import data_dir
+from onelauncher.utilities import CaseInsensitiveAbsolutePath
 from onelauncher.wine_environment import get_wine_process_args
 
 logger = logging.getLogger(__name__)
 logger.addFilter(ExternalProcessLogsFilter())
 
 PatchPhase: TypeAlias = Literal["FullPatch", "FilesOnly", "DataOnly"]
+
+# Run file patching twice to avoid problems when patchclient.dll
+# self-patches.
+PATCHCLIENT_PATCH_PHASES: tuple[PatchPhase, ...] = (
+    "FilesOnly",
+    "FilesOnly",
+    "DataOnly",
+)
 
 PATCH_CLIENT_RUNNER = data_dir.parent / "run_patch_client" / "run_ptch_client.exe"
 """
@@ -29,18 +51,89 @@ because it doesn't expose the stdout of what it runs.
 """
 
 
+@attrs.define(eq=False)
+class ProgressItem:
+    completed: int = 0
+    total: int = 0
+
+
 @attrs.frozen
-class PatchingProgress:
-    total_iterations: int
-    current_iterations: int
+class CurrentProgress:
+    completed: int
+    total: int
+    progress_text: str
+
+
+@attrs.define
+class Progress:
+    progress_items: list[ProgressItem] = attrs.Factory(list)
+    unit_type: Literal["byte"] | None = None
+    progress_text_suffix: str = ""
+
+    def reset(self) -> None:
+        self.progress_items = []
+        self.unit_type = None
+        self.progress_text_suffix = ""
+
+    def _pick_unit_and_suffix(
+        self, size: int, suffixes: tuple[str, ...], base: int
+    ) -> tuple[int, str]:
+        if not suffixes:
+            return 1, ""
+
+        ideal_exponent = trunc(log(size, base))
+        exponent = min(ideal_exponent, len(suffixes) - 1)
+        return base**exponent, suffixes[exponent]
+
+    def get_current_progress(self) -> CurrentProgress:
+        sum_completed = 0
+        sum_total = 0
+        for progress_item in self.progress_items:
+            sum_completed += progress_item.completed
+            sum_total += progress_item.total
+
+        # Don't want >100%.
+        sum_completed = min(sum_completed, sum_total)
+
+        if sum_total == 0:
+            return CurrentProgress(
+                completed=0, total=0, progress_text=self.progress_text_suffix
+            )
+
+        if self.unit_type is None:
+            unit, suffix = 1, ""
+        elif self.unit_type == "byte":
+            unit, suffix = self._pick_unit_and_suffix(
+                size=sum_total,
+                suffixes=("bytes", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"),
+                base=1000,
+            )
+        else:
+            assert_never()
+        precision = 0 if unit == 1 else 1
+        completed_str = f"{sum_completed / unit:,.{precision}f}"
+        total_str = f"{sum_total / unit:,.{precision}f}"
+        progress_text = f"{sum_completed / sum_total:.0%} ({completed_str}/{total_str} {suffix}){self.progress_text_suffix}"
+
+        return CurrentProgress(
+            # Using 0 to 10,000 instead of 0 to `current_progress.total` to prevent
+            # overfloq errors.
+            completed=round(sum_completed / sum_total * 10000),
+            total=10000,
+            progress_text=progress_text,
+        )
 
 
 class PatchingProgressMonitor:
-    def __init__(self) -> None:
+    def __init__(self, progress: Progress) -> None:
+        self.progress = progress
         self.reset()
 
     def reset(self) -> None:
         self.patching_type = None
+        self.progress.reset()
+        self.progress_item = ProgressItem()
+        self.progress.progress_items.append(self.progress_item)
 
     @property
     def patching_type(self) -> Literal["file", "data"] | None:
@@ -53,22 +146,22 @@ class PatchingProgressMonitor:
         self.current_iterations: int = 0
         self.applying_forward_iterations: bool = False
 
-    def get_patching_progress(self) -> PatchingProgress:
-        return PatchingProgress(
-            total_iterations=self.total_iterations,
-            current_iterations=self.current_iterations,
-        )
+    def _update_progress(self) -> None:
+        self.progress_item.total = self.total_iterations
+        self.progress_item.completed = self.current_iterations
 
-    def feed_line(self, line: str) -> PatchingProgress:
+    def feed_line(self, line: str) -> None:
         cleaned_line = line.strip().lower()
 
         # Beginning of a patching type
         if cleaned_line.startswith("checking files"):
             self.patching_type = "file"
-            return self.get_patching_progress()
+            self._update_progress()
+            return
         elif cleaned_line.startswith("checking data"):
             self.patching_type = "data"
-            return self.get_patching_progress()
+            self._update_progress()
+            return
         # Right after a patching type begins. Find out how many iterations there will be.
         if cleaned_line.startswith("files to patch:"):
             self.total_iterations = int(
@@ -98,7 +191,7 @@ class PatchingProgressMonitor:
         elif self.applying_forward_iterations and "." in cleaned_line:
             self.current_iterations += len(cleaned_line.split("."))
 
-        return self.get_patching_progress()
+        self._update_progress()
 
 
 def get_patchclient_arguments(
@@ -133,9 +226,172 @@ def get_patchclient_arguments(
     return (*base_arguments, phase_arg)
 
 
+async def _handle_akamai_download_file(
+    download_file: PatchingDownloadFile | SplashscreenDownloadFile,
+    game_directory: CaseInsensitiveAbsolutePath,
+    temp_download_dir: Path,
+    base_download_url: str,
+    progress: Progress,
+) -> None:
+    """
+    Always download `SplashscreenDownloadFile`. There is no hash to check on these.
+
+    Download `PatchingDownloadFile` if it doesn't exist. The hash is not checked,
+    because the file may be out of date. These files are only meant for the initial large
+    download. Afterwards, `patchclient.dll` is used.
+    """
+    local_path = trio.Path(game_directory / download_file.relative_path)
+    if isinstance(download_file, PatchingDownloadFile) and await local_path.exists():
+        return
+
+    logger.debug("Downloading %s", download_file)
+
+    url = (
+        f"{base_download_url}/{download_file.relative_url}"
+        if isinstance(download_file, PatchingDownloadFile)
+        else download_file.url
+    )
+    temp_download_path = trio.Path(
+        temp_download_dir / f"{download_file.relative_path.name}-{uuid4()}"
+    )
+
+    progress_item = ProgressItem()
+    progress.progress_items.append(progress_item)
+    if isinstance(download_file, PatchingDownloadFile):
+        # Do before the web request, since it may take a while for a spot to open up
+        # in the connection pool and the web request to go through.
+        progress_item.total = download_file.size
+
+    try:
+        async with (
+            get_httpx_client(url).stream(
+                "GET", url, timeout=httpx.Timeout(6, pool=None)
+            ) as response,
+            await temp_download_path.open("wb") as temp_download_file,
+        ):
+            response.raise_for_status()
+
+            bytes_currently_downloaded = response.num_bytes_downloaded
+            if isinstance(download_file, SplashscreenDownloadFile):
+                progress_item.total = int(
+                    response.headers.get("Content-Length", 300000)
+                )
+
+            async for chunk in response.aiter_bytes():
+                if isinstance(download_file, SplashscreenDownloadFile):
+                    progress_item.completed += (
+                        response.num_bytes_downloaded - bytes_currently_downloaded
+                    )
+                    bytes_currently_downloaded = response.num_bytes_downloaded
+                else:
+                    progress_item.completed += len(chunk)
+
+                await temp_download_file.write(chunk)
+    except HTTPError:
+        logger.warning("Failed to download %s", local_path.name, exc_info=True)
+        progress.progress_items.remove(progress_item)
+    else:
+        await temp_download_path.rename(local_path)
+    finally:
+        with trio.move_on_after(5, shield=True):
+            await temp_download_path.unlink(missing_ok=True)
+
+
+@attrs.frozen(kw_only=True)
+class AkamaiPatchingError(Exception):
+    msg: str
+
+
+async def akamai_patching(
+    game_id: GameConfigID, config_manager: ConfigManager, progress: Progress
+) -> None:
+    """
+    Initial download of data after installation or switching languages and
+    splashscreen updates. Splashscreens are always updated. Only files that don't
+    exist for the initial data download are downloaded.
+
+    Raises:
+        AkamaiPatchingFailed
+    """
+    progress.unit_type = "byte"
+
+    game_config = config_manager.get_game_config(game_id=game_id)
+
+    game_launcher_config = await GameLauncherConfig.from_game_config(game_config)
+    if (
+        not game_launcher_config
+        or not game_launcher_config.akamai_download_url
+        or not game_launcher_config.game_version
+    ):
+        raise AkamaiPatchingError(msg="Failed to load game launcher network config")
+
+    file_list: tuple[PatchingDownloadFile | SplashscreenDownloadFile, ...]
+
+    # Add patching download files to the file list.
+    language = (
+        game_config.locale or config_manager.get_program_config().default_locale
+    ).lang_tag.split("-")[0]
+    # `akamai_download_url` ussed HTTP. The domain is a CNAME to an akamai subdomain.
+    # The certificate isn't valid for any of the domains involved, so this isn't being
+    # coerced to use HTTPS.
+    base_download_url = f"{game_launcher_config.akamai_download_url}/{game_launcher_config.game_version}"
+    download_list_url = (
+        f"{base_download_url}/{language}_"
+        f"{'highres' if game_config.high_res_enabled else 'lowres'}_download_list.xml"
+    )
+    try:
+        file_list = (
+            await PatchingDownloadList.get_from_url(download_list_url)
+        ).download_files
+    except HTTPError as e:
+        raise AkamaiPatchingError(
+            msg="Network error while downloading patching file list"
+        ) from e
+    except XMLSchemaValidationError as e:
+        raise AkamaiPatchingError(msg="Error parsing patching file list") from e
+
+    # Add splashscreens to file list.
+    if game_launcher_config.download_files_list_url:
+        try:
+            file_list = (
+                file_list
+                + (
+                    await SplashscreenDownloadList.get_from_url(
+                        game_launcher_config.download_files_list_url
+                    )
+                ).download_files
+            )
+        except HTTPError:
+            logger.exception("Network error while downloading splashscreens file list")
+        except XMLSchemaValidationError:
+            logger.exception("Error parsing splashscreens file list")
+    else:
+        logger.error("Game launcher config is missing splashscreens update URL")
+
+    # Directory where files will be downloaded before being moved to their final
+    # location. This is the same directory that the official launcher uses. A normal
+    # temp directory isn't used, because it might not be on the same filesystem.
+    # Downloading to the same filesystem is desirable, since these are large files.
+    temp_download_dir = game_config.game_directory / "downloading"
+    temp_download_dir.mkdir(exist_ok=True)
+
+    async with trio.open_nursery() as nursery:
+        for download_file in file_list:
+            nursery.start_soon(
+                partial(
+                    _handle_akamai_download_file,
+                    download_file=download_file,
+                    game_directory=game_config.game_directory,
+                    temp_download_dir=temp_download_dir,
+                    base_download_url=base_download_url,
+                    progress=progress,
+                )
+            )
+
+
 async def patch_game(
     patch_server_url: str,
-    progress_monitor: PatchingProgressMonitor,
+    progress: Progress,
     game_id: GameConfigID,
     config_manager: ConfigManager,
 ) -> None:
@@ -168,18 +424,26 @@ async def patch_game(
             command=command, environment=environment, wine_config=game_config.wine
         )
 
-    # Run file patching twice to avoid problems when patchclient.dll
-    # self-patches.
-    patch_phases: tuple[PatchPhase, ...] = (
-        "FilesOnly",
-        "FilesOnly",
-        "DataOnly",
+    # Initial data and splashscreens phase.
+    progress.progress_text_suffix = (
+        f"     Phase {1}/{len(PATCHCLIENT_PATCH_PHASES) + 1}"
     )
     try:
+        await akamai_patching(
+            game_id=game_id, config_manager=config_manager, progress=progress
+        )
+    except AkamaiPatchingError as e:
+        logger.exception(e.msg)
+        logger.info("Skipping phase")
+
+    try:
         async with trio.open_nursery() as nursery:
-            for i, phase in enumerate(patch_phases):
-                progress_monitor.reset()
-                logger.info("Phase %s/%s", i + 1, len(patch_phases))
+            patching_progress_monitor = PatchingProgressMonitor(progress=progress)
+            for i, phase in enumerate(PATCHCLIENT_PATCH_PHASES):
+                patching_progress_monitor.reset()
+                progress.progress_text_suffix = (
+                    f"     Phase {i + 2}/{len(PATCHCLIENT_PATCH_PHASES) + 1}"
+                )
                 process: trio.Process = await nursery.start(
                     partial(
                         trio.run_process,
@@ -213,7 +477,7 @@ async def patch_game(
 
                 def process_output_line(line: str) -> None:
                     process_logging_adapter.debug(line)  # noqa: B023
-                    progress_monitor.feed_line(line)
+                    patching_progress_monitor.feed_line(line)
 
                 nursery.start_soon(
                     partial(for_each_in_stream, process.stdout, process_output_line)

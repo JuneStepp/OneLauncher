@@ -39,7 +39,11 @@ from onelauncher.qtapp import get_qapp
 from onelauncher.ui_utilities import log_record_to_rich_text
 
 from .config_manager import ConfigManager
-from .patch_game import PATCH_CLIENT_RUNNER, PatchingProgressMonitor, patch_game
+from .patch_game import (
+    PATCH_CLIENT_RUNNER,
+    Progress,
+    patch_game,
+)
 from .patch_game import logger as patch_game_logger
 from .ui.patching_window_uic import Ui_patchingDialog
 
@@ -61,7 +65,7 @@ class PatchWindow(QtWidgets.QDialog):
         self.config_manager = config_manager
         self.patch_server_url = patch_server_url
 
-        self.progress_monitor: PatchingProgressMonitor | None = None
+        self.progress: Progress | None = None
 
         self.ui = Ui_patchingDialog()
         self.ui.setupUi(self)
@@ -114,7 +118,7 @@ class PatchWindow(QtWidgets.QDialog):
         self.ui.btnStop.setText("Close")
         self.ui.btnStart.setEnabled(True)
 
-        self.progress_monitor = None
+        self.progress = None
         # Make sure it's not showing a busy indicator
         self.ui.progressBar.setMinimum(1)
         self.ui.progressBar.setMaximum(1)
@@ -130,26 +134,27 @@ class PatchWindow(QtWidgets.QDialog):
     async def keep_progress_bar_updated(self) -> None:
         # Will be canceled once the patching window is closed.
         while True:
-            if self.progress_monitor:
-                progress = self.progress_monitor.get_patching_progress()
-                self.ui.progressBar.setMaximum(progress.total_iterations)
-                self.ui.progressBar.setValue(progress.current_iterations)
-            await trio.sleep(0.1)
+            if self.progress:
+                current_progress = self.progress.get_current_progress()
+                self.ui.progressBar.setFormat(current_progress.progress_text)
+                self.ui.progressBar.setMaximum(current_progress.total)
+                self.ui.progressBar.setValue(current_progress.completed)
+            await trio.sleep(0.05)
 
     async def start(self) -> None:
         self.patching_finished = False
         self.ui.btnStart.setEnabled(False)
         self.ui.btnStop.setText("Abort")
 
-        self.progress_monitor = PatchingProgressMonitor()
+        self.progress = Progress()
 
         logger.info("***  Started  ***")
         with trio.CancelScope() as self.patching_cancel_scope:
             await patch_game(
                 patch_server_url=self.patch_server_url,
-                progress_monitor=self.progress_monitor,
                 game_id=self.game_id,
                 config_manager=self.config_manager,
+                progress=self.progress,
             )
             logger.info("***  Finished  ***")
 

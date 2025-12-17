@@ -24,7 +24,7 @@ class GameLauncherConfigParseError(KeyError):
     """Config doesn't match expected game launcher config format"""
 
 
-@attrs.frozen
+@attrs.frozen(kw_only=True)
 class GameLauncherConfig:
     _client_win64_filename: str | None
     _client_win32_filename: str | None
@@ -52,6 +52,13 @@ class GameLauncherConfig:
     login_queue_url: str
     login_queue_params_template: str
     _newsfeed_url_template: str
+    download_files_list_url: str | None
+    """
+    XML List of files to download every launcher start. As far as I know, these are only
+    ever splashscreens.
+    """
+    akamai_download_url: str | None
+    game_version: str | None
 
     @classmethod
     def from_xml(cls: type[Self], appsettings_config_xml: str) -> Self:
@@ -91,22 +98,33 @@ class GameLauncherConfig:
                 arg_template = config_dict["GameClient.ArgTemplate"]
 
             return cls(
-                client_win64_filename,
-                client_win32_filename,
-                client_win32_legacy_filename,
-                arg_template,
-                config_dict.get("GameClient.Arg.crashreceiver"),
-                config_dict.get("GameClient.Arg.authserverurl"),
-                config_dict.get("GameClient.Arg.glsticketlifetime"),
-                config_dict.get("GameClient.Arg.DefaultUploadThrottleMbps"),
-                config_dict.get("GameClient.Arg.bugurl"),
-                config_dict.get("GameClient.Arg.supporturl"),
-                config_dict.get("GameClient.Arg.supportserviceurl"),
-                config_dict.get("GameClient.HighResPatchArg"),
-                config_dict["Patching.ProductCode"],
-                config_dict["WorldQueue.LoginQueue.URL"],
-                config_dict["WorldQueue.TakeANumber.Parameters"],
-                config_dict["URL.NewsFeed"],
+                client_win64_filename=client_win64_filename,
+                client_win32_filename=client_win32_filename,
+                client_win32_legacy_filename=client_win32_legacy_filename,
+                client_launch_args_template=arg_template,
+                client_crash_server_arg=config_dict.get("GameClient.Arg.crashreceiver"),
+                client_auth_server_arg=config_dict.get("GameClient.Arg.authserverurl"),
+                client_gls_ticket_lifetime_arg=config_dict.get(
+                    "GameClient.Arg.glsticketlifetime"
+                ),
+                client_default_upload_throttle_mbps_arg=config_dict.get(
+                    "GameClient.Arg.DefaultUploadThrottleMbps"
+                ),
+                client_bug_url_arg=config_dict.get("GameClient.Arg.bugurl"),
+                client_support_url_arg=config_dict.get("GameClient.Arg.supporturl"),
+                client_support_service_url_arg=config_dict.get(
+                    "GameClient.Arg.supportserviceurl"
+                ),
+                high_res_patch_arg=config_dict.get("GameClient.HighResPatchArg"),
+                patching_product_code=config_dict["Patching.ProductCode"],
+                login_queue_url=config_dict["WorldQueue.LoginQueue.URL"],
+                login_queue_params_template=config_dict[
+                    "WorldQueue.TakeANumber.Parameters"
+                ],
+                newsfeed_url_template=config_dict["URL.NewsFeed"],
+                download_files_list_url=config_dict.get("URL.DownloadFilesList"),
+                akamai_download_url=config_dict.get("URL.AkamaiDownloadURL"),
+                game_version=config_dict.get("Game.Version"),
             )
         except AppSettingsParseError as e:
             raise GameLauncherConfigParseError(
@@ -139,6 +157,7 @@ class GameLauncherConfig:
                 return None
             return await cls.from_url(game_services_info.launcher_config_url)
         except (HTTPError, GameLauncherConfigParseError):
+            logger.exception("Loading `GameLauncherConfig` from `GameConfig` failed")
             return None
 
     @staticmethod

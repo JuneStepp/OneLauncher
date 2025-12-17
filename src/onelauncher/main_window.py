@@ -818,14 +818,10 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         if not (
             game_config.game_directory / f"client_local_{locale.game_language_name}.dat"
         ).exists():
-            logger.error(
-                "There is no game language data for %s installed. You may have to "
-                "select %s in the standard game launcher and wait for the data to download."
-                " The standard game launcher can be opened from the settings menu.",
-                locale.display_name,
-                locale.display_name,
+            logger.warning(
+                "The game needs to be patched. That can be done from the dropdown "
+                "menu on the Play button."
             )
-            return False
 
         return True
 

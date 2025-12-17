@@ -1,0 +1,18 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="FileList">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element type="File" name="File" maxOccurs="unbounded" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="File">
+        <xs:all>
+            <xs:element type="xs:string" name="Description" minOccurs="1" />
+            <xs:element type="xs:string" name="FileName" minOccurs="1" />
+            <xs:element type="xs:string" name="DownloadUrl" minOccurs="1" />
+        </xs:all>
+    </xs:complexType>
+</xs:schema>

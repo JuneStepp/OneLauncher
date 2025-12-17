@@ -1,0 +1,25 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="FileList">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element type="File" name="File" maxOccurs="unbounded" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="File">
+        <xs:all>
+            <xs:element type="xs:string" name="From" minOccurs="1" />
+            <xs:element type="xs:string" name="To" minOccurs="1" />
+            <xs:element type="xs:unsignedInt" name="Size" minOccurs="1" />
+            <xs:element type="MD5Hash" name="MD5" minOccurs="1" />
+        </xs:all>
+    </xs:complexType>
+
+    <xs:simpleType name="MD5Hash">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[A-Fa-f0-9]{32}" />
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

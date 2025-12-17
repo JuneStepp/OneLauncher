@@ -25,6 +25,9 @@ def get_mock_game_launcher_config_partial() -> partial[GameLauncherConfig]:
         login_queue_url="https://gls.lotro.com/GLS.AuthServer/LoginQueue.aspx",
         login_queue_params_template="command=TakeANumber&amp;subscription={0}&amp;ticket={1}&amp;ticket_type=GLS&amp;queue_url={2}",
         newsfeed_url_template="https://forums.lotro.com/{lang}/launcher-feed.xml",
+        download_files_list_url="http://akamai.lotro.com/lotro/patch/splashscreen/DownloadFilesList.xml",
+        akamai_download_url="http://installer.lotro.com/lotro/",
+        game_version="3601.0066.7272.4024",
     )
 
 
