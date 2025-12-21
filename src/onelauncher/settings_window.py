@@ -30,6 +30,7 @@ import os
 import re
 from contextlib import suppress
 from enum import StrEnum
+from functools import partial
 from pathlib import Path
 from types import MappingProxyType
 
@@ -83,8 +84,6 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
         self.ui.setupUi(self)
 
     def setup_ui(self) -> None:
-        self.finished.connect(self.cleanup)
-
         self.tab_names = list(TabName)
         if os.name == "nt":
             self.tab_names.remove(TabName.WINE)
@@ -183,9 +182,13 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             self.ui.gamesSortingModeComboBox.findData(program_config.games_sorting_mode)
         )
 
-        self.ui.setupWizardButton.clicked.connect(self.start_setup_wizard)
+        self.ui.setupWizardButton.clicked.connect(
+            lambda: self.nursery.start_soon(self.start_setup_wizard)
+        )
         self.ui.gamesManagementButton.clicked.connect(
-            lambda: self.start_setup_wizard(games_managing=True)
+            lambda: self.nursery.start_soon(
+                partial(self.start_setup_wizard, games_managing=True)
+            )
         )
         self.ui.gameDirButton.clicked.connect(self.choose_game_dir)
         self.ui.showAdvancedSettingsCheckbox.clicked.connect(
@@ -205,6 +208,8 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
     async def run(self) -> None:
         self.setup_ui()
         async with trio.open_nursery() as self.nursery:
+            self.finished.connect(self.cleanup)
+
             self.nursery.start_soon(self.indicate_unavailable_client_types)
             self.nursery.start_soon(self.setup_newsfeed_option)
             self.nursery.start_soon(self.setup_game_settings_dir_option)
@@ -414,8 +419,13 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             return None
         self.ui.gameSettingsDirLineEdit.setText(str(folder))
 
-    def start_setup_wizard(self, games_managing: bool = False) -> None:
-        self.hide()
+    async def start_setup_wizard(self, games_managing: bool = False) -> None:
+        visible_tope_level_widgets = tuple(
+            widget for widget in get_qapp().topLevelWidgets() if widget.isVisible()
+        )
+        for widget in visible_tope_level_widgets:
+            widget.hide()
+
         if games_managing:
             setup_wizard = SetupWizard(
                 config_manager=self.config_manager,
@@ -426,7 +436,10 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             setup_wizard = SetupWizard(
                 config_manager=self.config_manager, select_existing_games=False
             )
-        setup_wizard.exec()
+        await setup_wizard.run()
+
+        for widget in visible_tope_level_widgets:
+            widget.show()
         self.accept()
 
     def add_languages_to_combobox(self, combobox: QtWidgets.QComboBox) -> None:

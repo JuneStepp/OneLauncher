@@ -83,7 +83,8 @@ async def start_ui(config_manager: ConfigManager, game_id: GameConfigID | None) 
     if not config_manager.program_config_path.exists():
         logger.info("No program config found. Starting setup wizard.")
         setup_wizard = SetupWizard(config_manager)
-        if setup_wizard.exec() == QtWidgets.QDialog.DialogCode.Rejected:
+        await setup_wizard.run()
+        if setup_wizard.result() == QtWidgets.QDialog.DialogCode.Rejected:
             # Close program if the user left the setup wizard without finishing.
             return
         return await start_ui(config_manager=config_manager, game_id=game_id)
@@ -98,7 +99,8 @@ async def start_ui(config_manager: ConfigManager, game_id: GameConfigID | None) 
             f"No games have been registered with {__title__}.\n Opening games management wizard.",
         )
         setup_wizard = SetupWizard(config_manager, game_selection_only=True)
-        if setup_wizard.exec() == QtWidgets.QDialog.DialogCode.Rejected:
+        await setup_wizard.run()
+        if setup_wizard.result() == QtWidgets.QDialog.DialogCode.Rejected:
             # Close program if the user left the setup wizard without finishing.
             return
         return await start_ui(config_manager=config_manager, game_id=game_id)

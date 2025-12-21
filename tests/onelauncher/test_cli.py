@@ -89,12 +89,13 @@ async def test_no_config(app: cyclopts.App, mocker: MockerFixture) -> None:
     assert app([]) == 0
     async_mock.assert_called_once()
 
-    mock = mocker.patch.object(main, "SetupWizard")
+    mock = mocker.patch.object(main, "SetupWizard", autospec=True)
     mock_instance = mock.return_value
-    mock_instance.exec.return_value = QtWidgets.QDialog.DialogCode.Rejected
+    mock_instance.result.return_value = QtWidgets.QDialog.DialogCode.Rejected
 
     await async_mock.call_args.kwargs["entry"]()
-    mock_instance.exec.assert_called_once()
+    mock_instance.run.assert_called_once()
+    mock_instance.result.assert_called_once()
 
 
 async def test_no_games(
@@ -109,14 +110,15 @@ async def test_no_games(
     async_mock.assert_called_once()
 
     mocker.patch.object(QtWidgets.QMessageBox, "information")
-    mock = mocker.patch.object(main, "SetupWizard")
+    mock = mocker.patch.object(main, "SetupWizard", autospec=True)
     mock_instance = mock.return_value
-    mock_instance.exec.return_value = QtWidgets.QDialog.DialogCode.Rejected
+    mock_instance.result.return_value = QtWidgets.QDialog.DialogCode.Rejected
 
     await async_mock.call_args.kwargs["entry"]()
     mock.assert_called_once()
     assert mock.call_args.kwargs["game_selection_only"] is True
-    mock_instance.exec.assert_called_once()
+    mock_instance.run.assert_called_once()
+    mock_instance.result.assert_called_once()
 
 
 def test_invalid_program_config(

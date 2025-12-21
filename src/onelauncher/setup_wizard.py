@@ -35,6 +35,7 @@ from typing import Final
 
 import attrs
 import qtawesome
+import trio
 from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
 
@@ -126,29 +127,28 @@ class SetupWizard(QtWidgets.QWizard):
         self.ui = Ui_Wizard()
         self.ui.setupUi(self)
         self.setWindowTitle("Setup Wizard")
+
+        self.migrate_old_config_asked: bool = False
+
+    def setup_ui(self) -> None:
         # As of PySide 6.1, other styles don't have right spacing or work with the dark
         # theme on Windows. Sticking with this known look on all platforms for now.
         self.setWizardStyle(self.WizardStyle.ClassicStyle)
 
-        self.ui.gamesDiscoveryStatusLabel.hide()
-
-        self.add_available_languages_to_ui()
-
         color_scheme_changed = get_qapp().styleHints().colorSchemeChanged
 
-        self.migrate_old_config_asked: bool = False
+        # Language selection page
+        self.add_available_languages_to_ui()
         self.ui.languageSelectionWizardPage.validatePage = (  # type: ignore[method-assign]
             self.validateLanguageSelectionPage
         )
+
         # Games discovery page
-        self.ui.gamesSelectionWizardPage.initializePage = (  # type: ignore[method-assign]
-            self.initialize_games_selection_page
-        )
         self.ui.gamesSelectionWizardPage.validatePage = self.validateGamesSelectionPage  # type: ignore[method-assign]
         self.ui.addGameButton.clicked.connect(self.browse_for_game_dir)
         self.ui.upPriorityButton.clicked.connect(self.raise_selected_game_priority)
         self.ui.downPriorityButton.clicked.connect(self.lower_selected_game_priority)
-        self.games_found = False
+
         # Existing game data page
         self.ui.dataDeletionWizardPage.setCommitPage(True)
         self.ui.gamesDeletionStatusListView.setModel(self.ui.gamesListWidget.model())
@@ -179,6 +179,7 @@ class SetupWizard(QtWidgets.QWizard):
         color_scheme_changed.connect(data_deletion_page_update)
         if self.game_selection_only:
             self.ui.keepDataRadioButton.setChecked(True)
+
         # Finished page
         self.accepted.connect(self.save_settings)
 
@@ -186,10 +187,9 @@ class SetupWizard(QtWidgets.QWizard):
             for page_id in self.pageIds():
                 self.removePage(page_id)
             self.addPage(self.ui.gamesSelectionWizardPage)
-            # Existing data page isn't needed, if there's no existing data
+            # Existing data page isn't needed, if there's no existing data.
             if self.config_manager.get_game_config_ids():
                 self.addPage(self.ui.dataDeletionWizardPage)
-            self.find_games()
         else:
             # Only show data deletion page if there is existing game data
             self.ui.gamesSelectionWizardPage.nextId = (  # type: ignore[method-assign]
@@ -197,6 +197,26 @@ class SetupWizard(QtWidgets.QWizard):
                 if self.config_manager.get_game_config_ids()
                 else self.currentId() + 2
             )
+
+        self.open()
+
+    async def run(self) -> None:
+        self.setup_ui()
+        async with trio.open_nursery() as self.nursery:
+            self.finished.connect(self.cleanup)
+
+            self.nursery.start_soon(self.initialize_games_selection_page)
+
+            # Will be canceled when the winddow is closed
+            self.nursery.start_soon(trio.sleep_forever)
+
+    def cleanup(self) -> None:
+        self.nursery.cancel_scope.cancel()
+
+    @override
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
+        self.cleanup()
+        event.accept()
 
     @override
     def changeEvent(self, event: QtCore.QEvent) -> None:
@@ -312,16 +332,13 @@ class SetupWizard(QtWidgets.QWizard):
         self.ui.gamesDeletionStatusListView.setEnabled(True)
         self.ui.dataDeletionWizardPage.completeChanged.emit()
 
-    def initialize_games_selection_page(self) -> None:
-        if not self.games_found:
-
-            def find_games_and_hide_status_label() -> None:
-                self.find_games()
-                self.ui.gamesDiscoveryStatusLabel.hide()
-
-            self.ui.gamesDiscoveryStatusLabel.setText("Finding game directories...")
-            self.ui.gamesDiscoveryStatusLabel.show()
-            QtCore.QTimer.singleShot(1, find_games_and_hide_status_label)
+    async def initialize_games_selection_page(self) -> None:
+        self.ui.gamesDiscoveryStatusLabel.setText(
+            "Searching for existing game directories..."
+        )
+        self.ui.gamesDiscoveryStatusLabel.show()
+        await trio.to_thread.run_sync(self.find_games)
+        self.ui.gamesDiscoveryStatusLabel.hide()
 
     def find_games(self) -> None:
         self.add_existing_games()
@@ -343,7 +360,7 @@ class SetupWizard(QtWidgets.QWizard):
                 (home_dir / ".steam/steamapps/compatdata", "*/"),
                 (
                     home_dir / ".local/share/Steam/steamapps/compatdata/",
-                    "*",
+                    "*/",
                 ),
                 (
                     home_dir
@@ -391,7 +408,6 @@ class SetupWizard(QtWidgets.QWizard):
         for game in sorted(self.found_games, key=sort_games):
             self.add_game(game_id=generate_game_config_id(game), game_config=game)
         self.ui.gamesListWidget.setCurrentRow(0)
-        self.games_found = True
 
     def add_existing_games(self) -> None:
         for game_id in self.config_manager.get_games_sorted_by_priority():
