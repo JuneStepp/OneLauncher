@@ -263,12 +263,13 @@ async def _handle_akamai_download_file(
         progress_item.total = download_file.size
 
     try:
-        async with (
-            get_httpx_client(url).stream(
-                "GET", url, timeout=httpx.Timeout(6, pool=None)
-            ) as response,
-            await temp_download_path.open("wb") as temp_download_file,
-        ):
+        # Using the `async with client.stream(...)` currently doesn't work with
+        # Nuitka. See <https://github.com/Nuitka/Nuitka/issues/3697>.
+        request = get_httpx_client(url).build_request(
+            "GET", url, timeout=httpx.Timeout(6, pool=None)
+        )
+        response = await get_httpx_client(url).send(request, stream=True)
+        try:
             response.raise_for_status()
 
             bytes_currently_downloaded = response.num_bytes_downloaded
@@ -277,16 +278,19 @@ async def _handle_akamai_download_file(
                     response.headers.get("Content-Length", 300000)
                 )
 
-            async for chunk in response.aiter_bytes():
-                if isinstance(download_file, SplashscreenDownloadFile):
-                    progress_item.completed += (
-                        response.num_bytes_downloaded - bytes_currently_downloaded
-                    )
-                    bytes_currently_downloaded = response.num_bytes_downloaded
-                else:
-                    progress_item.completed += len(chunk)
+            async with await temp_download_path.open("wb") as temp_download_file:
+                async for chunk in response.aiter_bytes():
+                    if isinstance(download_file, SplashscreenDownloadFile):
+                        progress_item.completed += (
+                            response.num_bytes_downloaded - bytes_currently_downloaded
+                        )
+                        bytes_currently_downloaded = response.num_bytes_downloaded
+                    else:
+                        progress_item.completed += len(chunk)
 
-                await temp_download_file.write(chunk)
+                    await temp_download_file.write(chunk)
+        finally:
+            await response.aclose()
     except HTTPError:
         logger.warning("Failed to download %s", local_path.name, exc_info=True)
         progress.progress_items.remove(progress_item)
