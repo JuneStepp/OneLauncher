@@ -54,7 +54,7 @@ class AsyncHelper(QtCore.QObject):
             self.entry,
             run_sync_soon_threadsafe=self.next_guest_run_schedule,
             done_callback=self.trio_done_callback,
-            strict_exception_groups=True,
+            restrict_keyboard_interrupt_to_checkpoints=True,
         )
 
     def next_guest_run_schedule(self, fn: Callable[[], object]) -> None:
@@ -89,7 +89,10 @@ def start_async(entry: Callable[[], Awaitable[None]]) -> int:
     Returns:
         int: Exit code
     """
-    trio.run(partial(_scope_entry, entry=entry))
+    trio.run(
+        partial(_scope_entry, entry=entry),
+        restrict_keyboard_interrupt_to_checkpoints=True,
+    )
     return 0
 
 
