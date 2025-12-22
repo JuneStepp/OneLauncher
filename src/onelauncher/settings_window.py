@@ -39,15 +39,13 @@ import trio
 from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
 
-from onelauncher.game_launcher_local_config import (
-    GameLauncherLocalConfig,
-)
-from onelauncher.qtapp import get_qapp
-
 from .__about__ import __title__
 from .config import platform_dirs
 from .config_manager import ConfigManager
 from .game_config import ClientType, GameConfigID
+from .game_launcher_local_config import (
+    GameLauncherLocalConfig,
+)
 from .game_utilities import (
     InvalidGameDirError,
     find_game_dir_game_type,
@@ -59,6 +57,7 @@ from .resources import available_locales
 from .setup_wizard import SetupWizard
 from .standard_game_launcher import get_standard_game_launcher_path
 from .ui.custom_widgets import FramelessQDialogWithStylePreview
+from .ui.qtapp import get_qapp
 from .ui.settings_uic import Ui_dlgSettings
 from .ui.utilities import show_warning_message
 from .utilities import CaseInsensitiveAbsolutePath

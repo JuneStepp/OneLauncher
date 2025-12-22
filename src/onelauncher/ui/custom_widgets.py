@@ -2,13 +2,13 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from qframelesswindow import FramelessDialog, FramelessMainWindow
 from typing_extensions import override
 
-from onelauncher.qtapp import get_qapp
-from onelauncher.ui.qtdesigner.custom_widgets import (
+from onelauncher.network.game_newsfeed import get_newsfeed_css
+
+from .qtapp import get_qapp
+from .qtdesigner.custom_widgets import (
     QDialogWithStylePreview,
     QMainWindowWithStylePreview,
 )
-
-from ..network.game_newsfeed import get_newsfeed_css
 
 
 class FramelessQDialogWithStylePreview(FramelessDialog, QDialogWithStylePreview): ...

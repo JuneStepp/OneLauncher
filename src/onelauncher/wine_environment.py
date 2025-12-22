@@ -45,9 +45,8 @@ import attrs
 import certifi
 from PySide6 import QtCore, QtWidgets
 
-from onelauncher.qtapp import get_qapp
-
 from .config import platform_dirs
+from .ui.qtapp import get_qapp
 from .ui.utilities import show_warning_message
 from .wine.config import WineConfigSection
 

@@ -42,13 +42,8 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
 from xmlschema import XMLSchemaValidationError
 
-from onelauncher.addons.startup_script import run_startup_script
-from onelauncher.logs import ForwardLogsHandler
-from onelauncher.qtapp import get_app_style, get_qapp
-from onelauncher.start_game import MissingLaunchArgumentError, start_game
-from onelauncher.ui.custom_widgets import FramelessQMainWindowWithStylePreview
-
 from . import __about__, addon_manager
+from .addons.startup_script import run_startup_script
 from .config_manager import ConfigManager, NoValidGamesError
 from .game_account_config import GameAccountConfig
 from .game_config import GameConfigID, GameType
@@ -62,6 +57,7 @@ from .game_utilities import (
     find_game_dir_game_type,
     get_game_settings_dir,
 )
+from .logs import ForwardLogsHandler
 from .network import login_account
 from .network.game_launcher_config import (
     GameLauncherConfig,
@@ -79,9 +75,12 @@ from .network.world_login_queue import (
 )
 from .resources import get_resource
 from .settings_window import SettingsWindow
+from .start_game import MissingLaunchArgumentError, start_game
 from .ui.about_uic import Ui_dlgAbout
+from .ui.custom_widgets import FramelessQMainWindowWithStylePreview
 from .ui.main_uic import Ui_winMain
 from .ui.patch_game import PatchGameWindow
+from .ui.qtapp import get_app_style, get_qapp
 from .ui.select_subscription_uic import Ui_dlgSelectSubscription
 from .ui.utilities import log_record_to_rich_text, show_message_box_details_as_markdown
 

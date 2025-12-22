@@ -41,10 +41,10 @@ from onelauncher.patch_game import (
     patch_game,
 )
 from onelauncher.patch_game import logger as patch_game_logger
-from onelauncher.qtapp import get_qapp
 from onelauncher.utilities import Progress
 
 from .patch_game_uic import Ui_patchingDialog
+from .qtapp import get_qapp
 from .utilities import log_record_to_rich_text
 
 logger = logging.getLogger(__name__)

@@ -63,10 +63,6 @@ from httpx import HTTPError
 from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
 
-from onelauncher.network.httpx_client import get_httpx_client_sync
-from onelauncher.qtapp import get_qapp
-from onelauncher.ui.qtdesigner.custom_widgets import QWidgetWithStylePreview
-
 from .__about__ import __title__
 from .addons.startup_script import StartupScript
 from .config import platform_dirs
@@ -74,7 +70,10 @@ from .config_manager import ConfigManager
 from .game_config import GameConfigID, GameType
 from .game_launcher_local_config import GameLauncherLocalConfig
 from .game_utilities import get_game_settings_dir
+from .network.httpx_client import get_httpx_client_sync
 from .ui.addon_manager_uic import Ui_winAddonManager
+from .ui.qtapp import get_qapp
+from .ui.qtdesigner.custom_widgets import QWidgetWithStylePreview
 from .utilities import CaseInsensitiveAbsolutePath
 
 if TYPE_CHECKING:

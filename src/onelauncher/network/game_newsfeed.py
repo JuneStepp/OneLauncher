@@ -9,7 +9,7 @@ from babel import Locale
 from babel.dates import format_datetime
 from PySide6 import QtCore
 
-from onelauncher.qtapp import get_qapp
+from onelauncher.ui.qtapp import get_qapp
 
 from .httpx_client import get_httpx_client
 

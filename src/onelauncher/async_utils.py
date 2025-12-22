@@ -9,7 +9,7 @@ from PySide6 import QtCore, QtWidgets
 from trio.abc import ReceiveStream
 from typing_extensions import override
 
-from onelauncher.qtapp import get_qapp
+from .ui.qtapp import get_qapp
 
 logger = logging.getLogger(__name__)
 

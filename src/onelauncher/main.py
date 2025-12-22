@@ -12,9 +12,9 @@ from .config_manager import (
 )
 from .game_config import GameConfigID
 from .main_window import MainWindow
-from .qtapp import get_qapp
 from .setup_wizard import SetupWizard
 from .ui.error_message_uic import Ui_errorDialog
+from .ui.qtapp import get_qapp
 
 logger = logging.getLogger(__name__)
 

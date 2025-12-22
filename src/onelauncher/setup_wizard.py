@@ -39,8 +39,6 @@ import trio
 from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
 
-from onelauncher.qtapp import get_app_style, get_qapp
-
 from .__about__ import __title__
 from .addons.config import AddonsConfigSection
 from .config_manager import ConfigManager
@@ -63,6 +61,7 @@ from .game_utilities import (
 from .official_clients import get_game_icon, is_gls_url_for_preview_client
 from .program_config import GamesSortingMode, ProgramConfig
 from .resources import available_locales
+from .ui.qtapp import get_app_style, get_qapp
 from .ui.setup_wizard_uic import Ui_Wizard
 from .ui.utilities import show_warning_message
 from .utilities import CaseInsensitiveAbsolutePath

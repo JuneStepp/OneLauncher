@@ -33,10 +33,10 @@ from pathlib import Path
 import qtawesome
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from onelauncher.ui.style import ApplicationStyle
+from onelauncher.__about__ import __title__, __version__
+from onelauncher.resources import data_dir
 
-from .__about__ import __title__, __version__
-from .resources import data_dir
+from .style import ApplicationStyle
 
 
 @cache
