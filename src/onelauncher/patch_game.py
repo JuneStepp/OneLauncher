@@ -2,7 +2,6 @@ import logging
 import os
 import subprocess
 from functools import partial
-from math import log, trunc
 from pathlib import Path
 from types import MappingProxyType
 from typing import Literal, TypeAlias, assert_never
@@ -27,7 +26,7 @@ from onelauncher.network.akamai import (
 from onelauncher.network.game_launcher_config import GameLauncherConfig
 from onelauncher.network.httpx_client import get_httpx_client
 from onelauncher.resources import data_dir
-from onelauncher.utilities import CaseInsensitiveAbsolutePath
+from onelauncher.utilities import CaseInsensitiveAbsolutePath, Progress, ProgressItem
 from onelauncher.wine_environment import get_wine_process_args
 
 logger = logging.getLogger(__name__)
@@ -49,79 +48,6 @@ Executable used to run `patchclient.dll` and get output from it. This is done wi
 separate program, because `patchclient.dll` is 32-bit. `rundll32.exe` can't be used,
 because it doesn't expose the stdout of what it runs.
 """
-
-
-@attrs.define(eq=False)
-class ProgressItem:
-    completed: int = 0
-    total: int = 0
-
-
-@attrs.frozen
-class CurrentProgress:
-    completed: int
-    total: int
-    progress_text: str
-
-
-@attrs.define
-class Progress:
-    progress_items: list[ProgressItem] = attrs.Factory(list)
-    unit_type: Literal["byte"] | None = None
-    progress_text_suffix: str = ""
-
-    def reset(self) -> None:
-        self.progress_items = []
-        self.unit_type = None
-        self.progress_text_suffix = ""
-
-    def _pick_unit_and_suffix(
-        self, size: int, suffixes: tuple[str, ...], base: int
-    ) -> tuple[int, str]:
-        if not suffixes:
-            return 1, ""
-
-        ideal_exponent = trunc(log(size, base))
-        exponent = min(ideal_exponent, len(suffixes) - 1)
-        return base**exponent, suffixes[exponent]
-
-    def get_current_progress(self) -> CurrentProgress:
-        sum_completed = 0
-        sum_total = 0
-        for progress_item in self.progress_items:
-            sum_completed += progress_item.completed
-            sum_total += progress_item.total
-
-        # Don't want >100%.
-        sum_completed = min(sum_completed, sum_total)
-
-        if sum_total == 0:
-            return CurrentProgress(
-                completed=0, total=0, progress_text=self.progress_text_suffix
-            )
-
-        if self.unit_type is None:
-            unit, suffix = 1, ""
-        elif self.unit_type == "byte":
-            unit, suffix = self._pick_unit_and_suffix(
-                size=sum_total,
-                suffixes=("bytes", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"),
-                base=1000,
-            )
-        else:
-            assert_never()
-        precision = 0 if unit == 1 else 1
-        completed_str = f"{sum_completed / unit:,.{precision}f}"
-        total_str = f"{sum_total / unit:,.{precision}f}"
-        progress_text = f"{sum_completed / sum_total:.0%} ({completed_str}/{total_str} {suffix}){self.progress_text_suffix}"
-
-        return CurrentProgress(
-            # Using 0 to 10,000 instead of 0 to `current_progress.total` to prevent
-            # overfloq errors.
-            completed=round(sum_completed / sum_total * 10000),
-            total=10000,
-            progress_text=progress_text,
-        )
 
 
 class PatchingProgressMonitor:

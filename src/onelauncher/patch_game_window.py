@@ -41,11 +41,11 @@ from onelauncher.ui_utilities import log_record_to_rich_text
 from .config_manager import ConfigManager
 from .patch_game import (
     PATCH_CLIENT_RUNNER,
-    Progress,
     patch_game,
 )
 from .patch_game import logger as patch_game_logger
 from .ui.patching_window_uic import Ui_patchingDialog
+from .utilities import Progress
 
 logger = logging.getLogger(__name__)
 
