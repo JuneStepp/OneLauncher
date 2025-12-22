@@ -45,7 +45,7 @@ from onelauncher.qtapp import get_qapp
 from onelauncher.ui_utilities import log_record_to_rich_text
 from onelauncher.utilities import Progress
 
-from .patching_window_uic import Ui_patchingDialog
+from .patch_game_uic import Ui_patchingDialog
 
 logger = logging.getLogger(__name__)
 
