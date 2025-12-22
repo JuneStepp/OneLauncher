@@ -421,7 +421,7 @@ class Ui_dlgSettings(object):
         self.gameDirLineEdit.setToolTip(QCoreApplication.translate("dlgSettings", u"Game install directory. There should be a file called patchclient.dll here", None))
 #endif // QT_CONFIG(tooltip)
 #if QT_CONFIG(tooltip)
-        self.gameDirButton.setToolTip(QCoreApplication.translate("dlgSettings", u"Select game directory from file system", None))
+        self.gameDirButton.setToolTip(QCoreApplication.translate("dlgSettings", u"Select game install directory from the file browser", None))
 #endif // QT_CONFIG(tooltip)
         self.gameDirButton.setText(QCoreApplication.translate("dlgSettings", u"...", None))
 #if QT_CONFIG(tooltip)

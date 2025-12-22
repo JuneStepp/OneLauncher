@@ -141,7 +141,7 @@
          <item>
           <widget class="QToolButton" name="gameDirButton">
            <property name="toolTip">
-            <string>Select game directory from file system</string>
+            <string>Select game install directory from the file browser</string>
            </property>
            <property name="text">
             <string>...</string>
