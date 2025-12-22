@@ -35,6 +35,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Self
 from xml.etree.ElementTree import Element
 
+import attrs
 from defusedxml import ElementTree  # type: ignore[import-untyped]
 from typing_extensions import override
 
@@ -43,6 +44,9 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+@attrs.frozen(kw_only=True)
+class RelativePathError(ValueError):
+    msg: str = "Path is not absolute"
 
 class CaseInsensitiveAbsolutePath(Path):
     """
@@ -56,6 +60,9 @@ class CaseInsensitiveAbsolutePath(Path):
     LOTRO and DDO treat both patchclient.dll and PatchClient.dll the same, and both have
     been encountered in real game folders before. There are similar concerns regarding
     addon folders or anything else used by the games or in the WINE prefixes.
+
+    Raises:
+        RelativePathError: Path is not absolute
     """
 
     _flavour = (  # spellchecker:disable-line
@@ -67,7 +74,7 @@ class CaseInsensitiveAbsolutePath(Path):
     def __new__(cls, *pathsegments: StrPath) -> Self:
         normal_path = Path(*pathsegments)
         if not normal_path.is_absolute():
-            raise ValueError("Path is not absolute")
+            raise RelativePathError()
 
         path = cls._get_real_path_from_fully_case_insensitive_path(normal_path)
         return super().__new__(cls, path)

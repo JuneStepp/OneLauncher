@@ -6,7 +6,7 @@ import pytest
 
 import onelauncher
 import onelauncher.utilities
-from onelauncher.utilities import CaseInsensitiveAbsolutePath
+from onelauncher.utilities import CaseInsensitiveAbsolutePath, RelativePathError
 
 
 class TestCaseInsensitiveAbsolutePath:
@@ -27,6 +27,13 @@ class TestCaseInsensitiveAbsolutePath:
                 real_path.mkdir()
 
             assert CaseInsensitiveAbsolutePath(tmp_path / paths[0]) == real_path
+
+    def test_relative_path(self) -> None:
+        with pytest.raises(RelativePathError):
+            CaseInsensitiveAbsolutePath()
+
+        with pytest.raises(RelativePathError):
+            CaseInsensitiveAbsolutePath("a/b")
 
     def test_no_matching_path(self, tmp_path: Path) -> None:
         """No changes are made to the path when any part of it can't be found"""
