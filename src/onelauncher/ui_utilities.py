@@ -6,6 +6,8 @@ logger = logging.getLogger(__name__)
 
 
 def show_warning_message(message: str, parent: QtWidgets.QWidget | None) -> None:
+    logger.warning(message)
+
     message_box = QtWidgets.QMessageBox(parent)
     message_box.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
     message_box.setIcon(QtWidgets.QMessageBox.Icon.Warning)
