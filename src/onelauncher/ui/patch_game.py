@@ -33,24 +33,24 @@ from PySide6 import QtCore, QtWidgets
 from qtpy import QtGui
 from typing_extensions import override
 
+from onelauncher.config_manager import ConfigManager
 from onelauncher.game_config import GameConfigID
 from onelauncher.logs import ForwardLogsHandler
-from onelauncher.qtapp import get_qapp
-from onelauncher.ui_utilities import log_record_to_rich_text
-
-from .config_manager import ConfigManager
-from .patch_game import (
+from onelauncher.patch_game import (
     PATCH_CLIENT_RUNNER,
     patch_game,
 )
-from .patch_game import logger as patch_game_logger
-from .ui.patching_window_uic import Ui_patchingDialog
-from .utilities import Progress
+from onelauncher.patch_game import logger as patch_game_logger
+from onelauncher.qtapp import get_qapp
+from onelauncher.ui_utilities import log_record_to_rich_text
+from onelauncher.utilities import Progress
+
+from .patching_window_uic import Ui_patchingDialog
 
 logger = logging.getLogger(__name__)
 
 
-class PatchWindow(QtWidgets.QDialog):
+class PatchGameWindow(QtWidgets.QDialog):
     def __init__(
         self,
         game_id: GameConfigID,

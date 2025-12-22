@@ -77,11 +77,11 @@ from .network.world_login_queue import (
     WorldLoginQueue,
     WorldQueueResultXMLParseError,
 )
-from .patch_game_window import PatchWindow
 from .resources import get_resource
 from .settings_window import SettingsWindow
 from .ui.about_uic import Ui_dlgAbout
 from .ui.main_uic import Ui_winMain
+from .ui.patch_game import PatchGameWindow
 from .ui.select_subscription_uic import Ui_dlgSelectSubscription
 from .ui_utilities import log_record_to_rich_text, show_message_box_details_as_markdown
 
@@ -337,7 +337,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         if game_services_info is None:
             return
 
-        patch_window = PatchWindow(
+        patch_window = PatchGameWindow(
             game_id=self.game_id,
             config_manager=self.config_manager,
             patch_server_url=game_services_info.patch_server,
