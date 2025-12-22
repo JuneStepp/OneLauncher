@@ -10,7 +10,7 @@ from uuid import uuid4
 import attrs
 import httpx
 import trio
-from httpx import HTTPError
+from httpx import HTTPError, HTTPStatusError
 from xmlschema import XMLSchemaValidationError
 
 from onelauncher.async_utils import for_each_in_stream
@@ -217,8 +217,15 @@ async def _handle_akamai_download_file(
                     await temp_download_file.write(chunk)
         finally:
             await response.aclose()
-    except HTTPError:
-        logger.warning("Failed to download %s", local_path.name, exc_info=True)
+    except HTTPError as e:
+        if (
+            isinstance(e, HTTPStatusError)
+            and e.response.status_code == httpx.codes.NOT_FOUND
+        ):
+            # Not an error, because there are always some specific files that 404.
+            logger.debug("Download not found: %s", local_path.name, exc_info=True)
+        else:
+            logger.exception("Failed to download %s", local_path.name)
         progress.progress_items.remove(progress_item)
     else:
         await local_path.parent.mkdir(parents=True, exist_ok=True)
