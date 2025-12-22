@@ -83,7 +83,7 @@ from .ui.about_uic import Ui_dlgAbout
 from .ui.main_uic import Ui_winMain
 from .ui.patch_game import PatchGameWindow
 from .ui.select_subscription_uic import Ui_dlgSelectSubscription
-from .ui_utilities import log_record_to_rich_text, show_message_box_details_as_markdown
+from .ui.utilities import log_record_to_rich_text, show_message_box_details_as_markdown
 
 logger = logging.getLogger(__name__)
 

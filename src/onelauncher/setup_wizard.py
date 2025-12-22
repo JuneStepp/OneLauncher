@@ -64,7 +64,7 @@ from .official_clients import get_game_icon, is_gls_url_for_preview_client
 from .program_config import GamesSortingMode, ProgramConfig
 from .resources import available_locales
 from .ui.setup_wizard_uic import Ui_Wizard
-from .ui_utilities import show_warning_message
+from .ui.utilities import show_warning_message
 from .utilities import CaseInsensitiveAbsolutePath
 from .v1x_config_migrator import (
     V1xConfigParseError,

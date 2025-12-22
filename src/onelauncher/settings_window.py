@@ -60,7 +60,7 @@ from .setup_wizard import SetupWizard
 from .standard_game_launcher import get_standard_game_launcher_path
 from .ui.custom_widgets import FramelessQDialogWithStylePreview
 from .ui.settings_uic import Ui_dlgSettings
-from .ui_utilities import show_warning_message
+from .ui.utilities import show_warning_message
 from .utilities import CaseInsensitiveAbsolutePath
 from .wine_environment import get_wine_process_args
 
