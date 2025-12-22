@@ -221,6 +221,7 @@ async def _handle_akamai_download_file(
         logger.warning("Failed to download %s", local_path.name, exc_info=True)
         progress.progress_items.remove(progress_item)
     else:
+        await local_path.parent.mkdir(parents=True, exist_ok=True)
         await temp_download_path.rename(local_path)
     finally:
         with trio.move_on_after(5, shield=True):
