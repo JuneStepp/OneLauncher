@@ -438,9 +438,10 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             )
         await setup_wizard.run()
 
-        for widget in visible_tope_level_widgets:
-            widget.show()
         self.accept()
+        for widget in visible_tope_level_widgets:
+            if widget is not self:
+                widget.show()
 
     def add_languages_to_combobox(self, combobox: QtWidgets.QComboBox) -> None:
         for locale in available_locales.values():
