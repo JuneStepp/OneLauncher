@@ -215,22 +215,32 @@ async def install_game(
         download_progress_item = ProgressItem()
         progress.progress_items.append(download_progress_item)
         async with (
-            get_httpx_client(installer.url).stream("GET", installer.url) as response,
             trio.wrap_file(NamedTemporaryFile()) as installer_file,
             TemporaryDirectoryAsyncPath() as extract_dir,
         ):
-            response.raise_for_status()
-
-            bytes_currently_downloaded = response.num_bytes_downloaded
-            download_progress_item.total = int(
-                response.headers.get("Content-Length", 46000000)
-            )
-            async for chunk in response.aiter_bytes():
-                download_progress_item.completed += (
-                    response.num_bytes_downloaded - bytes_currently_downloaded
+            try:
+                # Using the `async with client.stream(...)` currently doesn't work with
+                # Nuitka. See <https://github.com/Nuitka/Nuitka/issues/3697>.
+                request = get_httpx_client(installer.url).build_request(
+                    "GET", installer.url
                 )
+                response = await get_httpx_client(installer.url).send(
+                    request, stream=True
+                )
+                response.raise_for_status()
+
                 bytes_currently_downloaded = response.num_bytes_downloaded
-                await installer_file.write(chunk)
+                download_progress_item.total = int(
+                    response.headers.get("Content-Length", 46000000)
+                )
+                async for chunk in response.aiter_bytes():
+                    download_progress_item.completed += (
+                        response.num_bytes_downloaded - bytes_currently_downloaded
+                    )
+                    bytes_currently_downloaded = response.num_bytes_downloaded
+                    await installer_file.write(chunk)
+            finally:
+                await response.aclose()
 
             logger.info("Extracting %s game installer", installer.name)
             progress.reset()
