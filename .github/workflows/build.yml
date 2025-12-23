@@ -54,8 +54,54 @@ jobs:
         if: runner.os == 'Windows'
         shell: msys2 {0}
         run: make -C src/run_patch_client
-      - name: Symlink `run_ptch_client` to `onelauncher/external` dir
-        run: ln -s ../../run_patch_client/run_ptch_client.exe src/onelauncher/external/run_ptch_client.exe
+      - name: Move `run_ptch_client` to `onelauncher/external` dir
+        run: mv src/run_patch_client/run_ptch_client.exe src/onelauncher/external/
+
+      # innoextract
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        if: runner.os != 'Windows'
+        with:
+          repository: dscharrer/innoextract
+          ref: 6e9e34ed0876014fdb46e684103ef8c3605e382e
+          path: innoextract
+          persist-credentials: false
+      - name: Patch innoextract to fix build with boost 1.89.0
+        if: runner.os != 'Windows'
+        run: |
+          pushd innoextract
+
+          curl https://github.com/dscharrer/innoextract/commit/882796e0e9b134b02deeaae4bbfe92920adb6fe2.patch \
+            | git apply
+
+          popd
+      - name: Install innoextract dependencies on Linux
+        if: runner.os == 'Linux'
+        run: sudo apt-get install libboost-all-dev liblzma-dev
+      - name: Install innoextract dependencies on macOS
+        if: runner.os == 'macOS'
+        run: brew install boost
+      - name: Build innoextract on macOS
+        if: runner.os == 'macOS'
+        run: |
+          mkdir innoextract/build
+          pushd innoextract/build
+
+          LDFLAGS="-L$(brew --prefix zstd)/lib -L$(brew --prefix icu4c@78)/lib" cmake ..
+          make
+
+          popd
+          ln -s $PWD/innoextract/build/innoextract src/onelauncher/external/innoextract
+      - name: Build innoextract on Linux
+        if: runner.os == 'Linux'
+        run: |
+          mkdir innoextract/build
+          pushd innoextract/build
+
+          cmake .. -DUSE_STATIC_LIBS=ON
+          make
+
+          popd
+          ln -s $PWD/innoextract/build/innoextract src/onelauncher/external/innoextract
 
       # Python
       # Can't use uv python with Nuitka yet
@@ -101,6 +147,22 @@ jobs:
 
       - name: Build
         run: python -m build
+      - name: Verify build
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" == "macOS" ]; then
+            distDir="build/out/onelauncher.app/Contents/MacOS"
+          else
+            distDir="build/out/onelauncher.dist"
+          fi
+
+          test -x $distDir/onelauncher/external/run_ptch_client.exe && \
+            echo run_ptch_client.exe found
+
+          if [ "${{ runner.os }}" != "Windows" ]; then
+            test -x $distDir/onelauncher/external/innoextract && \
+              echo innoextract found
+          fi
       - name: Make app zip on MacOS
         if: runner.os == 'macOS'
         run: ditto -c -k --keepParent build/out/onelauncher.app build/out/onelauncher.zip

@@ -121,10 +121,15 @@ class Ui_Wizard(object):
 
         self.horizontalLayout.addItem(self.verticalSpacer)
 
-        self.addGameButton = QPushButton(self.gamesSelectionWizardPage)
-        self.addGameButton.setObjectName(u"addGameButton")
+        self.addExistingGameButton = QPushButton(self.gamesSelectionWizardPage)
+        self.addExistingGameButton.setObjectName(u"addExistingGameButton")
 
-        self.horizontalLayout.addWidget(self.addGameButton)
+        self.horizontalLayout.addWidget(self.addExistingGameButton)
+
+        self.installGameButton = QPushButton(self.gamesSelectionWizardPage)
+        self.installGameButton.setObjectName(u"installGameButton")
+
+        self.horizontalLayout.addWidget(self.installGameButton)
 
 
         self.gamesSelectionPageLayout.addLayout(self.horizontalLayout)
@@ -209,7 +214,14 @@ class Ui_Wizard(object):
         self.upPriorityButton.setToolTip(QCoreApplication.translate("Wizard", u"Increase priority", None))
 #endif // QT_CONFIG(tooltip)
         self.upPriorityButton.setText(QCoreApplication.translate("Wizard", u"\u2191", None))
-        self.addGameButton.setText(QCoreApplication.translate("Wizard", u"Add Game", None))
+#if QT_CONFIG(tooltip)
+        self.addExistingGameButton.setToolTip(QCoreApplication.translate("Wizard", u"Select an existing game directory from the file browser", None))
+#endif // QT_CONFIG(tooltip)
+        self.addExistingGameButton.setText(QCoreApplication.translate("Wizard", u"Add Existing Game", None))
+#if QT_CONFIG(tooltip)
+        self.installGameButton.setToolTip(QCoreApplication.translate("Wizard", u"Create a new game installation", None))
+#endif // QT_CONFIG(tooltip)
+        self.installGameButton.setText(QCoreApplication.translate("Wizard", u"Install New Game", None))
         self.dataDeletionWizardPage.setTitle(QCoreApplication.translate("Wizard", u"Existing Games Data", None))
         self.dataDeletionWizardPage.setSubTitle(QCoreApplication.translate("Wizard", u"Some of your game installations are already registered with OneLauncher. You can choose to have their settings and accounts either kept or reset. Unselected games are always removed.", None))
         self.groupBox.setTitle(QCoreApplication.translate("Wizard", u"What should happen to existing game data?", None))

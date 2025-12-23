@@ -242,6 +242,7 @@
           pkgs.mkShell {
             packages = [
               virtualenv
+              pkgs.innoextract
               (pkgs.runCommand "onelauncher-shell-completions"
                 {
                   nativeBuildInputs = [

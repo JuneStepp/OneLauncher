@@ -206,9 +206,22 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="addGameButton">
+       <widget class="QPushButton" name="addExistingGameButton">
+        <property name="toolTip">
+         <string>Select an existing game directory from the file browser</string>
+        </property>
         <property name="text">
-         <string>Add Game</string>
+         <string>Add Existing Game</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="installGameButton">
+        <property name="toolTip">
+         <string>Create a new game installation</string>
+        </property>
+        <property name="text">
+         <string>Install New Game</string>
         </property>
        </widget>
       </item>
@@ -218,7 +231,7 @@
   </widget>
   <widget class="QWizardPage" name="dataDeletionWizardPage">
    <property name="title">
-    <string>Exisiting Games Data</string>
+    <string>Existing Games Data</string>
    </property>
    <property name="subTitle">
     <string>Some of your game installations are already registered with OneLauncher. You can choose to have their settings and accounts either kept or reset. Unselected games are always removed.</string>

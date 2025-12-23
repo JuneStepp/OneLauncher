@@ -21,6 +21,7 @@ def main(
     extra_args: Iterable[str] = (),
 ) -> None:
     nuitka_arguments = [
+        f"--user-package-configuration-file={Path(__file__).parent / 'nuitka_package_config.yml'}",
         f"--output-dir={Path(__file__).parent / 'out'}",
         "--onefile" if onefile_mode else "--standalone",
         "--python-flag=-m",  # Package mode. Compile as "package.__main__"

@@ -1,0 +1,9 @@
+- module-name: "onelauncher"
+  dlls:
+    - from_filenames:
+        relative_path: "external"
+        prefixes:
+          - "innoextract"
+        executable: "yes"
+  import-hacks:
+    - package-system-dlls: "yes"

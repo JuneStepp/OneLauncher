@@ -1,6 +1,8 @@
 import logging
 from collections.abc import Awaitable, Callable
 from functools import partial
+from tempfile import TemporaryDirectory
+from types import TracebackType
 from typing import Final
 
 import outcome
@@ -113,3 +115,62 @@ async def for_each_in_stream(pipe: ReceiveStream, func: Callable[[str], None]) -
         for line in chunk.decode("utf-8").split("\n"):
             if stripped_line := line.strip():
                 func(stripped_line)
+
+
+# Based on `anyio` code.
+class TemporaryDirectoryAsyncPath:
+    """
+    An asynchronous temporary directory that is created and cleaned up automatically.
+
+    This class provides an asynchronous context manager for creating a temporary
+    directory. It wraps Python's standard :class:`~tempfile.TemporaryDirectory` to
+    perform directory creation and cleanup operations in a background thread, and
+    returns it as a `trio.Path`.
+
+    :param suffix: Suffix to be added to the temporary directory name.
+    :param prefix: Prefix to be added to the temporary directory name.
+    :param dir: The parent directory where the temporary directory is created.
+    :param ignore_cleanup_errors: Whether to ignore errors during cleanup
+    """
+
+    def __init__(
+        self,
+        suffix: str | None = None,
+        prefix: str | None = None,
+        dir: str | None = None,  # noqa: A002
+        *,
+        ignore_cleanup_errors: bool = False,
+    ) -> None:
+        self.suffix: str | None = suffix
+        self.prefix: str | None = prefix
+        self.dir: str | None = dir
+        self.ignore_cleanup_errors = ignore_cleanup_errors
+
+        self._tempdir: TemporaryDirectory[str] | None = None
+
+    async def __aenter__(self) -> trio.Path:
+        self._tempdir = await trio.to_thread.run_sync(
+            partial(
+                TemporaryDirectory,
+                suffix=self.suffix,
+                prefix=self.prefix,
+                dir=self.dir,
+                ignore_cleanup_errors=self.ignore_cleanup_errors,
+            )
+        )
+        return trio.Path(await trio.to_thread.run_sync(self._tempdir.__enter__))
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        if self._tempdir is not None:
+            await trio.to_thread.run_sync(
+                self._tempdir.__exit__, exc_type, exc_value, traceback
+            )
+
+    async def cleanup(self) -> None:
+        if self._tempdir is not None:
+            await trio.to_thread.run_sync(self._tempdir.cleanup)

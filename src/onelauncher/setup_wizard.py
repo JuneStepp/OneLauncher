@@ -31,6 +31,7 @@ from collections.abc import Iterable
 from contextlib import suppress
 from functools import partial
 from pathlib import Path
+from shutil import rmtree
 from typing import Final
 
 import attrs
@@ -61,6 +62,7 @@ from .game_utilities import (
 from .official_clients import get_game_icon, is_gls_url_for_preview_client
 from .program_config import GamesSortingMode, ProgramConfig
 from .resources import available_locales
+from .ui.install_game import InstallGameWindow
 from .ui.qtapp import get_app_style, get_qapp
 from .ui.setup_wizard_uic import Ui_Wizard
 from .ui.utilities import show_warning_message
@@ -128,6 +130,8 @@ class SetupWizard(QtWidgets.QWizard):
         self.setWindowTitle("Setup Wizard")
 
         self.migrate_old_config_asked: bool = False
+        self.new_install_game_ids: list[GameConfigID] = []
+        """Game config IDs for installs created in this setup wizard"""
 
     def setup_ui(self) -> None:
         # As of PySide 6.1, other styles don't have right spacing or work with the dark
@@ -144,7 +148,15 @@ class SetupWizard(QtWidgets.QWizard):
 
         # Games discovery page
         self.ui.gamesSelectionWizardPage.validatePage = self.validateGamesSelectionPage  # type: ignore[method-assign]
-        self.ui.addGameButton.clicked.connect(self.browse_for_game_dir)
+        self.ui.addExistingGameButton.clicked.connect(self.browse_for_game_dir)
+        self.ui.installGameButton.clicked.connect(
+            lambda: self.nursery.start_soon(self.install_game)
+        )
+        if os.name == "nt":
+            # Game installation is disabled on Windows for now pending extra testing.
+            # See #313 (internal issue tracker).
+            self.ui.installGameButton.hide()
+            self.ui.addExistingGameButton.setText("Add Game")
         self.ui.upPriorityButton.clicked.connect(self.raise_selected_game_priority)
         self.ui.downPriorityButton.clicked.connect(self.lower_selected_game_priority)
 
@@ -213,6 +225,16 @@ class SetupWizard(QtWidgets.QWizard):
             self.nursery.start_soon(trio.sleep_forever)
 
     def cleanup(self) -> None:
+        if self.result() == QtWidgets.QDialog.DialogCode.Rejected:
+            # Delete new game installs that are in the OneLauncher games
+            # directory.
+            for new_install_game_id in self.new_install_game_ids:
+                with suppress(FileNotFoundError):
+                    rmtree(
+                        self.config_manager.get_game_config_dir(
+                            game_id=new_install_game_id
+                        )
+                    )
         self.nursery.cancel_scope.cancel()
 
     @override
@@ -543,6 +565,18 @@ class SetupWizard(QtWidgets.QWizard):
         except InvalidGameDirError:
             show_warning_message("Not a valid game installation folder", self)
 
+    async def install_game(self) -> None:
+        install_game_window = InstallGameWindow(config_manager=self.config_manager)
+        await install_game_window.run()
+        if install_game_window.result() == QtWidgets.QDialog.DialogCode.Accepted:
+            self.new_install_game_ids.append(install_game_window.game_id)
+            self.add_game(
+                game_id=install_game_window.game_id,
+                game_config=install_game_window.game_config,
+                checked=True,
+                selected=True,
+            )
+
     def get_selected_game_items(self) -> list[QtWidgets.QListWidgetItem]:
         items = []
         for i in range(self.ui.gamesListWidget.count()):
@@ -615,6 +649,18 @@ class SetupWizard(QtWidgets.QWizard):
             )
             for game_id in not_selected_existing_game_ids:
                 self.config_manager.delete_game_config(game_id=game_id)
+
+        # Delete unselected new game installs that are in the OneLauncher games
+        # directory. Users are responsible for any installs they created in a custom
+        # directory.
+        for new_install_game_id in self.new_install_game_ids:
+            if new_install_game_id not in selected_games:
+                with suppress(FileNotFoundError):
+                    rmtree(
+                        self.config_manager.get_game_config_dir(
+                            game_id=new_install_game_id
+                        )
+                    )
 
         existing_game_names = [
             game_config.name
