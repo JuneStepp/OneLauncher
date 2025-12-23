@@ -589,7 +589,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         logger.info("Account authenticated")
         return login_response
 
-    async def start_game(self, game_launcher_config: GameLauncherConfig) -> None:
+    async def start_game(self, game_launcher_config: GameLauncherConfig) -> None:  # noqa: PLR0911
         current_account = self.get_current_game_account()
         current_world: World = self.ui.cboWorld.currentData()
         if current_account is None:
@@ -680,12 +680,23 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             return
 
         if selected_world_status.queue_url:
-            await self.world_queue(
-                queueURL=selected_world_status.queue_url,
-                account_number=account_number,
-                login_response=login_response,
-                game_launcher_config=game_launcher_config,
-            )
+            try:
+                await self.world_queue(
+                    queueURL=selected_world_status.queue_url,
+                    account_number=account_number,
+                    login_response=login_response,
+                    game_launcher_config=game_launcher_config,
+                )
+            except httpx.HTTPError:
+                logger.exception("Network error while joining world queue")
+                return
+            except (JoinWorldQueueFailedError, WorldQueueResultXMLParseError):
+                logger.exception(
+                    "Non-network error joining world queue. "
+                    "Please report this error if it continues"
+                )
+                return
+
         self.run_startup_scripts()
         logger.info("Starting game")
         self.ui.btnStartGame.setText("Abort")
@@ -729,6 +740,12 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         login_response: login_account.AccountLoginResponse,
         game_launcher_config: GameLauncherConfig,
     ) -> None:
+        """
+        Raises:
+            HTTPError
+            JoinWorldQueueFailedError
+            WorldQueueResultXMLParseError
+        """
         world_login_queue = WorldLoginQueue(
             game_launcher_config.login_queue_url,
             game_launcher_config.login_queue_params_template,
@@ -737,17 +754,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             queueURL,
         )
         while True:
-            try:
-                world_queue_result = await world_login_queue.join_queue()
-            except httpx.HTTPError:
-                logger.exception("Network error while joining world queue")
-                return
-            except (JoinWorldQueueFailedError, WorldQueueResultXMLParseError):
-                logger.exception(
-                    "Non-network error joining world queue. "
-                    "Please report this error if it continues"
-                )
-                return
+            world_queue_result = await world_login_queue.join_queue()
             if world_queue_result.queue_number <= world_queue_result.now_serving_number:
                 break
             people_ahead_in_queue = (
