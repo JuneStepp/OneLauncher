@@ -180,7 +180,10 @@ class SetupWizard(QtWidgets.QWizard):
             self.ui.keepDataRadioButton.setChecked(True)
 
         # Finished page
-        self.accepted.connect(self.save_settings)
+        self.button(QtWidgets.QWizard.WizardButton.FinishButton).clicked.disconnect()
+        self.button(QtWidgets.QWizard.WizardButton.FinishButton).clicked.connect(
+            self.finish
+        )
 
         if self.game_selection_only:
             for page_id in self.pageIds():
@@ -552,6 +555,10 @@ class SetupWizard(QtWidgets.QWizard):
         """Sort list widget items by their row number."""
         items_dict = {item.listWidget().row(item): item for item in items}
         return [items_dict[key] for key in sorted(items_dict)]
+
+    def finish(self) -> None:
+        self.save_settings()
+        self.accept()
 
     def save_settings(self) -> None:
         if not self.game_selection_only:
