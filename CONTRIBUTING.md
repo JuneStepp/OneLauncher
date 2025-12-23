@@ -9,7 +9,7 @@ Contributions and questions are always welcome! Here's just a couple of things t
 
 OneLauncher uses [uv](https://docs.astral.sh/uv/getting-started/installation/) for dependency management. Run `uv run onelauncher` in the root folder of this repository to install and start OneLauncher. Alternatively, [Nix can be used](#nix).
 
-For game patching support, extra C code must be compiled. Run `make -C src/run_patch_client` with mingw-w64 installed. Your mingw-w64 installation must have support for i686 builds.
+For game patching support, extra C code must be compiled with mingw-w64. Run `make -C src/run_patch_client && ln -s ../../run_patch_client/run_ptch_client.exe src/onelauncher/external/run_ptch_client.exe`. Your mingw-w64 installation must have support for i686 builds.
 
 ### Nix
 

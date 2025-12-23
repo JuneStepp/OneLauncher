@@ -25,7 +25,7 @@ from onelauncher.network.akamai import (
 )
 from onelauncher.network.game_launcher_config import GameLauncherConfig
 from onelauncher.network.httpx_client import get_httpx_client
-from onelauncher.resources import data_dir
+from onelauncher.resources import external_dependencies_dir
 from onelauncher.utilities import CaseInsensitiveAbsolutePath, Progress, ProgressItem
 from onelauncher.wine_environment import get_wine_process_args
 
@@ -42,7 +42,7 @@ PATCHCLIENT_PATCH_PHASES: tuple[PatchPhase, ...] = (
     "DataOnly",
 )
 
-PATCH_CLIENT_RUNNER = data_dir.parent / "run_patch_client" / "run_ptch_client.exe"
+PATCH_CLIENT_RUNNER = external_dependencies_dir / "run_ptch_client.exe"
 """
 Executable used to run `patchclient.dll` and get output from it. This is done with a
 separate program, because `patchclient.dll` is 32-bit. `rundll32.exe` can't be used,

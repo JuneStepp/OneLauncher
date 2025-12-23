@@ -30,7 +30,7 @@ jobs:
             artifact_rename: OneLauncher-Windows.msi
 
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 v6.0.1
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           persist-credentials: false
 
@@ -54,6 +54,8 @@ jobs:
         if: runner.os == 'Windows'
         shell: msys2 {0}
         run: make -C src/run_patch_client
+      - name: Symlink `run_ptch_client` to `onelauncher/external` dir
+        run: ln -s ../../run_patch_client/run_ptch_client.exe src/onelauncher/external/run_ptch_client.exe
 
       # Python
       # Can't use uv python with Nuitka yet

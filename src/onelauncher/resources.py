@@ -175,5 +175,6 @@ def get_game_dir_available_locales(game_dir: Path) -> list[OneLauncherLocale]:
 
 
 data_dir = get_data_dir()
+external_dependencies_dir = data_dir / "external"
 available_locales = get_available_locales()
 system_locale = get_system_locale()

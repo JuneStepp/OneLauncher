@@ -21,7 +21,7 @@ def main(
     extra_args: Iterable[str] = (),
 ) -> None:
     nuitka_arguments = [
-        f"--output-dir={Path(__file__) / 'out'}",
+        f"--output-dir={Path(__file__).parent / 'out'}",
         "--onefile" if onefile_mode else "--standalone",
         "--python-flag=-m",  # Package mode. Compile as "package.__main__"
         "--python-flag=isolated",
@@ -32,7 +32,7 @@ def main(
         "--noinclude-unittest-mode=nofollow",
         "--noinclude-pytest-mode=nofollow",
         "--enable-plugins=pyside6",
-        "--include-data-files=src/run_patch_client/run_ptch_client.exe=run_patch_client/run_ptch_client.exe",
+        "--include-data-files=src/onelauncher/external/run_ptch_client.exe=onelauncher/external/run_ptch_client.exe",
         "--include-data-files=src/onelauncher/=onelauncher/=**/*.xsd",
         "--include-data-dir=src/onelauncher/images=onelauncher/images",
         "--include-data-dir=src/onelauncher/locale=onelauncher/locale",

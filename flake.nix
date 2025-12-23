@@ -284,7 +284,7 @@
 
               ln --force --symbolic "${
                 pkgs.callPackage ./src/run_patch_client { }
-              }/bin/run_ptch_client.exe" ./src/run_patch_client/run_ptch_client.exe
+              }/bin/run_ptch_client.exe" ./src/onelauncher/external/run_ptch_client.exe
             '';
           };
       }
