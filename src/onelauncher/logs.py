@@ -12,6 +12,8 @@ from typing import Final
 
 from typing_extensions import override
 
+from onelauncher.resources import data_dir
+
 from .__about__ import __title__, __version__, version_parsed
 from .config import platform_dirs
 
@@ -31,6 +33,7 @@ def log_basic_info(logger: logging.Logger) -> None:
     logger.info("Logging started")
     logger.info("%s: %s", __title__, __version__)
     logger.info(platform())
+    logger.info("Data Dir: %s", data_dir)
 
 
 def handle_uncaught_exceptions(
