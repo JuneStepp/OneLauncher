@@ -536,6 +536,7 @@ class SetupWizard(QtWidgets.QWizard):
             self.add_game(
                 game_id=generate_game_config_id(game_config),
                 game_config=game_config,
+                checked=True,
                 selected=True,
             )
         except InvalidGameDirError:
