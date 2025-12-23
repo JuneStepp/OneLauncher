@@ -507,13 +507,13 @@ wheels = [
 
 [[package]]
 name = "nuitka"
-version = "2.7.14"
+version = "2.8.9"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ordered-set" },
     { name = "zstandard" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/24/11/005da9e0826ff333096763597699f5ac9ede8e57e31d94d52300e4bc8f1f/Nuitka-2.7.14.tar.gz", hash = "sha256:88233ed175d6d2abb2e1d5fa3c2e28b2fac604764ddc319c614325ff87c77117", size = 3888306, upload-time = "2025-09-08T09:47:05.979Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d8/fb/51df3b30b0f9b3e73f3ba6bea8b94516b16035297c4b3452aaa632a130ae/nuitka-2.8.9.tar.gz", hash = "sha256:b178cd437f2110c46943b368db51d20d57d586a13f8f6323ab1be4e51e2fabf8", size = 4332046, upload-time = "2025-11-29T11:32:20.733Z" }
 
 [[package]]
 name = "numpy"
@@ -621,14 +621,14 @@ requires-dist = [
 build = [
     { name = "imageio", marker = "sys_platform == 'darwin'", specifier = ">=2.37.2" },
     { name = "marko", specifier = ">=2.1.2" },
-    { name = "nuitka", specifier = ">=2.4.8,<=2.7.15" },
+    { name = "nuitka", specifier = ">=2.4.8" },
 ]
 dev = [
     { name = "imageio", marker = "sys_platform == 'darwin'", specifier = ">=2.37.2" },
     { name = "marko", specifier = ">=2.1.2" },
     { name = "mypy" },
     { name = "mypy", specifier = ">=1.18.2" },
-    { name = "nuitka", specifier = ">=2.4.8,<=2.7.15" },
+    { name = "nuitka", specifier = ">=2.4.8" },
     { name = "pyside6-essentials", specifier = ">=6.10.0" },
     { name = "pytest", specifier = ">=8.3.2" },
     { name = "pytest-mock", specifier = ">=3.15.1" },
