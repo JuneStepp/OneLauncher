@@ -514,9 +514,10 @@ class SetupWizard(QtWidgets.QWizard):
 
         game_dir_string = QtWidgets.QFileDialog.getExistingDirectory(
             self,
-            "Game Directory",
+            "Select Game Directory",
             str(starting_dir),
-            options=QtWidgets.QFileDialog.Option.ShowDirsOnly,
+            options=QtWidgets.QFileDialog.Option.ShowDirsOnly
+            | QtWidgets.QFileDialog.Option.DontResolveSymlinks,
         )
         if not game_dir_string:
             return
