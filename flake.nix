@@ -182,6 +182,7 @@
             fhs-run =
               (pkgs.steam.override {
                 extraPkgs = pkgs: [ pkgs.libz ];
+                privateTmp = false;
               }).run-free;
           };
         apps = {
