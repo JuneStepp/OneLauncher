@@ -417,15 +417,23 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             self.game_cancel_scope.cancel()
             return
 
+        if not self.game_launcher_config:
+            logger.error("Game launcher network config isn't loaded")
+            return
+
+        # Mainly re-checking the game dir to prevent people from starting the game
+        # when it's known that it needs to be patched.
+        try:
+            self.validate_game_dir()
+        except self.GameDirValidationError as e:
+            logger.exception(e.msg)
+            return
+
         if self.ui.cboAccount.currentText() == "" or (
             self.ui.txtPassword.text() == ""
             and self.ui.txtPassword.placeholderText() == ""
         ):
             logger.error("Please enter account name and password")
-            return
-
-        if not self.game_launcher_config:
-            logger.error("Game launcher network config isn't loaded")
             return
 
         await self.start_game(game_launcher_config=self.game_launcher_config)
@@ -780,42 +788,30 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             )
         self.ui.imgGameBanner.setPixmap(banner_pixmap)
 
-    def check_game_dir(self) -> bool:
+    @attrs.frozen(kw_only=True)
+    class GameDirValidationError(Exception):
+        msg: str
+        prevents_initialization: bool = True
+
+    def validate_game_dir(self) -> None:
+        """
+        Raises:
+            GameDirValidationError
+        """
         game_config = self.config_manager.get_game_config(self.game_id)
         if not game_config.game_directory.exists():
-            logger.error("Game directory not found")
-            return False
+            raise self.GameDirValidationError(msg="Game directory not found")
 
         try:
             if (
                 find_game_dir_game_type(game_config.game_directory)
                 != game_config.game_type
             ):
-                logger.error("Game directory game type does not match config")
-                return False
-        except InvalidGameDirError:
-            logger.exception("Game directory is not valid")
-            return False
-
-        return True
-
-    def setup_game(self) -> bool:
-        game_config = self.config_manager.get_game_config(self.game_id)
-        launcher_config_paths = get_launcher_config_paths(
-            search_dir=game_config.game_directory, game_type=game_config.game_type
-        )
-        if not launcher_config_paths:
-            # Should give error associated with there being no launcher configs
-            # found
-            self.check_game_dir()
-            return False
-        try:
-            self.game_launcher_local_config = GameLauncherLocalConfig.from_config_xml(
-                launcher_config_paths[0].read_text(encoding="UTF-8")
-            )
-        except GameLauncherLocalConfigParseError:
-            logger.exception("Error parsing local launcher config")
-            return False
+                raise self.GameDirValidationError(
+                    msg="Game directory game type does not match config"
+                )
+        except InvalidGameDirError as e:
+            raise self.GameDirValidationError(msg="Game directory is not valid") from e
 
         locale = (
             game_config.locale
@@ -824,10 +820,33 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         if not (
             game_config.game_directory / f"client_local_{locale.game_language_name}.dat"
         ).exists():
-            logger.warning(
-                "The game needs to be patched. That can be done from the dropdown "
-                "menu on the Play button."
+            raise self.GameDirValidationError(
+                msg="The game needs to be patched. That can be done from the dropdown "
+                "menu on the Play button.",
+                prevents_initialization=False,
             )
+
+    def setup_game(self) -> bool:
+        try:
+            self.validate_game_dir()
+        except self.GameDirValidationError as e:
+            if e.prevents_initialization:
+                logger.exception(e.msg)
+                return False
+            else:
+                logger.warning(e.msg, exc_info=True)
+
+        game_config = self.config_manager.get_game_config(self.game_id)
+        launcher_config_paths = get_launcher_config_paths(
+            search_dir=game_config.game_directory, game_type=game_config.game_type
+        )
+        try:
+            self.game_launcher_local_config = GameLauncherLocalConfig.from_config_xml(
+                launcher_config_paths[0].read_text(encoding="UTF-8")
+            )
+        except GameLauncherLocalConfigParseError:
+            logger.exception("Error parsing local launcher config")
+            return False
 
         return True
 
