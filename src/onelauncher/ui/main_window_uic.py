@@ -24,27 +24,27 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QFormLayout,
 from .custom_widgets import (FramelessQMainWindowWithStylePreview, GameNewsfeedBrowser, NoOddSizesQToolButton)
 from .qtdesigner.custom_widgets import QMainWindowWithStylePreview
 
-class Ui_winMain(object):
-    def setupUi(self, winMain: FramelessQMainWindowWithStylePreview) -> None:
-        if not winMain.objectName():
-            winMain.setObjectName(u"winMain")
-        winMain.resize(790, 470)
-        self.actionPatch = QAction(winMain)
+class Ui_mainWindow(object):
+    def setupUi(self, mainWindow: FramelessQMainWindowWithStylePreview) -> None:
+        if not mainWindow.objectName():
+            mainWindow.setObjectName(u"mainWindow")
+        mainWindow.resize(790, 470)
+        self.actionPatch = QAction(mainWindow)
         self.actionPatch.setObjectName(u"actionPatch")
-        self.actionLOTRO = QAction(winMain)
+        self.actionLOTRO = QAction(mainWindow)
         self.actionLOTRO.setObjectName(u"actionLOTRO")
-        self.actionDDO = QAction(winMain)
+        self.actionDDO = QAction(mainWindow)
         self.actionDDO.setObjectName(u"actionDDO")
-        self.actionAbout = QAction(winMain)
+        self.actionAbout = QAction(mainWindow)
         self.actionAbout.setObjectName(u"actionAbout")
         self.actionAbout.setMenuRole(QAction.MenuRole.AboutRole)
-        self.actionSettings = QAction(winMain)
+        self.actionSettings = QAction(mainWindow)
         self.actionSettings.setObjectName(u"actionSettings")
         self.actionSettings.setMenuRole(QAction.MenuRole.PreferencesRole)
-        self.actionExit = QAction(winMain)
+        self.actionExit = QAction(mainWindow)
         self.actionExit.setObjectName(u"actionExit")
         self.actionExit.setMenuRole(QAction.MenuRole.QuitRole)
-        self.centralwidget = QWidget(winMain)
+        self.centralwidget = QWidget(mainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.verticalLayout_4 = QVBoxLayout(self.centralwidget)
         self.verticalLayout_4.setSpacing(3)
@@ -243,7 +243,7 @@ class Ui_winMain(object):
 
         self.verticalLayout_4.addLayout(self.horizontalLayout_4)
 
-        winMain.setCentralWidget(self.centralwidget)
+        mainWindow.setCentralWidget(self.centralwidget)
 #if QT_CONFIG(shortcut)
         self.lblWorld.setBuddy(self.cboWorld)
         self.lblAccount.setBuddy(self.cboAccount)
@@ -257,87 +257,87 @@ class Ui_winMain(object):
         QWidget.setTabOrder(self.chkSavePassword, self.txtFeed)
         QWidget.setTabOrder(self.txtFeed, self.txtStatus)
 
-        self.retranslateUi(winMain)
+        self.retranslateUi(mainWindow)
         self.actionAbout.triggered.connect(self.btnAbout.click)
         self.actionSettings.triggered.connect(self.btnOptions.click)
         self.actionExit.triggered.connect(self.btnExit.click)
 
-        QMetaObject.connectSlotsByName(winMain)
+        QMetaObject.connectSlotsByName(mainWindow)
     # setupUi
 
-    def retranslateUi(self, winMain: FramelessQMainWindowWithStylePreview) -> None:
-        self.actionPatch.setText(QCoreApplication.translate("winMain", u"Patch", None))
-        self.actionPatch.setIconText(QCoreApplication.translate("winMain", u"Patch", None))
+    def retranslateUi(self, mainWindow: FramelessQMainWindowWithStylePreview) -> None:
+        self.actionPatch.setText(QCoreApplication.translate("mainWindow", u"Patch", None))
+        self.actionPatch.setIconText(QCoreApplication.translate("mainWindow", u"Patch", None))
 #if QT_CONFIG(tooltip)
-        self.actionPatch.setToolTip(QCoreApplication.translate("winMain", u"Patch", None))
+        self.actionPatch.setToolTip(QCoreApplication.translate("mainWindow", u"Patch", None))
 #endif // QT_CONFIG(tooltip)
-        self.actionLOTRO.setText(QCoreApplication.translate("winMain", u"Lord of the Rings Online", None))
-        self.actionDDO.setText(QCoreApplication.translate("winMain", u"Dungeons and Dragons Online", None))
-        self.actionAbout.setText(QCoreApplication.translate("winMain", u"About", None))
-        self.actionSettings.setText(QCoreApplication.translate("winMain", u"Settings", None))
+        self.actionLOTRO.setText(QCoreApplication.translate("mainWindow", u"Lord of the Rings Online", None))
+        self.actionDDO.setText(QCoreApplication.translate("mainWindow", u"Dungeons and Dragons Online", None))
+        self.actionAbout.setText(QCoreApplication.translate("mainWindow", u"About", None))
+        self.actionSettings.setText(QCoreApplication.translate("mainWindow", u"Settings", None))
 #if QT_CONFIG(tooltip)
-        self.actionSettings.setToolTip(QCoreApplication.translate("winMain", u"Settings", None))
+        self.actionSettings.setToolTip(QCoreApplication.translate("mainWindow", u"Settings", None))
 #endif // QT_CONFIG(tooltip)
-        self.actionExit.setText(QCoreApplication.translate("winMain", u"Exit", None))
+        self.actionExit.setText(QCoreApplication.translate("mainWindow", u"Exit", None))
 #if QT_CONFIG(tooltip)
-        self.actionExit.setToolTip(QCoreApplication.translate("winMain", u"Exit", None))
+        self.actionExit.setToolTip(QCoreApplication.translate("mainWindow", u"Exit", None))
 #endif // QT_CONFIG(tooltip)
 #if QT_CONFIG(tooltip)
-        self.btnOptions.setToolTip(QCoreApplication.translate("winMain", u"Settings", None))
+        self.btnOptions.setToolTip(QCoreApplication.translate("mainWindow", u"Settings", None))
 #endif // QT_CONFIG(tooltip)
         self.btnOptions.setProperty(u"qssClass", [
-            QCoreApplication.translate("winMain", u"icon-lg", None)])
+            QCoreApplication.translate("mainWindow", u"icon-lg", None)])
 #if QT_CONFIG(tooltip)
-        self.btnAddonManager.setToolTip(QCoreApplication.translate("winMain", u"Addon manager", None))
+        self.btnAddonManager.setToolTip(QCoreApplication.translate("mainWindow", u"Addon manager", None))
 #endif // QT_CONFIG(tooltip)
         self.btnAddonManager.setProperty(u"qssClass", [
-            QCoreApplication.translate("winMain", u"icon-lg", None)])
+            QCoreApplication.translate("mainWindow", u"icon-lg", None)])
 #if QT_CONFIG(tooltip)
-        self.btnAbout.setToolTip(QCoreApplication.translate("winMain", u"About", None))
+        self.btnAbout.setToolTip(QCoreApplication.translate("mainWindow", u"About", None))
 #endif // QT_CONFIG(tooltip)
         self.btnAbout.setProperty(u"qssClass", [
-            QCoreApplication.translate("winMain", u"icon-lg", None)])
+            QCoreApplication.translate("mainWindow", u"icon-lg", None)])
 #if QT_CONFIG(tooltip)
-        self.btnMinimize.setToolTip(QCoreApplication.translate("winMain", u"Minimize", None))
+        self.btnMinimize.setToolTip(QCoreApplication.translate("mainWindow", u"Minimize", None))
 #endif // QT_CONFIG(tooltip)
         self.btnMinimize.setProperty(u"qssClass", [
-            QCoreApplication.translate("winMain", u"icon-lg", None)])
+            QCoreApplication.translate("mainWindow", u"icon-lg", None)])
 #if QT_CONFIG(tooltip)
-        self.btnExit.setToolTip(QCoreApplication.translate("winMain", u"Exit", None))
+        self.btnExit.setToolTip(QCoreApplication.translate("mainWindow", u"Exit", None))
 #endif // QT_CONFIG(tooltip)
         self.btnExit.setProperty(u"qssClass", [
-            QCoreApplication.translate("winMain", u"icon-lg", None)])
+            QCoreApplication.translate("mainWindow", u"icon-lg", None)])
 #if QT_CONFIG(tooltip)
-        self.lblWorld.setToolTip(QCoreApplication.translate("winMain", u"Game server", None))
+        self.lblWorld.setToolTip(QCoreApplication.translate("mainWindow", u"Game server", None))
 #endif // QT_CONFIG(tooltip)
-        self.lblWorld.setText(QCoreApplication.translate("winMain", u"World", None))
+        self.lblWorld.setText(QCoreApplication.translate("mainWindow", u"World", None))
 #if QT_CONFIG(tooltip)
-        self.cboWorld.setToolTip(QCoreApplication.translate("winMain", u"Select game server", None))
+        self.cboWorld.setToolTip(QCoreApplication.translate("mainWindow", u"Select game server", None))
 #endif // QT_CONFIG(tooltip)
 #if QT_CONFIG(tooltip)
-        self.btnSwitchGame.setToolTip(QCoreApplication.translate("winMain", u"Switch game", None))
+        self.btnSwitchGame.setToolTip(QCoreApplication.translate("mainWindow", u"Switch game", None))
 #endif // QT_CONFIG(tooltip)
         self.btnSwitchGame.setProperty(u"qssClass", [
-            QCoreApplication.translate("winMain", u"icon-xl", None)])
-        self.lblAccount.setText(QCoreApplication.translate("winMain", u"Account", None))
-        self.lblPassword.setText(QCoreApplication.translate("winMain", u"Password", None))
+            QCoreApplication.translate("mainWindow", u"icon-xl", None)])
+        self.lblAccount.setText(QCoreApplication.translate("mainWindow", u"Account", None))
+        self.lblPassword.setText(QCoreApplication.translate("mainWindow", u"Password", None))
 #if QT_CONFIG(tooltip)
-        self.btnStartGame.setToolTip(QCoreApplication.translate("winMain", u"Start your adventure!", None))
+        self.btnStartGame.setToolTip(QCoreApplication.translate("mainWindow", u"Start your adventure!", None))
 #endif // QT_CONFIG(tooltip)
-        self.btnStartGame.setText(QCoreApplication.translate("winMain", u"Play", None))
+        self.btnStartGame.setText(QCoreApplication.translate("mainWindow", u"Play", None))
         self.btnStartGame.setProperty(u"qssClass", [
-            QCoreApplication.translate("winMain", u"text-xl", None),
-            QCoreApplication.translate("winMain", u"px-3.5", None),
-            QCoreApplication.translate("winMain", u"py-2", None),
-            QCoreApplication.translate("winMain", u"m-2", None)])
+            QCoreApplication.translate("mainWindow", u"text-xl", None),
+            QCoreApplication.translate("mainWindow", u"px-3.5", None),
+            QCoreApplication.translate("mainWindow", u"py-2", None),
+            QCoreApplication.translate("mainWindow", u"m-2", None)])
 #if QT_CONFIG(tooltip)
-        self.chkSaveAccount.setToolTip(QCoreApplication.translate("winMain", u"Save last used world and account name", None))
+        self.chkSaveAccount.setToolTip(QCoreApplication.translate("mainWindow", u"Save last used world and account name", None))
 #endif // QT_CONFIG(tooltip)
-        self.chkSaveAccount.setText(QCoreApplication.translate("winMain", u"Remember account", None))
+        self.chkSaveAccount.setText(QCoreApplication.translate("mainWindow", u"Remember account", None))
 #if QT_CONFIG(tooltip)
-        self.chkSavePassword.setToolTip(QCoreApplication.translate("winMain", u"Save last used password", None))
+        self.chkSavePassword.setToolTip(QCoreApplication.translate("mainWindow", u"Save last used password", None))
 #endif // QT_CONFIG(tooltip)
-        self.chkSavePassword.setText(QCoreApplication.translate("winMain", u"Remember password", None))
+        self.chkSavePassword.setText(QCoreApplication.translate("mainWindow", u"Remember password", None))
         pass
     # retranslateUi
 

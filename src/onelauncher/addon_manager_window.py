@@ -71,7 +71,7 @@ from .game_config import GameConfigID, GameType
 from .game_launcher_local_config import GameLauncherLocalConfig
 from .game_utilities import get_game_settings_dir
 from .network.httpx_client import get_httpx_client_sync
-from .ui.addon_manager_uic import Ui_winAddonManager
+from .ui.addon_manager_window_uic import Ui_addonManagerWindow
 from .ui.qtapp import get_qapp
 from .ui.qtdesigner.custom_widgets import QWidgetWithStylePreview
 from .utilities import CaseInsensitiveAbsolutePath
@@ -221,7 +221,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         super().__init__()
         self.config_manager = config_manager
         self.game_id: GameConfigID = game_id
-        self.ui = Ui_winAddonManager()
+        self.ui = Ui_addonManagerWindow()
         self.ui.setupUi(self)
 
         game_config = self.config_manager.get_game_config(self.game_id)

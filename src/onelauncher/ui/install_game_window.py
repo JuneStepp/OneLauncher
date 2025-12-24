@@ -24,7 +24,7 @@ from onelauncher.install_game import (
 from onelauncher.utilities import Progress
 
 from .custom_widgets import FramelessQDialogWithStylePreview
-from .install_game_uic import Ui_installGameDialog
+from .install_game_window_uic import Ui_installGameWindow
 from .qtapp import get_qapp
 from .utilities import show_warning_message
 
@@ -42,7 +42,7 @@ class InstallGameWindow(FramelessQDialogWithStylePreview):
     def setup_ui(self) -> None:
         self.titleBar.hide()
 
-        self.ui = Ui_installGameDialog()
+        self.ui = Ui_installGameWindow()
         self.ui.setupUi(self)
         color_scheme_changed = get_qapp().styleHints().colorSchemeChanged
 

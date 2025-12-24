@@ -62,9 +62,9 @@ from .game_utilities import (
 from .official_clients import get_game_icon, is_gls_url_for_preview_client
 from .program_config import GamesSortingMode, ProgramConfig
 from .resources import available_locales
-from .ui.install_game import InstallGameWindow
+from .ui.install_game_window import InstallGameWindow
 from .ui.qtapp import get_app_style, get_qapp
-from .ui.setup_wizard_uic import Ui_Wizard
+from .ui.setup_wizard_window_uic import Ui_setupWizardWindow
 from .ui.utilities import show_warning_message
 from .utilities import CaseInsensitiveAbsolutePath
 from .v1x_config_migrator import (
@@ -125,7 +125,7 @@ class SetupWizard(QtWidgets.QWizard):
         self.game_selection_only = game_selection_only
         self.select_existing_games = select_existing_games
 
-        self.ui = Ui_Wizard()
+        self.ui = Ui_setupWizardWindow()
         self.ui.setupUi(self)
         self.setWindowTitle("Setup Wizard")
 

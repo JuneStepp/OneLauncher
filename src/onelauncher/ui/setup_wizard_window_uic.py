@@ -21,11 +21,11 @@ from PySide6.QtWidgets import (QAbstractItemView, QApplication, QButtonGroup, QC
     QPushButton, QRadioButton, QSizePolicy, QSpacerItem,
     QVBoxLayout, QWidget, QWizard, QWizardPage)
 
-class Ui_Wizard(object):
-    def setupUi(self, Wizard: QWizard) -> None:
-        if not Wizard.objectName():
-            Wizard.setObjectName(u"Wizard")
-        Wizard.resize(621, 411)
+class Ui_setupWizardWindow(object):
+    def setupUi(self, setupWizardWindow: QWizard) -> None:
+        if not setupWizardWindow.objectName():
+            setupWizardWindow.setObjectName(u"setupWizardWindow")
+        setupWizardWindow.resize(621, 411)
         self.languageSelectionWizardPage = QWizardPage()
         self.languageSelectionWizardPage.setObjectName(u"languageSelectionWizardPage")
         self.horizontalLayout_2 = QHBoxLayout(self.languageSelectionWizardPage)
@@ -78,7 +78,7 @@ class Ui_Wizard(object):
 
         self.horizontalLayout_2.addLayout(self.formLayout)
 
-        Wizard.setPage(0, self.languageSelectionWizardPage)
+        setupWizardWindow.setPage(0, self.languageSelectionWizardPage)
         self.gamesSelectionWizardPage = QWizardPage()
         self.gamesSelectionWizardPage.setObjectName(u"gamesSelectionWizardPage")
         self.gamesSelectionPageLayout = QVBoxLayout(self.gamesSelectionWizardPage)
@@ -134,7 +134,7 @@ class Ui_Wizard(object):
 
         self.gamesSelectionPageLayout.addLayout(self.horizontalLayout)
 
-        Wizard.setPage(1, self.gamesSelectionWizardPage)
+        setupWizardWindow.setPage(1, self.gamesSelectionWizardPage)
         self.dataDeletionWizardPage = QWizardPage()
         self.dataDeletionWizardPage.setObjectName(u"dataDeletionWizardPage")
         self.verticalLayout_2 = QVBoxLayout(self.dataDeletionWizardPage)
@@ -144,7 +144,7 @@ class Ui_Wizard(object):
         self.horizontalLayout_3 = QHBoxLayout(self.groupBox)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.keepDataRadioButton = QRadioButton(self.groupBox)
-        self.gamesDataButtonGroup = QButtonGroup(Wizard)
+        self.gamesDataButtonGroup = QButtonGroup(setupWizardWindow)
         self.gamesDataButtonGroup.setObjectName(u"gamesDataButtonGroup")
         self.gamesDataButtonGroup.addButton(self.keepDataRadioButton)
         self.keepDataRadioButton.setObjectName(u"keepDataRadioButton")
@@ -172,64 +172,64 @@ class Ui_Wizard(object):
 
         self.verticalLayout_2.addWidget(self.gamesDeletionStatusListView)
 
-        Wizard.setPage(2, self.dataDeletionWizardPage)
+        setupWizardWindow.setPage(2, self.dataDeletionWizardPage)
         self.finishedWizardPage = QWizardPage()
         self.finishedWizardPage.setObjectName(u"finishedWizardPage")
-        Wizard.setPage(3, self.finishedWizardPage)
+        setupWizardWindow.setPage(3, self.finishedWizardPage)
 #if QT_CONFIG(shortcut)
         self.label.setBuddy(self.languagesListWidget)
         self.alwaysUseDefaultLangForUILabel.setBuddy(self.alwaysUseDefaultLangForUICheckBox)
 #endif // QT_CONFIG(shortcut)
 
-        self.retranslateUi(Wizard)
+        self.retranslateUi(setupWizardWindow)
 
-        QMetaObject.connectSlotsByName(Wizard)
+        QMetaObject.connectSlotsByName(setupWizardWindow)
     # setupUi
 
-    def retranslateUi(self, Wizard: QWizard) -> None:
-        Wizard.setWindowTitle(QCoreApplication.translate("Wizard", u"Wizard", None))
-        self.languageSelectionWizardPage.setTitle(QCoreApplication.translate("Wizard", u"OneLauncher Setup Wizard:", None))
-        self.languageSelectionWizardPage.setSubTitle(QCoreApplication.translate("Wizard", u"This wizard will quickly take you through the steps needed to get up and running with OneLauncher. ", None))
+    def retranslateUi(self, setupWizardWindow: QWizard) -> None:
+        setupWizardWindow.setWindowTitle(QCoreApplication.translate("setupWizardWindow", u"Setup Wizard", None))
+        self.languageSelectionWizardPage.setTitle(QCoreApplication.translate("setupWizardWindow", u"OneLauncher Setup Wizard:", None))
+        self.languageSelectionWizardPage.setSubTitle(QCoreApplication.translate("setupWizardWindow", u"This wizard will quickly take you through the steps needed to get up and running with OneLauncher. ", None))
 #if QT_CONFIG(tooltip)
-        self.label.setToolTip(QCoreApplication.translate("Wizard", u"The language used for games by default", None))
+        self.label.setToolTip(QCoreApplication.translate("setupWizardWindow", u"The language used for games by default", None))
 #endif // QT_CONFIG(tooltip)
-        self.label.setText(QCoreApplication.translate("Wizard", u"Default Language", None))
+        self.label.setText(QCoreApplication.translate("setupWizardWindow", u"Default Language", None))
 #if QT_CONFIG(tooltip)
-        self.languagesListWidget.setToolTip(QCoreApplication.translate("Wizard", u"The language used for games by default", None))
+        self.languagesListWidget.setToolTip(QCoreApplication.translate("setupWizardWindow", u"The language used for games by default", None))
 #endif // QT_CONFIG(tooltip)
 #if QT_CONFIG(tooltip)
-        self.alwaysUseDefaultLangForUILabel.setToolTip(QCoreApplication.translate("Wizard", u"Always show OneLauncher interface in default language", None))
+        self.alwaysUseDefaultLangForUILabel.setToolTip(QCoreApplication.translate("setupWizardWindow", u"Always show OneLauncher interface in default language", None))
 #endif // QT_CONFIG(tooltip)
-        self.alwaysUseDefaultLangForUILabel.setText(QCoreApplication.translate("Wizard", u"Always Use Default Language For UI", None))
-        self.gamesSelectionWizardPage.setTitle(QCoreApplication.translate("Wizard", u"Games Selection", None))
-        self.gamesSelectionWizardPage.setSubTitle(QCoreApplication.translate("Wizard", u"Select your game installations. The first one will be the main game instance.", None))
+        self.alwaysUseDefaultLangForUILabel.setText(QCoreApplication.translate("setupWizardWindow", u"Always Use Default Language For UI", None))
+        self.gamesSelectionWizardPage.setTitle(QCoreApplication.translate("setupWizardWindow", u"Games Selection", None))
+        self.gamesSelectionWizardPage.setSubTitle(QCoreApplication.translate("setupWizardWindow", u"Select your game installations. The first one will be the main game instance.", None))
         self.gamesListWidget.setProperty(u"qssClass", [
-            QCoreApplication.translate("Wizard", u"icon-xl", None)])
+            QCoreApplication.translate("setupWizardWindow", u"icon-xl", None)])
         self.gamesDiscoveryStatusLabel.setText("")
 #if QT_CONFIG(tooltip)
-        self.downPriorityButton.setToolTip(QCoreApplication.translate("Wizard", u"Decrease priority", None))
+        self.downPriorityButton.setToolTip(QCoreApplication.translate("setupWizardWindow", u"Decrease priority", None))
 #endif // QT_CONFIG(tooltip)
-        self.downPriorityButton.setText(QCoreApplication.translate("Wizard", u"\u2193", None))
+        self.downPriorityButton.setText(QCoreApplication.translate("setupWizardWindow", u"\u2193", None))
 #if QT_CONFIG(tooltip)
-        self.upPriorityButton.setToolTip(QCoreApplication.translate("Wizard", u"Increase priority", None))
+        self.upPriorityButton.setToolTip(QCoreApplication.translate("setupWizardWindow", u"Increase priority", None))
 #endif // QT_CONFIG(tooltip)
-        self.upPriorityButton.setText(QCoreApplication.translate("Wizard", u"\u2191", None))
+        self.upPriorityButton.setText(QCoreApplication.translate("setupWizardWindow", u"\u2191", None))
 #if QT_CONFIG(tooltip)
-        self.addExistingGameButton.setToolTip(QCoreApplication.translate("Wizard", u"Select an existing game directory from the file browser", None))
+        self.addExistingGameButton.setToolTip(QCoreApplication.translate("setupWizardWindow", u"Select an existing game directory from the file browser", None))
 #endif // QT_CONFIG(tooltip)
-        self.addExistingGameButton.setText(QCoreApplication.translate("Wizard", u"Add Existing Game", None))
+        self.addExistingGameButton.setText(QCoreApplication.translate("setupWizardWindow", u"Add Existing Game", None))
 #if QT_CONFIG(tooltip)
-        self.installGameButton.setToolTip(QCoreApplication.translate("Wizard", u"Create a new game installation", None))
+        self.installGameButton.setToolTip(QCoreApplication.translate("setupWizardWindow", u"Create a new game installation", None))
 #endif // QT_CONFIG(tooltip)
-        self.installGameButton.setText(QCoreApplication.translate("Wizard", u"Install New Game", None))
-        self.dataDeletionWizardPage.setTitle(QCoreApplication.translate("Wizard", u"Existing Games Data", None))
-        self.dataDeletionWizardPage.setSubTitle(QCoreApplication.translate("Wizard", u"Some of your game installations are already registered with OneLauncher. You can choose to have their settings and accounts either kept or reset. Unselected games are always removed.", None))
-        self.groupBox.setTitle(QCoreApplication.translate("Wizard", u"What should happen to existing game data?", None))
-        self.keepDataRadioButton.setText(QCoreApplication.translate("Wizard", u"Keep it", None))
-        self.resetDataRadioButton.setText(QCoreApplication.translate("Wizard", u"Reset it", None))
+        self.installGameButton.setText(QCoreApplication.translate("setupWizardWindow", u"Install New Game", None))
+        self.dataDeletionWizardPage.setTitle(QCoreApplication.translate("setupWizardWindow", u"Existing Games Data", None))
+        self.dataDeletionWizardPage.setSubTitle(QCoreApplication.translate("setupWizardWindow", u"Some of your game installations are already registered with OneLauncher. You can choose to have their settings and accounts either kept or reset. Unselected games are always removed.", None))
+        self.groupBox.setTitle(QCoreApplication.translate("setupWizardWindow", u"What should happen to existing game data?", None))
+        self.keepDataRadioButton.setText(QCoreApplication.translate("setupWizardWindow", u"Keep it", None))
+        self.resetDataRadioButton.setText(QCoreApplication.translate("setupWizardWindow", u"Reset it", None))
         self.gamesDeletionStatusListView.setProperty(u"qssClass", [
-            QCoreApplication.translate("Wizard", u"icon-xl", None)])
-        self.finishedWizardPage.setTitle(QCoreApplication.translate("Wizard", u"Setup Finished", None))
-        self.finishedWizardPage.setSubTitle(QCoreApplication.translate("Wizard", u"That's it! You can always check out the settings menu or addons manager for extra customization.", None))
+            QCoreApplication.translate("setupWizardWindow", u"icon-xl", None)])
+        self.finishedWizardPage.setTitle(QCoreApplication.translate("setupWizardWindow", u"Setup Finished", None))
+        self.finishedWizardPage.setSubTitle(QCoreApplication.translate("setupWizardWindow", u"That's it! You can always check out the settings menu or addons manager for extra customization.", None))
     # retranslateUi
 

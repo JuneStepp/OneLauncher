@@ -19,21 +19,21 @@ from PySide6.QtWidgets import (QAbstractButton, QApplication, QDialog, QDialogBu
     QLabel, QPlainTextEdit, QSizePolicy, QVBoxLayout,
     QWidget)
 
-class Ui_errorDialog(object):
-    def setupUi(self, errorDialog: QDialog) -> None:
-        if not errorDialog.objectName():
-            errorDialog.setObjectName(u"errorDialog")
-        errorDialog.setWindowModality(Qt.WindowModality.ApplicationModal)
-        errorDialog.resize(400, 300)
-        errorDialog.setModal(True)
-        self.verticalLayout = QVBoxLayout(errorDialog)
+class Ui_errorMessageWindow(object):
+    def setupUi(self, errorMessageWindow: QDialog) -> None:
+        if not errorMessageWindow.objectName():
+            errorMessageWindow.setObjectName(u"errorMessageWindow")
+        errorMessageWindow.setWindowModality(Qt.WindowModality.ApplicationModal)
+        errorMessageWindow.resize(400, 300)
+        errorMessageWindow.setModal(True)
+        self.verticalLayout = QVBoxLayout(errorMessageWindow)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.textLabel = QLabel(errorDialog)
+        self.textLabel = QLabel(errorMessageWindow)
         self.textLabel.setObjectName(u"textLabel")
 
         self.verticalLayout.addWidget(self.textLabel)
 
-        self.detailsTextEdit = QPlainTextEdit(errorDialog)
+        self.detailsTextEdit = QPlainTextEdit(errorMessageWindow)
         self.detailsTextEdit.setObjectName(u"detailsTextEdit")
         self.detailsTextEdit.setUndoRedoEnabled(False)
         self.detailsTextEdit.setLineWrapMode(QPlainTextEdit.LineWrapMode.NoWrap)
@@ -41,7 +41,7 @@ class Ui_errorDialog(object):
 
         self.verticalLayout.addWidget(self.detailsTextEdit)
 
-        self.buttonBox = QDialogButtonBox(errorDialog)
+        self.buttonBox = QDialogButtonBox(errorMessageWindow)
         self.buttonBox.setObjectName(u"buttonBox")
         self.buttonBox.setOrientation(Qt.Orientation.Horizontal)
         self.buttonBox.setStandardButtons(QDialogButtonBox.StandardButton.Close)
@@ -49,15 +49,15 @@ class Ui_errorDialog(object):
         self.verticalLayout.addWidget(self.buttonBox)
 
 
-        self.retranslateUi(errorDialog)
-        self.buttonBox.accepted.connect(errorDialog.accept)
-        self.buttonBox.rejected.connect(errorDialog.reject)
+        self.retranslateUi(errorMessageWindow)
+        self.buttonBox.accepted.connect(errorMessageWindow.accept)
+        self.buttonBox.rejected.connect(errorMessageWindow.reject)
 
-        QMetaObject.connectSlotsByName(errorDialog)
+        QMetaObject.connectSlotsByName(errorMessageWindow)
     # setupUi
 
-    def retranslateUi(self, errorDialog: QDialog) -> None:
-        errorDialog.setWindowTitle(QCoreApplication.translate("errorDialog", u"Error", None))
-        self.textLabel.setText(QCoreApplication.translate("errorDialog", u"Error:", None))
+    def retranslateUi(self, errorMessageWindow: QDialog) -> None:
+        errorMessageWindow.setWindowTitle(QCoreApplication.translate("errorMessageWindow", u"Error", None))
+        self.textLabel.setText(QCoreApplication.translate("errorMessageWindow", u"Error:", None))
     # retranslateUi
 

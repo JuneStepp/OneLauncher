@@ -58,7 +58,7 @@ from .setup_wizard import SetupWizard
 from .standard_game_launcher import get_standard_game_launcher_path
 from .ui.custom_widgets import FramelessQDialogWithStylePreview
 from .ui.qtapp import get_qapp
-from .ui.settings_uic import Ui_dlgSettings
+from .ui.settings_window_uic import Ui_settingsWindow
 from .ui.utilities import show_warning_message
 from .utilities import CaseInsensitiveAbsolutePath
 from .wine_environment import get_wine_process_args
@@ -79,7 +79,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
         self.titleBar.hide()
         self.config_manager = config_manager
         self.game_id = game_id
-        self.ui = Ui_dlgSettings()
+        self.ui = Ui_settingsWindow()
         self.ui.setupUi(self)
 
     def setup_ui(self) -> None:
@@ -199,7 +199,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
 
     @override
     def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
-        """Lets the user drag the window when left-click holding it"""
+        # Let the user drag the window when left-click holding it.
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
             self.windowHandle().startSystemMove()
             event.accept()

@@ -1,0 +1,570 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+    <class>mainWindow</class>
+    <widget class="FramelessQMainWindowWithStylePreview" name="mainWindow">
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>790</width>
+                <height>470</height>
+            </rect>
+        </property>
+        <widget class="QWidget" name="centralwidget">
+            <layout class="QVBoxLayout" name="verticalLayout_4">
+                <property name="spacing">
+                    <number>3</number>
+                </property>
+                <property name="leftMargin">
+                    <number>6</number>
+                </property>
+                <property name="topMargin">
+                    <number>3</number>
+                </property>
+                <property name="rightMargin">
+                    <number>6</number>
+                </property>
+                <property name="bottomMargin">
+                    <number>6</number>
+                </property>
+                <item>
+                    <layout class="QHBoxLayout" name="layoutTopButtons">
+                        <property name="spacing">
+                            <number>2</number>
+                        </property>
+                        <property name="leftMargin">
+                            <number>0</number>
+                        </property>
+                        <property name="topMargin">
+                            <number>0</number>
+                        </property>
+                        <property name="rightMargin">
+                            <number>0</number>
+                        </property>
+                        <property name="bottomMargin">
+                            <number>0</number>
+                        </property>
+                        <item>
+                            <widget class="NoOddSizesQToolButton" name="btnOptions">
+                                <property name="focusPolicy">
+                                    <enum>Qt::FocusPolicy::ClickFocus</enum>
+                                </property>
+                                <property name="toolTip">
+                                    <string>Settings</string>
+                                </property>
+                                <property name="autoRaise">
+                                    <bool>true</bool>
+                                </property>
+                                <property name="qssClass" stdset="0">
+                                    <stringlist>
+                                        <string>icon-lg</string>
+                                    </stringlist>
+                                </property>
+                            </widget>
+                        </item>
+                        <item>
+                            <widget class="NoOddSizesQToolButton" name="btnAddonManager">
+                                <property name="focusPolicy">
+                                    <enum>Qt::FocusPolicy::ClickFocus</enum>
+                                </property>
+                                <property name="toolTip">
+                                    <string>Addon manager</string>
+                                </property>
+                                <property name="autoRaise">
+                                    <bool>true</bool>
+                                </property>
+                                <property name="qssClass" stdset="0">
+                                    <stringlist>
+                                        <string>icon-lg</string>
+                                    </stringlist>
+                                </property>
+                            </widget>
+                        </item>
+                        <item>
+                            <spacer name="horizontalSpacer">
+                                <property name="orientation">
+                                    <enum>Qt::Orientation::Horizontal</enum>
+                                </property>
+                                <property name="sizeHint" stdset="0">
+                                    <size>
+                                        <width>40</width>
+                                        <height>20</height>
+                                    </size>
+                                </property>
+                            </spacer>
+                        </item>
+                        <item>
+                            <widget class="NoOddSizesQToolButton" name="btnAbout">
+                                <property name="sizePolicy">
+                                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                                        <horstretch>0</horstretch>
+                                        <verstretch>0</verstretch>
+                                    </sizepolicy>
+                                </property>
+                                <property name="focusPolicy">
+                                    <enum>Qt::FocusPolicy::ClickFocus</enum>
+                                </property>
+                                <property name="toolTip">
+                                    <string>About</string>
+                                </property>
+                                <property name="autoRaise">
+                                    <bool>true</bool>
+                                </property>
+                                <property name="qssClass" stdset="0">
+                                    <stringlist>
+                                        <string>icon-lg</string>
+                                    </stringlist>
+                                </property>
+                            </widget>
+                        </item>
+                        <item>
+                            <widget class="NoOddSizesQToolButton" name="btnMinimize">
+                                <property name="focusPolicy">
+                                    <enum>Qt::FocusPolicy::ClickFocus</enum>
+                                </property>
+                                <property name="toolTip">
+                                    <string>Minimize</string>
+                                </property>
+                                <property name="autoRaise">
+                                    <bool>true</bool>
+                                </property>
+                                <property name="qssClass" stdset="0">
+                                    <stringlist>
+                                        <string>icon-lg</string>
+                                    </stringlist>
+                                </property>
+                            </widget>
+                        </item>
+                        <item>
+                            <widget class="NoOddSizesQToolButton" name="btnExit">
+                                <property name="focusPolicy">
+                                    <enum>Qt::FocusPolicy::ClickFocus</enum>
+                                </property>
+                                <property name="toolTip">
+                                    <string>Exit</string>
+                                </property>
+                                <property name="autoRaise">
+                                    <bool>true</bool>
+                                </property>
+                                <property name="qssClass" stdset="0">
+                                    <stringlist>
+                                        <string>icon-lg</string>
+                                    </stringlist>
+                                </property>
+                            </widget>
+                        </item>
+                    </layout>
+                </item>
+                <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_4">
+                        <property name="spacing">
+                            <number>6</number>
+                        </property>
+                        <property name="leftMargin">
+                            <number>0</number>
+                        </property>
+                        <property name="topMargin">
+                            <number>0</number>
+                        </property>
+                        <property name="rightMargin">
+                            <number>0</number>
+                        </property>
+                        <property name="bottomMargin">
+                            <number>0</number>
+                        </property>
+                        <item>
+                            <layout class="QVBoxLayout" name="verticalLayout_3">
+                                <property name="spacing">
+                                    <number>9</number>
+                                </property>
+                                <item>
+                                    <widget class="QLabel" name="imgGameBanner">
+                                        <property name="scaledContents">
+                                            <bool>false</bool>
+                                        </property>
+                                        <property name="alignment">
+                                            <set>Qt::AlignmentFlag::AlignCenter</set>
+                                        </property>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="GameNewsfeedBrowser" name="txtFeed">
+                                        <property name="sizePolicy">
+                                            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                                                <horstretch>1</horstretch>
+                                                <verstretch>2</verstretch>
+                                            </sizepolicy>
+                                        </property>
+                                        <property name="openExternalLinks">
+                                            <bool>true</bool>
+                                        </property>
+                                        <property name="openLinks">
+                                            <bool>true</bool>
+                                        </property>
+                                    </widget>
+                                </item>
+                            </layout>
+                        </item>
+                        <item>
+                            <layout class="QVBoxLayout" name="verticalLayout_2">
+                                <property name="spacing">
+                                    <number>0</number>
+                                </property>
+                                <item>
+                                    <widget class="QWidget" name="widgetLogin" native="true">
+                                        <layout class="QFormLayout" name="layoutLogin">
+                                            <property name="horizontalSpacing">
+                                                <number>6</number>
+                                            </property>
+                                            <property name="verticalSpacing">
+                                                <number>6</number>
+                                            </property>
+                                            <property name="leftMargin">
+                                                <number>6</number>
+                                            </property>
+                                            <item row="0" column="0">
+                                                <widget class="QLabel" name="lblWorld">
+                                                    <property name="toolTip">
+                                                        <string>Game server</string>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>World</string>
+                                                    </property>
+                                                    <property name="buddy">
+                                                        <cstring>cboWorld</cstring>
+                                                    </property>
+                                                </widget>
+                                            </item>
+                                            <item row="0" column="1">
+                                                <layout class="QHBoxLayout" name="horizontalLayout">
+                                                    <property name="spacing">
+                                                        <number>6</number>
+                                                    </property>
+                                                    <item>
+                                                        <widget class="QComboBox" name="cboWorld">
+                                                            <property name="toolTip">
+                                                                <string>Select game server</string>
+                                                            </property>
+                                                        </widget>
+                                                    </item>
+                                                    <item>
+                                                        <widget class="QToolButton"
+                                                            name="btnSwitchGame">
+                                                            <property name="focusPolicy">
+                                                                <enum>Qt::FocusPolicy::ClickFocus</enum>
+                                                            </property>
+                                                            <property name="toolTip">
+                                                                <string>Switch game</string>
+                                                            </property>
+                                                            <property name="popupMode">
+                                                                <enum>
+                                                                    QToolButton::ToolButtonPopupMode::MenuButtonPopup</enum>
+                                                            </property>
+                                                            <property name="toolButtonStyle">
+                                                                <enum>
+                                                                    Qt::ToolButtonStyle::ToolButtonIconOnly</enum>
+                                                            </property>
+                                                            <property name="qssClass" stdset="0">
+                                                                <stringlist>
+                                                                    <string>icon-xl</string>
+                                                                </stringlist>
+                                                            </property>
+                                                        </widget>
+                                                    </item>
+                                                </layout>
+                                            </item>
+                                            <item row="1" column="0">
+                                                <widget class="QLabel" name="lblAccount">
+                                                    <property name="text">
+                                                        <string>Account</string>
+                                                    </property>
+                                                    <property name="buddy">
+                                                        <cstring>cboAccount</cstring>
+                                                    </property>
+                                                </widget>
+                                            </item>
+                                            <item row="1" column="1">
+                                                <widget class="QComboBox" name="cboAccount">
+                                                    <property name="editable">
+                                                        <bool>true</bool>
+                                                    </property>
+                                                    <property name="insertPolicy">
+                                                        <enum>QComboBox::InsertPolicy::NoInsert</enum>
+                                                    </property>
+                                                </widget>
+                                            </item>
+                                            <item row="2" column="0">
+                                                <widget class="QLabel" name="lblPassword">
+                                                    <property name="text">
+                                                        <string>Password</string>
+                                                    </property>
+                                                    <property name="buddy">
+                                                        <cstring>txtPassword</cstring>
+                                                    </property>
+                                                </widget>
+                                            </item>
+                                            <item row="2" column="1">
+                                                <widget class="QLineEdit" name="txtPassword">
+                                                    <property name="echoMode">
+                                                        <enum>QLineEdit::EchoMode::Password</enum>
+                                                    </property>
+                                                    <property name="clearButtonEnabled">
+                                                        <bool>true</bool>
+                                                    </property>
+                                                </widget>
+                                            </item>
+                                            <item row="5" column="0">
+                                                <widget class="QToolButton" name="btnStartGame">
+                                                    <property name="toolTip">
+                                                        <string>Start your adventure!</string>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Play</string>
+                                                    </property>
+                                                    <property name="popupMode">
+                                                        <enum>
+                                                            QToolButton::ToolButtonPopupMode::MenuButtonPopup</enum>
+                                                    </property>
+                                                    <property name="qssClass" stdset="0">
+                                                        <stringlist>
+                                                            <string>text-xl</string>
+                                                            <string>px-3.5</string>
+                                                            <string>py-2</string>
+                                                            <string>m-2</string>
+                                                        </stringlist>
+                                                    </property>
+                                                </widget>
+                                            </item>
+                                            <item row="5" column="1">
+                                                <widget class="QWidget" name="widgetSaveSettings"
+                                                    native="true">
+                                                    <layout class="QVBoxLayout"
+                                                        name="verticalLayout">
+                                                        <property name="spacing">
+                                                            <number>0</number>
+                                                        </property>
+                                                        <property name="sizeConstraint">
+                                                            <enum>
+                                                                QLayout::SizeConstraint::SetFixedSize</enum>
+                                                        </property>
+                                                        <property name="leftMargin">
+                                                            <number>6</number>
+                                                        </property>
+                                                        <property name="topMargin">
+                                                            <number>0</number>
+                                                        </property>
+                                                        <property name="rightMargin">
+                                                            <number>0</number>
+                                                        </property>
+                                                        <property name="bottomMargin">
+                                                            <number>0</number>
+                                                        </property>
+                                                        <item
+                                                            alignment="Qt::AlignmentFlag::AlignTop">
+                                                            <widget class="QCheckBox"
+                                                                name="chkSaveAccount">
+                                                                <property name="toolTip">
+                                                                    <string>Save last used world and
+                                                                        account name</string>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string>Remember account</string>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <item
+                                                            alignment="Qt::AlignmentFlag::AlignTop">
+                                                            <widget class="QCheckBox"
+                                                                name="chkSavePassword">
+                                                                <property name="toolTip">
+                                                                    <string>Save last used password</string>
+                                                                </property>
+                                                                <property name="text">
+                                                                    <string>Remember password</string>
+                                                                </property>
+                                                            </widget>
+                                                        </item>
+                                                        <item>
+                                                            <spacer name="verticalSpacer">
+                                                                <property name="orientation">
+                                                                    <enum>Qt::Orientation::Vertical</enum>
+                                                                </property>
+                                                                <property name="sizeType">
+                                                                    <enum>
+                                                                        QSizePolicy::Policy::Expanding</enum>
+                                                                </property>
+                                                                <property name="sizeHint" stdset="0">
+                                                                    <size>
+                                                                        <width>0</width>
+                                                                        <height>0</height>
+                                                                    </size>
+                                                                </property>
+                                                            </spacer>
+                                                        </item>
+                                                    </layout>
+                                                </widget>
+                                            </item>
+                                        </layout>
+                                    </widget>
+                                </item>
+                                <item>
+                                    <widget class="QTextBrowser" name="txtStatus">
+                                        <property name="sizePolicy">
+                                            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                                                <horstretch>0</horstretch>
+                                                <verstretch>1</verstretch>
+                                            </sizepolicy>
+                                        </property>
+                                        <property name="textInteractionFlags">
+                                            <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                                        </property>
+                                        <property name="openLinks">
+                                            <bool>false</bool>
+                                        </property>
+                                    </widget>
+                                </item>
+                            </layout>
+                        </item>
+                    </layout>
+                </item>
+            </layout>
+        </widget>
+        <action name="actionPatch">
+            <property name="text">
+                <string>Patch</string>
+            </property>
+            <property name="iconText">
+                <string>Patch</string>
+            </property>
+            <property name="toolTip">
+                <string>Patch</string>
+            </property>
+        </action>
+        <action name="actionLOTRO">
+            <property name="text">
+                <string>Lord of the Rings Online</string>
+            </property>
+        </action>
+        <action name="actionDDO">
+            <property name="text">
+                <string>Dungeons and Dragons Online</string>
+            </property>
+        </action>
+        <action name="actionAbout">
+            <property name="text">
+                <string>About</string>
+            </property>
+            <property name="menuRole">
+                <enum>QAction::MenuRole::AboutRole</enum>
+            </property>
+        </action>
+        <action name="actionSettings">
+            <property name="text">
+                <string>Settings</string>
+            </property>
+            <property name="toolTip">
+                <string>Settings</string>
+            </property>
+            <property name="menuRole">
+                <enum>QAction::MenuRole::PreferencesRole</enum>
+            </property>
+        </action>
+        <action name="actionExit">
+            <property name="text">
+                <string>Exit</string>
+            </property>
+            <property name="toolTip">
+                <string>Exit</string>
+            </property>
+            <property name="menuRole">
+                <enum>QAction::MenuRole::QuitRole</enum>
+            </property>
+        </action>
+    </widget>
+    <layoutdefault spacing="0" margin="0" />
+    <customwidgets>
+        <customwidget>
+            <class>QMainWindowWithStylePreview</class>
+            <extends>QMainWindow</extends>
+            <header>.qtdesigner.custom_widgets</header>
+            <container>1</container>
+        </customwidget>
+        <customwidget>
+            <class>FramelessQMainWindowWithStylePreview</class>
+            <extends>QMainWindowWithStylePreview</extends>
+            <header>.custom_widgets</header>
+            <container>1</container>
+        </customwidget>
+        <customwidget>
+            <class>GameNewsfeedBrowser</class>
+            <extends>QTextBrowser</extends>
+            <header>.custom_widgets</header>
+        </customwidget>
+        <customwidget>
+            <class>NoOddSizesQToolButton</class>
+            <extends>QToolButton</extends>
+            <header>.custom_widgets</header>
+        </customwidget>
+    </customwidgets>
+    <tabstops>
+        <tabstop>cboWorld</tabstop>
+        <tabstop>cboAccount</tabstop>
+        <tabstop>txtPassword</tabstop>
+        <tabstop>btnStartGame</tabstop>
+        <tabstop>chkSaveAccount</tabstop>
+        <tabstop>chkSavePassword</tabstop>
+        <tabstop>txtFeed</tabstop>
+        <tabstop>txtStatus</tabstop>
+    </tabstops>
+    <resources />
+    <connections>
+        <connection>
+            <sender>actionAbout</sender>
+            <signal>triggered()</signal>
+            <receiver>btnAbout</receiver>
+            <slot>click()</slot>
+            <hints>
+                <hint type="sourcelabel">
+                    <x>-1</x>
+                    <y>-1</y>
+                </hint>
+                <hint type="destinationlabel">
+                    <x>698</x>
+                    <y>19</y>
+                </hint>
+            </hints>
+        </connection>
+        <connection>
+            <sender>actionSettings</sender>
+            <signal>triggered()</signal>
+            <receiver>btnOptions</receiver>
+            <slot>click()</slot>
+            <hints>
+                <hint type="sourcelabel">
+                    <x>-1</x>
+                    <y>-1</y>
+                </hint>
+                <hint type="destinationlabel">
+                    <x>22</x>
+                    <y>19</y>
+                </hint>
+            </hints>
+        </connection>
+        <connection>
+            <sender>actionExit</sender>
+            <signal>triggered()</signal>
+            <receiver>btnExit</receiver>
+            <slot>click()</slot>
+            <hints>
+                <hint type="sourcelabel">
+                    <x>-1</x>
+                    <y>-1</y>
+                </hint>
+                <hint type="destinationlabel">
+                    <x>766</x>
+                    <y>19</y>
+                </hint>
+            </hints>
+        </connection>
+    </connections>
+</ui>

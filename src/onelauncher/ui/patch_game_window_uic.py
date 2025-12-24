@@ -19,34 +19,34 @@ from PySide6.QtWidgets import (QApplication, QDialog, QHBoxLayout, QProgressBar,
     QPushButton, QSizePolicy, QTextBrowser, QVBoxLayout,
     QWidget)
 
-class Ui_patchingDialog(object):
-    def setupUi(self, patchingDialog: QDialog) -> None:
-        if not patchingDialog.objectName():
-            patchingDialog.setObjectName(u"patchingDialog")
-        patchingDialog.setWindowModality(Qt.WindowModality.ApplicationModal)
-        patchingDialog.resize(720, 400)
-        patchingDialog.setModal(True)
-        self.verticalLayout = QVBoxLayout(patchingDialog)
+class Ui_patchGameWindow(object):
+    def setupUi(self, patchGameWindow: QDialog) -> None:
+        if not patchGameWindow.objectName():
+            patchGameWindow.setObjectName(u"patchGameWindow")
+        patchGameWindow.setWindowModality(Qt.WindowModality.ApplicationModal)
+        patchGameWindow.resize(720, 400)
+        patchGameWindow.setModal(True)
+        self.verticalLayout = QVBoxLayout(patchGameWindow)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.txtLog = QTextBrowser(patchingDialog)
+        self.txtLog = QTextBrowser(patchGameWindow)
         self.txtLog.setObjectName(u"txtLog")
 
         self.verticalLayout.addWidget(self.txtLog)
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.progressBar = QProgressBar(patchingDialog)
+        self.progressBar = QProgressBar(patchGameWindow)
         self.progressBar.setObjectName(u"progressBar")
         self.progressBar.setValue(24)
 
         self.horizontalLayout.addWidget(self.progressBar)
 
-        self.btnStart = QPushButton(patchingDialog)
+        self.btnStart = QPushButton(patchGameWindow)
         self.btnStart.setObjectName(u"btnStart")
 
         self.horizontalLayout.addWidget(self.btnStart)
 
-        self.btnStop = QPushButton(patchingDialog)
+        self.btnStop = QPushButton(patchGameWindow)
         self.btnStop.setObjectName(u"btnStop")
 
         self.horizontalLayout.addWidget(self.btnStop)
@@ -57,15 +57,15 @@ class Ui_patchingDialog(object):
         QWidget.setTabOrder(self.btnStart, self.btnStop)
         QWidget.setTabOrder(self.btnStop, self.txtLog)
 
-        self.retranslateUi(patchingDialog)
+        self.retranslateUi(patchGameWindow)
 
-        QMetaObject.connectSlotsByName(patchingDialog)
+        QMetaObject.connectSlotsByName(patchGameWindow)
     # setupUi
 
-    def retranslateUi(self, patchingDialog: QDialog) -> None:
-        patchingDialog.setWindowTitle(QCoreApplication.translate("patchingDialog", u"MainWindow", None))
-        self.progressBar.setFormat(QCoreApplication.translate("patchingDialog", u"%p% (%v/%m)", None))
-        self.btnStart.setText(QCoreApplication.translate("patchingDialog", u"Start", None))
-        self.btnStop.setText(QCoreApplication.translate("patchingDialog", u"Stop", None))
+    def retranslateUi(self, patchGameWindow: QDialog) -> None:
+        patchGameWindow.setWindowTitle(QCoreApplication.translate("patchGameWindow", u"MainWindow", None))
+        self.progressBar.setFormat(QCoreApplication.translate("patchGameWindow", u"%p% (%v/%m)", None))
+        self.btnStart.setText(QCoreApplication.translate("patchGameWindow", u"Start", None))
+        self.btnStop.setText(QCoreApplication.translate("patchGameWindow", u"Stop", None))
     # retranslateUi
 

@@ -25,40 +25,40 @@ from PySide6.QtWidgets import (QAbstractItemView, QAbstractScrollArea, QApplicat
 from .custom_widgets import NoOddSizesQToolButton
 from .qtdesigner.custom_widgets import QWidgetWithStylePreview
 
-class Ui_winAddonManager(object):
-    def setupUi(self, winAddonManager: QWidgetWithStylePreview) -> None:
-        if not winAddonManager.objectName():
-            winAddonManager.setObjectName(u"winAddonManager")
-        winAddonManager.resize(720, 400)
-        self.actionAddonImport = QAction(winAddonManager)
+class Ui_addonManagerWindow(object):
+    def setupUi(self, addonManagerWindow: QWidgetWithStylePreview) -> None:
+        if not addonManagerWindow.objectName():
+            addonManagerWindow.setObjectName(u"addonManagerWindow")
+        addonManagerWindow.resize(720, 400)
+        self.actionAddonImport = QAction(addonManagerWindow)
         self.actionAddonImport.setObjectName(u"actionAddonImport")
-        self.actionShowOnLotrointerface = QAction(winAddonManager)
+        self.actionShowOnLotrointerface = QAction(addonManagerWindow)
         self.actionShowOnLotrointerface.setObjectName(u"actionShowOnLotrointerface")
-        self.actionShowSelectedOnLotrointerface = QAction(winAddonManager)
+        self.actionShowSelectedOnLotrointerface = QAction(addonManagerWindow)
         self.actionShowSelectedOnLotrointerface.setObjectName(u"actionShowSelectedOnLotrointerface")
-        self.actionInstallAddon = QAction(winAddonManager)
+        self.actionInstallAddon = QAction(addonManagerWindow)
         self.actionInstallAddon.setObjectName(u"actionInstallAddon")
-        self.actionUninstallAddon = QAction(winAddonManager)
+        self.actionUninstallAddon = QAction(addonManagerWindow)
         self.actionUninstallAddon.setObjectName(u"actionUninstallAddon")
-        self.actionShowAddonInFileManager = QAction(winAddonManager)
+        self.actionShowAddonInFileManager = QAction(addonManagerWindow)
         self.actionShowAddonInFileManager.setObjectName(u"actionShowAddonInFileManager")
-        self.actionShowPluginsFolderInFileManager = QAction(winAddonManager)
+        self.actionShowPluginsFolderInFileManager = QAction(addonManagerWindow)
         self.actionShowPluginsFolderInFileManager.setObjectName(u"actionShowPluginsFolderInFileManager")
-        self.actionShowSkinsFolderInFileManager = QAction(winAddonManager)
+        self.actionShowSkinsFolderInFileManager = QAction(addonManagerWindow)
         self.actionShowSkinsFolderInFileManager.setObjectName(u"actionShowSkinsFolderInFileManager")
-        self.actionShowMusicFolderInFileManager = QAction(winAddonManager)
+        self.actionShowMusicFolderInFileManager = QAction(addonManagerWindow)
         self.actionShowMusicFolderInFileManager.setObjectName(u"actionShowMusicFolderInFileManager")
-        self.actionUpdateSelectedAddons = QAction(winAddonManager)
+        self.actionUpdateSelectedAddons = QAction(addonManagerWindow)
         self.actionUpdateSelectedAddons.setObjectName(u"actionUpdateSelectedAddons")
-        self.actionUpdateAddon = QAction(winAddonManager)
+        self.actionUpdateAddon = QAction(addonManagerWindow)
         self.actionUpdateAddon.setObjectName(u"actionUpdateAddon")
-        self.actionEnableStartupScript = QAction(winAddonManager)
+        self.actionEnableStartupScript = QAction(addonManagerWindow)
         self.actionEnableStartupScript.setObjectName(u"actionEnableStartupScript")
-        self.actionDisableStartupScript = QAction(winAddonManager)
+        self.actionDisableStartupScript = QAction(addonManagerWindow)
         self.actionDisableStartupScript.setObjectName(u"actionDisableStartupScript")
-        self.actionShowSelectedAddonsInFileManager = QAction(winAddonManager)
+        self.actionShowSelectedAddonsInFileManager = QAction(addonManagerWindow)
         self.actionShowSelectedAddonsInFileManager.setObjectName(u"actionShowSelectedAddonsInFileManager")
-        self.verticalLayout_9 = QVBoxLayout(winAddonManager)
+        self.verticalLayout_9 = QVBoxLayout(addonManagerWindow)
         self.verticalLayout_9.setSpacing(0)
         self.verticalLayout_9.setObjectName(u"verticalLayout_9")
         self.verticalLayout_9.setContentsMargins(0, 0, 0, 0)
@@ -66,13 +66,13 @@ class Ui_winAddonManager(object):
         self.horizontalLayout_3.setSpacing(9)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.horizontalLayout_3.setContentsMargins(9, 9, 9, 9)
-        self.txtSearchBar = QLineEdit(winAddonManager)
+        self.txtSearchBar = QLineEdit(addonManagerWindow)
         self.txtSearchBar.setObjectName(u"txtSearchBar")
         self.txtSearchBar.setClearButtonEnabled(True)
 
         self.horizontalLayout_3.addWidget(self.txtSearchBar)
 
-        self.btnAddons = NoOddSizesQToolButton(winAddonManager)
+        self.btnAddons = NoOddSizesQToolButton(addonManagerWindow)
         self.btnAddons.setObjectName(u"btnAddons")
         self.btnAddons.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
 
@@ -81,12 +81,12 @@ class Ui_winAddonManager(object):
 
         self.verticalLayout_9.addLayout(self.horizontalLayout_3)
 
-        self.tabBarSource = QTabBar(winAddonManager)
+        self.tabBarSource = QTabBar(addonManagerWindow)
         self.tabBarSource.setObjectName(u"tabBarSource")
 
         self.verticalLayout_9.addWidget(self.tabBarSource)
 
-        self.stackedWidgetSource = QStackedWidget(winAddonManager)
+        self.stackedWidgetSource = QStackedWidget(addonManagerWindow)
         self.stackedWidgetSource.setObjectName(u"stackedWidgetSource")
         self.pageInstalled = QWidget()
         self.pageInstalled.setObjectName(u"pageInstalled")
@@ -324,7 +324,7 @@ class Ui_winAddonManager(object):
 
         self.verticalLayout_9.addWidget(self.stackedWidgetSource)
 
-        self.progressBar = QProgressBar(winAddonManager)
+        self.progressBar = QProgressBar(addonManagerWindow)
         self.progressBar.setObjectName(u"progressBar")
         self.progressBar.setTextVisible(False)
 
@@ -341,55 +341,55 @@ class Ui_winAddonManager(object):
         QWidget.setTabOrder(self.btnUpdateAll, self.btnCheckForUpdates)
         QWidget.setTabOrder(self.btnCheckForUpdates, self.btnCheckForUpdates_2)
 
-        self.retranslateUi(winAddonManager)
+        self.retranslateUi(addonManagerWindow)
 
-        QMetaObject.connectSlotsByName(winAddonManager)
+        QMetaObject.connectSlotsByName(addonManagerWindow)
     # setupUi
 
-    def retranslateUi(self, winAddonManager: QWidgetWithStylePreview) -> None:
-        winAddonManager.setWindowTitle(QCoreApplication.translate("winAddonManager", u"Addons Manager", None))
-        self.actionAddonImport.setText(QCoreApplication.translate("winAddonManager", u"Import Addons", None))
+    def retranslateUi(self, addonManagerWindow: QWidgetWithStylePreview) -> None:
+        addonManagerWindow.setWindowTitle(QCoreApplication.translate("addonManagerWindow", u"Addons Manager", None))
+        self.actionAddonImport.setText(QCoreApplication.translate("addonManagerWindow", u"Import Addons", None))
 #if QT_CONFIG(tooltip)
-        self.actionAddonImport.setToolTip(QCoreApplication.translate("winAddonManager", u"Import addons from files/archives", None))
+        self.actionAddonImport.setToolTip(QCoreApplication.translate("addonManagerWindow", u"Import addons from files/archives", None))
 #endif // QT_CONFIG(tooltip)
 #if QT_CONFIG(shortcut)
-        self.actionAddonImport.setShortcut(QCoreApplication.translate("winAddonManager", u"Ctrl+I", None))
+        self.actionAddonImport.setShortcut(QCoreApplication.translate("addonManagerWindow", u"Ctrl+I", None))
 #endif // QT_CONFIG(shortcut)
-        self.actionShowOnLotrointerface.setText(QCoreApplication.translate("winAddonManager", u"Show on lotrointerface.com", None))
-        self.actionShowSelectedOnLotrointerface.setText(QCoreApplication.translate("winAddonManager", u"Show selected addons on lotrointerface.com", None))
-        self.actionInstallAddon.setText(QCoreApplication.translate("winAddonManager", u"Install", None))
-        self.actionUninstallAddon.setText(QCoreApplication.translate("winAddonManager", u"Uninstall", None))
-        self.actionShowAddonInFileManager.setText(QCoreApplication.translate("winAddonManager", u"Show in file manager", None))
-        self.actionShowPluginsFolderInFileManager.setText(QCoreApplication.translate("winAddonManager", u"Show plugins folder in file manager", None))
-        self.actionShowSkinsFolderInFileManager.setText(QCoreApplication.translate("winAddonManager", u"Show skins folder in file manager", None))
-        self.actionShowMusicFolderInFileManager.setText(QCoreApplication.translate("winAddonManager", u"Show music folder in file manager", None))
-        self.actionUpdateSelectedAddons.setText(QCoreApplication.translate("winAddonManager", u"Update selected addons", None))
-        self.actionUpdateAddon.setText(QCoreApplication.translate("winAddonManager", u"Update", None))
-        self.actionEnableStartupScript.setText(QCoreApplication.translate("winAddonManager", u"Enable startup script", None))
-        self.actionDisableStartupScript.setText(QCoreApplication.translate("winAddonManager", u"Disable startup script", None))
-        self.actionShowSelectedAddonsInFileManager.setText(QCoreApplication.translate("winAddonManager", u"Show selected addons in file manager", None))
+        self.actionShowOnLotrointerface.setText(QCoreApplication.translate("addonManagerWindow", u"Show on lotrointerface.com", None))
+        self.actionShowSelectedOnLotrointerface.setText(QCoreApplication.translate("addonManagerWindow", u"Show selected addons on lotrointerface.com", None))
+        self.actionInstallAddon.setText(QCoreApplication.translate("addonManagerWindow", u"Install", None))
+        self.actionUninstallAddon.setText(QCoreApplication.translate("addonManagerWindow", u"Uninstall", None))
+        self.actionShowAddonInFileManager.setText(QCoreApplication.translate("addonManagerWindow", u"Show in file manager", None))
+        self.actionShowPluginsFolderInFileManager.setText(QCoreApplication.translate("addonManagerWindow", u"Show plugins folder in file manager", None))
+        self.actionShowSkinsFolderInFileManager.setText(QCoreApplication.translate("addonManagerWindow", u"Show skins folder in file manager", None))
+        self.actionShowMusicFolderInFileManager.setText(QCoreApplication.translate("addonManagerWindow", u"Show music folder in file manager", None))
+        self.actionUpdateSelectedAddons.setText(QCoreApplication.translate("addonManagerWindow", u"Update selected addons", None))
+        self.actionUpdateAddon.setText(QCoreApplication.translate("addonManagerWindow", u"Update", None))
+        self.actionEnableStartupScript.setText(QCoreApplication.translate("addonManagerWindow", u"Enable startup script", None))
+        self.actionDisableStartupScript.setText(QCoreApplication.translate("addonManagerWindow", u"Disable startup script", None))
+        self.actionShowSelectedAddonsInFileManager.setText(QCoreApplication.translate("addonManagerWindow", u"Show selected addons in file manager", None))
 #if QT_CONFIG(tooltip)
-        self.actionShowSelectedAddonsInFileManager.setToolTip(QCoreApplication.translate("winAddonManager", u"Show selected addons in file manager", None))
+        self.actionShowSelectedAddonsInFileManager.setToolTip(QCoreApplication.translate("addonManagerWindow", u"Show selected addons in file manager", None))
 #endif // QT_CONFIG(tooltip)
-        self.txtSearchBar.setPlaceholderText(QCoreApplication.translate("winAddonManager", u"Search here", None))
+        self.txtSearchBar.setPlaceholderText(QCoreApplication.translate("addonManagerWindow", u"Search here", None))
 #if QT_CONFIG(tooltip)
-        self.btnAddons.setToolTip(QCoreApplication.translate("winAddonManager", u"Remove addons", None))
+        self.btnAddons.setToolTip(QCoreApplication.translate("addonManagerWindow", u"Remove addons", None))
 #endif // QT_CONFIG(tooltip)
         self.btnAddons.setProperty(u"qssClass", [
-            QCoreApplication.translate("winAddonManager", u"icon-lg", None),
-            QCoreApplication.translate("winAddonManager", u"px-2.5", None),
-            QCoreApplication.translate("winAddonManager", u"py-1", None)])
+            QCoreApplication.translate("addonManagerWindow", u"icon-lg", None),
+            QCoreApplication.translate("addonManagerWindow", u"px-2.5", None),
+            QCoreApplication.translate("addonManagerWindow", u"py-1", None)])
 #if QT_CONFIG(tooltip)
-        self.btnUpdateAll.setToolTip(QCoreApplication.translate("winAddonManager", u"Update all addons", None))
+        self.btnUpdateAll.setToolTip(QCoreApplication.translate("addonManagerWindow", u"Update all addons", None))
 #endif // QT_CONFIG(tooltip)
-        self.btnUpdateAll.setText(QCoreApplication.translate("winAddonManager", u"Update All", None))
+        self.btnUpdateAll.setText(QCoreApplication.translate("addonManagerWindow", u"Update All", None))
 #if QT_CONFIG(tooltip)
-        self.btnCheckForUpdates.setToolTip(QCoreApplication.translate("winAddonManager", u"Check for updates", None))
+        self.btnCheckForUpdates.setToolTip(QCoreApplication.translate("addonManagerWindow", u"Check for updates", None))
 #endif // QT_CONFIG(tooltip)
 #if QT_CONFIG(tooltip)
-        self.btnCheckForUpdates_2.setToolTip(QCoreApplication.translate("winAddonManager", u"Check for updates", None))
+        self.btnCheckForUpdates_2.setToolTip(QCoreApplication.translate("addonManagerWindow", u"Check for updates", None))
 #endif // QT_CONFIG(tooltip)
         self.progressBar.setProperty(u"qssClass", [
-            QCoreApplication.translate("winAddonManager", u"max-h-2", None)])
+            QCoreApplication.translate("addonManagerWindow", u"max-h-2", None)])
     # retranslateUi
 

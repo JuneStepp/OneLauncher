@@ -13,7 +13,7 @@ from .config_manager import (
 from .game_config import GameConfigID
 from .main_window import MainWindow
 from .setup_wizard import SetupWizard
-from .ui.error_message_uic import Ui_errorDialog
+from .ui.error_message_window_uic import Ui_errorMessageWindow
 from .ui.qtapp import get_qapp
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ def show_invalid_config_dialog(
     """
     _ = get_qapp()
     dialog = QtWidgets.QDialog()
-    ui = Ui_errorDialog()
+    ui = Ui_errorMessageWindow()
     ui.setupUi(dialog)
     ui.textLabel.setText(error.msg)
     ui.detailsTextEdit.setPlainText(traceback.format_exc())

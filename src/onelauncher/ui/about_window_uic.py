@@ -19,26 +19,26 @@ from PySide6.QtWidgets import (QAbstractButton, QApplication, QDialog, QDialogBu
     QLabel, QSizePolicy, QSpacerItem, QVBoxLayout,
     QWidget)
 
-class Ui_dlgAbout(object):
-    def setupUi(self, dlgAbout: QDialog) -> None:
-        if not dlgAbout.objectName():
-            dlgAbout.setObjectName(u"dlgAbout")
-        dlgAbout.setWindowModality(Qt.WindowModality.ApplicationModal)
-        dlgAbout.resize(400, 250)
-        dlgAbout.setModal(True)
-        self.verticalLayout_2 = QVBoxLayout(dlgAbout)
+class Ui_aboutWindow(object):
+    def setupUi(self, aboutWindow: QDialog) -> None:
+        if not aboutWindow.objectName():
+            aboutWindow.setObjectName(u"aboutWindow")
+        aboutWindow.setWindowModality(Qt.WindowModality.ApplicationModal)
+        aboutWindow.resize(400, 250)
+        aboutWindow.setModal(True)
+        self.verticalLayout_2 = QVBoxLayout(aboutWindow)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.verticalLayout = QVBoxLayout()
         self.verticalLayout.setSpacing(9)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayout.setContentsMargins(12, 12, 12, 12)
-        self.lblDescription = QLabel(dlgAbout)
+        self.lblDescription = QLabel(aboutWindow)
         self.lblDescription.setObjectName(u"lblDescription")
         self.lblDescription.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout.addWidget(self.lblDescription)
 
-        self.lblRepoWebsite = QLabel(dlgAbout)
+        self.lblRepoWebsite = QLabel(aboutWindow)
         self.lblRepoWebsite.setObjectName(u"lblRepoWebsite")
         self.lblRepoWebsite.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.lblRepoWebsite.setOpenExternalLinks(True)
@@ -46,20 +46,20 @@ class Ui_dlgAbout(object):
 
         self.verticalLayout.addWidget(self.lblRepoWebsite)
 
-        self.lblCopyright = QLabel(dlgAbout)
+        self.lblCopyright = QLabel(aboutWindow)
         self.lblCopyright.setObjectName(u"lblCopyright")
         self.lblCopyright.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout.addWidget(self.lblCopyright)
 
-        self.lblCopyrightHistory = QLabel(dlgAbout)
+        self.lblCopyrightHistory = QLabel(aboutWindow)
         self.lblCopyrightHistory.setObjectName(u"lblCopyrightHistory")
         self.lblCopyrightHistory.setAcceptDrops(False)
         self.lblCopyrightHistory.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout.addWidget(self.lblCopyrightHistory)
 
-        self.lblVersion = QLabel(dlgAbout)
+        self.lblVersion = QLabel(aboutWindow)
         self.lblVersion.setObjectName(u"lblVersion")
         self.lblVersion.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -72,7 +72,7 @@ class Ui_dlgAbout(object):
 
         self.verticalLayout_2.addLayout(self.verticalLayout)
 
-        self.buttonBox = QDialogButtonBox(dlgAbout)
+        self.buttonBox = QDialogButtonBox(aboutWindow)
         self.buttonBox.setObjectName(u"buttonBox")
         self.buttonBox.setOrientation(Qt.Orientation.Horizontal)
         self.buttonBox.setStandardButtons(QDialogButtonBox.StandardButton.Close)
@@ -80,14 +80,14 @@ class Ui_dlgAbout(object):
         self.verticalLayout_2.addWidget(self.buttonBox)
 
 
-        self.retranslateUi(dlgAbout)
-        self.buttonBox.clicked.connect(dlgAbout.accept)
+        self.retranslateUi(aboutWindow)
+        self.buttonBox.clicked.connect(aboutWindow.accept)
 
-        QMetaObject.connectSlotsByName(dlgAbout)
+        QMetaObject.connectSlotsByName(aboutWindow)
     # setupUi
 
-    def retranslateUi(self, dlgAbout: QDialog) -> None:
-        dlgAbout.setWindowTitle(QCoreApplication.translate("dlgAbout", u"About", None))
+    def retranslateUi(self, aboutWindow: QDialog) -> None:
+        aboutWindow.setWindowTitle(QCoreApplication.translate("aboutWindow", u"About", None))
         self.lblDescription.setText("")
         self.lblRepoWebsite.setText("")
         self.lblCopyright.setText("")

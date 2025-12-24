@@ -42,7 +42,7 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
 from xmlschema import XMLSchemaValidationError
 
-from . import __about__, addon_manager
+from . import __about__, addon_manager_window
 from .addons.startup_script import run_startup_script
 from .config_manager import ConfigManager, NoValidGamesError
 from .game_account_config import GameAccountConfig
@@ -76,12 +76,12 @@ from .network.world_login_queue import (
 from .resources import get_resource
 from .settings_window import SettingsWindow
 from .start_game import MissingLaunchArgumentError, start_game
-from .ui.about_uic import Ui_dlgAbout
+from .ui.about_window_uic import Ui_aboutWindow
 from .ui.custom_widgets import FramelessQMainWindowWithStylePreview
-from .ui.main_uic import Ui_winMain
-from .ui.patch_game import PatchGameWindow
+from .ui.main_window_uic import Ui_mainWindow
+from .ui.patch_game_window import PatchGameWindow
 from .ui.qtapp import get_app_style, get_qapp
-from .ui.select_subscription_uic import Ui_dlgSelectSubscription
+from .ui.select_subscription_window_uic import Ui_selectSubscriptionWindow
 from .ui.utilities import log_record_to_rich_text, show_message_box_details_as_markdown
 
 logger = logging.getLogger(__name__)
@@ -101,7 +101,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
 
         self.network_setup_nursery: trio.Nursery | None = None
         self.game_cancel_scope: trio.CancelScope | None = None
-        self.addon_manager_window: addon_manager.AddonManagerWindow | None = None
+        self.addon_manager_window: addon_manager_window.AddonManagerWindow | None = None
         self.game_launcher_config: GameLauncherConfig | None = None
 
     def addon_manager_error_log(self, record: logging.LogRecord) -> None:
@@ -110,7 +110,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         self.activateWindow()
 
     def setup_ui(self) -> None:
-        self.ui = Ui_winMain()
+        self.ui = Ui_mainWindow()
         self.ui.setupUi(self)
 
         logger.addHandler(
@@ -121,7 +121,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                 level=logging.INFO,
             )
         )
-        addon_manager.logger.addHandler(
+        addon_manager_window.logger.addHandler(
             ForwardLogsHandler(
                 new_log_callback=self.addon_manager_error_log, level=logging.INFO
             )
@@ -309,10 +309,10 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         self.ui.btnSwitchGame.setEnabled(True)
 
     def btnAboutSelected(self) -> None:
-        dlgAbout = QtWidgets.QDialog(self, QtCore.Qt.WindowType.Popup)
+        about_window = QtWidgets.QDialog(self, QtCore.Qt.WindowType.Popup)
 
-        ui = Ui_dlgAbout()
-        ui.setupUi(dlgAbout)
+        ui = Ui_aboutWindow()
+        ui.setupUi(about_window)
 
         ui.lblDescription.setText(__about__.__description__)
         if __about__.__project_url__:
@@ -325,7 +325,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         ui.lblVersion.setText(f"<b>Version:</b> {__about__.__version__}")
         ui.lblCopyrightHistory.setText(__about__.__copyright_history__)
 
-        dlgAbout.exec()
+        about_window.exec()
         self.resetFocus()
 
     async def actionPatchSelected(self) -> None:
@@ -361,7 +361,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             else:
                 self.addon_manager_window.deleteLater()
 
-        self.addon_manager_window = addon_manager.AddonManagerWindow(
+        self.addon_manager_window = addon_manager_window.AddonManagerWindow(
             config_manager=self.config_manager,
             game_id=self.game_id,
             launcher_local_config=self.game_launcher_local_config,
@@ -526,7 +526,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         select_subscription_dialog = QtWidgets.QDialog(
             self, QtCore.Qt.WindowType.FramelessWindowHint
         )
-        ui = Ui_dlgSelectSubscription()
+        ui = Ui_selectSubscriptionWindow()
         ui.setupUi(select_subscription_dialog)
 
         for subscription in subscriptions:

@@ -43,7 +43,7 @@ from onelauncher.patch_game import (
 from onelauncher.patch_game import logger as patch_game_logger
 from onelauncher.utilities import Progress
 
-from .patch_game_uic import Ui_patchingDialog
+from .patch_game_window_uic import Ui_patchGameWindow
 from .qtapp import get_qapp
 from .utilities import log_record_to_rich_text
 
@@ -67,7 +67,7 @@ class PatchGameWindow(QtWidgets.QDialog):
 
         self.progress: Progress | None = None
 
-        self.ui = Ui_patchingDialog()
+        self.ui = Ui_patchGameWindow()
         self.ui.setupUi(self)
         self.setWindowTitle("Patching Output")
 

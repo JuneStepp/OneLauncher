@@ -19,28 +19,28 @@ from PySide6.QtWidgets import (QAbstractButton, QApplication, QComboBox, QDialog
     QDialogButtonBox, QLabel, QSizePolicy, QVBoxLayout,
     QWidget)
 
-class Ui_dlgSelectSubscription(object):
-    def setupUi(self, dlgSelectSubscription: QDialog) -> None:
-        if not dlgSelectSubscription.objectName():
-            dlgSelectSubscription.setObjectName(u"dlgSelectSubscription")
-        dlgSelectSubscription.setWindowModality(Qt.WindowModality.ApplicationModal)
-        dlgSelectSubscription.resize(320, 169)
-        dlgSelectSubscription.setModal(True)
-        self.verticalLayout = QVBoxLayout(dlgSelectSubscription)
+class Ui_selectSubscriptionWindow(object):
+    def setupUi(self, selectSubscriptionWindow: QDialog) -> None:
+        if not selectSubscriptionWindow.objectName():
+            selectSubscriptionWindow.setObjectName(u"selectSubscriptionWindow")
+        selectSubscriptionWindow.setWindowModality(Qt.WindowModality.ApplicationModal)
+        selectSubscriptionWindow.resize(320, 169)
+        selectSubscriptionWindow.setModal(True)
+        self.verticalLayout = QVBoxLayout(selectSubscriptionWindow)
         self.verticalLayout.setSpacing(9)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.label = QLabel(dlgSelectSubscription)
+        self.label = QLabel(selectSubscriptionWindow)
         self.label.setObjectName(u"label")
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout.addWidget(self.label)
 
-        self.subscriptionsComboBox = QComboBox(dlgSelectSubscription)
+        self.subscriptionsComboBox = QComboBox(selectSubscriptionWindow)
         self.subscriptionsComboBox.setObjectName(u"subscriptionsComboBox")
 
         self.verticalLayout.addWidget(self.subscriptionsComboBox)
 
-        self.buttonBox = QDialogButtonBox(dlgSelectSubscription)
+        self.buttonBox = QDialogButtonBox(selectSubscriptionWindow)
         self.buttonBox.setObjectName(u"buttonBox")
         self.buttonBox.setOrientation(Qt.Orientation.Horizontal)
         self.buttonBox.setStandardButtons(QDialogButtonBox.StandardButton.Cancel|QDialogButtonBox.StandardButton.Ok)
@@ -51,16 +51,16 @@ class Ui_dlgSelectSubscription(object):
         self.label.setBuddy(self.subscriptionsComboBox)
 #endif // QT_CONFIG(shortcut)
 
-        self.retranslateUi(dlgSelectSubscription)
-        self.buttonBox.accepted.connect(dlgSelectSubscription.accept)
-        self.buttonBox.rejected.connect(dlgSelectSubscription.reject)
+        self.retranslateUi(selectSubscriptionWindow)
+        self.buttonBox.accepted.connect(selectSubscriptionWindow.accept)
+        self.buttonBox.rejected.connect(selectSubscriptionWindow.reject)
 
-        QMetaObject.connectSlotsByName(dlgSelectSubscription)
+        QMetaObject.connectSlotsByName(selectSubscriptionWindow)
     # setupUi
 
-    def retranslateUi(self, dlgSelectSubscription: QDialog) -> None:
-        dlgSelectSubscription.setWindowTitle(QCoreApplication.translate("dlgSelectSubscription", u"Select Subscription", None))
-        self.label.setText(QCoreApplication.translate("dlgSelectSubscription", u"Multiple game sub-accounts found\n"
+    def retranslateUi(self, selectSubscriptionWindow: QDialog) -> None:
+        selectSubscriptionWindow.setWindowTitle(QCoreApplication.translate("selectSubscriptionWindow", u"Select Subscription", None))
+        self.label.setText(QCoreApplication.translate("selectSubscriptionWindow", u"Multiple game sub-accounts found\n"
 "\n"
 "Please select one", None))
     # retranslateUi
