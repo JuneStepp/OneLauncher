@@ -12,6 +12,7 @@ from typing import Final
 
 from typing_extensions import override
 
+from onelauncher.async_utils import app_cancel_scope
 from onelauncher.resources import data_dir
 
 from .__about__ import __title__, __version__, version_parsed
@@ -48,6 +49,7 @@ def handle_uncaught_exceptions(
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
     logger.critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+    app_cancel_scope.cancel()
 
 
 class RedactHomeDirFormatter(logging.Formatter):
