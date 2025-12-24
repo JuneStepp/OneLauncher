@@ -54,6 +54,7 @@ from typing import (
 from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minicompat import NodeList
 from xml.dom.minidom import Element
+from xml.parsers.expat import ExpatError
 
 import attrs
 import certifi
@@ -509,7 +510,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         for compendium_file in compendium_files:
             try:
                 doc = defusedxml.minidom.parse(str(compendium_file))
-            except xml.parsers.expat.ExpatError:
+            except ExpatError:
                 logger.warning(
                     "`.plugincompendium` file has invalid XML: %s",
                     compendium_file,
@@ -575,7 +576,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         try:
             doc = defusedxml.minidom.parse(str(file))
-        except xml.parsers.expat.ExpatError:
+        except ExpatError:
             logger.exception("Compendium file has invalid XML: %s", file)
             return None
         nodes = doc.getElementsByTagName(tag)[0].childNodes
@@ -1582,7 +1583,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 if self.checkAddonForDependencies(plugin, table):
                     try:
                         doc = defusedxml.minidom.parse(plugin[1])
-                    except xml.parsers.expat.ExpatError:
+                    except ExpatError:
                         logger.warning(
                             "`.plugincompendium` file has invalid XML: %s",
                             plugin[1],
@@ -1613,7 +1614,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 if plugin_file.exists():
                     try:
                         doc = defusedxml.minidom.parse(str(plugin_file))
-                    except xml.parsers.expat.ExpatError:
+                    except ExpatError:
                         logger.warning(
                             "`.plugin` file has invalid XML: %s",
                             plugin_file,
@@ -1870,7 +1871,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         try:
             doc = defusedxml.minidom.parseString(addons_file_response.text)
-        except xml.parsers.expat.ExpatError:
+        except ExpatError:
             logger.exception(
                 "Addons feed has invalid XML. Please report this error if it continues."
             )
