@@ -16,7 +16,7 @@ innoextract is needed for game installation support.
 
 OneLauncher comes with a [Nix](https://nixos.org/) flake for easily replicating the standard development environment. It can be used with [direnv](https://github.com/direnv/direnv) or the `nix develop` command. 
 
-The compiled builds can be tested on NixOS with `nix run .#fhs-run build/out/onelauncher.bin`.
+The compiled builds can be tested on NixOS with `nix run .#fhs-run build/out/onelauncher.bin`. Similarly, `nix run .#fhs-run onelauncher` can be used while in the development shell to start OneLauncher from source with support for the WINE binaries it downloads.
 
 ## Building
 
