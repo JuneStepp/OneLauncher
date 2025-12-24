@@ -633,7 +633,9 @@ class SetupWizard(QtWidgets.QWizard):
                     if game_id not in existing_game_ids:
                         continue
 
-                    self.config_manager.delete_game_config(game_id)
+                    self.config_manager.delete_game_config(
+                        game_id, exclude_install_dir=True
+                    )
                     reset_game_config = self.get_game_config_from_game_dir(
                         game_config.game_directory
                     )
@@ -648,7 +650,7 @@ class SetupWizard(QtWidgets.QWizard):
                 if game_id not in selected_games
             )
             for game_id in not_selected_existing_game_ids:
-                self.config_manager.delete_game_config(game_id=game_id)
+                self.config_manager.delete_game_config(game_id)
 
         # Delete unselected new game installs that are in the OneLauncher games
         # directory. Users are responsible for any installs they created in a custom

@@ -7,6 +7,7 @@ import pytest
 import tomlkit
 
 import onelauncher.config_manager
+from onelauncher import install_game
 from onelauncher.config import ConfigFieldMetadata, ConfigValWithMetadata
 from onelauncher.program_config import ProgramConfig
 
@@ -172,3 +173,28 @@ def test_allow_unknown_config_keys(tmp_path: Path) -> None:
     onelauncher.config_manager.read_config_file(
         config_class=ProgramConfig, config_file_path=config_path
     )
+
+
+class TestConfigManager:
+    def test_delete_game_config(
+        self,
+        config_manager: onelauncher.config_manager.ConfigManager,
+    ) -> None:
+        game_id = config_manager.get_game_config_ids()[0]
+        game_config_dir = config_manager.get_game_config_dir(game_id)
+        assert next(game_config_dir.iterdir(), False)
+
+        config_manager.delete_game_config(game_id)
+        assert not game_config_dir.exists()
+
+    def test_delete_game_config_exclude_install_dir(
+        self,
+        config_manager: onelauncher.config_manager.ConfigManager,
+    ) -> None:
+        game_id, game_config = install_game.get_default_game_config(
+            installer=install_game.GAME_INSTALLERS[0], config_manager=config_manager
+        )
+        config_manager.update_game_config_file(game_id=game_id, config=game_config)
+        game_config.game_directory.mkdir(parents=True)
+        config_manager.delete_game_config(game_id, exclude_install_dir=True)
+        assert game_config.game_directory.exists()

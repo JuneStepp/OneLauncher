@@ -625,19 +625,32 @@ class ConfigManager:
             self.verified_game_config_ids.append(game_id)
         self._cached_game_configs[game_id] = config
 
-    def delete_game_config(self, game_id: GameConfigID) -> None:
+    def delete_game_config(
+        self, game_id: GameConfigID, *, exclude_install_dir: bool = False
+    ) -> None:
         """Delete game config including all files and saved accounts"""
+        game_install_dir = self.read_game_config_file(game_id).game_directory
+
         with suppress(FileNotFoundError):
             account_configs = self.read_game_accounts_config_file(game_id)
             for account_config in account_configs:
                 self.delete_game_account_keyring_info(
                     game_id=game_id, game_account=account_config
                 )
-        rmtree(self.get_game_config_dir(game_id=game_id))
-        if game_id in self.verified_game_config_ids:
-            self.verified_game_config_ids.remove(game_id)
-            del self._cached_game_configs[game_id]
-            del self._cached_game_accounts_configs[game_id]
+
+        for path in self.get_game_config_dir(game_id).glob("*"):
+            if exclude_install_dir and path == game_install_dir:
+                continue
+            if path.is_dir():
+                rmtree(path)
+            else:
+                path.unlink()
+        with suppress(OSError):
+            self.get_game_config_dir(game_id).rmdir()
+
+        self.verified_game_config_ids.remove(game_id)
+        del self._cached_game_configs[game_id]
+        del self._cached_game_accounts_configs[game_id]
 
     def get_game_accounts(self, game_id: GameConfigID) -> tuple[GameAccountConfig, ...]:
         if not self.configs_are_verified:
