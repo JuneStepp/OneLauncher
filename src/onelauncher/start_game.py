@@ -1,8 +1,13 @@
+import configparser
 import logging
 import os
 import subprocess
+import sys
+from contextlib import suppress
+from copy import deepcopy
 from datetime import UTC, datetime
 from functools import partial
+from io import StringIO
 from pathlib import Path
 from types import MappingProxyType
 
@@ -12,7 +17,7 @@ import trio
 from onelauncher.async_utils import for_each_in_stream
 from onelauncher.config_manager import ConfigManager
 from onelauncher.game_launcher_local_config import GameLauncherLocalConfig
-from onelauncher.game_utilities import get_game_settings_dir
+from onelauncher.game_utilities import get_game_user_preferences_path
 from onelauncher.logs import ExternalProcessLogsFilter
 
 from .game_config import ClientType, GameConfig, GameConfigID
@@ -133,15 +138,20 @@ async def get_launch_args(
             game_launcher_config.high_res_patch_arg or " --HighResOutOfDate"
         )
 
-    # Setting the `--prefs` command configure both the game user preferences file and the
+    # Setting the `--prefs` command configures both the game user preferences file and the
     # game settings folder. The game settings folder is set to the folder of the
     # user preferences file passed to `--prefs`.
-    # The filename "UserPreferences.ini" seems to be hardcoded into the launcher
-    # and client executables as the default.
-    game_settings_dir = get_game_settings_dir(
-        game_config=game_config, launcher_local_config=game_launcher_local_config
+    launch_args.extend(
+        (
+            "--prefs",
+            str(
+                get_game_user_preferences_path(
+                    game_config=game_config,
+                    game_launcher_local_config=game_launcher_local_config,
+                )
+            ),
+        )
     )
-    launch_args.extend(("--prefs", str(game_settings_dir / "UserPreferences.ini")))
 
     redacted_launch_args = tuple(
         arg.replace(account_number, "******").replace(ticket, "******")
@@ -149,6 +159,52 @@ async def get_launch_args(
     )
     logger.debug("Game launch arguments generated: %s", redacted_launch_args)
     return tuple(launch_args)
+
+
+async def update_game_user_preferences(
+    game_config: GameConfig, game_launcher_local_config: GameLauncherLocalConfig
+) -> None:
+    """
+    Set important `UserPreferences.ini` values.
+    """
+    if sys.platform == "win32":
+        return
+
+    game_user_preferences_path = trio.Path(  # type: ignore[unreachable,unused-ignore]
+        get_game_user_preferences_path(
+            game_config=game_config,
+            game_launcher_local_config=game_launcher_local_config,
+        )
+    )
+    config = configparser.ConfigParser(delimiters=("=",))
+    with suppress(FileNotFoundError):
+        config.read_string(await game_user_preferences_path.read_text())
+    unedited_config = deepcopy(config)
+
+    # Set screen mode to `FullScreenWindowed` on macOS on first game launch.
+    # The default `Fullscreen` mode bloacks the macOS prompt for allowing required game
+    # permissions. It also causes issues with some Macintosh monitors and laptop screens,
+    # especially when using multiple monitors.
+    if sys.platform == "darwin" and game_config.last_played is None:
+        with suppress(configparser.DuplicateSectionError):
+            config.add_section("Display")
+        config["Display"]["FullScreen"] = "False"
+        config["Display"]["ScreenMode"] = "FullScreenWindowed"
+
+    if game_config.wine.builtin_prefix_enabled and (
+        sys.platform == "darwin" or "Render" not in config
+    ):
+        with suppress(configparser.DuplicateSectionError):
+            config.add_section("Render")
+        config["Render"]["D3DVersionPromptedForAtStartup"] = "11"
+        config["Render"]["GraphicsCore"] = "D3D11"
+
+    if config == unedited_config:
+        return
+    with StringIO() as string_io:
+        config.write(string_io, space_around_delimiters=False)
+        string_io.seek(0)
+        await game_user_preferences_path.write_text(string_io.read())
 
 
 async def start_game(
@@ -166,6 +222,12 @@ async def start_game(
         MissingLaunchArgumentError
         OSError: Error encountered starting or communicating with the process
     """
+    # This must be called before `game_config.last_played` is updated.
+    await update_game_user_preferences(
+        game_config=config_manager.get_game_config(game_id),
+        game_launcher_local_config=game_launcher_local_config,
+    )
+
     # Game was last played right now.
     config_manager.update_game_config_file(
         game_id=game_id,

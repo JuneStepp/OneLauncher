@@ -66,3 +66,18 @@ def get_game_settings_dir(
     return game_config.game_settings_directory or get_default_game_settings_dir(
         launcher_local_config=launcher_local_config
     )
+
+
+def get_game_user_preferences_path(
+    game_config: GameConfig, game_launcher_local_config: GameLauncherLocalConfig
+) -> CaseInsensitiveAbsolutePath:
+    """
+    The config file used by the game. `UserPreferences.ini`.
+    The standard game launcher also stores config here under the `Launcher` section.
+    """
+    game_settings_dir = get_game_settings_dir(
+        game_config=game_config, launcher_local_config=game_launcher_local_config
+    )
+    # The filename "UserPreferences.ini" seems to be hardcoded into the launcher
+    # and client executables as the default.
+    return game_settings_dir / "UserPreferences.ini"
