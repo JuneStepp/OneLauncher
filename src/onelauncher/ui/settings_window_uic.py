@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'settings.ui'
+## Form generated from reading UI file 'settings_window.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.10.0
+## Created by: Qt User Interface Compiler version 6.10.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -189,17 +189,6 @@ class Ui_settingsWindow(object):
 
         self.formLayout_2.setWidget(4, QFormLayout.ItemRole.FieldRole, self.standardGameLauncherButton)
 
-        self.patchClientLabel = QLabel(self.pageGame)
-        self.patchClientLabel.setObjectName(u"patchClientLabel")
-        self.patchClientLabel.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-
-        self.formLayout_2.setWidget(7, QFormLayout.ItemRole.LabelRole, self.patchClientLabel)
-
-        self.patchClientLineEdit = QLineEdit(self.pageGame)
-        self.patchClientLineEdit.setObjectName(u"patchClientLineEdit")
-
-        self.formLayout_2.setWidget(7, QFormLayout.ItemRole.FieldRole, self.patchClientLineEdit)
-
         self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.formLayout_2.setItem(5, QFormLayout.ItemRole.FieldRole, self.verticalSpacer_2)
@@ -383,7 +372,6 @@ class Ui_settingsWindow(object):
         self.highResLabel.setBuddy(self.highResCheckBox)
         self.clientLabel.setBuddy(self.clientTypeComboBox)
         self.standardLauncherLabel.setBuddy(self.standardLauncherLineEdit)
-        self.patchClientLabel.setBuddy(self.patchClientLineEdit)
         self.gameSettingsDirLabel.setBuddy(self.gameSettingsDirLineEdit)
         self.autoManageWineLabel.setBuddy(self.autoManageWineCheckBox)
         self.winePrefixLabel.setBuddy(self.winePrefixLineEdit)
@@ -459,13 +447,6 @@ class Ui_settingsWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.standardGameLauncherButton.setText(QCoreApplication.translate("settingsWindow", u"Run Standard Game Launcher", None))
 #if QT_CONFIG(tooltip)
-        self.patchClientLabel.setToolTip(QCoreApplication.translate("settingsWindow", u"Patch client DLL filename", None))
-#endif // QT_CONFIG(tooltip)
-        self.patchClientLabel.setText(QCoreApplication.translate("settingsWindow", u"Patch Client DLL", None))
-#if QT_CONFIG(tooltip)
-        self.patchClientLineEdit.setToolTip(QCoreApplication.translate("settingsWindow", u"Patch client DLL filename", None))
-#endif // QT_CONFIG(tooltip)
-#if QT_CONFIG(tooltip)
         self.gameSettingsDirLabel.setToolTip(QCoreApplication.translate("settingsWindow", u"<html><head/><body><p>The folder where user preferences, screenshots, and addons are stored. <span style=\" font-weight:700;\">Changing this does not move your existing files. It also won't take affect when using the official game launcher.</span></p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.gameSettingsDirLabel.setText(QCoreApplication.translate("settingsWindow", u"Settings Directory", None))
@@ -517,7 +498,7 @@ class Ui_settingsWindow(object):
         self.gamesManagementButton.setText(QCoreApplication.translate("settingsWindow", u"Manage Games", None))
         self.setupWizardButton.setText(QCoreApplication.translate("settingsWindow", u"Run Setup Wizard", None))
 #if QT_CONFIG(tooltip)
-        self.showAdvancedSettingsCheckbox.setToolTip(QCoreApplication.translate("settingsWindow", u"<html><head/><body><p>Enable advanced options</p></body></html>", None))
+        self.showAdvancedSettingsCheckbox.setToolTip(QCoreApplication.translate("settingsWindow", u"Enable advanced options", None))
 #endif // QT_CONFIG(tooltip)
         self.showAdvancedSettingsCheckbox.setText(QCoreApplication.translate("settingsWindow", u"Advanced Options", None))
     # retranslateUi

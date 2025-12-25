@@ -140,7 +140,6 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
         self.ui.standardLauncherLineEdit.setText(
             game_config.standard_game_launcher_filename or ""
         )
-        self.ui.patchClientLineEdit.setText(game_config.patch_client_filename)
         self.ui.standardGameLauncherButton.clicked.connect(
             lambda: self.nursery.start_soon(self.run_standard_game_launcher)
         )
@@ -289,8 +288,6 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             self.ui.standardLauncherLineEdit,
             self.ui.gameSettingsDirLabel,
             self.ui.gameSettingsDirWidget,
-            self.ui.patchClientLabel,
-            self.ui.patchClientLineEdit,
         ]
         for widget in advanced_widgets:
             widget.setVisible(is_checked)
@@ -502,7 +499,6 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
                 )
                 if self.ui.gameSettingsDirLineEdit.text()
                 else None,
-                patch_client_filename=self.ui.patchClientLineEdit.text(),
             ),
         )
 
