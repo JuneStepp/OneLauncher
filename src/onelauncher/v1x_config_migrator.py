@@ -9,6 +9,7 @@ import attrs
 import cattrs
 import keyring
 import xmlschema
+from keyring.errors import KeyringLocked, NoKeyringError
 
 from onelauncher.addons.config import AddonsConfigSection
 from onelauncher.addons.startup_script import StartupScript
@@ -338,19 +339,21 @@ def migrate_v1x_config(config_manager: ConfigManager, delete_old_config: bool) -
             game_id, accounts=account_configs
         )
         # Add account passwords to Keyring
-        service_name = f"OneLauncher{'LOTRO' if game_config.game_type == GameType.LOTRO else 'DDO'}"
-        for account_config in account_configs:
-            if password := keyring.get_password(
-                service_name=service_name,
-                username=account_config.username,
-            ):
-                config_manager.save_game_account_password(
-                    game_id=game_id, game_account=account_config, password=password
-                )
-                if delete_old_config:
-                    with suppress(keyring.errors.PasswordDeleteError):
-                        keyring.delete_password(
-                            service_name=service_name, username=account_config.username
-                        )
+        with suppress(NoKeyringError, KeyringLocked):
+            service_name = f"OneLauncher{'LOTRO' if game_config.game_type == GameType.LOTRO else 'DDO'}"
+            for account_config in account_configs:
+                if password := keyring.get_password(
+                    service_name=service_name,
+                    username=account_config.username,
+                ):
+                    config_manager.save_game_account_password(
+                        game_id=game_id, game_account=account_config, password=password
+                    )
+                    if delete_old_config:
+                        with suppress(keyring.errors.PasswordDeleteError):
+                            keyring.delete_password(
+                                service_name=service_name,
+                                username=account_config.username,
+                            )
     if delete_old_config:
         shutil.rmtree(config_dir)

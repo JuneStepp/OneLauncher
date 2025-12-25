@@ -35,9 +35,11 @@ from typing import cast
 
 import attrs
 import httpx
+import keyring
 import packaging.version
 import qtawesome
 import trio
+from keyring.errors import KeyringLocked, NoKeyringError
 from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
 from xmlschema import XMLSchemaValidationError
@@ -887,6 +889,18 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                 return
             await self.InitialSetup()
             return
+
+        try:
+            keyring.get_password(__about__.__title__, "TEST")
+        except NoKeyringError:
+            logger.warning(
+                "No system keyring found. Password and subscription saving will fail.",
+                exc_info=True,
+            )
+        except KeyringLocked:
+            logger.exception(
+                "Failed to unlock system keyring. Password and subscription saving will fail."
+            )
 
         self.loadAllSavedAccounts()
         self.ui.cboAccount.setEnabled(True)
