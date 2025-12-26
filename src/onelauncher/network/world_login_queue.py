@@ -1,5 +1,6 @@
 from typing import Any, Final, NamedTuple
 
+import attrs
 import xmlschema
 
 from ..resources import data_dir
@@ -15,8 +16,9 @@ class WorldQueueResultXMLParseError(Exception):
     """Error with content/formatting of world queue response XML"""
 
 
+@attrs.frozen(kw_only=True)
 class JoinWorldQueueFailedError(Exception):
-    """Failed to join world login queue"""
+    msg: str
 
 
 class WorldLoginQueue:
@@ -84,9 +86,23 @@ class WorldLoginQueue:
         # Check if joining queue failed. See
         # https://en.wikipedia.org/wiki/HRESULT
         if hresult >> 31 & 1:
-            raise JoinWorldQueueFailedError(
-                f"Joining world login queue failed with HRESULT: {hex(hresult)}"
-            )
+            # This HRESULT is commonly known as "Unspecified failure". For LOTRO/DDO,
+            # I've so far seen it when:
+            #   - The preview servers are closed. Looking at the world status in this
+            #     case, the only allowed billing role is "TurbineEmployee".
+            #   - Once, when the servers were down.
+            #   - After probably logging in too many times and getting the account
+            #     timed out/suspended for a little while.
+            if hresult == 0x80004005:  # noqa: PLR2004
+                raise JoinWorldQueueFailedError(
+                    msg="Failed to join world login queue. Please try again later."
+                )
+            else:
+                exception = JoinWorldQueueFailedError(
+                    msg="Non-network error joining world login queue"
+                )
+                exception.add_note(f"HRESULT: {hex(hresult)}")
+                raise exception
 
         try:
             return JoinWorldQueueResult(

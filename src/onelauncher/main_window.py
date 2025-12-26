@@ -698,13 +698,13 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                     game_launcher_config=game_launcher_config,
                 )
             except httpx.HTTPError:
-                logger.exception("Network error while joining world queue")
+                logger.exception("Network error while joining world login queue")
                 return
-            except (JoinWorldQueueFailedError, WorldQueueResultXMLParseError):
-                logger.exception(
-                    "Non-network error joining world queue. "
-                    "Please report this error if it continues"
-                )
+            except WorldQueueResultXMLParseError:
+                logger.exception("Error parsing world login queue response")
+                return
+            except JoinWorldQueueFailedError as e:
+                logger.exception(e.msg)
                 return
 
         self.run_startup_scripts()
