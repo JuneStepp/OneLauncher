@@ -1,7 +1,8 @@
 import logging
-from typing import Any, Final
+from typing import Any, ClassVar
 from urllib.parse import urlparse, urlunparse
 
+import attrs
 import httpx
 import xmlschema
 from asyncache import cached
@@ -18,48 +19,24 @@ class WorldUnavailableError(Exception):
     """World is unavailable."""
 
 
+@attrs.frozen(kw_only=True)
 class WorldStatus:
-    def __init__(self, queue_url: str, login_server: str) -> None:
-        self._queue_url = queue_url
-        self._login_server = login_server
-
-    @property
-    def queue_url(self) -> str:
-        return self._queue_url
-
-    @property
-    def login_server(self) -> str:
-        return self._login_server
+    queue_url: str
+    login_server: str
+    allowed_billing_roles: set[str] | None
+    denied_billing_roles: set[str] | None
 
 
+@attrs.frozen(kw_only=True)
 class World:
-    _WORLD_STATUS_SCHEMA: Final = xmlschema.XMLSchema(
+    name: str
+    chat_server_url: str
+    status_server_url: str
+    _gls_datacenter_service: str | None = None
+
+    _WORLD_STATUS_SCHEMA: ClassVar = xmlschema.XMLSchema(
         data_dir / "network" / "schemas" / "world_status.xsd"
     )
-
-    def __init__(
-        self,
-        name: str,
-        chat_server_url: str,
-        status_server_url: str,
-        gls_datacenter_service: str | None = None,
-    ):
-        self._name = name
-        self._chat_server_url = chat_server_url
-        self._status_server_url = status_server_url
-        self._gls_datacenter_service = gls_datacenter_service
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def chat_server_url(self) -> str:
-        return self._chat_server_url
-
-    @property
-    def status_server_url(self) -> str:
-        return self._status_server_url
 
     @cached(cache=TTLCache(maxsize=1, ttl=60))
     async def get_status(self) -> WorldStatus:
@@ -86,7 +63,21 @@ class World:
             server for server in status_dict["loginservers"].split(";") if server
         )
 
-        return WorldStatus(queue_urls[0], login_servers[0])
+        if roles_str := status_dict.get("allow_billing_role"):
+            allowed_billing_roles = set(roles_str.split(","))
+        else:
+            allowed_billing_roles = None
+        if roles_str := status_dict.get("deny_billing_role"):
+            denied_billing_roles = set(roles_str.split(","))
+        else:
+            denied_billing_roles = None
+
+        return WorldStatus(
+            queue_url=queue_urls[0],
+            login_server=login_servers[0],
+            allowed_billing_roles=allowed_billing_roles,
+            denied_billing_roles=denied_billing_roles,
+        )
 
     async def _get_status_dict(self, status_server_url: str) -> dict[str, Any]:
         """Return world status dictionary

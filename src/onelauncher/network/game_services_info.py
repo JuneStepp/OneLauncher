@@ -111,10 +111,10 @@ class GameServicesInfo:
         world_dicts = datacenter_dict["Worlds"]["World"]
         return {
             World(
-                world_dict["Name"],
-                world_dict["ChatServerUrl"],
-                world_dict["StatusServerUrl"],
-                gls_datacenter_service,
+                name=world_dict["Name"],
+                chat_server_url=world_dict["ChatServerUrl"],
+                status_server_url=world_dict["StatusServerUrl"],
+                gls_datacenter_service=gls_datacenter_service,
             )
             for world_dict in world_dicts
         }

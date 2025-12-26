@@ -689,6 +689,24 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             )
             return
 
+        # Check if the user is allowed to join this world.
+        if subscription.product_tokens is not None and (
+            (
+                selected_world_status.allowed_billing_roles is not None
+                and not selected_world_status.allowed_billing_roles.intersection(
+                    subscription.product_tokens
+                )
+            )
+            or (
+                selected_world_status.denied_billing_roles
+                and selected_world_status.denied_billing_roles.intersection(
+                    subscription.product_tokens
+                )
+            )
+        ):
+            logger.exception("You are not allowed to join this world")
+            return
+
         if selected_world_status.queue_url:
             try:
                 await self.world_queue(

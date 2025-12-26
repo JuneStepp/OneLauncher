@@ -1,4 +1,4 @@
-from typing import Any, NamedTuple, Self
+from typing import Any, Self
 
 import attrs
 import zeep.exceptions
@@ -6,11 +6,12 @@ import zeep.exceptions
 from .soap import GLSServiceError, get_soap_client
 
 
-class GameSubscription(NamedTuple):
+@attrs.frozen(kw_only=True)
+class GameSubscription:
     datacenter_game_name: str
     name: str
     description: str
-    product_tokens: list[str] | None
+    product_tokens: set[str] | None
     customer_service_tokens: list[str] | None
     expiration_date: str | None
     status: str | None
@@ -28,12 +29,13 @@ class GameSubscription(NamedTuple):
         See `login_account`.
         """
         try:
-            product_tokens: list[str] = []
             if (
                 "ProductTokens" in subscription_dict
                 and subscription_dict["ProductTokens"] is not None
             ):
-                product_tokens = subscription_dict["ProductTokens"]["string"]
+                product_tokens = set(subscription_dict["ProductTokens"]["string"])
+            else:
+                product_tokens = None
 
             customer_service_tokens: list[str] = []
             if (
@@ -45,38 +47,34 @@ class GameSubscription(NamedTuple):
                 ]
 
             return cls(
-                subscription_dict["Game"],
-                subscription_dict["Name"],
-                subscription_dict["Description"],
-                product_tokens or None,
-                customer_service_tokens or None,
-                subscription_dict["ExpirationDate"],
-                subscription_dict["Status"],
-                subscription_dict["NextBillingDate"],
-                subscription_dict["PendingCancelDate"],
-                subscription_dict["AutoRenew"],
-                subscription_dict["BillingSystemTime"],
-                subscription_dict["AdditionalInfo"],
+                datacenter_game_name=subscription_dict["Game"],
+                name=subscription_dict["Name"],
+                description=subscription_dict["Description"],
+                product_tokens=product_tokens,
+                customer_service_tokens=customer_service_tokens or None,
+                expiration_date=subscription_dict["ExpirationDate"],
+                status=subscription_dict["Status"],
+                next_billing_date=subscription_dict["NextBillingDate"],
+                pending_cancel_date=subscription_dict["PendingCancelDate"],
+                auto_renew=subscription_dict["AutoRenew"],
+                billing_system_time=subscription_dict["BillingSystemTime"],
+                additional_info=subscription_dict["AdditionalInfo"],
             )
         except KeyError as e:
             raise GLSServiceError("LoginAccount response missing required value") from e
 
 
+@attrs.frozen(kw_only=True)
 class AccountLoginResponse:
-    def __init__(
-        self, subscriptions: list[GameSubscription], session_ticket: str
-    ) -> None:
-        self._subscriptions = subscriptions
-        self._session_ticket = session_ticket
+    subscriptions: list[GameSubscription]
+    """
+    All subscriptions in the account. Not all of these are used
+    for logging into the game. There can also be subscriptions for
+    multiple game types on a single account.
 
-    @property
-    def subscriptions(self) -> list[GameSubscription]:
-        """All subscriptions in the account. Not all of these are used
-        for logging into the game. There can also be subscriptions for
-        multiple game types on a single account.
-
-        Using `get_game_subscriptions` is recommended for most use cases."""
-        return self._subscriptions
+    Using `get_game_subscriptions` is recommended for most use cases.
+    """
+    session_ticket: str
 
     def get_game_subscriptions(
         self, datacenter_game_name: str
@@ -86,10 +84,6 @@ class AccountLoginResponse:
             for subscription in self.subscriptions
             if subscription.datacenter_game_name == datacenter_game_name
         ]
-
-    @property
-    def session_ticket(self) -> str:
-        return self._session_ticket
 
     @classmethod
     def from_soap_response_dict(
@@ -104,7 +98,10 @@ class AccountLoginResponse:
                 for sub_dict in login_response_dict["Subscriptions"]["GameSubscription"]
             ]
 
-            return cls(subscriptions, login_response_dict["Ticket"])
+            return cls(
+                subscriptions=subscriptions,
+                session_ticket=login_response_dict["Ticket"],
+            )
         except KeyError as e:
             raise GLSServiceError("LoginAccount response missing required value") from e
 
