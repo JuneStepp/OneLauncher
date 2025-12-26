@@ -27,7 +27,6 @@
 ###########################################################################
 import logging
 import socket
-import ssl
 from functools import cache
 from pathlib import Path
 from typing import Final, assert_never
@@ -78,10 +77,6 @@ DDO_PREVIEW_NEWS_URL_TEMPLATE: Final = "https://forums.ddo.com/index.php?forums/
 LOTRO_PREVIEW_LATEST_INFO_URL: Final = "https://forums.lotro.com/index.php?forums/bullroarer-official-discussions-and-information.37/&order=post_date&direction=desc"
 DDO_PREVIEW_LATEST_INFO_URL: Final = "https://forums.ddo.com/index.php?forums/lamannia-news-and-official-discussions.20/&order=post_date&direction=desc"
 
-
-# There may be specific better ciphers that can be used instead of just
-# lowering the security level. I'm not knowledgable on this topic though.
-OFFICIAL_CLIENT_CIPHERS: Final = "DEFAULT@SECLEVEL=1"
 
 CONNECTION_RETRIES: Final[int] = 3
 TIMEOUT: Final = httpx.Timeout(timeout=6.0, read=10.0)
@@ -148,25 +143,12 @@ async def _httpx_request_hook(request: httpx.Request) -> None:
     _httpx_request_hook_sync(request)
 
 
-def get_official_servers_ssl_context() -> ssl.SSLContext:
-    """
-    Return SSLContext configured for the lower security of the official servers
-    """
-    ssl_context = httpx.create_ssl_context()
-    ssl_context.verify_mode = ssl.CERT_REQUIRED
-    ssl_context.set_ciphers(OFFICIAL_CLIENT_CIPHERS)
-    return ssl_context
-
-
 @cache
 def get_official_servers_httpx_client() -> httpx.AsyncClient:
     """Return httpx client configured to work with official game servers"""
-    transport = httpx.AsyncHTTPTransport(
-        verify=get_official_servers_ssl_context(), retries=CONNECTION_RETRIES
-    )
+    transport = httpx.AsyncHTTPTransport(retries=CONNECTION_RETRIES)
     return httpx.AsyncClient(
         timeout=TIMEOUT,
-        verify=get_official_servers_ssl_context(),
         event_hooks={"request": [_httpx_request_hook]},
         transport=transport,
     )
@@ -175,12 +157,9 @@ def get_official_servers_httpx_client() -> httpx.AsyncClient:
 @cache
 def get_official_servers_httpx_client_sync() -> httpx.Client:
     """Return httpx client configured to work with official game servers"""
-    transport = httpx.HTTPTransport(
-        verify=get_official_servers_ssl_context(), retries=CONNECTION_RETRIES
-    )
+    transport = httpx.HTTPTransport(retries=CONNECTION_RETRIES)
     return httpx.Client(
         timeout=TIMEOUT,
-        verify=get_official_servers_ssl_context(),
         event_hooks={"request": [_httpx_request_hook_sync]},
         transport=transport,
     )
