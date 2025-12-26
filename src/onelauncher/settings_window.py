@@ -35,6 +35,7 @@ from pathlib import Path
 from types import MappingProxyType
 
 import attrs
+import qtawesome
 import trio
 from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
@@ -79,10 +80,12 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
         self.titleBar.hide()
         self.config_manager = config_manager
         self.game_id = game_id
-        self.ui = Ui_settingsWindow()
-        self.ui.setupUi(self)
 
     def setup_ui(self) -> None:
+        self.ui = Ui_settingsWindow()
+        self.ui.setupUi(self)
+        color_scheme_changed = get_qapp().styleHints().colorSchemeChanged
+
         self.tab_names = list(TabName)
         if os.name == "nt":
             self.tab_names.remove(TabName.WINE)
@@ -188,7 +191,12 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
                 partial(self.start_setup_wizard, games_managing=True)
             )
         )
-        self.ui.gameDirButton.clicked.connect(self.choose_game_dir)
+        get_browse_dir_icon = partial(qtawesome.icon, "mdi6.folder-open-outline")
+        self.ui.browseForGameDirButton.setIcon(get_browse_dir_icon())
+        color_scheme_changed.connect(
+            lambda: self.ui.browseForGameDirButton.setIcon(get_browse_dir_icon())
+        )
+        self.ui.browseForGameDirButton.clicked.connect(self.browse_for_game_install_dir)
         self.ui.showAdvancedSettingsCheckbox.clicked.connect(
             self.toggle_advanced_settings
         )
@@ -249,7 +257,16 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
         self.ui.gameNewsfeedLineEdit.setText(game_config.newsfeed or "")
 
     async def setup_game_settings_dir_option(self) -> None:
-        self.ui.gameSettingsDirButton.clicked.connect(self.choose_game_settings_dir)
+        get_browse_dir_icon = partial(qtawesome.icon, "mdi6.folder-open-outline")
+        self.ui.browseForGameSettingsDirButton.setIcon(get_browse_dir_icon())
+        get_qapp().styleHints().colorSchemeChanged.connect(
+            lambda: self.ui.browseForGameSettingsDirButton.setIcon(
+                get_browse_dir_icon()
+            )
+        )
+        self.ui.browseForGameSettingsDirButton.clicked.connect(
+            self.browse_for_game_settings_dir
+        )
 
         game_config = self.config_manager.read_game_config_file(self.game_id)
         self.ui.gameSettingsDirLineEdit.setText(
@@ -379,7 +396,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
         folder = CaseInsensitiveAbsolutePath(filename)
         return folder
 
-    def choose_game_dir(self) -> None:
+    def browse_for_game_install_dir(self) -> None:
         gameDirLineEdit = self.ui.gameDirLineEdit.text()
 
         if gameDirLineEdit == "":
@@ -406,7 +423,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
                     self,
                 )
 
-    def choose_game_settings_dir(self) -> None:
+    def browse_for_game_settings_dir(self) -> None:
         folder = self.browse_for_directory(
             start_dir=platform_dirs.user_documents_path,
             caption="Game Settings Directory",

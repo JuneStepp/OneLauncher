@@ -139,12 +139,14 @@
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="gameDirButton">
+          <widget class="NoOddSizesQToolButton" name="browseForGameDirButton">
            <property name="toolTip">
             <string>Select game install directory from the file browser</string>
            </property>
-           <property name="text">
-            <string>...</string>
+           <property name="qssClass" stdset="0">
+            <stringlist>
+             <string>icon-base</string>
+            </stringlist>
            </property>
           </widget>
          </item>
@@ -361,12 +363,14 @@
            </widget>
           </item>
           <item>
-           <widget class="QToolButton" name="gameSettingsDirButton">
+           <widget class="NoOddSizesQToolButton" name="browseForGameSettingsDirButton">
             <property name="toolTip">
-             <string>Select settings folder from filesystem</string>
+             <string>Select game settings directory from the file browser</string>
             </property>
-            <property name="text">
-             <string>...</string>
+            <property name="qssClass" stdset="0">
+             <stringlist>
+              <string>icon-base</string>
+             </stringlist>
             </property>
            </widget>
           </item>
@@ -721,6 +725,11 @@
   <customwidget>
    <class>FixedWordWrapQLabel</class>
    <extends>QLabel</extends>
+   <header>.custom_widgets</header>
+  </customwidget>
+  <customwidget>
+   <class>NoOddSizesQToolButton</class>
+   <extends>QToolButton</extends>
    <header>.custom_widgets</header>
   </customwidget>
  </customwidgets>

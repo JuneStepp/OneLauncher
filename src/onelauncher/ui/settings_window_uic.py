@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (QAbstractButton, QApplication, QCheckBox, QComboB
     QStackedWidget, QTabBar, QToolButton, QVBoxLayout,
     QWidget)
 
-from .custom_widgets import (FixedWordWrapQLabel, FramelessQDialogWithStylePreview)
+from .custom_widgets import (FixedWordWrapQLabel, FramelessQDialogWithStylePreview, NoOddSizesQToolButton)
 from .qtdesigner.custom_widgets import QDialogWithStylePreview
 
 class Ui_settingsWindow(object):
@@ -104,10 +104,10 @@ class Ui_settingsWindow(object):
 
         self.gameDirLayout.addWidget(self.gameDirLineEdit)
 
-        self.gameDirButton = QToolButton(self.pageGameInfo)
-        self.gameDirButton.setObjectName(u"gameDirButton")
+        self.browseForGameDirButton = NoOddSizesQToolButton(self.pageGameInfo)
+        self.browseForGameDirButton.setObjectName(u"browseForGameDirButton")
 
-        self.gameDirLayout.addWidget(self.gameDirButton)
+        self.gameDirLayout.addWidget(self.browseForGameDirButton)
 
 
         self.formLayout.setLayout(4, QFormLayout.ItemRole.FieldRole, self.gameDirLayout)
@@ -208,10 +208,10 @@ class Ui_settingsWindow(object):
 
         self.gameSettingsDirLayout.addWidget(self.gameSettingsDirLineEdit)
 
-        self.gameSettingsDirButton = QToolButton(self.gameSettingsDirWidget)
-        self.gameSettingsDirButton.setObjectName(u"gameSettingsDirButton")
+        self.browseForGameSettingsDirButton = NoOddSizesQToolButton(self.gameSettingsDirWidget)
+        self.browseForGameSettingsDirButton.setObjectName(u"browseForGameSettingsDirButton")
 
-        self.gameSettingsDirLayout.addWidget(self.gameSettingsDirButton)
+        self.gameSettingsDirLayout.addWidget(self.browseForGameSettingsDirButton)
 
 
         self.formLayout_2.setWidget(6, QFormLayout.ItemRole.FieldRole, self.gameSettingsDirWidget)
@@ -409,9 +409,10 @@ class Ui_settingsWindow(object):
         self.gameDirLineEdit.setToolTip(QCoreApplication.translate("settingsWindow", u"Game install directory. There should be a file called patchclient.dll here", None))
 #endif // QT_CONFIG(tooltip)
 #if QT_CONFIG(tooltip)
-        self.gameDirButton.setToolTip(QCoreApplication.translate("settingsWindow", u"Select game install directory from the file browser", None))
+        self.browseForGameDirButton.setToolTip(QCoreApplication.translate("settingsWindow", u"Select game install directory from the file browser", None))
 #endif // QT_CONFIG(tooltip)
-        self.gameDirButton.setText(QCoreApplication.translate("settingsWindow", u"...", None))
+        self.browseForGameDirButton.setProperty(u"qssClass", [
+            QCoreApplication.translate("settingsWindow", u"icon-base", None)])
 #if QT_CONFIG(tooltip)
         self.browseGameConfigDirButton.setToolTip(QCoreApplication.translate("settingsWindow", u"Browse OneLauncher config/data directory for this game", None))
 #endif // QT_CONFIG(tooltip)
@@ -454,9 +455,10 @@ class Ui_settingsWindow(object):
         self.gameSettingsDirLineEdit.setToolTip(QCoreApplication.translate("settingsWindow", u"<html><head/><body><p>The folder where user preferences, screenshots, and addons are stored. <span style=\" font-weight:700;\">Changing this does not move your existing files. It also won't take affect when using the official game launcher.</span></p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
 #if QT_CONFIG(tooltip)
-        self.gameSettingsDirButton.setToolTip(QCoreApplication.translate("settingsWindow", u"Select settings folder from filesystem", None))
+        self.browseForGameSettingsDirButton.setToolTip(QCoreApplication.translate("settingsWindow", u"Select game settings directory from the file browser", None))
 #endif // QT_CONFIG(tooltip)
-        self.gameSettingsDirButton.setText(QCoreApplication.translate("settingsWindow", u"...", None))
+        self.browseForGameSettingsDirButton.setProperty(u"qssClass", [
+            QCoreApplication.translate("settingsWindow", u"icon-base", None)])
         self.autoManageWineLabel.setText(QCoreApplication.translate("settingsWindow", u"Auto Manage Wine", None))
 #if QT_CONFIG(tooltip)
         self.winePrefixLabel.setToolTip(QCoreApplication.translate("settingsWindow", u"Path to WINE prefix", None))
