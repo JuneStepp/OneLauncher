@@ -579,8 +579,8 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                 )
                 or "",
             )
-        except login_account.WrongUsernameOrPasswordError:
-            logger.exception("Username or password is incorrect")
+        except login_account.WrongUsernameOrPasswordError as e:
+            logger.exception(e.msg)
             return None
         except httpx.HTTPError:
             logger.exception("Network error while authenticating account")

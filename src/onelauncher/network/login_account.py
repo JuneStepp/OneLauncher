@@ -1,5 +1,6 @@
 from typing import Any, NamedTuple, Self
 
+import attrs
 import zeep.exceptions
 
 from .soap import GLSServiceError, get_soap_client
@@ -108,8 +109,11 @@ class AccountLoginResponse:
             raise GLSServiceError("LoginAccount response missing required value") from e
 
 
+@attrs.frozen(kw_only=True)
 class WrongUsernameOrPasswordError(Exception):
     """Either the username does not exist, or the password was incorrect."""
+
+    msg: str
 
 
 async def login_account(
@@ -139,8 +143,14 @@ async def login_account(
             await client.service.LoginAccount(username, password, "")
         )
     except zeep.exceptions.Fault as e:
-        if e.message == "No Subscriber Formal Entity was found.":
-            raise WrongUsernameOrPasswordError("") from e
+        if "no subscriber formal entity was found" in e.message.lower():
+            raise WrongUsernameOrPasswordError(
+                msg="Username or password is incorrect"
+            ) from e
+        elif "user name is too short" in e.message.lower():
+            raise WrongUsernameOrPasswordError(msg="Username is too short") from e
+        elif "password is too short" in e.message.lower():
+            raise WrongUsernameOrPasswordError(msg="Password is too short") from e
         else:
             raise GLSServiceError("") from e
     except zeep.exceptions.Error as e:
