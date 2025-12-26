@@ -57,7 +57,9 @@ DDO_GLS_DOMAINS: Final = (
     DDO_GLS_PREVIEW_DOMAIN,
 )
 
-# Forums where RSS feeds used as newsfeeds are
+LOTRO_DOMAIN = "www.lotro.com"
+DDO_DOMAIN = "www.ddo.com"
+# Forums where some RSS feeds used as newsfeeds are
 LOTRO_FORMS_DOMAINS: Final = (
     "forums.lotro.com",
     "forums-old.lotro.com",
@@ -72,6 +74,9 @@ DDO_PREVIEW_BROKEN_NEWS_URL_TEMPLATE: Final = (
     "http://www.ddo.com/index.php?option=com_bca-rss-syndicator&feed_id=3"
 )
 DDO_PREVIEW_NEWS_URL_TEMPLATE: Final = "https://forums.ddo.com/index.php?forums/lamannia-news-and-official-discussions.20/index.rss"
+# Where users should look to get the current status of the preview versions of each game.
+LOTRO_PREVIEW_LATEST_INFO_URL: Final = "https://forums.lotro.com/index.php?forums/bullroarer-official-discussions-and-information.37/&order=post_date&direction=desc"
+DDO_PREVIEW_LATEST_INFO_URL: Final = "https://forums.ddo.com/index.php?forums/lamannia-news-and-official-discussions.20/&order=post_date&direction=desc"
 
 
 # There may be specific better ciphers that can be used instead of just
@@ -90,7 +95,7 @@ def is_official_game_server(url: str) -> bool:
         + LOTRO_FORMS_DOMAINS
         + DDO_GLS_DOMAINS
         + DDO_FORMS_DOMAINS
-        + (LOTRO_GLS_INVALID_SSL_DOMAIN, DDO_GLS_PREVIEW_IP)
+        + (LOTRO_DOMAIN, DDO_DOMAIN, LOTRO_GLS_INVALID_SSL_DOMAIN, DDO_GLS_PREVIEW_IP)
     )
 
 

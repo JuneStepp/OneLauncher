@@ -65,7 +65,7 @@ from .network.game_launcher_config import (
     GameLauncherConfig,
     GameLauncherConfigParseError,
 )
-from .network.game_newsfeed import newsfeed_url_to_html
+from .network.game_newsfeed import get_game_newsfeed_html
 from .network.game_services_info import GameServicesInfo
 from .network.httpx_client import get_httpx_client
 from .network.soap import GLSServiceError
@@ -990,13 +990,14 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
 
     async def load_newsfeed(self, game_launcher_config: GameLauncherConfig) -> None:
         ui_locale = self.config_manager.get_ui_locale(self.game_id)
-        newsfeed_url = self.config_manager.get_game_config(
-            self.game_id
-        ).newsfeed or game_launcher_config.get_newfeed_url(ui_locale)
+        game_config = self.config_manager.get_game_config(self.game_id)
+        newsfeed_url = game_config.newsfeed or game_launcher_config.get_newfeed_url(
+            ui_locale
+        )
         try:
             self.ui.txtFeed.setHtml(
-                await newsfeed_url_to_html(
-                    url=newsfeed_url, babel_locale=ui_locale.babel_locale
+                await get_game_newsfeed_html(
+                    url=newsfeed_url, locale=ui_locale, game_config=game_config
                 )
             )
         except httpx.HTTPError:
