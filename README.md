@@ -21,8 +21,19 @@ An enhanced launcher for both [LOTRO](https://www.lotro.com/) and [DDO](https://
 The easiest way to get OneLauncher is with a [compiled release](https://Github.com/JuneStepp/OneLauncher/releases/latest). It can also be run with Python or Nix.
 
 - [Latest Release](https://Github.com/JuneStepp/OneLauncher/releases/latest)
+- [macOS Instructions](#macos)
 - [System Requirements](#system-requirements)
-- [Running from source code](CONTRIBUTING.md#development-install)
+- [Running From Source Code](CONTRIBUTING.md#development-install)
+
+### macOS
+
+- Download the latest release:
+    - [arm64 (Apple Silicon)](http://github.com/JuneStepp/OneLauncher/releases/latest/download/OneLauncher-macOS-ARM64.zip)
+    - [x86_64 (Intel)](http://github.com/JuneStepp/OneLauncher/releases/latest/download/OneLauncher-macOS-x86_64.zip)
+- Double click the `OneLauncher-macOS-*.zip` file to extract it.
+- Drag the extracted `OneLauncher` to your Applications folder if you'd like.
+- You can double click `OneLauncher` to open it.
+- If you see a message like "OneLauncher can't be opened because it is from an unidentified developer", you'll have to go to the Privacy and Security section of your System Settings where there will be an option to allow opening OneLauncher.
 
 ### System Requirements
 
