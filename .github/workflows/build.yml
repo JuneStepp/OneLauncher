@@ -165,7 +165,7 @@ jobs:
           fi
       - name: Make app zip on MacOS
         if: runner.os == 'macOS'
-        run: ditto -c -k --keepParent build/out/onelauncher.app build/out/onelauncher.zip
+        run: ditto -c -k --sequesterRsrc --keepParent build/out/onelauncher.app build/out/onelauncher.zip
       - name: Rename artifact
         run: mv build/out/${{ matrix.artifact_path_name }} build/out/${{ matrix.artifact_rename }}
       - name: Upload build artifact
