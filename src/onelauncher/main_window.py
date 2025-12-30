@@ -935,13 +935,6 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             return
 
         self.resetFocus()
-        # Without this, it will take a sec for the game banner geometry to adjust to the
-        # image size. That behavior didn't look nice. The events are processed here,
-        # because starting the Trio stuff is where the slowdown is.
-        get_qapp().processEvents(
-            QtCore.QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents
-            | QtCore.QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers
-        )
         async with trio.open_nursery() as self.network_setup_nursery:
             self.network_setup_nursery.start_soon(self.game_initial_network_setup)
 
