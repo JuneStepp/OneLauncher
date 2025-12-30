@@ -192,7 +192,7 @@ async def _handle_akamai_download_file(
         # Using the `async with client.stream(...)` currently doesn't work with
         # Nuitka. See <https://github.com/Nuitka/Nuitka/issues/3697>.
         request = get_httpx_client(url).build_request(
-            "GET", url, timeout=httpx.Timeout(6, pool=None)
+            "GET", url, timeout=httpx.Timeout(20, pool=None)
         )
         response = await get_httpx_client(url).send(request, stream=True)
         try:

@@ -80,6 +80,7 @@ DDO_PREVIEW_LATEST_INFO_URL: Final = "https://forums.ddo.com/index.php?forums/la
 
 CONNECTION_RETRIES: Final[int] = 3
 TIMEOUT: Final = httpx.Timeout(timeout=6.0, read=10.0)
+LIMITS: Final = httpx.Limits(max_connections=6)
 
 
 def is_official_game_server(url: str) -> bool:
@@ -149,6 +150,7 @@ def get_official_servers_httpx_client() -> httpx.AsyncClient:
     transport = httpx.AsyncHTTPTransport(retries=CONNECTION_RETRIES)
     return httpx.AsyncClient(
         timeout=TIMEOUT,
+        limits=LIMITS,
         event_hooks={"request": [_httpx_request_hook]},
         transport=transport,
     )
@@ -160,6 +162,7 @@ def get_official_servers_httpx_client_sync() -> httpx.Client:
     transport = httpx.HTTPTransport(retries=CONNECTION_RETRIES)
     return httpx.Client(
         timeout=TIMEOUT,
+        limits=LIMITS,
         event_hooks={"request": [_httpx_request_hook_sync]},
         transport=transport,
     )

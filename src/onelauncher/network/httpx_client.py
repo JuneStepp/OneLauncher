@@ -10,17 +10,18 @@ from ..official_clients import (
 )
 
 CONNECTION_RETRIES: Final[int] = 3
+LIMITS: Final = httpx.Limits(max_connections=12)
 
 
 @cache
 def _get_default_httpx_client() -> httpx.AsyncClient:
     transport = httpx.AsyncHTTPTransport(retries=CONNECTION_RETRIES)
-    return httpx.AsyncClient(transport=transport)
+    return httpx.AsyncClient(limits=LIMITS, transport=transport)
 
 
 @cache
 def _get_default_httpx_client_sync() -> httpx.Client:
-    transport = httpx.HTTPTransport(retries=CONNECTION_RETRIES)
+    transport = httpx.HTTPTransport(retries=CONNECTION_RETRIES, limits=LIMITS)
     return httpx.Client(transport=transport)
 
 
