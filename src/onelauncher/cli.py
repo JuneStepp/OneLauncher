@@ -60,7 +60,7 @@ class _GameParamGameType(Enum):
 _ConverterTypeVar = TypeVar("_ConverterTypeVar", bound=type)
 
 
-@Parameter(n_tokens=1)
+@Parameter(n_tokens=1, accepts_keys=False)
 def _cattrs_converter(
     type_: type[_ConverterTypeVar], tokens: Sequence[Token]
 ) -> _ConverterTypeVar:
