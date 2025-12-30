@@ -208,6 +208,7 @@ async def update_game_user_preferences(
 
 
 async def start_game(
+    *,
     config_manager: ConfigManager,
     game_id: GameConfigID,
     game_launcher_config: GameLauncherConfig,
@@ -216,6 +217,7 @@ async def start_game(
     login_server: str,
     account_number: str,
     ticket: str,
+    task_status: trio.TaskStatus = trio.TASK_STATUS_IGNORED,
 ) -> int:
     """
     Raises:
@@ -291,4 +293,5 @@ async def start_game(
         nursery.start_soon(
             partial(for_each_in_stream, process.stderr, process_logging_adapter.warning)
         )
+        task_status.started(process)  # type: ignore[call-overload]
         return await process.wait()

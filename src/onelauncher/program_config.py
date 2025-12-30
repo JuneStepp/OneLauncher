@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Literal, TypeAlias
 
 import attrs
 from packaging.version import Version
@@ -25,6 +26,9 @@ class GamesSortingMode(Enum):
     ALPHABETICAL = "alphabetical"
 
 
+OnGameStartAction: TypeAlias = Literal["stay", "close"]
+
+
 @attrs.frozen
 class ProgramConfig(Config):
     default_locale: OneLauncherLocale = config_field(
@@ -36,6 +40,9 @@ class ProgramConfig(Config):
     )
     games_sorting_mode: GamesSortingMode = config_field(
         default=GamesSortingMode.PRIORITY, help="Order to show games in UI"
+    )
+    on_game_start: OnGameStartAction = config_field(
+        default="stay", help=f"What {__title__} should do when a game is started"
     )
     log_verbosity: LogLevel | None = config_field(
         default=None,

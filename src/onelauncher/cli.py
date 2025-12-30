@@ -41,7 +41,7 @@ from .config_manager import (
 from .game_account_config import GameAccountConfig, GameAccountsConfig
 from .game_config import ClientType, GameConfig, GameConfigID, GameType
 from .logs import LogLevel, setup_application_logging
-from .program_config import GamesSortingMode, ProgramConfig
+from .program_config import GamesSortingMode, OnGameStartAction, ProgramConfig
 from .resources import OneLauncherLocale
 from .ui import qtdesigner
 from .utilities import CaseInsensitiveAbsolutePath
@@ -80,6 +80,7 @@ def _merge_program_config(
     default_locale: OneLauncherLocale | None,
     always_use_default_locale_for_ui: bool | None,
     games_sorting_mode: GamesSortingMode | None,
+    on_game_start: OnGameStartAction | None,
     log_verbosity: LogLevel | None,
 ) -> ProgramConfig:
     """
@@ -88,13 +89,14 @@ def _merge_program_config(
     """
     return attrs.evolve(
         program_config,
-        default_locale=(default_locale or program_config.default_locale),
+        default_locale=default_locale or program_config.default_locale,
         always_use_default_locale_for_ui=(
             always_use_default_locale_for_ui
             if always_use_default_locale_for_ui is not None
             else program_config.always_use_default_locale_for_ui
         ),
-        games_sorting_mode=(games_sorting_mode or program_config.games_sorting_mode),
+        games_sorting_mode=games_sorting_mode or program_config.games_sorting_mode,
+        on_game_start=on_game_start or program_config.on_game_start,
         log_verbosity=(
             log_verbosity if log_verbosity is not None else program_config.log_verbosity
         ),
@@ -369,6 +371,10 @@ def get_app() -> cyclopts.App:
             GamesSortingMode | None,
             Parameter(group=ProgramGroup, help=prog_help("games_sorting_mode")),
         ] = None,
+        on_game_start: Annotated[
+            OnGameStartAction | None,
+            Parameter(group=ProgramGroup, help=prog_help("on_game_start")),
+        ] = None,
         log_verbosity: Annotated[
             LogLevel | None,
             Parameter(group=ProgramGroup, help=prog_help("log_verbosity")),
@@ -389,6 +395,7 @@ def get_app() -> cyclopts.App:
             default_locale=default_locale,
             always_use_default_locale_for_ui=always_use_default_locale_for_ui,
             games_sorting_mode=games_sorting_mode,
+            on_game_start=on_game_start,
             log_verbosity=log_verbosity,
         )
         nonlocal _game_id

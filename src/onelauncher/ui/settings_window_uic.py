@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'settings_window.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.10.1
+## Created by: Qt User Interface Compiler version 6.10.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -317,23 +317,37 @@ class Ui_settingsWindow(object):
 
         self.formLayout_4.setWidget(2, QFormLayout.ItemRole.FieldRole, self.gamesSortingModeComboBox)
 
+        self.closeAfterStartingGameLabel = FixedWordWrapQLabel(self.pageProgram)
+        self.closeAfterStartingGameLabel.setObjectName(u"closeAfterStartingGameLabel")
+        self.closeAfterStartingGameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.closeAfterStartingGameLabel.setWordWrap(True)
+
+        self.formLayout_4.setWidget(4, QFormLayout.ItemRole.LabelRole, self.closeAfterStartingGameLabel)
+
+        self.closeAfterStartingGameCheckBox = QCheckBox(self.pageProgram)
+        self.closeAfterStartingGameCheckBox.setObjectName(u"closeAfterStartingGameCheckBox")
+        sizePolicy1.setHeightForWidth(self.closeAfterStartingGameCheckBox.sizePolicy().hasHeightForWidth())
+        self.closeAfterStartingGameCheckBox.setSizePolicy(sizePolicy1)
+
+        self.formLayout_4.setWidget(4, QFormLayout.ItemRole.FieldRole, self.closeAfterStartingGameCheckBox)
+
         self.gamesManagementButton = QPushButton(self.pageProgram)
         self.gamesManagementButton.setObjectName(u"gamesManagementButton")
         sizePolicy.setHeightForWidth(self.gamesManagementButton.sizePolicy().hasHeightForWidth())
         self.gamesManagementButton.setSizePolicy(sizePolicy)
 
-        self.formLayout_4.setWidget(3, QFormLayout.ItemRole.FieldRole, self.gamesManagementButton)
+        self.formLayout_4.setWidget(5, QFormLayout.ItemRole.FieldRole, self.gamesManagementButton)
 
         self.setupWizardButton = QPushButton(self.pageProgram)
         self.setupWizardButton.setObjectName(u"setupWizardButton")
         sizePolicy.setHeightForWidth(self.setupWizardButton.sizePolicy().hasHeightForWidth())
         self.setupWizardButton.setSizePolicy(sizePolicy)
 
-        self.formLayout_4.setWidget(4, QFormLayout.ItemRole.FieldRole, self.setupWizardButton)
+        self.formLayout_4.setWidget(6, QFormLayout.ItemRole.FieldRole, self.setupWizardButton)
 
         self.verticalSpacer_4 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
-        self.formLayout_4.setItem(5, QFormLayout.ItemRole.FieldRole, self.verticalSpacer_4)
+        self.formLayout_4.setItem(7, QFormLayout.ItemRole.FieldRole, self.verticalSpacer_4)
 
         self.stackedWidget.addWidget(self.pageProgram)
 
@@ -497,6 +511,13 @@ class Ui_settingsWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.defaultLanguageForUICheckBox.setText("")
         self.gamesSortingModeLabel.setText(QCoreApplication.translate("settingsWindow", u"Games Sorting Mode", None))
+#if QT_CONFIG(tooltip)
+        self.closeAfterStartingGameLabel.setToolTip(QCoreApplication.translate("settingsWindow", u"Close OneLauncher when a game is started", None))
+#endif // QT_CONFIG(tooltip)
+        self.closeAfterStartingGameLabel.setText(QCoreApplication.translate("settingsWindow", u"Close After Starting Game", None))
+#if QT_CONFIG(tooltip)
+        self.closeAfterStartingGameCheckBox.setToolTip(QCoreApplication.translate("settingsWindow", u"Close OneLauncher when a game is started", None))
+#endif // QT_CONFIG(tooltip)
         self.gamesManagementButton.setText(QCoreApplication.translate("settingsWindow", u"Manage Games", None))
         self.setupWizardButton.setText(QCoreApplication.translate("settingsWindow", u"Run Setup Wizard", None))
 #if QT_CONFIG(tooltip)

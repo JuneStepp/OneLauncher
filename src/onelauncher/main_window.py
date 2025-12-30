@@ -44,6 +44,8 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from typing_extensions import override
 from xmlschema import XMLSchemaValidationError
 
+from onelauncher.async_utils import app_cancel_scope
+
 from . import __about__, addon_manager_window
 from .addons.startup_script import run_startup_script
 from .config_manager import ConfigManager, NoValidGamesError
@@ -415,7 +417,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
 
     async def start_game_button_clicked(self) -> None:
         if self.game_cancel_scope:
-            logger.info("Game aborted")
+            logger.info("Aborting game")
             self.game_cancel_scope.cancel()
             return
 
@@ -732,28 +734,54 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         self.ui.btnSwitchGame.setEnabled(False)
         self.ui.actionPatch.setEnabled(False)
         self.ui.btnOptions.setEnabled(False)
-        with trio.CancelScope() as self.game_cancel_scope:
-            try:
-                return_code = await start_game(
-                    config_manager=self.config_manager,
-                    game_id=self.game_id,
-                    game_launcher_config=game_launcher_config,
-                    game_launcher_local_config=self.game_launcher_local_config,
-                    world=selected_world,
-                    login_server=selected_world_status.login_server,
-                    account_number=account_number,
-                    ticket=login_response.session_ticket,
+        program_config = self.config_manager.get_program_config()
+        windows_visible_before_start = tuple(
+            widget for widget in get_qapp().topLevelWidgets() if widget.isVisible()
+        )
+        try:
+            async with trio.open_nursery() as nursery:
+                self.game_cancel_scope = nursery.cancel_scope
+
+                process: trio.Process = await nursery.start(
+                    partial(
+                        start_game,
+                        config_manager=self.config_manager,
+                        game_id=self.game_id,
+                        game_launcher_config=game_launcher_config,
+                        game_launcher_local_config=self.game_launcher_local_config,
+                        world=selected_world,
+                        login_server=selected_world_status.login_server,
+                        account_number=account_number,
+                        ticket=login_response.session_ticket,
+                    )
                 )
-                if return_code != 0:
+                if (
+                    program_config.on_game_start == "close"
+                    and process.returncode is None
+                ):
+                    # We hide and close after the game finishes rather than literally
+                    # closing when the game starts.
+                    for widget in windows_visible_before_start:
+                        widget.hide()
+
+                if await process.wait() != 0:
                     logger.error("Game closed unexpectedly")
                 else:
                     logger.info("Game finished")
-            except* MissingLaunchArgumentError:
-                logger.exception(
-                    "Game launch argument missing. Please report this error if using a supported server."
-                )
-            except* OSError:
-                logger.exception("Failed to start game")
+                    if program_config.on_game_start == "close":
+                        app_cancel_scope.cancel()
+                        await trio.lowlevel.checkpoint_if_cancelled()
+        except* MissingLaunchArgumentError:
+            logger.exception(
+                "Game launch argument missing. Please report this error if using a supported server."
+            )
+        except* OSError:
+            logger.exception("Failed to start game")
+
+        # Show windows again, because there was an error.
+        if program_config.on_game_start == "close":
+            for widget in windows_visible_before_start:
+                widget.show()
 
         self.game_cancel_scope = None
         self.reset_start_game_button()

@@ -62,7 +62,7 @@ Environment variables can also be used. For example, --config-directory can be
 set with ONELAUNCHER_CONFIG_DIRECTORY.
 
 ╭─ Commands ───────────────────────────────────────────────────────────────────╮
-│ --help -h             Display this message and exit.                         │
+│ --help (-h)           Display this message and exit.                         │
 │ --install-completion  Install shell completion for this application.         │
 │ --version             Display application version.                           │
 ╰──────────────────────────────────────────────────────────────────────────────╯
@@ -82,6 +82,8 @@ set with ONELAUNCHER_CONFIG_DIRECTORY.
 │   ault-locale-for-ui                                                         │
 │ --games-sorting-mode          Order to show games in UI [choices: priority,  │
 │                               last-played, alphabetical]                     │
+│ --on-game-start               What OneLauncher should do when a game is      │
+│                               started [choices: stay, close]                 │
 │ --log-verbosity               Minimum log severity that will be shown in the │
 │                               console and log file [choices: debug, info,    │
 │                               warning, error, critical]                      │
@@ -101,7 +103,7 @@ set with ONELAUNCHER_CONFIG_DIRECTORY.
 │ --game-settings-directory     Custom game settings directory. This is where  │
 │                               user preferences, screenshots, and addons are  │
 │                               stored.                                        │
-│ --newsfeed                    URL of the feed (RSS, ATOM, ect) to show in    │
+│ --newsfeed                    URL of the feed (RSS, ATOM, etc) to show in    │
 │                               the launcher                                   │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Game Account Options ───────────────────────────────────────────────────────╮

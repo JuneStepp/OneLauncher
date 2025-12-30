@@ -155,6 +155,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
 
         self.ui.highResCheckBox.setChecked(game_config.high_res_enabled)
 
+        # Program config page
         program_config = self.config_manager.read_program_config_file()
         self.add_languages_to_combobox(self.ui.gameLanguageComboBox)
         self.ui.gameLanguageComboBox.setCurrentText(
@@ -181,6 +182,10 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
         )
         self.ui.gamesSortingModeComboBox.setCurrentIndex(
             self.ui.gamesSortingModeComboBox.findData(program_config.games_sorting_mode)
+        )
+
+        self.ui.closeAfterStartingGameCheckBox.setChecked(
+            program_config.on_game_start == "close"
         )
 
         self.ui.setupWizardButton.clicked.connect(
@@ -532,6 +537,9 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
                     self.ui.defaultLanguageForUICheckBox.isChecked()
                 ),
                 games_sorting_mode=(self.ui.gamesSortingModeComboBox.currentData()),
+                on_game_start="close"
+                if self.ui.closeAfterStartingGameCheckBox.isChecked()
+                else "stay",
             )
         )
 
