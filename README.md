@@ -35,6 +35,9 @@ The easiest way to get OneLauncher is with a [compiled release](https://Github.c
 - You can double click `OneLauncher` to open it.
 - If you see a message like "OneLauncher can't be opened because it is from an unidentified developer", you'll have to go to the Privacy and Security section of your System Settings where there will be an option to allow opening OneLauncher.
 
+Have fun adventuring! Note that there may be some stuttering the first time you play.
+This is expected and will go away quickly.
+
 ### System Requirements
 
 #### Windows
