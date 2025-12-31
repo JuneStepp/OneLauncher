@@ -104,6 +104,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         self.game_id: GameConfigID = game_id
 
         self.network_setup_nursery: trio.Nursery | None = None
+        self.starting_game: bool = False
         self.game_cancel_scope: trio.CancelScope | None = None
         self.addon_manager_window: addon_manager_window.AddonManagerWindow | None = None
         self.game_launcher_config: GameLauncherConfig | None = None
@@ -421,26 +422,34 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             self.game_cancel_scope.cancel()
             return
 
-        if not self.game_launcher_config:
-            logger.error("Game launcher network config isn't loaded")
+        if self.starting_game:
             return
 
-        # Mainly re-checking the game dir to prevent people from starting the game
-        # when it's known that it needs to be patched.
         try:
-            self.validate_game_dir()
-        except self.GameDirValidationError as e:
-            logger.exception(e.msg)
-            return
+            self.starting_game = True
 
-        if self.ui.cboAccount.currentText() == "" or (
-            self.ui.txtPassword.text() == ""
-            and self.ui.txtPassword.placeholderText() == ""
-        ):
-            logger.error("Please enter account name and password")
-            return
+            if not self.game_launcher_config:
+                logger.error("Game launcher network config isn't loaded")
+                return
 
-        await self.start_game(game_launcher_config=self.game_launcher_config)
+            # Mainly re-checking the game dir to prevent people from starting the game
+            # when it's known that it needs to be patched.
+            try:
+                self.validate_game_dir()
+            except self.GameDirValidationError as e:
+                logger.exception(e.msg)
+                return
+
+            if self.ui.cboAccount.currentText() == "" or (
+                self.ui.txtPassword.text() == ""
+                and self.ui.txtPassword.placeholderText() == ""
+            ):
+                logger.error("Please enter account name and password")
+                return
+
+            await self.start_game(game_launcher_config=self.game_launcher_config)
+        finally:
+            self.starting_game = False
 
     def accounts_index_changed(self, new_index: int) -> None:
         """Sets saved information for selected account."""
