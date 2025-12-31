@@ -247,7 +247,7 @@ Game banner images are displayed above the newsfeed in OneLauncher and are norma
 
 ## License
 
-GPLv3+ License. Copyright 2019-2025 - June Stepp.
+GPLv3+ License. Copyright 2019-2026 - June Stepp.
 See the [LICENSE](LICENSE.md) file for details.
 
 The [Font Awesome](https://github.com/FortAwesome/Font-Awesome/blob/master/LICENSE.txt) font is licensed under the [SIL Open Font License](http://scripts.sil.org/OFL).
