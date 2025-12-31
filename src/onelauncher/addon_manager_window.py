@@ -577,7 +577,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         try:
             doc = defusedxml.minidom.parse(str(file))
         except ExpatError:
-            logger.exception("Compendium file has invalid XML: %s", file)
+            logger.exception("`%s` has invalid XML", file.name)
             return None
         nodes = doc.getElementsByTagName(tag)[0].childNodes
         for node in nodes:
