@@ -15,14 +15,14 @@ def get_dist_dir_name() -> str:
 
 
 def main(
-    out_dir: Path | None = None,
+    out_dir: Path = Path(__file__).parent / "out",
     onefile_mode: bool = False,
     nuitka_deployment_mode: bool = False,
     extra_args: Iterable[str] = (),
 ) -> None:
     nuitka_arguments = [
         f"--user-package-configuration-file={Path(__file__).parent / 'nuitka_package_config.yml'}",
-        f"--output-dir={Path(__file__).parent / 'out'}",
+        f"--output-dir={out_dir}",
         "--onefile" if onefile_mode else "--standalone",
         "--python-flag=-m",  # Package mode. Compile as "package.__main__"
         "--python-flag=isolated",
@@ -43,8 +43,6 @@ def main(
         f"--file-description={__about__.__title__}",
         f"--copyright={__about__.__copyright__}",
     ]
-    if out_dir:
-        nuitka_arguments.append(f"--output-dir={out_dir}")
     if nuitka_deployment_mode:
         nuitka_arguments.append("--deployment")
     if sys.platform != "win32":
