@@ -1,5 +1,99 @@
 # Changelog
 
+## 2.1.0 (2026-01-01)
+
+Plenty of fixes and improvements. A few of the most notable are first-class macOS support, splash screens and initial data patching support, new game installation on macOS and Linux, and an option to close OneLauncher once a game is started. The full changelog is below.
+
+### Features
+
+- [**breaking**] Switch to Cyclopts for CLI
+    - Options with choices use hyphens. Example: `--game lotro_preview` ->
+      `--game lotro-preview`
+    - `--startup-script` -> `--startup-scripts`
+    - Shell completions need to be reinstalled.
+- Add option to close OneLauncher once a game is started
+- Add `log_verbosity` option
+- Sort old worlds to bottom of worlds list
+- Update WINE and DXVK, switch to WINE wow64
+- Support macOS native menu bar
+- Add macOS Crossover to setup wizard search dirs
+- Mac WINE support
+- Add macOS building
+- Add macOS installation section to README.md
+- Get rid of the start game window. Running the game is done fully from the main window now.
+- Support patching for splash screens and initial data
+- Allow creating new game installations. This is disabled on Windows for now pending testing.
+- Set important `UserPreferences.ini` values
+- Remove patch client filename option from settings window
+- Use icons for select from file browser buttons
+- Add message to preview client newsfeeds linking to where the latest info is
+- Compare product tokens with world allowed/denied billing roles
+
+### Fixes
+
+- *(newsfeed)* Remove extra spaces in "..." link
+- *(nix)* FHS run
+- Improve UI label buddies and tab order
+- Include system environment when starting standard game launcher
+- Styling on macOS
+- Don't pass sys.argv to QApplication.
+- Don't skip CaseInsensitiveAbsolutePath processing on Windows
+- *(addon_manager)* `getAddonObjectFromRow` with no interface ID
+- *(addon_manager)* Uninstall with addons button from remote table
+- *(addon_manager)* `getSelectedAddons` with remote table
+- *(addon_manager)* Duplication and DB clear issues from using `isTableEmpty`
+- *(addon_manager)* Use `self.tables_loaded` instead of `self.isTableEmpty`
+- *(addon_manager)* Updating multiple addons at once
+- *(addon_manager)* Strip search text
+- *(addon_manager)* Correct `.plugin{compendium}` invalid XML error
+- *(addon_manager)* Don't install plugin if it has invalid `.plugin` files
+- Handle empty `queueurls`
+- Still check for updates on dev releases
+- Restrict keyboard interrupts to checkpoints
+- Cancel app on uncaught exception
+- *(settings_window)* Close before showing other windows post setup wizard
+- *(setup_wizard)* Search for games non-blocking from start
+- *(setup_wizard)* Keep open while settings are being saved
+- *(setup_wizard)* Both select and check user-added game directories
+- *(setup_wizard)* Improve QFileDialog usage
+- Prevent game launch when initial data patching is needed
+- Handle when there is no system keyring or it fails to unlock
+- Don't the start game when there are world queue errors
+- Handle username or password too short errors
+- *(world_login_queue)* Better handle HRESULT 0x80004005
+- Improve world status error messages
+- Remove custom official servers ciphers config. It is no longer necessary.
+- Windows installer when some DLL versions are lowered
+- Don't create window for `run_ptch_client.exe` on Windows
+
+### Internal
+
+- Update dependencies
+- Log more information.
+- Don't pre-format log messages
+- Don't log to file during testing
+- *(addon_manager)* Add `AddonType`, misc
+- *(wine)* Reorder methods
+- Use `trio.run_process` instead of `QProcess`
+- Use attrs for `GameLauncherConfig`
+- Use tuples for official domain constants
+- Raise `RelativePathError` in `CaseInsensitiveAbsolutePath`
+- Use `onelauncher/external` directory for `run_ptch_client.exe`
+- Standardize UI naming around `*_window`
+- Move all current UI only code to `ui/`
+- Remove `processEvents` call for game banner
+- Remove README banner image in BBCode conversion
+- Mention using fhs-run for source OneLauncher
+- Skip case-sensitive-only tests on macOS
+- *(nix)* Don't use private tmp in FHS env
+- *(nuitka_compile)* Improve how output dir is specified
+- *(nuitka_compile)* Don't exclude asyncio
+- Add status checks to CI
+- Add spell checker
+- Pin GitHub actions to specific commits
+- Update GitHub Actions Nuitka caching
+- Update `build.yml`
+
 ## 2.0.2 (2025-06-03)
 
 This update has quite a few small fixes and improvements. The full changelog is below.
