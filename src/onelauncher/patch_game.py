@@ -1,6 +1,7 @@
 import logging
 import os
 import subprocess
+import sys
 from functools import partial
 from pathlib import Path
 from types import MappingProxyType
@@ -347,7 +348,7 @@ async def patch_game(
     )
     environment = MappingProxyType(os.environ)
 
-    if os.name == "nt":
+    if sys.platform == "win32":
         # The directory with TTEPatchClient.dll has to be in the PATH for
         # patchclient.dll to find it when OneLauncher is compiled with Nuitka.
         environment = MappingProxyType(
@@ -383,29 +384,33 @@ async def patch_game(
                 progress.progress_text_suffix = (
                     f"     Phase {i + 2}/{len(PATCHCLIENT_PATCH_PHASES) + 1}"
                 )
-                process: trio.Process = await nursery.start(
-                    partial(
-                        trio.run_process,
-                        (
-                            *command,
-                            # `run_ptch_client.exe` takes everything that will get
-                            # passed to `patchclient.dll` as a single argument.
-                            " ".join(
-                                get_patchclient_arguments(
-                                    phase=phase,
-                                    patch_server_url=patch_server_url,
-                                    game_id=game_id,
-                                    config_manager=config_manager,
-                                )
-                            ),
+                run_patching = partial(
+                    trio.run_process,
+                    (
+                        *command,
+                        # `run_ptch_client.exe` takes everything that will get
+                        # passed to `patchclient.dll` as a single argument.
+                        " ".join(
+                            get_patchclient_arguments(
+                                phase=phase,
+                                patch_server_url=patch_server_url,
+                                game_id=game_id,
+                                config_manager=config_manager,
+                            )
                         ),
-                        check=False,
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
-                        env=environment,
-                        cwd=game_config.game_directory,
-                    )
+                    ),
+                    check=False,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    env=environment,
+                    cwd=game_config.game_directory,
                 )
+                if sys.platform == "win32":
+                    process: trio.Process = await nursery.start(
+                        partial(run_patching, creationflags=subprocess.CREATE_NO_WINDOW)
+                    )
+                else:
+                    process: trio.Process = await nursery.start(run_patching)
                 if process.stdout is None or process.stderr is None:
                     raise TypeError("Process pipe is `None`")
 
