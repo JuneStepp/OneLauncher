@@ -689,8 +689,8 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             return
         except WorldUnavailableError:
             logger.exception(
-                "Error fetching world status. You may want to check "
-                "the news feed for a scheduled down time.",
+                "World is unavailable. You may want to check "
+                "the news feed for a downtime notice.",
             )
             return
         except XMLSchemaValidationError:
@@ -715,7 +715,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                 )
             )
         ):
-            logger.exception("You are not allowed to join this world")
+            logger.error("You are not allowed to join this world right now")
             return
 
         if selected_world_status.queue_url:
