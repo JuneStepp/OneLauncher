@@ -1294,6 +1294,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         table.clearContents()
         table.setRowCount(0)
 
+        text = text.strip()
         if text:
             for word in text.split():
                 search_word = f"%{word}%"
