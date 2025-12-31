@@ -28,7 +28,7 @@ def main(
         "--python-flag=isolated",
         "--python-flag=no_docstrings",
         "--warn-unusual-code",
-        "--nofollow-import-to=tkinter,pydoc,pdb,PySide6.QtOpenGL,PySide6.QtOpenGLWidgets,zstandard,asyncio,anyio._backends._asyncio,smtplib,requests,requests_file",
+        "--nofollow-import-to=tkinter,pydoc,pdb,PySide6.QtOpenGL,PySide6.QtOpenGLWidgets,zstandard,smtplib,requests,requests_file",
         "--noinclude-setuptools-mode=nofollow",
         "--noinclude-unittest-mode=nofollow",
         "--noinclude-pytest-mode=nofollow",
