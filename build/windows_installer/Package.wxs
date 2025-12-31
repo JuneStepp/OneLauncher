@@ -18,6 +18,9 @@
      in the MSI version field. -->
     <MajorUpgrade AllowSameVersionUpgrades="true"
       DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <!-- Always reinstall files, ignoring version and checksum. You'd think this would
+     already be the case, since it's a major upgrade, but no. -->
+    <Property Id="REINSTALLMODE" Value="amus" />
 
     <Property Id="ARPURLINFOABOUT" Value="$(env.WEBSITE)" />
     <!-- <Property Id="DiskPrompt" Value="$(env.PRODUCT_NAME) Installation" /> -->
