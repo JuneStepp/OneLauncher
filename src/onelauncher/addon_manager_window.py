@@ -843,6 +843,11 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         # will be ignored by both me and the game.
         plugin_files = list(author_folder.glob("*.plugin"))
 
+        # Don't install if there are invalid `.plugin` files.
+        for plugin_file in plugin_files:
+            if self.parseCompendiumFile(plugin_file, "Information") is None:
+                return
+
         existing_compendium_file = self.get_existing_compendium_file(author_folder)
         if existing_compendium_file is False:
             return
