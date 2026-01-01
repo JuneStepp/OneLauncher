@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.1 (2026-01-01)
+
+- Fix missing game user preferences dir
+- Check out of date addons after addon uninstallation
+
 ## 2.1.0 (2026-01-01)
 
 Plenty of fixes and improvements. A few of the most notable are first-class macOS support, splash screens and initial data patching support, new game installation on macOS and Linux, and an option to close OneLauncher once a game is started. The full changelog is below.
