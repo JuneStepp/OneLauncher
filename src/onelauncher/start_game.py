@@ -204,6 +204,7 @@ async def update_game_user_preferences(
     with StringIO() as string_io:
         config.write(string_io, space_around_delimiters=False)
         string_io.seek(0)
+        await game_user_preferences_path.parent.mkdir(parents=True, exist_ok=True)
         await game_user_preferences_path.write_text(string_io.read())
 
 
