@@ -1652,6 +1652,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.setRemoteAddonToUninstalled(plugin, self.ui.tablePlugins)
 
         self.getInstalledPlugins()
+        self.getOutOfDateAddons()
 
     def uninstallSkins(self, skins: list[Addon], table: QtWidgets.QTableWidget) -> None:
         table = self.getRemoteOrLocalTableFromOne(table, remote=False)
@@ -1675,6 +1676,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.setRemoteAddonToUninstalled(skin, self.ui.tableSkins)
 
         self.getInstalledSkins()
+        self.getOutOfDateAddons()
 
     def uninstallMusic(
         self, music_list: list[Addon], table: QtWidgets.QTableWidget
@@ -1702,6 +1704,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.setRemoteAddonToUninstalled(music, self.ui.tableMusic)
 
         self.getInstalledMusic()
+        self.getOutOfDateAddons()
 
     def checkAddonForDependencies(
         self, addon: Addon, table: QtWidgets.QTableWidget
@@ -2305,6 +2308,8 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             table_remote = self.getRemoteOrLocalTableFromOne(
                 table_installed, remote=True
             )
+            if table_remote not in self.tables_loaded:
+                continue
 
             addons_info_remote = {
                 addon[1]: (addon[0], addon[2])
