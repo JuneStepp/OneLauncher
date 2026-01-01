@@ -167,6 +167,24 @@
                 pyprojectOverrides
               ]
             );
+
+        getExtraPkgs = pkgs: [
+          pkgs.innoextract
+          (pkgs.runCommand "onelauncher-shell-completions"
+            {
+              nativeBuildInputs = [
+                self.packages.${system}.onelauncher-unwrapped
+                pkgs.installShellFiles
+              ];
+            }
+            ''
+              installShellCompletion --cmd onelauncher \
+                  --bash <(onelauncher generate-shell-completion bash) \
+                  --fish <(onelauncher generate-shell-completion fish) \
+                  --zsh <(onelauncher generate-shell-completion zsh)
+            ''
+          )
+        ];
       in
       {
         packages =
@@ -174,14 +192,23 @@
             inherit (pkgs.callPackages pyproject-nix.build.util { }) mkApplication;
           in
           {
-            onelauncher = mkApplication {
+            onelauncher-unwrapped = mkApplication {
               venv = pythonSet.mkVirtualEnv "onelauncher-env" workspace.deps.default;
               package = pythonSet.onelauncher;
+            };
+            onelauncher = pkgs.steam.buildRuntimeEnv {
+              inherit (self.packages.${system}.onelauncher-unwrapped) pname version meta;
+
+              extraPkgs = pkgs: [ self.packages.${system}.onelauncher-unwrapped ] ++ getExtraPkgs pkgs;
+
+              runScript = pkgs.lib.getExe self.packages.${system}.onelauncher-unwrapped;
             };
             default = self.packages.${system}.onelauncher;
             fhs-run =
               (pkgs.steam.override {
-                extraPkgs = pkgs: [ pkgs.libz ];
+                extraPkgs = pkgs: [
+                  pkgs.libz
+                ];
                 privateTmp = false;
               }).run-free;
           };
@@ -243,25 +270,11 @@
           pkgs.mkShell {
             packages = [
               virtualenv
-              pkgs.innoextract
-              (pkgs.runCommand "onelauncher-shell-completions"
-                {
-                  nativeBuildInputs = [
-                    self.packages.${system}.onelauncher
-                    pkgs.installShellFiles
-                  ];
-                }
-                ''
-                  installShellCompletion --cmd onelauncher \
-                      --bash <(onelauncher generate-shell-completion bash) \
-                      --fish <(onelauncher generate-shell-completion fish) \
-                      --zsh <(onelauncher generate-shell-completion zsh)
-                ''
-              )
               pkgs.uv
               # Used for Nuitka compilation caching
               pkgs.ccache
-            ];
+            ]
+            ++ getExtraPkgs pkgs;
 
             env = {
               # Don't create venv using `uv`.
