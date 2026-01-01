@@ -4,6 +4,7 @@
 
 - Fix missing game user preferences dir
 - Check out of date addons after addon uninstallation
+- *(nix)* Have `onelauncher` package use FHS env
 
 ## 2.1.0 (2026-01-01)
 
