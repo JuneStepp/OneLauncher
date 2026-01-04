@@ -190,7 +190,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             self.show()
             self.nursery.start_soon(self.InitialSetup)
             self.nursery.start_soon(check_for_update)
-            # Will be canceled when the winddow is closed
+            # Will be canceled when the window is closed
             self.nursery.start_soon(trio.sleep_forever)
 
     def resetFocus(self) -> None:

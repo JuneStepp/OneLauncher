@@ -99,7 +99,7 @@ class PatchGameWindow(QtWidgets.QDialog):
         self.open()
         async with trio.open_nursery() as self.nursery:
             self.nursery.start_soon(self.keep_progress_bar_updated)
-            # Will be canceled when the winddow is closed.
+            # Will be canceled when the window is closed.
             self.nursery.start_soon(trio.sleep_forever)
 
     def cleanup(self) -> None:

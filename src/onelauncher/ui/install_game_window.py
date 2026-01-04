@@ -96,7 +96,7 @@ class InstallGameWindow(FramelessQDialogWithStylePreview):
             self.finished.connect(self.cleanup)
 
             self.nursery.start_soon(self.keep_progress_bar_updated)
-            # Will be canceled when the winddow is closed.
+            # Will be canceled when the window is closed.
             self.nursery.start_soon(trio.sleep_forever)
 
     def cleanup(self) -> None:
