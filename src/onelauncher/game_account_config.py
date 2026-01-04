@@ -29,4 +29,4 @@ class GameAccountsConfig(Config):
     @override
     @staticmethod
     def get_config_file_description() -> str:
-        return f"A game accounts config file for  {__title__}"
+        return f"A game accounts config file for {__title__}"
