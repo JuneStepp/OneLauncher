@@ -165,7 +165,7 @@ def _tables_to_array_of_tables(
     array_of_tables: list[dict[str, Any]] = []
     final_dict: dict[str, Any] = {}
     for table_name, table in unstructured_tables.items():
-        # Handle normal key-value pares
+        # Handle normal key-value pairs
         if not isinstance(table, dict):
             final_dict[table_name] = table
             continue

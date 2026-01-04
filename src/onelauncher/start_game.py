@@ -182,7 +182,7 @@ async def update_game_user_preferences(
     unedited_config = deepcopy(config)
 
     # Set screen mode to `FullScreenWindowed` on macOS on first game launch.
-    # The default `Fullscreen` mode bloacks the macOS prompt for allowing required game
+    # The default `Fullscreen` mode blocks the macOS prompt for allowing required game
     # permissions. It also causes issues with some Macintosh monitors and laptop screens,
     # especially when using multiple monitors.
     if sys.platform == "darwin" and game_config.last_played is None:

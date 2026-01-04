@@ -248,7 +248,7 @@ class Progress:
 
         return CurrentProgress(
             # Using 0 to 10,000 instead of 0 to `current_progress.total` to prevent
-            # overfloq errors.
+            # overflow errors.
             completed=round(sum_completed / sum_total * 10000),
             total=10000,
             progress_text=progress_text,

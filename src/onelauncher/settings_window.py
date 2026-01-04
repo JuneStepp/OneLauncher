@@ -224,7 +224,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             self.nursery.start_soon(self.indicate_unavailable_client_types)
             self.nursery.start_soon(self.setup_newsfeed_option)
             self.nursery.start_soon(self.setup_game_settings_dir_option)
-            # Will be canceled when the winddow is closed
+            # Will be canceled when the window is closed
             self.nursery.start_soon(trio.sleep_forever)
 
     def cleanup(self) -> None:
