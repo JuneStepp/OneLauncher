@@ -119,7 +119,7 @@ def convert_to_toml(
             tables.append((key, table))
         elif (
             isinstance(val, list)
-            and len(val)
+            and val
             and all(isinstance(item, dict) for item in val)
         ):
             table_array = tomlkit.aot()
