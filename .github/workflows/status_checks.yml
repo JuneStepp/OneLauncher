@@ -30,7 +30,9 @@ jobs:
 
       - name: Install PySide6 dependencies on Linux
         if: runner.os == 'Linux'
-        run: sudo apt-get install libegl1
+        run: |
+          sudo apt-get update
+          sudo apt-get install libegl1
 
       - name: Lint
         run: ruff check --output-format=github
