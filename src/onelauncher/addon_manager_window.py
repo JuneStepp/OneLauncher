@@ -576,10 +576,10 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         try:
             doc = defusedxml.minidom.parse(str(file))
-        except ExpatError:
+            nodes = doc.getElementsByTagName(tag)[0].childNodes
+        except (ExpatError, IndexError):
             logger.exception("`%s` has invalid XML", file.name)
             return None
-        nodes = doc.getElementsByTagName(tag)[0].childNodes
         for node in nodes:
             if node.nodeName == "Name":
                 addon_info.name = GetText(node.childNodes)
@@ -600,12 +600,13 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     def getOnlineAddonInfo(
         self, addon_info: AddonInfo, remote_addons_table: str
     ) -> AddonInfo:
-        for info in self.c.execute(
-            f"SELECT Category, LatestRelease FROM {remote_addons_table} WHERE InterfaceID == ?",  # noqa: S608
-            (addon_info[6],),
-        ):
-            addon_info.category = info[0]
-            addon_info.latest_release = info[1]
+        if addon_info.interface_id:
+            for info in self.c.execute(
+                f"SELECT Category, LatestRelease FROM {remote_addons_table} WHERE InterfaceID == ?",  # noqa: S608
+                (addon_info.interface_id,),
+            ):
+                addon_info.category = info[0]
+                addon_info.latest_release = info[1]
 
         # Unmanaged if not in online cache
         if not addon_info.category:
