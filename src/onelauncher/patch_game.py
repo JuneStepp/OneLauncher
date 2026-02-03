@@ -168,7 +168,31 @@ async def _handle_akamai_download_file(
     download. Afterwards, `patchclient.dll` is used.
     """
     local_path = trio.Path(game_directory / download_file.relative_path)
-    if isinstance(download_file, PatchingDownloadFile) and await local_path.exists():
+    temp_download_path = trio.Path(
+        temp_download_dir / f"{download_file.relative_path.name}-{uuid4()}"
+    )
+    try:
+        if await local_path.exists():
+            # Only download `PatchingDownloadFile` if it doesn't exist. The hash is not
+            # checked, because the file may be out of date. These files are only meant for
+            # the initial large download. Afterwards, `patchclient.dll` is used.
+            if isinstance(download_file, PatchingDownloadFile):
+                return
+
+            # Make sure `local_path` is writable.
+            async with await local_path.open("a"):
+                pass
+        else:
+            # Make sure `local_path` is writable.
+            await local_path.parent.mkdir(parents=True, exist_ok=True)
+            async with await local_path.open("w"):
+                pass
+            await local_path.unlink()
+        # Make sure `temp_download_path` is writable.
+        async with await temp_download_path.open("w"):
+            pass
+    except PermissionError:
+        logger.exception("Insufficient permissions to patch %s", local_path.name)
         return
 
     logger.debug("Downloading %s", download_file)
@@ -177,9 +201,6 @@ async def _handle_akamai_download_file(
         f"{base_download_url}/{download_file.relative_url}"
         if isinstance(download_file, PatchingDownloadFile)
         else download_file.url
-    )
-    temp_download_path = trio.Path(
-        temp_download_dir / f"{download_file.relative_path.name}-{uuid4()}"
     )
 
     progress_item = ProgressItem()
@@ -229,7 +250,6 @@ async def _handle_akamai_download_file(
             logger.exception("Failed to download %s", local_path.name)
         progress.progress_items.remove(progress_item)
     else:
-        await local_path.parent.mkdir(parents=True, exist_ok=True)
         await local_path.unlink(missing_ok=True)
         await temp_download_path.rename(local_path)
     finally:
