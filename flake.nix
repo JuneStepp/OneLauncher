@@ -111,7 +111,6 @@
               })
             ];
           });
-          # Based on https://github.com/nix-community/poetry2nix/blob/ce2369db77f45688172384bbeb962bc6c2ea6f94/overrides/default.nix#L2915
           pyside6-essentials = prev.pyside6-essentials.overrideAttrs (
             prevAttrs:
             pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
@@ -128,28 +127,59 @@
               preFixup = ''
                 addAutoPatchelfSearchPath ${final.shiboken6}/${final.python.sitePackages}/shiboken6
               '';
-              propagatedBuildInputs = prevAttrs.propagatedBuildInputs or [ ] ++ [
-                pkgs.qt6.full
-                pkgs.libxkbcommon
-                pkgs.gtk3
-                pkgs.speechd
-                pkgs.gst
-                pkgs.gst_all_1.gst-plugins-base
-                pkgs.gst_all_1.gstreamer
-                pkgs.postgresql.lib
-                pkgs.unixODBC
-                pkgs.pcsclite
-                pkgs.xorg.libxcb
-                pkgs.xorg.xcbutil
-                pkgs.xorg.xcbutilcursor
-                pkgs.xorg.xcbutilerrors
-                pkgs.xorg.xcbutilimage
-                pkgs.xorg.xcbutilkeysyms
-                pkgs.xorg.xcbutilrenderutil
-                pkgs.xorg.xcbutilwm
-                pkgs.libdrm
-                pkgs.pulseaudio
-              ];
+              dontWrapQtApps = true;
+              propagatedBuildInputs =
+                prevAttrs.propagatedBuildInputs or [ ]
+                ++ [
+                  pkgs.libxkbcommon
+                  pkgs.gtk3
+                  pkgs.speechd
+                  pkgs.gst
+                  pkgs.gst_all_1.gst-plugins-base
+                  pkgs.gst_all_1.gstreamer
+                  pkgs.postgresql.lib
+                  pkgs.unixodbc
+                  pkgs.pcsclite
+                  pkgs.libxcb
+                  pkgs.xcbutil
+                  pkgs.xcbutilcursor
+                  pkgs.xcbutilerrors
+                  pkgs.xcbutilimage
+                  pkgs.xcbutilkeysyms
+                  pkgs.xcbutilrenderutil
+                  pkgs.xcbutilwm
+                  pkgs.libdrm
+                  pkgs.pulseaudio
+                ]
+                ++ (with pkgs.qt6; [
+                  qtbase
+                  qt3d
+                  qtcharts
+                  qtconnectivity
+                  qtdatavis3d
+                  qtdeclarative
+                  qthttpserver
+                  qtmultimedia
+                  qtnetworkauth
+                  qtquick3d
+                  qtremoteobjects
+                  qtscxml
+                  qtsensors
+                  qtspeech
+                  qtsvg
+                  qtwebchannel
+                  qtwebsockets
+                  qtwebview
+                  qtpositioning
+                  qtlocation
+                  qtshadertools
+                  qtserialport
+                  qtserialbus
+                  qtgraphs
+                  qttools
+                  qtwayland
+                  qtvirtualkeyboard
+                ]);
             }
           );
         };
