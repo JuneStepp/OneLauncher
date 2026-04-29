@@ -1009,7 +1009,9 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         # Sort alphabetically with old worlds at the bottom.
         sorted_worlds = sorted(
             game_services_info.worlds,
-            key=lambda world: f"{2 if world.name.strip().lower().endswith('[old]') else 1}{world.name}",
+            key=lambda world: (
+                f"{2 if world.name.strip().lower().endswith('[old]') else 1}{world.name}"
+            ),
         )
         for world in sorted_worlds:
             self.ui.cboWorld.addItem(world.name, userData=world)

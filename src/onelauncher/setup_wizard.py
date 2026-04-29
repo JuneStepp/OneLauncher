@@ -99,14 +99,14 @@ class GamesDeletionStatusItemDelegate(QtWidgets.QStyledItemDelegate):
     ) -> None:
         super().initStyleOption(option, index)
         game_id: GameConfigID = index.data(GameConfigIDRole)
-        if option.checkState == QtCore.Qt.CheckState.Checked:  # type: ignore[attr-defined]
-            option.icon = (  # type: ignore[attr-defined]
+        if option.checkState == QtCore.Qt.CheckState.Checked:
+            option.icon = (
                 self.item_checked_icon
                 if game_id in self.existing_game_ids
                 else qtawesome.icon("mdi6.folder-plus-outline")
             )
         else:
-            option.icon = (  # type: ignore[attr-defined]
+            option.icon = (
                 qtawesome.icon("mdi6.trash-can-outline")
                 if game_id in self.existing_game_ids
                 else QtGui.QIcon()
@@ -207,9 +207,11 @@ class SetupWizard(QtWidgets.QWizard):
         else:
             # Only show data deletion page if there is existing game data
             self.ui.gamesSelectionWizardPage.nextId = (  # type: ignore[method-assign]
-                lambda: self.currentId() + 1
-                if self.config_manager.get_game_config_ids()
-                else self.currentId() + 2
+                lambda: (
+                    self.currentId() + 1
+                    if self.config_manager.get_game_config_ids()
+                    else self.currentId() + 2
+                )
             )
 
         self.open()
