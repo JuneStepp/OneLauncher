@@ -33,7 +33,13 @@ import pathlib
 from collections.abc import Generator
 from math import log, trunc
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Self, assert_never
+from typing import (
+    TYPE_CHECKING,
+    Literal,
+    Self,
+    TypeVar,
+    assert_never,
+)
 from xml.etree.ElementTree import Element
 
 import attrs
@@ -306,3 +312,16 @@ def parse_app_settings_config(config_text: str) -> dict[str, str]:
         attribs_dict = element.attrib
         config_dict[attribs_dict["key"]] = attribs_dict["value"]
     return config_dict
+
+
+_T = TypeVar("_T")
+
+
+def nuitka_ignore(func: _T) -> _T:
+    """
+    Don't compile decorated function with Nuitka. It will stay bytecode.
+
+    This decorator returns the input function unchanged. Nuitka
+    just checks for any decorator called "nuitka_ignore".
+    """
+    return func

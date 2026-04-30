@@ -27,7 +27,12 @@ from onelauncher.network.akamai import (
 from onelauncher.network.game_launcher_config import GameLauncherConfig
 from onelauncher.network.httpx_client import get_httpx_client
 from onelauncher.resources import external_dependencies_dir
-from onelauncher.utilities import CaseInsensitiveAbsolutePath, Progress, ProgressItem
+from onelauncher.utilities import (
+    CaseInsensitiveAbsolutePath,
+    Progress,
+    ProgressItem,
+    nuitka_ignore,
+)
 from onelauncher.wine_environment import get_wine_process_args
 
 logger = logging.getLogger(__name__)
@@ -153,6 +158,7 @@ def get_patchclient_arguments(
     return (*base_arguments, phase_arg)
 
 
+@nuitka_ignore  # See <https://github.com/Nuitka/Nuitka/issues/3697>.
 async def _handle_akamai_download_file(
     download_file: PatchingDownloadFile | SplashscreenDownloadFile,
     game_directory: CaseInsensitiveAbsolutePath,
@@ -211,13 +217,12 @@ async def _handle_akamai_download_file(
         progress_item.total = download_file.size
 
     try:
-        # Using the `async with client.stream(...)` currently doesn't work with
-        # Nuitka. See <https://github.com/Nuitka/Nuitka/issues/3697>.
-        request = get_httpx_client(url).build_request(
-            "GET", url, timeout=httpx.Timeout(20, pool=None)
-        )
-        response = await get_httpx_client(url).send(request, stream=True)
-        try:
+        async with (
+            get_httpx_client(url).stream(
+                "GET", url, timeout=httpx.Timeout(20, pool=None)
+            ) as response,
+            await temp_download_path.open("wb") as temp_download_file,
+        ):
             response.raise_for_status()
 
             bytes_currently_downloaded = response.num_bytes_downloaded
@@ -226,19 +231,16 @@ async def _handle_akamai_download_file(
                     response.headers.get("Content-Length", 300000)
                 )
 
-            async with await temp_download_path.open("wb") as temp_download_file:
-                async for chunk in response.aiter_bytes():
-                    if isinstance(download_file, SplashscreenDownloadFile):
-                        progress_item.completed += (
-                            response.num_bytes_downloaded - bytes_currently_downloaded
-                        )
-                        bytes_currently_downloaded = response.num_bytes_downloaded
-                    else:
-                        progress_item.completed += len(chunk)
+            async for chunk in response.aiter_bytes():
+                if isinstance(download_file, SplashscreenDownloadFile):
+                    progress_item.completed += (
+                        response.num_bytes_downloaded - bytes_currently_downloaded
+                    )
+                    bytes_currently_downloaded = response.num_bytes_downloaded
+                else:
+                    progress_item.completed += len(chunk)
 
-                    await temp_download_file.write(chunk)
-        finally:
-            await response.aclose()
+                await temp_download_file.write(chunk)
     except HTTPError as e:
         if (
             isinstance(e, HTTPStatusError)
