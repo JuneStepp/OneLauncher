@@ -19,7 +19,6 @@ class ClientType(StrEnum):
     WIN64 = "WIN64"
     WIN32 = "WIN32"
     WIN32_LEGACY = "WIN32Legacy"
-    WIN32Legacy = "WIN32Legacy"
 
 
 class GameType(StrEnum):
