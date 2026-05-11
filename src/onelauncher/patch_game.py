@@ -31,7 +31,6 @@ from onelauncher.utilities import (
     CaseInsensitiveAbsolutePath,
     Progress,
     ProgressItem,
-    nuitka_ignore,
 )
 from onelauncher.wine_environment import get_wine_process_args
 
@@ -158,7 +157,6 @@ def get_patchclient_arguments(
     return (*base_arguments, phase_arg)
 
 
-@nuitka_ignore  # See <https://github.com/Nuitka/Nuitka/issues/3697>.
 async def _handle_akamai_download_file(
     download_file: PatchingDownloadFile | SplashscreenDownloadFile,
     game_directory: CaseInsensitiveAbsolutePath,

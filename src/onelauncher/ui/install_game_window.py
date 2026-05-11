@@ -21,7 +21,7 @@ from onelauncher.install_game import (
     install_game,
     validate_user_provided_install_dir,
 )
-from onelauncher.utilities import Progress, nuitka_ignore
+from onelauncher.utilities import Progress
 
 from .custom_widgets import FramelessQDialogWithStylePreview
 from .install_game_window_uic import Ui_installGameWindow
@@ -169,9 +169,6 @@ class InstallGameWindow(FramelessQDialogWithStylePreview):
                 self.ui.progressBar.setValue(current_progress.completed)
             await trio.sleep(0.05)
 
-    # See <https://github.com/Nuitka/Nuitka/issues/3697>.
-    # The code this is needed for here is `await install_game(...)`.
-    @nuitka_ignore
     async def install_game(self) -> None:
         try:
             install_dir = validate_user_provided_install_dir(

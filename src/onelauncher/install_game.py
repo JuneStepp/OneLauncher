@@ -30,7 +30,6 @@ from .utilities import (
     Progress,
     ProgressItem,
     RelativePathError,
-    nuitka_ignore,
 )
 from .wine.config import WineConfigSection
 
@@ -197,7 +196,6 @@ class InstallGameError(Exception):
     msg: str
 
 
-@nuitka_ignore  # See <https://github.com/Nuitka/Nuitka/issues/3697>.
 async def install_game(
     *,
     installer: GameInstaller,

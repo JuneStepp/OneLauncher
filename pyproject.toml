@@ -67,7 +67,7 @@ test = [
     "pytest-trio>=0.8.0",
 ]
 build = [
-    "Nuitka[onefile]>=2.4.8",
+    "Nuitka[onefile]>=4.1",
     # Needed by Nuitka.
     "jsonschema>=4.26.0",
     "marko>=2.1.2",
