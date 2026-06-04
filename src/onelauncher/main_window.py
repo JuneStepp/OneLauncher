@@ -830,6 +830,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
     def set_banner_image(self) -> None:
         game_config = self.config_manager.get_game_config(self.game_id)
         ui_locale = self.config_manager.get_ui_locale(self.game_id)
+
         game_dir_banner_override_path = (
             game_config.game_directory / ui_locale.lang_tag.split("-")[0] / "banner.png"
         )
@@ -843,6 +844,16 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                     )
                 )
             )
+
+        # Handle banner images that are too large and need to be scaled down.
+        if banner_pixmap.width() > 400 or banner_pixmap.height() > 200:  # noqa: PLR2004
+            banner_pixmap.setDevicePixelRatio(self.windowHandle().devicePixelRatio())
+            banner_pixmap = banner_pixmap.scaled(
+                QtCore.QSize(400, 136) * banner_pixmap.devicePixelRatio(),
+                QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+                QtCore.Qt.TransformationMode.SmoothTransformation,
+            )
+
         self.ui.imgGameBanner.setPixmap(banner_pixmap)
 
     @attrs.frozen(kw_only=True)

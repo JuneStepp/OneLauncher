@@ -243,7 +243,7 @@ These are pre-set variables that you can access in your startup script.
 
 ### OneLauncher Banner Image
 
-Game banner images are displayed above the newsfeed in OneLauncher and are normally expected to be 300x136 pixels. Images following the path `{Game Directory}/{Locale Resources Folder}/banner.png` will replace the default banner for that game and locale. If there is no image for a user's selected locale, the default image will be shown. An example path is `C://Program Files/Standing Stone Games/Lord of The Rings Online/en/banner.png`.
+Game banner images are displayed above the newsfeed in OneLauncher and are normally expected to be 300x136 pixels. Large images will be scaled down. Images following the path `{Game Directory}/{Locale Resources Folder}/banner.png` will replace the default banner for that game and locale. If there is no image for a user's selected locale, the default image will be shown. An example path is `C://Program Files/Standing Stone Games/Lord of The Rings Online/en/banner.png`.
 
 ## License
 
