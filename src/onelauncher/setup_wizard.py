@@ -421,7 +421,7 @@ class SetupWizard(QtWidgets.QWizard):
                 home_dir / ".local/share/Steam/steamapps/common",
             ]:
                 if search_dir.exists():
-                    self.find_game_dirs(search_dir)
+                    self.find_game_dirs(search_dir, search_depth=3)
 
         def sort_games(key: GameConfig) -> str:
             priority = 0
