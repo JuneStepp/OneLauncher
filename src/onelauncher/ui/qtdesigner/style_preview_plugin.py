@@ -1,5 +1,6 @@
+from typing import override
+
 from PySide6 import QtDesigner, QtGui, QtWidgets
-from typing_extensions import override
 
 from onelauncher.ui.style import ApplicationStyle
 

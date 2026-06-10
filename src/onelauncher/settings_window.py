@@ -33,12 +33,12 @@ from enum import StrEnum
 from functools import partial
 from pathlib import Path
 from types import MappingProxyType
+from typing import override
 
 import attrs
 import qtawesome
 import trio
 from PySide6 import QtCore, QtGui, QtWidgets
-from typing_extensions import override
 
 from .__about__ import __title__
 from .config import platform_dirs

@@ -3,7 +3,7 @@ import shutil
 from contextlib import suppress
 from functools import partial
 from pathlib import Path
-from typing import Any, Literal, TypeAlias, assert_never
+from typing import Any, Literal, assert_never
 
 import attrs
 import cattrs
@@ -67,7 +67,7 @@ class V1xGameConfig:
     startup_scripts: V1xStartupScripts | None = None
 
 
-V1xGameType: TypeAlias = Literal["LOTRO", "LOTRO.Test", "DDO", "DDO.Test"]
+type V1xGameType = Literal["LOTRO", "LOTRO.Test", "DDO", "DDO.Test"]
 
 
 @attrs.frozen

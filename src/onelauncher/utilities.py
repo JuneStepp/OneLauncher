@@ -29,25 +29,20 @@ from __future__ import annotations
 
 import logging
 import os
-import pathlib
-from collections.abc import Generator
+import sys
+from collections.abc import Generator, Iterator
 from math import log, trunc
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import (
-    TYPE_CHECKING,
     Literal,
     Self,
-    TypeVar,
     assert_never,
+    override,
 )
 from xml.etree.ElementTree import Element
 
 import attrs
 from defusedxml import ElementTree  # type: ignore[import-untyped]
-from typing_extensions import override
-
-if TYPE_CHECKING:
-    from _typeshed import StrPath
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +50,9 @@ logger = logging.getLogger(__name__)
 @attrs.frozen(kw_only=True)
 class RelativePathError(ValueError):
     msg: str = "Path is not absolute"
+
+
+type StrPath = str | os.PathLike[str]
 
 
 class CaseInsensitiveAbsolutePath(Path):
@@ -74,19 +72,17 @@ class CaseInsensitiveAbsolutePath(Path):
         RelativePathError: Path is not absolute
     """
 
-    _flavour = (  # spellchecker:disable-line
-        pathlib._windows_flavour  # type: ignore[attr-defined] # spellchecker:disable-line
-        if os.name == "nt"
-        else pathlib._posix_flavour  # type: ignore[attr-defined] # spellchecker:disable-line
-    )
-
-    def __new__(cls, *pathsegments: StrPath) -> Self:
-        normal_path = Path(*pathsegments)
+    def __init__(
+        self, *args: StrPath, known_to_exist_base_path: Path | None = None
+    ) -> None:
+        normal_path = Path(*args)
         if not normal_path.is_absolute():
             raise RelativePathError()
 
-        path = cls._get_real_path_from_fully_case_insensitive_path(normal_path)
-        return super().__new__(cls, path)
+        path = self._get_real_path_from_fully_case_insensitive_path(
+            normal_path, known_to_exist_base_path=known_to_exist_base_path
+        )
+        self._raw_paths = path._raw_paths  # type: ignore[attr-defined]
 
     @classmethod
     def _get_real_path_from_fully_case_insensitive_path(
@@ -155,33 +151,95 @@ class CaseInsensitiveAbsolutePath(Path):
             # No matches
             return None
 
-    def _make_child(self, args: tuple[StrPath, ...]) -> Self:
-        joined_path = super()._make_child(args)  # type: ignore[misc]
-        return super().__new__(
-            type(self),
-            self._get_real_path_from_fully_case_insensitive_path(
-                start_path=joined_path,
-                known_to_exist_base_path=self if self.exists() else None,
-            ),
-        )
+    @override
+    def with_segments(self, *pathsegments: StrPath) -> Self:
+        # This is assuming that this function gets called with no other absolute paths
+        # when `self` is the first path segment
+        if pathsegments[0] is self and self.exists():
+            return type(self)(*pathsegments, known_to_exist_base_path=self)
+        else:
+            return type(self)(*pathsegments)
 
     @override
     @classmethod
     def home(cls: type[Self]) -> Self:
         return cls(os.path.expanduser("~"))
 
-    def _get_case_insensitive_glob_pattern(self, pattern: str) -> str:
-        return "".join(
-            [f"[{c.lower()}{c.upper()}]" if c.isalpha() else c for c in pattern]
+    if sys.version_info >= (3, 13):
+
+        @override
+        def glob(
+            self,
+            pattern: str,
+            *,
+            case_sensitive: bool | None = None,
+            recurse_symlinks: bool = False,
+        ) -> Iterator[Self]:
+            for path in Path(self).glob(
+                pattern,
+                # `CaseInsensitiveAbsolutePath` should always be case insensitive.
+                case_sensitive=False,
+                recurse_symlinks=recurse_symlinks,
+            ):
+                yield type(self)(path, known_to_exist_base_path=path)
+
+        @override
+        def rglob(
+            self,
+            pattern: str,
+            *,
+            case_sensitive: bool | None = None,
+            recurse_symlinks: bool = False,
+        ) -> Iterator[Self]:
+            for path in Path(self).rglob(
+                pattern,
+                # `CaseInsensitiveAbsolutePath` should always be case insensitive.
+                case_sensitive=False,
+                recurse_symlinks=recurse_symlinks,
+            ):
+                yield type(self)(path, known_to_exist_base_path=path)
+
+        @override
+        def full_match(
+            self, pattern: StrPath, *, case_sensitive: bool | None = None
+        ) -> bool:
+            return PurePath(self).full_match(
+                pattern,
+                # `CaseInsensitiveAbsolutePath` should always be case insensitive.
+                case_sensitive=False,
+            )
+
+    else:
+
+        @override
+        def glob(
+            self, pattern: str, *, case_sensitive: bool | None = None
+        ) -> Generator[Self]:
+            for path in Path(self).glob(
+                pattern,
+                # `CaseInsensitiveAbsolutePath` should always be case insensitive.
+                case_sensitive=False,
+            ):
+                yield type(self)(path, known_to_exist_base_path=path)
+
+        @override
+        def rglob(
+            self, pattern: str, *, case_sensitive: bool | None = None
+        ) -> Generator[Self]:
+            for path in Path(self).rglob(
+                pattern,
+                # `CaseInsensitiveAbsolutePath` should always be case insensitive.
+                case_sensitive=False,
+            ):
+                yield type(self)(path, known_to_exist_base_path=path)
+
+    @override
+    def match(self, path_pattern: str, *, case_sensitive: bool | None = None) -> bool:
+        return PurePath(self).match(
+            path_pattern,
+            # `CaseInsensitiveAbsolutePath` should always be case insensitive.
+            case_sensitive=False,
         )
-
-    @override
-    def glob(self, pattern: str) -> Generator[Self, None, None]:
-        return super().glob(self._get_case_insensitive_glob_pattern(pattern))
-
-    @override
-    def rglob(self, pattern: str) -> Generator[Self, None, None]:
-        return super().rglob(self._get_case_insensitive_glob_pattern(pattern))
 
     @override
     def relative_to(self, *other: StrPath) -> Path:  # type: ignore[override]
@@ -314,10 +372,7 @@ def parse_app_settings_config(config_text: str) -> dict[str, str]:
     return config_dict
 
 
-_T = TypeVar("_T")
-
-
-def nuitka_ignore(func: _T) -> _T:
+def nuitka_ignore[T](func: T) -> T:
     """
     Don't compile decorated function with Nuitka. It will stay bytecode.
 

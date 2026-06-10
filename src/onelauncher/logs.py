@@ -8,9 +8,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from platform import platform
 from types import TracebackType
-from typing import Final
-
-from typing_extensions import override
+from typing import Final, override
 
 from onelauncher.async_utils import app_cancel_scope
 from onelauncher.resources import data_dir

@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import (
     Annotated,
     Literal,
-    TypeVar,
     assert_never,
 )
 
@@ -57,13 +56,8 @@ class _GameParamGameType(Enum):
     DDO_PREVIEW = "ddo_preview"
 
 
-_ConverterTypeVar = TypeVar("_ConverterTypeVar", bound=type)
-
-
 @Parameter(n_tokens=1, accepts_keys=False)
-def _cattrs_converter(
-    type_: type[_ConverterTypeVar], tokens: Sequence[Token]
-) -> _ConverterTypeVar:
+def _cattrs_converter[T: type](type_: type[T], tokens: Sequence[Token]) -> T:
     converter = get_converter()
     return converter.structure(tokens[0].value, type_)
 
@@ -541,7 +535,6 @@ def get_app() -> cyclopts.App:
             display_name=display_name,
             last_used_world_name=last_used_world_name,
         )
-
         return start_async_gui(
             entry=partial(start_ui, config_manager=config_manager, game_id=_game_id),
         )

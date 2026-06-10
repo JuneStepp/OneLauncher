@@ -1,6 +1,7 @@
+from typing import override
+
 from PySide6 import QtCore, QtGui, QtWidgets
 from qframelesswindow import FramelessDialog, FramelessMainWindow
-from typing_extensions import override
 
 from onelauncher.network.game_newsfeed import get_newsfeed_css
 

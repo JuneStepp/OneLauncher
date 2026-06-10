@@ -1,10 +1,10 @@
 import logging
+from typing import override
 from urllib.parse import urlparse, urlunparse
 
 import httpx
 import trio
 import zeep.exceptions
-from typing_extensions import override
 from zeep import AsyncClient, Settings
 from zeep.cache import Base, InMemoryCache
 from zeep.loader import load_external_async

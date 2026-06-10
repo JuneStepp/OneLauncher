@@ -47,9 +47,9 @@ from typing import (
     Final,
     Literal,
     NamedTuple,
-    TypeAlias,
     assert_never,
     overload,
+    override,
 )
 from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minicompat import NodeList
@@ -62,7 +62,6 @@ import defusedxml.minidom  # type: ignore[import-untyped]
 import qtawesome
 from httpx import HTTPError
 from PySide6 import QtCore, QtGui, QtWidgets
-from typing_extensions import override
 
 from .__about__ import __title__
 from .addons.startup_script import StartupScript
@@ -162,7 +161,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         "Dependencies",
         "StartupScript",
     )
-    TableWidgetColumnName: TypeAlias = Literal[
+    type TableWidgetColumnName = Literal[
         "ID",
         "Name",
         "Category",
@@ -194,12 +193,12 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         "tableSkinsDDO",
         "tableSkinsDDOInstalled",
     )
-    SourceTabName: TypeAlias = Literal["Installed", "Find More"]
+    type SourceTabName = Literal["Installed", "Find More"]
     SOURCE_TAB_NAMES: Final[tuple[SourceTabName, ...]] = (
         "Installed",
         "Find More",
     )
-    AddonTypeTabName: TypeAlias = Literal["Plugins", "Skins", "Music"]
+    type AddonTypeTabName = Literal["Plugins", "Skins", "Music"]
     TAB_NAMES_LOTRO: Final[tuple[AddonTypeTabName, ...]] = ("Plugins", "Skins", "Music")
     TAB_NAMES_DDO: Final[tuple[AddonTypeTabName, ...]] = ("Skins",)
 

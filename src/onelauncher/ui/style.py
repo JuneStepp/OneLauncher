@@ -1,6 +1,6 @@
 from pathlib import Path
 from textwrap import dedent
-from typing import Final, Literal, TypeAlias
+from typing import Final, Literal
 
 from PySide6 import QtCore, QtGui
 from PySide6.QtWidgets import QApplication
@@ -10,7 +10,7 @@ from ..resources import data_dir
 # Dynamic property used for styling, like the class attribute in HTML
 CLASS_PROPERTY: str = "qssClass"
 
-Rem: TypeAlias = float
+type Rem = float
 """
 Unit that is the application base font size multiplied by the Rem number when
 transformed into pixels.
@@ -66,7 +66,7 @@ TYPE_SCALE: Final[dict[str, Rem]] = {
     "8xl": 6.0,
     "9xl": 8.0,
 }
-Direction: TypeAlias = Literal["left", "right", "top", "bottom"]
+type Direction = Literal["left", "right", "top", "bottom"]
 DIRECTIONS_SHORTHAND: tuple[tuple[tuple[Direction, ...], str], ...] = (
     (("left",), "l"),
     (("right",), "r"),

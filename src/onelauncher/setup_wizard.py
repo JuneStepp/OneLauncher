@@ -32,13 +32,12 @@ from contextlib import suppress
 from functools import partial
 from pathlib import Path
 from shutil import rmtree
-from typing import Final
+from typing import Final, override
 
 import attrs
 import qtawesome
 import trio
 from PySide6 import QtCore, QtGui, QtWidgets
-from typing_extensions import override
 
 from .__about__ import __title__
 from .addons.config import AddonsConfigSection

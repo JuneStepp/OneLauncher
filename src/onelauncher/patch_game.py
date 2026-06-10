@@ -5,7 +5,7 @@ import sys
 from functools import partial
 from pathlib import Path
 from types import MappingProxyType
-from typing import Literal, TypeAlias, assert_never
+from typing import Literal, assert_never
 from uuid import uuid4
 
 import attrs
@@ -37,7 +37,7 @@ from onelauncher.wine_environment import get_wine_process_args
 logger = logging.getLogger(__name__)
 logger.addFilter(ExternalProcessLogsFilter())
 
-PatchPhase: TypeAlias = Literal["FullPatch", "FilesOnly", "DataOnly"]
+type PatchPhase = Literal["FullPatch", "FilesOnly", "DataOnly"]
 
 # Run file patching twice to avoid problems when patchclient.dll
 # self-patches.

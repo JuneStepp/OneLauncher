@@ -5,7 +5,7 @@ from contextlib import suppress
 from functools import cache, partial
 from pathlib import Path
 from shutil import rmtree
-from typing import Any, Final, TypeAlias, TypeVar
+from typing import Any, Final
 
 import attrs
 import cattrs
@@ -237,15 +237,12 @@ class WrongConfigVersionError(ConfigFileError):
     config_file_version: Version
 
 
-ConfigTypeVar = TypeVar("ConfigTypeVar", bound=Config)
-
-
-def read_config_file(
+def read_config_file[T: Config](
     *,
-    config_class: type[ConfigTypeVar],
+    config_class: type[T],
     config_file_path: Path,
     preconverter: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
-) -> ConfigTypeVar:
+) -> T:
     """
     Read and parse config file into config_class object.
 
@@ -338,7 +335,7 @@ def update_config_file(
     config_file_path.write_text(doc.as_string())
 
 
-ConfigManagerConfigClass: TypeAlias = ProgramConfig | GameConfig | GameAccountsConfig
+type ConfigManagerConfigClass = ProgramConfig | GameConfig | GameAccountsConfig
 
 
 class ConfigManagerNotSetupError(Exception):

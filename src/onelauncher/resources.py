@@ -3,12 +3,11 @@ import sys
 import tomllib
 from functools import cache, cached_property
 from pathlib import Path
-from typing import Self
+from typing import Self, override
 
 import attrs
 import babel
 from PySide6.QtCore import QLocale
-from typing_extensions import override
 
 logger = logging.getLogger(__name__)
 

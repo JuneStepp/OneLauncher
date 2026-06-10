@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -144,6 +145,30 @@ class TestCaseInsensitiveAbsolutePath:
         assert (
             next(CaseInsensitiveAbsolutePath(tmp_path).rglob("filE*.txt")) == file_path
         )
+
+    if sys.version_info >= (3, 13):
+
+        def test_full_match(self) -> None:
+            start = "C://a" if os.name == "nt" else "/a"
+            assert CaseInsensitiveAbsolutePath(start, "b.txt").full_match(
+                f"{start}/*.txt"
+            )
+            assert CaseInsensitiveAbsolutePath(start, "b.TXT").full_match(
+                f"{start}/*.txt"
+            )
+            assert CaseInsensitiveAbsolutePath(start, "b.txt").full_match(
+                f"{start}/*.TXT"
+            )
+            assert not CaseInsensitiveAbsolutePath(start, "b.txtx").full_match(
+                f"{start}/*.txt"
+            )
+
+    def test_match(self) -> None:
+        start = "C://a" if os.name == "nt" else "/a"
+        assert CaseInsensitiveAbsolutePath(start, "b.txt").match("*.txt")
+        assert CaseInsensitiveAbsolutePath(start, "b.TXT").match("*.txt")
+        assert CaseInsensitiveAbsolutePath(start, "b.txt").match("*.TXT")
+        assert not CaseInsensitiveAbsolutePath(start, "b.txtx").match("*.txt")
 
     def test_truediv_returns_case_insensitive_path(self, tmp_path: Path) -> None:
         (tmp_path / "exists").touch()

@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 from html.parser import HTMLParser
-from typing import cast
+from typing import cast, override
 from urllib.parse import urlparse, urlunparse
 
 import marko
-from typing_extensions import override
 
 from onelauncher.__about__ import __project_url__
 

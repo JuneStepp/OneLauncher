@@ -27,11 +27,11 @@
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 import logging
+from typing import override
 
 import trio
 from PySide6 import QtCore, QtWidgets
 from qtpy import QtGui
-from typing_extensions import override
 
 from onelauncher.config_manager import ConfigManager
 from onelauncher.game_config import GameConfigID

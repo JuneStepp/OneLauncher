@@ -31,7 +31,7 @@ import logging
 import sys
 from functools import partial
 from pathlib import Path
-from typing import cast
+from typing import cast, override
 
 import attrs
 import httpx
@@ -41,7 +41,6 @@ import qtawesome
 import trio
 from keyring.errors import KeyringLocked, NoKeyringError
 from PySide6 import QtCore, QtGui, QtWidgets
-from typing_extensions import override
 from xmlschema import XMLSchemaValidationError
 
 from onelauncher.async_utils import app_cancel_scope

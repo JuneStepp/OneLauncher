@@ -2,13 +2,12 @@ import logging
 import os
 from functools import partial
 from pathlib import Path
-from typing import Final
+from typing import Final, override
 
 import attrs
 import qtawesome
 import trio
 from PySide6 import QtCore, QtGui, QtWidgets
-from typing_extensions import override
 
 from onelauncher.config_manager import ConfigManager
 from onelauncher.install_game import (

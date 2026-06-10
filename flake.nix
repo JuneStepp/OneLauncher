@@ -34,7 +34,7 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
-        python = pkgs.python311;
+        python = pkgs.python3;
 
         workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = ./.; };
 

@@ -135,3 +135,9 @@ async def test_invalid_program_config_load_backup(
     main_window_mock.assert_called_once()
 
     assert not backup_program_config.exists()
+
+
+def test_generate_shell_completion(app: cyclopts.App) -> None:
+    assert app(["generate-shell-completion", "bash"]) == 0
+    assert app(["generate-shell-completion", "fish"]) == 0
+    assert app(["generate-shell-completion", "zsh"]) == 0

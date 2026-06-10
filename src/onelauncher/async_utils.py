@@ -3,13 +3,12 @@ from collections.abc import Awaitable, Callable
 from functools import partial
 from tempfile import TemporaryDirectory
 from types import TracebackType
-from typing import Final
+from typing import Final, override
 
 import outcome
 import trio
 from PySide6 import QtCore, QtWidgets
 from trio.abc import ReceiveStream
-from typing_extensions import override
 
 from .ui.qtapp import get_qapp
 

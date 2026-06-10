@@ -1,9 +1,8 @@
 from enum import Enum
-from typing import Literal, TypeAlias
+from typing import Literal, override
 
 import attrs
 from packaging.version import Version
-from typing_extensions import override
 
 from .__about__ import __title__
 from .config import Config, config_field
@@ -26,7 +25,7 @@ class GamesSortingMode(Enum):
     ALPHABETICAL = "alphabetical"
 
 
-OnGameStartAction: TypeAlias = Literal["stay", "close"]
+type OnGameStartAction = Literal["stay", "close"]
 
 
 @attrs.frozen
