@@ -7,10 +7,3 @@
         executable: "yes"
   import-hacks:
     - package-system-dlls: "yes"
-# See <https://github.com/sissaschool/elementpath/issues/102>.
-- module-name: "elementpath.datatypes.any_types"
-  anti-bloat:
-  - description: "remove docstring dependency"
-    replacements_plain:
-      "ver = ver + ' '": "ver = ver + ' ' if type(ver) is str else ' '"
-    when: "no_docstrings"
