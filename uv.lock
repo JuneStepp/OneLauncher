@@ -4119,8 +4119,8 @@ wheels = [
 
 [[package]]
 name = "zeep"
-version = "4.3.2"
-source = { git = "https://github.com/JuneStepp/python-zeep.git#d1e9c9a9aded190d96f74ba679c780ba437372be" }
+version = "4.3.3"
+source = { git = "https://github.com/JuneStepp/python-zeep.git#e98da0d2a50ecc1417cebec0d9844f7c4432a9af" }
 dependencies = [
     { name = "attrs" },
     { name = "isodate" },
