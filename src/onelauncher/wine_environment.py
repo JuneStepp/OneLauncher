@@ -33,6 +33,7 @@ import ssl
 import sys
 import tarfile
 from functools import partial
+from hashlib import sha256
 from pathlib import Path
 from shutil import move, rmtree
 from tempfile import TemporaryDirectory
@@ -68,6 +69,10 @@ DXVK_URL = (
     "https://github.com/doitsujin/dxvk/releases/download/v2.7.1/dxvk-2.7.1.tar.gz"
 )
 
+D3D_EXTRAS_VERSION = "2"
+D3D_EXTRAS_URL = "https://github.com/lutris/d3d_extras/releases/download/v2/v2.tar.xz"
+D3D_EXTRAS_HASH = "9117ac86947b53865fc0d675314179e738b1e3e38bbb4281e4afe6b665b073af"
+
 # macOS only. Includes DXVK.
 SIKARUGIR_FRAMEWORKS_VERSION = "Template-1.0.5"
 SIKARUGIR_FRAMEWORKS_URL = "https://github.com/Sikarugir-App/Wrapper/releases/download/v1.0/Template-1.0.5.tar.xz"
@@ -101,6 +106,9 @@ class WineManagement:
 
         self.latest_dxvk_path: Final[Path] = (
             self.downloads_path / f"dxvk-{DXVK_VERSION}"
+        )
+        self.latest_d3d_extras_path: Final[Path] = (
+            self.downloads_path / f"d3d-extras-{D3D_EXTRAS_VERSION}"
         )
         self.latest_sikarugir_frameworks_path: Final[Path] = (
             self.downloads_path / f"frameworks-{SIKARUGIR_FRAMEWORKS_VERSION}"
@@ -276,6 +284,75 @@ class WineManagement:
             (self.prefix_system32 / dll).symlink_to(self.latest_dxvk_path / "x64" / dll)
             (self.prefix_syswow64 / dll).symlink_to(self.latest_dxvk_path / "x32" / dll)
 
+    def d3d_extras_setup(self) -> None:
+        if self.latest_d3d_extras_path.exists():
+            if not (
+                self.prefix_path / "drive_c/windows/system32/d3dx11_43.dll"
+            ).is_symlink():
+                self._d3d_extras_injector()
+            return
+
+        self.dlgDownloader.setLabelText("Downloading DirectX...")
+        with TemporaryDirectory() as temp_dir_name:
+            download_path = Path(temp_dir_name) / "d3d_extras.tar.xz"
+
+            if self._downloader(D3D_EXTRAS_URL, download_path):
+                self.dlgDownloader.reset()
+
+                if sha256(download_path.read_bytes()).hexdigest() != D3D_EXTRAS_HASH:
+                    show_warning_message(
+                        "There was a hash error downloading DirectX. "
+                        "You may want to retry.",
+                        get_qapp().activeWindow(),
+                    )
+                    return
+
+                self.dlgDownloader.setLabelText("Extracting DirectX...")
+                self.dlgDownloader.setValue(99)
+                self._d3d_extras_extractor(download_path)
+                self.dlgDownloader.setValue(100)
+
+        self._d3d_extras_injector()
+
+    def _d3d_extras_extractor(self, archive_path: Path) -> None:
+        with TemporaryDirectory() as temp_dir_name:
+            temp_dir = Path(temp_dir_name)
+
+            # Extract tar.xz archive.
+            with lzma.open(archive_path) as file, tarfile.open(fileobj=file) as tar:
+                tar.extractall(temp_dir, filter="data")
+
+            source_dir = next(temp_dir.glob("*/"))
+            # Using `shutil.move` instead of `Path.rename`, so that it works across
+            # filesystems.
+            move(source_dir, self.latest_d3d_extras_path)
+
+        # Remove old versions.
+        for folder in self.downloads_path.glob("*/"):
+            if folder.name.startswith("d3d-extras") and folder != self.latest_d3d_extras_path:
+                rmtree(folder)
+
+    def _d3d_extras_injector(self) -> None:
+        """
+        Add native `d3dx11_43.dll` to the WINE prefix.
+
+        Native DLL needs to be used to fix frills memory leak potentially from
+        `D3DX11LoadTextureFromTexture` use which is a stub in WINE.
+        """
+        dll = "d3dx11_43.dll"
+
+        # Remove existing DLLs.
+        (self.prefix_system32 / dll).unlink(missing_ok=True)
+        (self.prefix_syswow64 / dll).unlink(missing_ok=True)
+
+        # Symlink DXVK DLLs into the WINE prefix.
+        (self.prefix_system32 / dll).symlink_to(
+            self.latest_d3d_extras_path / "x64" / dll
+        )
+        (self.prefix_syswow64 / dll).symlink_to(
+            self.latest_d3d_extras_path / "x32" / dll
+        )
+
     def sikarugir_frameworks_setup(self) -> None:
         if self.latest_sikarugir_frameworks_path.exists():
             return
@@ -322,6 +399,8 @@ class WineManagement:
 
         self.wine_setup()
         self.dlgDownloader.reset()
+        self.d3d_extras_setup()
+        self.dlgDownloader.reset()
         if sys.platform == "darwin":
             self.sikarugir_frameworks_setup()
         else:
@@ -358,7 +437,13 @@ def get_wine_process_args(
         wine_path = wine_management.wine_binary_path
 
         # Disable mscoree and mshtml to avoid downloading wine mono and gecko.
-        wine_dll_overrides: list[str] = ["mscoree=d", "mshtml=d"]
+        wine_dll_overrides: list[str] = [
+            "mscoree=d",
+            "mshtml=d",
+            # Native DLL needs to be used to fix frills memory leak potentially from
+            # `D3DX11LoadTextureFromTexture` use which is a stub in WINE.
+            "d3dx11_43=n",
+        ]
         # Add dll overrides for DirectX, so DXVK is used instead of wine3d.
         if sys.platform != "darwin":
             wine_dll_overrides.extend(("d3d11=n", "dxgi=n", "d3d10core=n", "d3d9=n"))
