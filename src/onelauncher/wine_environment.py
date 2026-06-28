@@ -33,7 +33,6 @@ import platform
 import ssl
 import sys
 import tarfile
-from functools import partial
 from hashlib import sha256
 from pathlib import Path
 from shutil import move, rmtree
@@ -148,9 +147,12 @@ class WineManagement:
     def _downloader(self, url: str, path: Path) -> bool:
         """Downloads file from url to path and shows progress with self.handle_download_progress"""
         try:
-            ssl._create_default_https_context = partial(
-                ssl.create_default_context, cafile=certifi.where()
+            https_handler = request.HTTPSHandler(
+                context=ssl.create_default_context(cafile=certifi.where())
             )
+            opener = request.build_opener(https_handler)
+            request.install_opener(opener)
+
             request.urlretrieve(  # noqa: S310
                 url, str(path), self._handle_download_progress
             )
