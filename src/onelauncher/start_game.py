@@ -24,7 +24,7 @@ from .game_config import ClientType, GameConfig, GameConfigID
 from .network.game_launcher_config import GameLauncherConfig
 from .network.world import World
 from .resources import OneLauncherLocale
-from .wine_environment import get_wine_process_args
+from .wine_environment import GRAPHICS_TRANSLATION_LAYER, get_wine_process_args
 
 logger = logging.getLogger(__name__)
 logger.addFilter(ExternalProcessLogsFilter())
@@ -191,8 +191,15 @@ async def update_game_user_preferences(
         config["Display"]["FullScreen"] = "False"
         config["Display"]["ScreenMode"] = "FullScreenWindowed"
 
+    # Prevent certain graphical artifacts with DXMT like above forges.
+    if GRAPHICS_TRANSLATION_LAYER == "DXMT" and "Display" not in config:
+        with suppress(configparser.DuplicateSectionError):
+            config.add_section("Display")
+        config["Display"]["Antialiasing"] = "Disabled"
+
     if game_config.wine.builtin_prefix_enabled and (
-        sys.platform == "darwin" or "Render" not in config
+        (sys.platform == "darwin" and GRAPHICS_TRANSLATION_LAYER == "DXVK")
+        or "Render" not in config
     ):
         with suppress(configparser.DuplicateSectionError):
             config.add_section("Render")

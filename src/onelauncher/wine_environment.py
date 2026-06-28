@@ -29,6 +29,7 @@
 import logging
 import lzma
 import os
+import platform
 import ssl
 import sys
 import tarfile
@@ -38,7 +39,7 @@ from pathlib import Path
 from shutil import move, rmtree
 from tempfile import TemporaryDirectory
 from types import MappingProxyType
-from typing import Final
+from typing import Final, Literal
 from urllib import request
 from urllib.error import HTTPError, URLError
 
@@ -76,6 +77,10 @@ D3D_EXTRAS_HASH = "9117ac86947b53865fc0d675314179e738b1e3e38bbb4281e4afe6b665b07
 # macOS only. Includes DXVK.
 SIKARUGIR_FRAMEWORKS_VERSION = "Template-1.0.5"
 SIKARUGIR_FRAMEWORKS_URL = "https://github.com/Sikarugir-App/Wrapper/releases/download/v1.0/Template-1.0.5.tar.xz"
+
+GRAPHICS_TRANSLATION_LAYER: Literal["DXVK", "DXMT"] = (
+    "DXVK" if sys.platform != "darwin" or platform.machine() == "x86_64" else "DXMT"
+)
 
 
 @attrs.define
@@ -329,7 +334,10 @@ class WineManagement:
 
         # Remove old versions.
         for folder in self.downloads_path.glob("*/"):
-            if folder.name.startswith("d3d-extras") and folder != self.latest_d3d_extras_path:
+            if (
+                folder.name.startswith("d3d-extras")
+                and folder != self.latest_d3d_extras_path
+            ):
                 rmtree(folder)
 
     def _d3d_extras_injector(self) -> None:
@@ -477,7 +485,7 @@ def get_wine_process_args(
             edited_environment["WINEDLLPATH_PREPEND"] = str(
                 wine_management.latest_sikarugir_frameworks_path
                 / "renderer"
-                / "dxvk"
+                / ("dxvk" if GRAPHICS_TRANSLATION_LAYER == "DXVK" else "dxmt")
                 / "wine"
             )
 
