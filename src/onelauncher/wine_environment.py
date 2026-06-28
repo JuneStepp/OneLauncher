@@ -75,8 +75,8 @@ D3D_EXTRAS_URL = "https://github.com/lutris/d3d_extras/releases/download/v2/v2.t
 D3D_EXTRAS_HASH = "9117ac86947b53865fc0d675314179e738b1e3e38bbb4281e4afe6b665b073af"
 
 # macOS only. Includes DXVK.
-SIKARUGIR_FRAMEWORKS_VERSION = "Template-1.0.5"
-SIKARUGIR_FRAMEWORKS_URL = "https://github.com/Sikarugir-App/Wrapper/releases/download/v1.0/Template-1.0.5.tar.xz"
+SIKARUGIR_FRAMEWORKS_VERSION = "Template-1.0.9"
+SIKARUGIR_FRAMEWORKS_URL = "https://github.com/Sikarugir-App/Wrapper/releases/download/v1.0/Template-1.0.9.tar.xz"
 
 CROSSOVER_DXVK_PATH = external_dependencies_dir / "crossover_dxvk"
 
