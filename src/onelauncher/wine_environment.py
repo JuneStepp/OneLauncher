@@ -55,8 +55,8 @@ logger = logging.getLogger(__name__)
 
 
 if sys.platform == "darwin":
-    WINE_VERSION = "WS12WineSikarugir10.0_2"
-    WINE_URL = "https://github.com/Sikarugir-App/Engines/releases/download/v1.0/WS12WineSikarugir10.0_2.tar.xz"
+    WINE_VERSION = "WS12WineSikarugir10.0_6"
+    WINE_URL = "https://github.com/Sikarugir-App/Engines/releases/download/v1.0/WS12WineSikarugir10.0_6.tar.xz"
 
 else:
     # To use Proton, replace link with Proton build and uncomment
