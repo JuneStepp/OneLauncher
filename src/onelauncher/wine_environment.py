@@ -47,6 +47,7 @@ import certifi
 from PySide6 import QtCore, QtWidgets
 
 from .config import platform_dirs
+from .resources import external_dependencies_dir
 from .ui.qtapp import get_qapp
 from .ui.utilities import show_warning_message
 from .wine.config import WineConfigSection
@@ -77,6 +78,8 @@ D3D_EXTRAS_HASH = "9117ac86947b53865fc0d675314179e738b1e3e38bbb4281e4afe6b665b07
 SIKARUGIR_FRAMEWORKS_VERSION = "Template-1.0.5"
 SIKARUGIR_FRAMEWORKS_URL = "https://github.com/Sikarugir-App/Wrapper/releases/download/v1.0/Template-1.0.5.tar.xz"
 
+CROSSOVER_DXVK_PATH = external_dependencies_dir / "crossover_dxvk"
+
 
 @attrs.define
 class WineEnvironment:
@@ -105,7 +108,9 @@ class WineManagement:
         self.wine_binary_path: Final[Path] = self.latest_wine_path / "bin" / "wine"
 
         self.latest_dxvk_path: Final[Path] = (
-            self.downloads_path / f"dxvk-{DXVK_VERSION}"
+            CROSSOVER_DXVK_PATH
+            if sys.platform == "darwin"
+            else self.downloads_path / f"dxvk-{DXVK_VERSION}"
         )
         self.latest_d3d_extras_path: Final[Path] = (
             self.downloads_path / f"d3d-extras-{D3D_EXTRAS_VERSION}"
@@ -231,13 +236,20 @@ class WineManagement:
 
     def dxvk_setup(self) -> None:
         if self.latest_dxvk_path.exists():
-            if not (
-                self.prefix_path / "drive_c/windows/system32/d3d11.dll"
-            ).is_symlink():
+            if (self.prefix_path / "drive_c/windows/system32/d3d11.dll").resolve() != (
+                self.latest_dxvk_path / "x64/d3d11.dll"
+            ):
                 self._dxvk_injector()
             return
+        # CrossOver DXVK should come with the build.
+        elif sys.platform == "darwin":
+            show_warning_message(
+                "DXVK missing. Report this if you are using an official build.",
+                get_qapp().activeWindow(),
+            )
+            return
 
-        self.dlgDownloader.setLabelText("Downloading DXVK...")
+        self.dlgDownloader.setLabelText("Downloading DXVK...")  # type: ignore[unreachable, unused-ignore]
         with TemporaryDirectory() as temp_dir_name:
             download_path = Path(temp_dir_name) / "dxvk.tar.gz"
 
@@ -329,7 +341,10 @@ class WineManagement:
 
         # Remove old versions.
         for folder in self.downloads_path.glob("*/"):
-            if folder.name.startswith("d3d-extras") and folder != self.latest_d3d_extras_path:
+            if (
+                folder.name.startswith("d3d-extras")
+                and folder != self.latest_d3d_extras_path
+            ):
                 rmtree(folder)
 
     def _d3d_extras_injector(self) -> None:
@@ -401,10 +416,10 @@ class WineManagement:
         self.dlgDownloader.reset()
         self.d3d_extras_setup()
         self.dlgDownloader.reset()
+        self.dxvk_setup()
         if sys.platform == "darwin":
+            self.dlgDownloader.reset()
             self.sikarugir_frameworks_setup()
-        else:
-            self.dxvk_setup()
         self.dlgDownloader.close()
         self.is_setup = True
 
@@ -445,7 +460,9 @@ def get_wine_process_args(
             "d3dx11_43=n",
         ]
         # Add dll overrides for DirectX, so DXVK is used instead of wine3d.
-        if sys.platform != "darwin":
+        if sys.platform == "darwin":
+            wine_dll_overrides.extend(("d3d11=n", "d3d10core=n"))
+        else:
             wine_dll_overrides.extend(("d3d11=n", "dxgi=n", "d3d10core=n", "d3d9=n"))
         edited_environment["WINEDLLOVERRIDES"] = ";".join(wine_dll_overrides)
 

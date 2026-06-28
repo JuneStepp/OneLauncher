@@ -57,6 +57,42 @@ jobs:
       - name: Move `run_ptch_client` to `onelauncher/external` dir
         run: mv src/run_patch_client/run_ptch_client.exe src/onelauncher/external/
 
+      # macOS CrossOver patched DXVK
+      - name: Download CrossOver sources
+        if: runner.os == 'macOS'
+        run: |
+          curl "https://media.codeweavers.com/pub/crossover/source/crossover-sources-26.2.0.tar.gz" \
+            > crossover-sources.tar.gz
+          echo "3846ae094dd49c073467bb2b5e6e17d5bacaebcfab4b6dd2af3f132c64cad6cf  crossover-sources.tar.gz" | shasum -a 256 --check
+
+          mkdir crossover-sources
+          tar xf crossover-sources.tar.gz --directory crossover-sources
+      - name: Patch CrossOver DXVK for modern GCC
+        if: runner.os == 'macOS'
+        run: |
+          pushd crossover-sources/sources/dxvk
+
+          curl "https://github.com/doitsujin/dxvk/commit/1a5afc77b1859e6c7e31b55e11ece899e3b5295a.patch" \
+            | patch -p1
+          curl "https://raw.githubusercontent.com/NixOS/nixpkgs/e73de5be04e0eff4190a1432b946d469c794e7b4/pkgs/by-name/dx/dxvk_1/gcc14-compat.patch" \
+            | patch -p1
+
+          popd
+      - name: Build CrossOver patched DXVK
+        if: runner.os == 'macOS'
+        run: |
+          pushd crossover-sources/sources/dxvk
+
+          brew install meson mingw-w64 glslang
+
+          mkdir build
+          ./package-release.sh 1.10.3 build --no-package
+
+          popd
+      - name: Move CrossOver patched DXVK to `onelauncher/external` dir
+        if: runner.os == 'macOS'
+        run: mv crossover-sources/sources/dxvk/build/dxvk-* src/onelauncher/external/crossover_dxvk
+
       # innoextract
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         if: runner.os != 'Windows'
@@ -162,6 +198,11 @@ jobs:
           if [ "${{ runner.os }}" != "Windows" ]; then
             test -x $distDir/onelauncher/external/innoextract && \
               echo innoextract found
+          fi
+
+          if [ "${{ runner.os }}" == "macOS" ]; then
+            test -x $distDir/onelauncher/external/crossover_dxvk/x64/d3d11.dll && \
+              echo CrossOver DXVK found
           fi
       - name: Make app zip on MacOS
         if: runner.os == 'macOS'

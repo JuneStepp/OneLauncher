@@ -59,6 +59,7 @@ def main(
     elif sys.platform == "darwin":
         nuitka_arguments.extend(
             [
+                "--include-raw-dir=src/onelauncher/external/crossover_dxvk=onelauncher/external/crossover_dxvk",
                 f"--macos-app-name={__about__.__title__}",
                 f"--macos-app-version={__about__.__version__}",
                 "--macos-app-icon=src/onelauncher/images/OneLauncherIcon.png",
