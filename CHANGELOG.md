@@ -1,5 +1,50 @@
 # Changelog
 
+## 2.1.2 (2026-06-28)
+
+**Important macOS info**:
+- On macOS, there seems to still be a memory leak when frills are enabled in the in-game
+  settings.
+- There are some minor graphical glitches in this update if antialiasing is enabled in
+  the in-game settings.
+- macOS Intel x86_64 support is currently unconfirmed in this release.
+
+**Important Linux info**:
+- The frills related memory leak should be fixed.
+
+### Improvements
+- (game_account_config) remove extra description whitespace
+- (addon_manager) handle plugin/compendium files with no valid tag
+- (patch_game) handle insufficient file permissions
+- remove unused client type variant
+- (main_window) support high res banner images
+- (setup_wizard) lower steam/games dir search depth
+- (wine) fix frills memory leak on Linux
+- (wine) switch to DXMT on arm64 macOS.
+  - Fixes startup crash after latest game update.
+- (wine) fix HTTPS context
+
+### Internal
+- docs: update changelog
+- docs: correct comment typos
+- refactor(config_manager): remove redundant len call
+- ci(status_checks): run `apt-get update`
+- build: update Nix flake
+- build(deps): update
+- build(deps): extra nuitka deps
+- refactor: cleaner Nuitka#3697 workaround
+- build: fix elementpath crash with no docstrings
+- build(deps): update Nuitka
+- build(deps): update idna
+- build(deps): update zeep
+- feat: drop Python 3.11, support Python >= 3.12
+- ci(status_checks): test on every supported Python version
+- build(deps): update elementpath
+- build(deps): upgrade cryptography
+- build(deps): upgrade zeep
+- feat(wine): upgrade Sikarugir template
+- feat(wine): update macOS WINE version
+
 ## 2.1.1 (2026-01-01)
 
 - Fix missing game user preferences dir
