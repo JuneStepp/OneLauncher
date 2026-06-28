@@ -91,7 +91,10 @@ jobs:
           popd
       - name: Move CrossOver patched DXVK to `onelauncher/external` dir
         if: runner.os == 'macOS'
-        run: mv crossover-sources/sources/dxvk/build/dxvk-* src/onelauncher/external/crossover_dxvk
+        run: |
+          mkdir -p src/onelauncher/external/crossover_dxvk/{x32,x64}
+          mv crossover-sources/sources/dxvk/build/dxvk-*/x32/{d3d10core.dll,d3d11.dll} src/onelauncher/external/crossover_dxvk/x32/
+          mv crossover-sources/sources/dxvk/build/dxvk-*/x64/{d3d10core.dll,d3d11.dll} src/onelauncher/external/crossover_dxvk/x64/
 
       # innoextract
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
