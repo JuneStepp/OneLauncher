@@ -30,7 +30,6 @@ The easiest way to get OneLauncher is with a [compiled release](https://Github.c
 - Download the latest release:
     - [arm64 (Apple Silicon)](http://github.com/JuneStepp/OneLauncher/releases/latest/download/OneLauncher-macOS-ARM64.zip)
     - [x86_64 (Intel)](http://github.com/JuneStepp/OneLauncher/releases/latest/download/OneLauncher-macOS-x86_64.zip)
-        - After a recent game update, it is unconfirmed if the x86_64 (Intel) version works.
 - Double click the `OneLauncher-macOS-*.zip` file to extract it.
 - Drag the extracted `OneLauncher` to your Applications folder if you'd like.
 - You can double click `OneLauncher` to open it.

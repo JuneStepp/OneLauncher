@@ -3,11 +3,10 @@
 ## 2.1.2 (2026-06-28)
 
 **Important macOS info**:
-- On macOS, there seems to still be a memory leak when frills are enabled in the in-game
+- On macOS, there is currently a memory leak when frills are enabled in the in-game
   settings.
 - There are some minor graphical glitches in this update if antialiasing is enabled in
-  the in-game settings.
-- macOS Intel x86_64 support is currently unconfirmed in this release.
+  the in-game settings on Apple Silicon macs.
 
 **Important Linux info**:
 - The frills related memory leak should be fixed.
