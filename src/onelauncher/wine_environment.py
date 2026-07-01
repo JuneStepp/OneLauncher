@@ -57,17 +57,20 @@ logger = logging.getLogger(__name__)
 if sys.platform == "darwin":
     WINE_VERSION = "WS12WineSikarugir10.0_6"
     WINE_URL = "https://github.com/Sikarugir-App/Engines/releases/download/v1.0/WS12WineSikarugir10.0_6.tar.xz"
-
+    DXVK_VERSION = "1.10.3-20230507-repack"
+    DXVK_URL = "https://github.com/Gcenx/DXVK-macOS/releases/download/v1.10.3-20230507-repack/dxvk-macOS-async-v1.10.3-20230507-repack.tar.gz"
 else:
     # To use Proton, replace link with Proton build and uncomment
     # `self.proton_documents_symlinker()` in wine_setup in wine_management
     WINE_VERSION = "10.20-staging-tkg-amd64-wow64"
     WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/10.20/wine-10.20-staging-tkg-amd64-wow64.tar.xz"
+    DXVK_VERSION = "2.7.1"
+    DXVK_URL = (
+        "https://github.com/doitsujin/dxvk/releases/download/v2.7.1/dxvk-2.7.1.tar.gz"
+    )
 
-DXVK_VERSION = "2.7.1"
-DXVK_URL = (
-    "https://github.com/doitsujin/dxvk/releases/download/v2.7.1/dxvk-2.7.1.tar.gz"
-)
+DXMT_VERSION = "fd7763b9a5c19b4c225e35e248b4071c1de7b4bc"
+DXMT_URL = "https://github.com/JuneStepp/dxmt/releases/download/2026-06-30/dxmt-3545acfe5d27624c1d1667b819ff00986c7e74ff.tar.gz"
 
 D3D_EXTRAS_VERSION = "2"
 D3D_EXTRAS_URL = "https://github.com/lutris/d3d_extras/releases/download/v2/v2.tar.xz"
@@ -110,6 +113,9 @@ class WineManagement:
 
         self.latest_dxvk_path: Final[Path] = (
             self.downloads_path / f"dxvk-{DXVK_VERSION}"
+        )
+        self.latest_dxmt_path: Final[Path] = (
+            self.downloads_path / f"dxmt-{DXMT_VERSION}"
         )
         self.latest_d3d_extras_path: Final[Path] = (
             self.downloads_path / f"d3d-extras-{D3D_EXTRAS_VERSION}"
@@ -288,6 +294,61 @@ class WineManagement:
             (self.prefix_system32 / dll).symlink_to(self.latest_dxvk_path / "x64" / dll)
             (self.prefix_syswow64 / dll).symlink_to(self.latest_dxvk_path / "x32" / dll)
 
+    def dxmt_setup(self) -> None:
+        if self.latest_dxmt_path.exists():
+            self._dxmt_injector()
+            return
+
+        self.dlgDownloader.setLabelText("Downloading DXMT...")
+        with TemporaryDirectory() as temp_dir_name:
+            download_path = Path(temp_dir_name) / "dxmt.tar.gz"
+
+            if self._downloader(DXMT_URL, download_path):
+                self.dlgDownloader.reset()
+                self.dlgDownloader.setLabelText("Extracting DXMT...")
+                self.dlgDownloader.setValue(99)
+                self._dxmt_extractor(download_path)
+                self.dlgDownloader.setValue(100)
+
+        self._dxmt_injector()
+
+    def _dxmt_extractor(self, archive_path: Path) -> None:
+        with TemporaryDirectory() as temp_dir_name:
+            temp_dir = Path(temp_dir_name)
+
+            # Extract the tar.gz archive.
+            with tarfile.open(archive_path, "r:gz") as file:
+                file.extractall(temp_dir, filter="data")
+
+            source_dir = next(temp_dir.glob("*/"))
+            # Using `shutil.move` instead of `Path.rename`, so that it works across
+            # filesystems.
+            move(source_dir, self.latest_dxmt_path)
+
+        # Remove old DXMT versions.
+        for folder in self.downloads_path.glob("*/"):
+            if folder.name.startswith("dxmt") and folder != self.latest_dxmt_path:
+                rmtree(folder)
+
+    def _dxmt_injector(self) -> None:
+        """
+        Add DXMT to the WINE prefix. There are additional builtin DLLs that need to be
+        used.
+        """
+        dlls = ("dxgi.dll", "d3d10core.dll", "d3d11.dll")
+        for dll in dlls:
+            # Remove existing DLLs.
+            (self.prefix_system32 / dll).unlink(missing_ok=True)
+            (self.prefix_syswow64 / dll).unlink(missing_ok=True)
+
+            # Symlink native DXMT DLLs into the WINE prefix.
+            (self.prefix_system32 / dll).symlink_to(
+                self.latest_dxmt_path / "system32" / dll
+            )
+            (self.prefix_syswow64 / dll).symlink_to(
+                self.latest_dxmt_path / "syswow64" / dll
+            )
+
     def d3d_extras_setup(self) -> None:
         if self.latest_d3d_extras_path.exists():
             self._d3d_extras_injector()
@@ -405,10 +466,13 @@ class WineManagement:
         self.dlgDownloader.reset()
         self.d3d_extras_setup()
         self.dlgDownloader.reset()
-        if sys.platform == "darwin":
-            self.sikarugir_frameworks_setup()
-        else:
+        if GRAPHICS_TRANSLATION_LAYER == "DXVK":
             self.dxvk_setup()
+        else:
+            self.dxmt_setup()
+        if sys.platform == "darwin":
+            self.dlgDownloader.reset()
+            self.sikarugir_frameworks_setup()
         self.dlgDownloader.close()
         self.is_setup = True
 
@@ -448,9 +512,19 @@ def get_wine_process_args(
             # `D3DX11LoadTextureFromTexture` use which is a stub in WINE.
             "d3dx11_43=n",
         ]
-        # Add dll overrides for DirectX, so DXVK is used instead of wine3d.
-        if sys.platform != "darwin":
-            wine_dll_overrides.extend(("d3d11=n", "dxgi=n", "d3d10core=n", "d3d9=n"))
+        if GRAPHICS_TRANSLATION_LAYER == "DXVK":
+            # Add dll overrides for DirectX, so DXVK is used instead of wine3d.
+            wine_dll_overrides.extend(
+                ("d3d11=n", "d3d10core=n")
+                if sys.platform == "darwin"
+                else ("d3d11=n", "dxgi=n", "d3d10core=n", "d3d9=n")
+            )
+        elif GRAPHICS_TRANSLATION_LAYER == "DXMT":
+            wine_dll_overrides.extend(("d3d11=n", "dxgi=n", "d3d10core=n"))
+            edited_environment["WINEDLLPATH_PREPEND"] = str(
+                wine_management.latest_dxmt_path
+            )
+
         edited_environment["WINEDLLOVERRIDES"] = ";".join(wine_dll_overrides)
 
         if sys.platform != "darwin":
@@ -477,12 +551,6 @@ def get_wine_process_args(
                     Path("/usr/libexec"),
                     Path("/usr/lib/system"),
                 )
-            )
-            edited_environment["WINEDLLPATH_PREPEND"] = str(
-                wine_management.latest_sikarugir_frameworks_path
-                / "renderer"
-                / ("dxvk" if GRAPHICS_TRANSLATION_LAYER == "DXVK" else "dxmt")
-                / "wine"
             )
 
             # "wine doesn't handle VK_ERROR_DEVICE_LOST correctly"
