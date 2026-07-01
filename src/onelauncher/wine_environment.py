@@ -238,10 +238,7 @@ class WineManagement:
 
     def dxvk_setup(self) -> None:
         if self.latest_dxvk_path.exists():
-            if not (
-                self.prefix_path / "drive_c/windows/system32/d3d11.dll"
-            ).is_symlink():
-                self._dxvk_injector()
+            self._dxvk_injector()
             return
 
         self.dlgDownloader.setLabelText("Downloading DXVK...")
@@ -293,10 +290,7 @@ class WineManagement:
 
     def d3d_extras_setup(self) -> None:
         if self.latest_d3d_extras_path.exists():
-            if not (
-                self.prefix_path / "drive_c/windows/system32/d3dx11_43.dll"
-            ).is_symlink():
-                self._d3d_extras_injector()
+            self._d3d_extras_injector()
             return
 
         self.dlgDownloader.setLabelText("Downloading DirectX...")
