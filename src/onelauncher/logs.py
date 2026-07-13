@@ -99,7 +99,7 @@ def setup_application_logging(log_level_override: LogLevel | None = None) -> Non
         file_handler = RotatingFileHandler(
             filename=log_file,
             mode="a",
-            maxBytes=10 * 1024 * 1024,
+            maxBytes=100 * 1024 * 1024,  # 100 MB
             backupCount=2,
             encoding=None,
         )
