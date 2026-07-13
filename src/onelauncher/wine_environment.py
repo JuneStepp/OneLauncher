@@ -64,9 +64,9 @@ else:
     WINE_VERSION = "10.20-staging-tkg-amd64-wow64"
     WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/10.20/wine-10.20-staging-tkg-amd64-wow64.tar.xz"
 
-DXVK_VERSION = "2.7.1"
+DXVK_VERSION = "3.0.1"
 DXVK_URL = (
-    "https://github.com/doitsujin/dxvk/releases/download/v2.7.1/dxvk-2.7.1.tar.gz"
+    "https://github.com/doitsujin/dxvk/releases/download/v3.0.1/dxvk-3.0.1.tar.gz"
 )
 
 D3D_EXTRAS_VERSION = "2"
