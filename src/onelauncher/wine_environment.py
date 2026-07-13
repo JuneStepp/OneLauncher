@@ -338,12 +338,12 @@ class WineManagement:
 
     def _d3d_extras_injector(self) -> None:
         """
-        Add native `d3dx11_43.dll` to the WINE prefix.
+        Add native `d3dx11_42.dll` to the WINE prefix.
 
         Native DLL needs to be used to fix frills memory leak potentially from
         `D3DX11LoadTextureFromTexture` use which is a stub in WINE.
         """
-        dll = "d3dx11_43.dll"
+        dll = "d3dx11_42.dll"
 
         # Remove existing DLLs.
         (self.prefix_system32 / dll).unlink(missing_ok=True)
@@ -446,7 +446,7 @@ def get_wine_process_args(
             "mshtml=d",
             # Native DLL needs to be used to fix frills memory leak potentially from
             # `D3DX11LoadTextureFromTexture` use which is a stub in WINE.
-            "d3dx11_43=n",
+            "d3dx11_42=n",
         ]
         # Add dll overrides for DirectX, so DXVK is used instead of wine3d.
         if sys.platform != "darwin":
