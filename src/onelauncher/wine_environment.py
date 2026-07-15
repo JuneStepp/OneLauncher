@@ -38,7 +38,7 @@ from pathlib import Path
 from shutil import move, rmtree
 from tempfile import TemporaryDirectory
 from types import MappingProxyType
-from typing import Final, Literal
+from typing import Final
 from urllib import request
 from urllib.error import HTTPError, URLError
 
@@ -53,21 +53,28 @@ from .wine.config import WineConfigSection
 
 logger = logging.getLogger(__name__)
 
-
+MACOS_WINEHQ_WINE = False
 if sys.platform == "darwin":
-    WINE_VERSION = "WS12WineSikarugir10.0_6"
-    WINE_URL = "https://github.com/Sikarugir-App/Engines/releases/download/v1.0/WS12WineSikarugir10.0_6.tar.xz"
+    if platform.machine() == "x86_64":
+        WINE_VERSION = "WS12WineSikarugir10.0_6"
+        WINE_URL = "https://github.com/Sikarugir-App/Engines/releases/download/v1.0/WS12WineSikarugir10.0_6.tar.xz"
+    else:
+        WINE_VERSION = "wine-stable-11.0_1-osx64"
+        WINE_URL = "https://github.com/Gcenx/macOS_Wine_builds/releases/download/11.0_1/wine-stable-11.0_1-osx64.tar.xz"
+        MACOS_WINEHQ_WINE = True
 
+    DXVK_VERSION = "1.10.3-20230507-repack"
+    DXVK_URL = "https://github.com/Gcenx/DXVK-macOS/releases/download/v1.10.3-20230507-repack/dxvk-macOS-async-v1.10.3-20230507-repack.tar.gz"
 else:
     # To use Proton, replace link with Proton build and uncomment
     # `self.proton_documents_symlinker()` in wine_setup in wine_management
     WINE_VERSION = "10.20-staging-tkg-amd64-wow64"
     WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/10.20/wine-10.20-staging-tkg-amd64-wow64.tar.xz"
+    DXVK_VERSION = "3.0.1"
+    DXVK_URL = (
+        "https://github.com/doitsujin/dxvk/releases/download/v3.0.1/dxvk-3.0.1.tar.gz"
+    )
 
-DXVK_VERSION = "3.0.1"
-DXVK_URL = (
-    "https://github.com/doitsujin/dxvk/releases/download/v3.0.1/dxvk-3.0.1.tar.gz"
-)
 
 D3D_EXTRAS_VERSION = "2"
 D3D_EXTRAS_URL = "https://github.com/lutris/d3d_extras/releases/download/v2/v2.tar.xz"
@@ -76,10 +83,6 @@ D3D_EXTRAS_HASH = "9117ac86947b53865fc0d675314179e738b1e3e38bbb4281e4afe6b665b07
 # macOS only. Includes DXVK.
 SIKARUGIR_FRAMEWORKS_VERSION = "Template-1.0.11"
 SIKARUGIR_FRAMEWORKS_URL = "https://github.com/Sikarugir-App/Wrapper/releases/download/v1.0/Template-1.0.11.tar.xz"
-
-GRAPHICS_TRANSLATION_LAYER: Literal["DXVK", "DXMT"] = (
-    "DXVK" if sys.platform != "darwin" or platform.machine() == "x86_64" else "DXMT"
-)
 
 
 @attrs.define
@@ -227,6 +230,13 @@ class WineManagement:
                 tar.extractall(temp_dir, filter="data")
 
             source_dir = next(temp_dir.glob("*/"))
+
+            if MACOS_WINEHQ_WINE:
+                source_dir = source_dir / "Contents/Resources/wine"
+                # Remove shipped dylibs, so Sikarugir ones are used.
+                for dylib in source_dir.glob("lib/*.dylib"):
+                    dylib.unlink()
+
             # Using `shutil.move` instead of `Path.rename`, so that it works across
             # filesystems.
             move(source_dir, self.latest_wine_path)
@@ -404,11 +414,12 @@ class WineManagement:
         self.wine_setup()
         self.dlgDownloader.reset()
         self.d3d_extras_setup()
-        self.dlgDownloader.reset()
-        if sys.platform == "darwin":
-            self.sikarugir_frameworks_setup()
-        else:
+        if sys.platform != "darwin" or MACOS_WINEHQ_WINE:
+            self.dlgDownloader.reset()
             self.dxvk_setup()
+        if sys.platform == "darwin":
+            self.dlgDownloader.reset()
+            self.sikarugir_frameworks_setup()
         self.dlgDownloader.close()
         self.is_setup = True
 
@@ -451,6 +462,8 @@ def get_wine_process_args(
         # Add dll overrides for DirectX, so DXVK is used instead of wine3d.
         if sys.platform != "darwin":
             wine_dll_overrides.extend(("d3d11=n", "dxgi=n", "d3d10core=n", "d3d9=n"))
+        elif MACOS_WINEHQ_WINE:
+            wine_dll_overrides.extend(("d3d11=n", "d3d10core=n"))
         edited_environment["WINEDLLOVERRIDES"] = ";".join(wine_dll_overrides)
 
         if sys.platform != "darwin":
@@ -478,12 +491,14 @@ def get_wine_process_args(
                     Path("/usr/lib/system"),
                 )
             )
-            edited_environment["WINEDLLPATH_PREPEND"] = str(
-                wine_management.latest_sikarugir_frameworks_path
-                / "renderer"
-                / ("dxvk" if GRAPHICS_TRANSLATION_LAYER == "DXVK" else "dxmt")
-                / "wine"
-            )
+
+            if not MACOS_WINEHQ_WINE:
+                edited_environment["WINEDLLPATH_PREPEND"] = str(
+                    wine_management.latest_sikarugir_frameworks_path
+                    / "renderer"
+                    / "dxvk"
+                    / "wine"
+                )
 
             # "wine doesn't handle VK_ERROR_DEVICE_LOST correctly"
             #     -- <https://github.com/Gcenx/macOS_Wine_builds/releases/tag/10.18>
