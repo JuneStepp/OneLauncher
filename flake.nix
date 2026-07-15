@@ -84,32 +84,32 @@
             };
           });
           zeep = prev.zeep.overrideAttrs (prevAttrs: {
-            nativeBuildInputs = prevAttrs.nativeBuildInputs ++ [
-              (final.resolveBuildSystem {
+            nativeBuildInputs =
+              prevAttrs.nativeBuildInputs
+              ++ final.resolveBuildSystem {
                 setuptools = [ ];
-              })
-            ];
+              };
           });
           asyncache = prev.asyncache.overrideAttrs (prevAttrs: {
-            nativeBuildInputs = prevAttrs.nativeBuildInputs ++ [
-              (final.resolveBuildSystem {
+            nativeBuildInputs =
+              prevAttrs.nativeBuildInputs
+              ++ final.resolveBuildSystem {
                 poetry-core = [ ];
-              })
-            ];
+              };
           });
           sgmllib3k = prev.sgmllib3k.overrideAttrs (prevAttrs: {
-            nativeBuildInputs = prevAttrs.nativeBuildInputs ++ [
-              (final.resolveBuildSystem {
+            nativeBuildInputs =
+              prevAttrs.nativeBuildInputs
+              ++ final.resolveBuildSystem {
                 setuptools = [ ];
-              })
-            ];
+              };
           });
           nuitka = prev.nuitka.overrideAttrs (prevAttrs: {
-            nativeBuildInputs = prevAttrs.nativeBuildInputs ++ [
-              (final.resolveBuildSystem {
+            nativeBuildInputs =
+              prevAttrs.nativeBuildInputs
+              ++ final.resolveBuildSystem {
                 setuptools = [ ];
-              })
-            ];
+              };
           });
           pyside6-essentials = prev.pyside6-essentials.overrideAttrs (
             prevAttrs:

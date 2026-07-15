@@ -139,7 +139,7 @@ class AddonInfo(Sequence[str]):
 
 def GetText(nodelist: NodeList[_ElementChildren]) -> str:
     return "".join(
-        node.data  # type: ignore[union-attr]
+        node.data
         for node in nodelist
         if node.nodeType in [node.TEXT_NODE, node.CDATA_SECTION_NODE]
     )
@@ -1847,7 +1847,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             # Convert to HTML escape notation by adding `#`.
             re.sub(
                 r"&(\d+);",
-                lambda match: f"&#{match.group(1)};",  # type: ignore[str-bytes-safe]
+                lambda match: f"&#{match.group(1)};",
                 escaped_string,
             )
         )
