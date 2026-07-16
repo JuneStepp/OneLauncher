@@ -679,7 +679,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         return bool(tables_dict)
 
     def createDB(self) -> None:
-        """Creates ans sets up addons_cache database"""
+        """Create and set up addons_cache database"""
         self.ADDONS_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
         self.conn = sqlite3.connect(str(self.ADDONS_CACHE_PATH))
         self.c = self.conn.cursor()
@@ -700,6 +700,10 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                     clmI=self.COLUMN_LIST[9],
                 )
             )
+
+        # Populate cache, so that add-ons aren't initially shown as unmanaged.
+        logger.info("Downloading remote addons info")
+        self.loadRemoteAddons()
 
     def closeDB(self) -> None:
         self.conn.commit()
