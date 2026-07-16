@@ -45,3 +45,7 @@ jobs:
         run: typos
       - name: Check formatting
         run: ruff format --check --output-format=github
+      - name: Lint GitHub Actions workflows
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: zizmor --format=github .

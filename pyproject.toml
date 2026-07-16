@@ -57,6 +57,7 @@ lint = [
     # Newer versions have more accurate types.
     "PySide6-Essentials>=6.11.0",
     "typos>=1.45.2",
+    "zizmor>=1.27.0",
 ]
 test = [
     "pytest>=8.3.2",
