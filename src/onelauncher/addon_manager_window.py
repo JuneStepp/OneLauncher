@@ -378,11 +378,10 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         skins_list_compendium = []
         for folder in folders_list:
             skins_list.append(folder)
-            for file in folder.iterdir():
-                if file.suffix == ".skincompendium":
-                    skins_list_compendium.append(file)
-                    skins_list.remove(folder)
-                    break
+            for compendium_file in folder.glob("*.skincompendium"):
+                skins_list_compendium.append(compendium_file)
+                skins_list.remove(folder)
+                break
 
         self.addInstalledSkinsToDB(skins_list, skins_list_compendium)
 
@@ -422,15 +421,12 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         music_list_compendium = []
         for folder in folders_list:
             music_list.append(folder)
-            for file in folder.iterdir():
-                if file.suffix == ".musiccompendium":
-                    music_list_compendium.append(folder / file)
-                    music_list.remove(folder)
-                    break
+            for compendium_file in folder.glob("*.musiccompendium"):
+                music_list_compendium.append(compendium_file)
+                music_list.remove(folder)
+                break
 
-        music_list.extend(
-            file for file in self.data_folder_music.iterdir() if file.suffix == ".abc"
-        )
+        music_list.extend(self.data_folder_music.glob("*.abc"))
         self.addInstalledMusicToDB(music_list, music_list_compendium)
 
     def parse_abc_file(self, abc_path: Path) -> tuple[str, str]:
@@ -489,11 +485,11 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         plugins_list = []
         for folder in folders_list:
             for file in folder.glob("**/*.plugin*"):
-                if file.suffix == ".plugincompendium":
+                if file.suffix.lower() == ".plugincompendium":
                     # .plugincompenmdium file should be in author folder of plugin
                     if file.parent == folder:
                         plugins_list_compendium.append(file)
-                elif file.suffix == ".plugin":
+                elif file.suffix.lower() == ".plugin":
                     plugins_list.append(file)
 
         self.removeManagedPluginsFromList(plugins_list, plugins_list_compendium)
