@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.1.3 (2026-07-16)
+
+**Important macOS info**:
+- Frills memory leak is fixed on Intel Macs and otherwise limited. Intel users can turn
+  their frills back on. Others with at least 16GB of RAM can as well.
+- Antialiasing will no longer cause graphical artifacts. It can be turned back on.
+
+### Improvements
+
+- (wine): Linux DXVK 2.7.1 > 3.0.1
+- (wine): use native d3dx11_42 instead of 43
+- (logs): increase maximum file size
+- (wine): WINE 11.0 on Apple Silicon, back to DXVK from DXMT
+- (addon_manager): populate cache on creation
+- (addon_manager): fix addons scanning performance regression
+
+### Internal
+
+- refactor(wine): always inject
+- build(deps): update
+- ci: add zizmor status check
+
 ## 2.1.2 (2026-06-28)
 
 **Important macOS info**:
@@ -12,18 +34,20 @@
 - The frills related memory leak should be fixed.
 
 ### Improvements
-- (game_account_config) remove extra description whitespace
-- (addon_manager) handle plugin/compendium files with no valid tag
-- (patch_game) handle insufficient file permissions
+
+- (game_account_config): remove extra description whitespace
+- (addon_manager): handle plugin/compendium files with no valid tag
+- (patch_game): handle insufficient file permissions
 - remove unused client type variant
-- (main_window) support high res banner images
-- (setup_wizard) lower steam/games dir search depth
-- (wine) fix frills memory leak on Linux
-- (wine) switch to DXMT on arm64 macOS.
+- (main_window): support high res banner images
+- (setup_wizard): lower steam/games dir search depth
+- (wine): fix frills memory leak on Linux
+- (wine): switch to DXMT on arm64 macOS.
   - Fixes startup crash after latest game update.
-- (wine) fix HTTPS context
+- (wine): fix HTTPS context
 
 ### Internal
+
 - docs: update changelog
 - docs: correct comment typos
 - refactor(config_manager): remove redundant len call
