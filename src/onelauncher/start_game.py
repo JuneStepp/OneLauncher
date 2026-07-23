@@ -20,7 +20,7 @@ from onelauncher.game_launcher_local_config import GameLauncherLocalConfig
 from onelauncher.game_utilities import get_game_user_preferences_path
 from onelauncher.logs import ExternalProcessLogsFilter
 
-from .game_config import ClientType, GameConfig, GameConfigID
+from .game_config import ClientType, GameConfig, GameConfigID, GameType
 from .network.game_launcher_config import GameLauncherConfig
 from .network.world import World
 from .resources import OneLauncherLocale
@@ -181,23 +181,36 @@ async def update_game_user_preferences(
         config.read_string(await game_user_preferences_path.read_text())
     unedited_config = deepcopy(config)
 
-    # Set screen mode to `FullScreenWindowed` on macOS on first game launch.
-    # The default `Fullscreen` mode blocks the macOS prompt for allowing required game
-    # permissions. It also causes issues with some Macintosh monitors and laptop screens,
-    # especially when using multiple monitors.
-    if sys.platform == "darwin" and game_config.last_played is None:
-        with suppress(configparser.DuplicateSectionError):
-            config.add_section("Display")
-        config["Display"]["FullScreen"] = "False"
-        config["Display"]["ScreenMode"] = "FullScreenWindowed"
-
-    if game_config.wine.builtin_prefix_enabled and (
-        sys.platform == "darwin" or "Render" not in config
-    ):
+    if game_config.wine.builtin_prefix_enabled and "Render" not in config:
         with suppress(configparser.DuplicateSectionError):
             config.add_section("Render")
+        # Default to DirectX11 with DXVK.
         config["Render"]["D3DVersionPromptedForAtStartup"] = "11"
         config["Render"]["GraphicsCore"] = "D3D11"
+
+    if sys.platform == "darwin":
+        # Set screen mode to `FullScreenWindowed` on macOS on first game launch.
+        # The default `Fullscreen` mode blocks the macOS prompt for allowing required game
+        # permissions. It also causes issues with some Macintosh monitors and laptop screens,
+        # especially when using multiple monitors.
+        if game_config.last_played is None:
+            with suppress(configparser.DuplicateSectionError):
+                config.add_section("Display")
+            config["Display"]["FullScreen"] = "False"
+            config["Display"]["ScreenMode"] = "FullScreenWindowed"
+
+        if game_config.wine.builtin_prefix_enabled:
+            with suppress(configparser.DuplicateSectionError):
+                config.add_section("Render")
+
+            # Always use DirectX11 with DXVK on macOS.
+            config["Render"]["D3DVersionPromptedForAtStartup"] = "11"
+            config["Render"]["GraphicsCore"] = "D3D11"
+
+            if game_config.game_type == GameType.LOTRO:
+                # After update 49, the game sometimes crashes on startup with frill color
+                # enabled.
+                config["Render"]["FrillTerrainColor"] = "False"
 
     if config == unedited_config:
         return
