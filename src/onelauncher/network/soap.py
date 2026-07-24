@@ -27,7 +27,7 @@ class GLSServiceError(Exception):
 class FullyAsyncTransport(AsyncTransport):
     """Async transport that loads remote data like wsdl async."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0917
         self,
         client: httpx.AsyncClient,
         cache: Base | None = None,

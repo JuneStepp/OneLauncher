@@ -900,7 +900,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
     def get_existing_compendium_file(
         self, tmp_search_dir: CaseInsensitiveAbsolutePath
-    ) -> CaseInsensitiveAbsolutePath | None | Literal[False]:
+    ) -> CaseInsensitiveAbsolutePath | Literal[False] | None:
         """
         Return existing compendium file, None, or False if there are multiple.
 
@@ -923,7 +923,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         tmp_dir: CaseInsensitiveAbsolutePath,
         interface_id: str | None,
         addon_name: str,
-    ) -> None | Literal[False]:
+    ) -> Literal[False] | None:
         if self.config_manager.get_game_config(self.game_id).game_type == GameType.DDO:
             logger.error("DDO does not support .abc/music files")
             return None

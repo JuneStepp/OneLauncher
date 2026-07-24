@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 class GameServicesInfo:
     def __init__(
         self,
+        *,
         gls_datacenter_service: str,
         game_datacenter_name: str,
         auth_server: str,
@@ -46,12 +47,12 @@ class GameServicesInfo:
         )
         try:
             return cls(
-                gls_datacenter_service,
-                game_datacenter_name,
-                datacenter_dict["AuthServer"],
-                datacenter_dict["PatchServer"],
-                datacenter_dict["LauncherConfigurationServer"],
-                cls._get_worlds(datacenter_dict, gls_datacenter_service),
+                gls_datacenter_service=gls_datacenter_service,
+                game_datacenter_name=game_datacenter_name,
+                auth_server=datacenter_dict["AuthServer"],
+                patch_server=datacenter_dict["PatchServer"],
+                launcher_config_url=datacenter_dict["LauncherConfigurationServer"],
+                worlds=cls._get_worlds(datacenter_dict, gls_datacenter_service),
             )
         except KeyError as e:
             raise GLSServiceError(

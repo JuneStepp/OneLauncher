@@ -35,6 +35,7 @@ class MissingLaunchArgumentError(Exception):
 
 
 async def get_launch_args(
+    *,
     game_launcher_config: GameLauncherConfig,
     game_launcher_local_config: GameLauncherLocalConfig,
     game_config: GameConfig,
