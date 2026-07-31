@@ -8,6 +8,7 @@
                 <xs:element type="xs:string" name="we_server_legendary_active" minOccurs="0" />
                 <xs:element type="xs:string" name="we_perma_death" minOccurs="0" />
                 <xs:element type="xs:string" name="world_requiresubscription" minOccurs="0"/>
+                <xs:element type="xs:string" name="world_ghostworldmode" minOccurs="0" />
                 <xs:element type="xs:string" name="loginservers" minOccurs="1" />
                 <xs:element type="xs:string" name="logintierlastnumbers" />
                 <xs:element type="xs:string" name="logintiermultipliers" />
