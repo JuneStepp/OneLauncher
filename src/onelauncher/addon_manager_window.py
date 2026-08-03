@@ -1939,9 +1939,13 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             try:
                 self.ui.progressBar.setValue(0)
                 self.ui.progressBar.setVisible(True)
-                ssl._create_default_https_context = partial(
-                    ssl.create_default_context, cafile=certifi.where()
+
+                https_handler = urllib.request.HTTPSHandler(
+                    context=ssl.create_default_context(cafile=certifi.where())
                 )
+                opener = urllib.request.build_opener(https_handler)
+                urllib.request.install_opener(opener)
+
                 urllib.request.urlretrieve(  # noqa: S310
                     url, path, self.handleDownloadProgress
                 )
