@@ -66,8 +66,6 @@ if sys.platform == "darwin":
     DXVK_VERSION = "1.10.3-20230507-repack"
     DXVK_URL = "https://github.com/Gcenx/DXVK-macOS/releases/download/v1.10.3-20230507-repack/dxvk-macOS-async-v1.10.3-20230507-repack.tar.gz"
 else:
-    # To use Proton, replace link with Proton build and uncomment
-    # `self.proton_documents_symlinker()` in wine_setup in wine_management
     WINE_VERSION = "10.20-staging-tkg-amd64-wow64"
     WINE_URL = "https://github.com/Kron4ek/Wine-Builds/releases/download/10.20/wine-10.20-staging-tkg-amd64-wow64.tar.xz"
     DXVK_VERSION = "3.0.1"
@@ -177,9 +175,6 @@ class WineManagement:
     def wine_setup(self) -> None:
         """Sets wine program and downloads wine if it is not there or a new version is needed"""
 
-        # Uncomment line below when using Proton
-        # self.proton_documents_symlinker()  # noqa: ERA001
-
         if self.wine_binary_path.exists():
             return
 
@@ -196,30 +191,6 @@ class WineManagement:
             self.dlgDownloader.setValue(99)
             self._wine_extractor(download_path)
             self.dlgDownloader.setValue(100)
-
-    def proton_documents_symlinker(self) -> None:
-        """
-        Symlinks prefix documents folder to system documents folder.path
-        This is needed for Proton.
-        """
-        prefix_documents_folder = (
-            self.prefix_path / "drive_c/users/steamuser/My Documents"
-        )
-
-        # Will assume that the user has set something else up for now if the
-        # folder already exists
-        if prefix_documents_folder.exists():
-            return
-
-        # Make sure system documents folder and prefix documents root folder
-        # exists
-        platform_dirs.user_documents_path.mkdir(exist_ok=True)
-        prefix_documents_folder.parent.mkdir(exist_ok=True, parents=True)
-
-        # Make symlink to system documents folder
-        platform_dirs.user_documents_path.symlink_to(
-            prefix_documents_folder, target_is_directory=True
-        )
 
     def _wine_extractor(self, archive_path: Path) -> None:
         with TemporaryDirectory() as temp_dir_name:
