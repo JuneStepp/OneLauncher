@@ -217,7 +217,7 @@ async def _handle_akamai_download_file(
     try:
         async with (
             get_httpx_client(url).stream(
-                "GET", url, timeout=httpx.Timeout(20, pool=None)
+                "GET", url, timeout=httpx.Timeout(60, pool=None)
             ) as response,
             await temp_download_path.open("wb") as temp_download_file,
         ):
