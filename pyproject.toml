@@ -81,6 +81,9 @@ dev = [
     { include-group = "build" },
 ]
 
+[tool.uv]
+exclude-newer = "1 week"
+
 [tool.uv.sources]
 zeep = { git = "https://github.com/JuneStepp/python-zeep.git" }
 asyncache = { git = "https://github.com/JuneStepp/asyncache.git" }
