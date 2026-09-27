@@ -113,7 +113,7 @@
           });
           pyside6-essentials = prev.pyside6-essentials.overrideAttrs (
             prevAttrs:
-            pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+            pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
               autoPatchelfIgnoreMissingDeps = [
                 "libmysqlclient.so.21"
                 "libfbclient.so.2"
