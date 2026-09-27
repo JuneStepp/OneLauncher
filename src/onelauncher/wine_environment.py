@@ -93,8 +93,6 @@ class WineEnvironment:
 
 class WineManagement:
     def __init__(self) -> None:
-        self.is_setup = False
-
         self.prefix_path: Final[Path] = platform_dirs.user_cache_path / "wine/prefix"
         self.prefix_system32: Final[Path] = (
             self.prefix_path / "drive_c/windows/system32"
@@ -119,6 +117,7 @@ class WineManagement:
             self.downloads_path / f"frameworks-{SIKARUGIR_FRAMEWORKS_VERSION}"
         )
 
+        self.is_setup: bool = False
         self._dlgDownloader: QtWidgets.QProgressDialog | None = None
 
     @property
@@ -172,12 +171,7 @@ class WineManagement:
         percent = 100 * index * frame // size
         self.dlgDownloader.setValue(percent)
 
-    def wine_setup(self) -> None:
-        """Sets wine program and downloads wine if it is not there or a new version is needed"""
-
-        if self.wine_binary_path.exists():
-            return
-
+    def _download_wine(self) -> None:
         self.dlgDownloader.setLabelText("Downloading WINE...")
 
         with TemporaryDirectory() as temp_dir_name:
@@ -189,10 +183,10 @@ class WineManagement:
             self.dlgDownloader.reset()
             self.dlgDownloader.setLabelText("Extracting WINE...")
             self.dlgDownloader.setValue(99)
-            self._wine_extractor(download_path)
+            self._extract_wine(download_path)
             self.dlgDownloader.setValue(100)
 
-    def _wine_extractor(self, archive_path: Path) -> None:
+    def _extract_wine(self, archive_path: Path) -> None:
         with TemporaryDirectory() as temp_dir_name:
             temp_dir = Path(temp_dir_name)
 
@@ -217,11 +211,7 @@ class WineManagement:
             if folder.name.startswith("wine") and folder != self.latest_wine_path:
                 rmtree(folder)
 
-    def dxvk_setup(self) -> None:
-        if self.latest_dxvk_path.exists():
-            self._dxvk_injector()
-            return
-
+    def _download_dxvk(self) -> None:
         self.dlgDownloader.setLabelText("Downloading DXVK...")
         with TemporaryDirectory() as temp_dir_name:
             download_path = Path(temp_dir_name) / "dxvk.tar.gz"
@@ -230,12 +220,10 @@ class WineManagement:
                 self.dlgDownloader.reset()
                 self.dlgDownloader.setLabelText("Extracting DXVK...")
                 self.dlgDownloader.setValue(99)
-                self._dxvk_extractor(download_path)
+                self._extract_dxvk(download_path)
                 self.dlgDownloader.setValue(100)
 
-        self._dxvk_injector()
-
-    def _dxvk_extractor(self, archive_path: Path) -> None:
+    def _extract_dxvk(self, archive_path: Path) -> None:
         with TemporaryDirectory() as temp_dir_name:
             temp_dir = Path(temp_dir_name)
 
@@ -253,7 +241,7 @@ class WineManagement:
             if folder.name.startswith("dxvk") and folder != self.latest_dxvk_path:
                 rmtree(folder)
 
-    def _dxvk_injector(self) -> None:
+    def _inject_dxvk(self) -> None:
         """Add DXVK to the WINE prefix"""
         dlls = (
             ("d3d10core.dll", "d3d11.dll")
@@ -269,11 +257,7 @@ class WineManagement:
             (self.prefix_system32 / dll).symlink_to(self.latest_dxvk_path / "x64" / dll)
             (self.prefix_syswow64 / dll).symlink_to(self.latest_dxvk_path / "x32" / dll)
 
-    def d3d_extras_setup(self) -> None:
-        if self.latest_d3d_extras_path.exists():
-            self._d3d_extras_injector()
-            return
-
+    def _download_d3d_extras(self) -> None:
         self.dlgDownloader.setLabelText("Downloading DirectX...")
         with TemporaryDirectory() as temp_dir_name:
             download_path = Path(temp_dir_name) / "d3d_extras.tar.xz"
@@ -291,12 +275,10 @@ class WineManagement:
 
                 self.dlgDownloader.setLabelText("Extracting DirectX...")
                 self.dlgDownloader.setValue(99)
-                self._d3d_extras_extractor(download_path)
+                self._extract_d3d_extras(download_path)
                 self.dlgDownloader.setValue(100)
 
-        self._d3d_extras_injector()
-
-    def _d3d_extras_extractor(self, archive_path: Path) -> None:
+    def _extract_d3d_extras(self, archive_path: Path) -> None:
         with TemporaryDirectory() as temp_dir_name:
             temp_dir = Path(temp_dir_name)
 
@@ -317,7 +299,7 @@ class WineManagement:
             ):
                 rmtree(folder)
 
-    def _d3d_extras_injector(self) -> None:
+    def _inject_d3d_extras(self) -> None:
         """
         Add native `d3dx11_42.dll` to the WINE prefix.
 
@@ -338,10 +320,7 @@ class WineManagement:
             self.latest_d3d_extras_path / "x32" / dll
         )
 
-    def sikarugir_frameworks_setup(self) -> None:
-        if self.latest_sikarugir_frameworks_path.exists():
-            return
-
+    def _download_sikarugir_frameworks(self) -> None:
         self.dlgDownloader.setLabelText("Downloading WINE dependencies...")
 
         with TemporaryDirectory() as temp_dir_name:
@@ -353,10 +332,10 @@ class WineManagement:
             self.dlgDownloader.reset()
             self.dlgDownloader.setLabelText("Extracting WINE dependencies...")
             self.dlgDownloader.setValue(99)
-            self._sikarugir_frameworks_extractor(download_path)
+            self._extract_sikarugir_frameworks(download_path)
             self.dlgDownloader.setValue(100)
 
-    def _sikarugir_frameworks_extractor(self, archive_path: Path) -> None:
+    def _extract_sikarugir_frameworks(self, archive_path: Path) -> None:
         with TemporaryDirectory() as temp_dir_name:
             temp_dir = Path(temp_dir_name)
 
@@ -377,20 +356,44 @@ class WineManagement:
             ):
                 rmtree(folder)
 
-    def setup_files(self) -> None:
-        self.downloads_path.mkdir(parents=True, exist_ok=True)
+    def create_prefix(self) -> None:
         self.prefix_system32.mkdir(parents=True, exist_ok=True)
         self.prefix_syswow64.mkdir(parents=True, exist_ok=True)
 
-        self.wine_setup()
-        self.dlgDownloader.reset()
-        self.d3d_extras_setup()
+    def setup_files(self) -> None:
+        self.downloads_path.mkdir(parents=True, exist_ok=True)
+        self.create_prefix()
+
+        download_steps = []
+        inject_steps = [self._inject_d3d_extras]
+
+        # WINE
+        if not self.wine_binary_path.exists():
+            download_steps.append(self._download_wine)
+        # D3D extras
+        if not self.latest_d3d_extras_path.exists():
+            download_steps.append(self._download_d3d_extras)
+        # DXVK
         if sys.platform != "darwin" or MACOS_WINEHQ_WINE:
-            self.dlgDownloader.reset()
-            self.dxvk_setup()
+            if not self.latest_dxvk_path.exists():
+                download_steps.append(self._download_dxvk)
+            inject_steps.append(self._inject_dxvk)
+
+        # macOS specific
         if sys.platform == "darwin":
+            # Sikarugir
+            if not self.latest_sikarugir_frameworks_path.exists():
+                download_steps.append(self._download_sikarugir_frameworks)
+
+        # Re-create prefix if component versions change.
+        if download_steps:
+            rmtree(self.prefix_path)
+            self.create_prefix()
+
+        for step in download_steps + inject_steps:
             self.dlgDownloader.reset()
-            self.sikarugir_frameworks_setup()
+            step()
+
         self.dlgDownloader.close()
         self.is_setup = True
 
