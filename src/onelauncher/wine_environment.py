@@ -26,17 +26,20 @@
 # You should have received a copy of the GNU General Public License
 # along with OneLauncher.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
+import errno
 import logging
 import lzma
 import os
 import platform
 import ssl
+import subprocess
 import sys
 import tarfile
 from hashlib import sha256
 from pathlib import Path
 from shutil import move, rmtree
 from tempfile import TemporaryDirectory
+from textwrap import dedent
 from types import MappingProxyType
 from typing import Final
 from urllib import request
@@ -356,6 +359,40 @@ class WineManagement:
             ):
                 rmtree(folder)
 
+    def ensure_rosetta(self) -> None:
+        if sys.platform == "darwin":
+            try:
+                subprocess.run(  # noqa: S603
+                    [self.wine_binary_path, "--version"],
+                    check=True,
+                )
+            except OSError as e:
+                if e.errno != errno.EBADARCH:
+                    raise e
+
+                show_warning_message(
+                    dedent("""
+                    It looks like Rosetta wasn't automatically installed.
+                    Follow these directions to install it:
+
+                    1. Open the Terminal. It is in the Utilities folder in your Applications folder.
+
+                    2. Type or paste the following command in the Terminal:
+
+                        - `softwareupdate --install-rosetta`
+
+                    3. Press Return and follow the on-screen instructions.
+
+                    See <https://support.apple.com/en-us/102527> for more information.
+                    """),
+                    get_qapp().activeWindow(),
+                    markdown=True,
+                )
+                self.ensure_rosetta()
+        else:
+            logger.warning("`ensure_rosetta` called outside of macOS")
+            return
+
     def create_prefix(self) -> None:
         self.prefix_system32.mkdir(parents=True, exist_ok=True)
         self.prefix_syswow64.mkdir(parents=True, exist_ok=True)
@@ -384,6 +421,9 @@ class WineManagement:
             # Sikarugir
             if not self.latest_sikarugir_frameworks_path.exists():
                 download_steps.append(self._download_sikarugir_frameworks)
+            # Rosetta
+            if platform.machine() != "x86_64":
+                inject_steps.append(self.ensure_rosetta)
 
         # Re-create prefix if component versions change.
         if download_steps:

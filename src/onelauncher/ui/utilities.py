@@ -5,7 +5,12 @@ from PySide6 import QtCore, QtWidgets
 logger = logging.getLogger(__name__)
 
 
-def show_warning_message(message: str, parent: QtWidgets.QWidget | None) -> None:
+def show_warning_message(
+    message: str,
+    parent: QtWidgets.QWidget | None,
+    detailed_text: str | None = None,
+    markdown: bool = False,
+) -> None:
     logger.warning(message)
 
     message_box = QtWidgets.QMessageBox(parent)
@@ -13,6 +18,11 @@ def show_warning_message(message: str, parent: QtWidgets.QWidget | None) -> None
     message_box.setIcon(QtWidgets.QMessageBox.Icon.Warning)
     message_box.setStandardButtons(message_box.StandardButton.Ok)
     message_box.setInformativeText(message)
+    if detailed_text:
+        message_box.setDetailedText(detailed_text)
+    if markdown:
+        message_box.setTextFormat(QtCore.Qt.TextFormat.MarkdownText)
+        show_message_box_details_as_markdown(message_box)
 
     message_box.exec()
 
