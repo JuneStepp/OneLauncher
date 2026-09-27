@@ -93,8 +93,6 @@ class WineEnvironment:
 
 class WineManagement:
     def __init__(self) -> None:
-        self.is_setup = False
-
         self.prefix_path: Final[Path] = platform_dirs.user_cache_path / "wine/prefix"
         self.prefix_system32: Final[Path] = (
             self.prefix_path / "drive_c/windows/system32"
@@ -119,6 +117,8 @@ class WineManagement:
             self.downloads_path / f"frameworks-{SIKARUGIR_FRAMEWORKS_VERSION}"
         )
 
+        self.is_setup: bool = False
+        self._prefix_recreated: bool = False
         self._dlgDownloader: QtWidgets.QProgressDialog | None = None
 
     @property
@@ -192,6 +192,8 @@ class WineManagement:
             self._wine_extractor(download_path)
             self.dlgDownloader.setValue(100)
 
+        self.recreate_prefix()
+
     def _wine_extractor(self, archive_path: Path) -> None:
         with TemporaryDirectory() as temp_dir_name:
             temp_dir = Path(temp_dir_name)
@@ -233,6 +235,7 @@ class WineManagement:
                 self._dxvk_extractor(download_path)
                 self.dlgDownloader.setValue(100)
 
+        self.recreate_prefix()
         self._dxvk_injector()
 
     def _dxvk_extractor(self, archive_path: Path) -> None:
@@ -294,6 +297,7 @@ class WineManagement:
                 self._d3d_extras_extractor(download_path)
                 self.dlgDownloader.setValue(100)
 
+        self.recreate_prefix()
         self._d3d_extras_injector()
 
     def _d3d_extras_extractor(self, archive_path: Path) -> None:
@@ -377,10 +381,20 @@ class WineManagement:
             ):
                 rmtree(folder)
 
-    def setup_files(self) -> None:
-        self.downloads_path.mkdir(parents=True, exist_ok=True)
+    def create_prefix(self) -> None:
         self.prefix_system32.mkdir(parents=True, exist_ok=True)
         self.prefix_syswow64.mkdir(parents=True, exist_ok=True)
+
+    def recreate_prefix(self) -> None:
+        """Delete and re-create prefix, but only once per setup."""
+        if not self._prefix_recreated:
+            rmtree(self.prefix_path)
+            self.create_prefix()
+            self._prefix_recreated = True
+
+    def setup_files(self) -> None:
+        self.downloads_path.mkdir(parents=True, exist_ok=True)
+        self.create_prefix()
 
         self.wine_setup()
         self.dlgDownloader.reset()
