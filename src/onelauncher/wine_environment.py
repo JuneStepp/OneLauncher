@@ -196,6 +196,7 @@ class WineManagement:
             self.dlgDownloader.setValue(100)
 
         self.recreate_prefix()
+        self.dlgDownloader.reset()
 
     def _wine_extractor(self, archive_path: Path) -> None:
         with TemporaryDirectory() as temp_dir_name:
@@ -240,6 +241,7 @@ class WineManagement:
 
         self.recreate_prefix()
         self._dxvk_injector()
+        self.dlgDownloader.reset()
 
     def _dxvk_extractor(self, archive_path: Path) -> None:
         with TemporaryDirectory() as temp_dir_name:
@@ -302,6 +304,7 @@ class WineManagement:
 
         self.recreate_prefix()
         self._d3d_extras_injector()
+        self.dlgDownloader.reset()
 
     def _d3d_extras_extractor(self, archive_path: Path) -> None:
         with TemporaryDirectory() as temp_dir_name:
@@ -362,6 +365,8 @@ class WineManagement:
             self.dlgDownloader.setValue(99)
             self._sikarugir_frameworks_extractor(download_path)
             self.dlgDownloader.setValue(100)
+
+        self.dlgDownloader.reset()
 
     def _sikarugir_frameworks_extractor(self, archive_path: Path) -> None:
         with TemporaryDirectory() as temp_dir_name:
@@ -434,16 +439,14 @@ class WineManagement:
         self.create_prefix()
 
         self.wine_setup()
-        self.dlgDownloader.reset()
         self.d3d_extras_setup()
         if sys.platform != "darwin" or MACOS_WINEHQ_WINE:
-            self.dlgDownloader.reset()
             self.dxvk_setup()
         if sys.platform == "darwin":
-            self.dlgDownloader.reset()
             self.sikarugir_frameworks_setup()
             if platform.machine() != "x86_64":
                 self.ensure_rosetta()
+
         self.dlgDownloader.close()
         self.is_setup = True
 
