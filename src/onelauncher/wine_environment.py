@@ -62,9 +62,8 @@ if sys.platform == "darwin":
         WINE_VERSION = "WS12WineSikarugir10.0_6"
         WINE_URL = "https://github.com/Sikarugir-App/Engines/releases/download/v1.0/WS12WineSikarugir10.0_6.tar.xz"
     else:
-        WINE_VERSION = "wine-stable-11.0_1-osx64"
-        WINE_URL = "https://github.com/Gcenx/macOS_Wine_builds/releases/download/11.0_1/wine-stable-11.0_1-osx64.tar.xz"
-        MACOS_WINEHQ_WINE = True
+        WINE_VERSION = "WS12WineSikarugir11.0"
+        WINE_URL = "https://github.com/Sikarugir-App/Engines/releases/download/v1.0/WS12WineSikarugir11.0.tar.xz"
 
     DXVK_VERSION = "1.10.3-20230507-repack"
     DXVK_URL = "https://github.com/Gcenx/DXVK-macOS/releases/download/v1.10.3-20230507-repack/dxvk-macOS-async-v1.10.3-20230507-repack.tar.gz"
@@ -82,8 +81,12 @@ D3D_EXTRAS_URL = "https://github.com/lutris/d3d_extras/releases/download/v2/v2.t
 D3D_EXTRAS_HASH = "9117ac86947b53865fc0d675314179e738b1e3e38bbb4281e4afe6b665b073af"
 
 # macOS only. Includes DXVK.
-SIKARUGIR_FRAMEWORKS_VERSION = "Template-1.0.11"
-SIKARUGIR_FRAMEWORKS_URL = "https://github.com/Sikarugir-App/Wrapper/releases/download/v1.0/Template-1.0.11.tar.xz"
+if platform.machine() == "x86_64":
+    SIKARUGIR_FRAMEWORKS_VERSION = "Template-1.0.11"
+    SIKARUGIR_FRAMEWORKS_URL = "https://github.com/Sikarugir-App/Wrapper/releases/download/v1.0/Template-1.0.11.tar.xz"
+else:
+    SIKARUGIR_FRAMEWORKS_VERSION = "Template-1.0.19"
+    SIKARUGIR_FRAMEWORKS_URL = "https://github.com/Sikarugir-App/Wrapper/releases/download/v1.0/Template-1.0.19.tar.xz"
 
 
 @attrs.define
