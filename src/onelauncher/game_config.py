@@ -26,7 +26,7 @@ class GameType(StrEnum):
     DDO = "DDO"
 
 
-class GameConfigID:
+class GameConfigID(str):
     def __init__(self, game_id: str, /) -> None:
         if not game_id:
             raise ValueError("GameConfigID cannot be empty")
