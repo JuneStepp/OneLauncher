@@ -81,8 +81,9 @@ set with ONELAUNCHER_CONFIG_DIRECTORY.
 ╭─ Program Options ────────────────────────────────────────────────────────────╮
 │ --default-locale              Default language for games and UI              │
 │ --always-use-default-locale-  Use default language for UI regardless of game │
-│   for-ui --no-always-use-def  language                                       │
-│   ault-locale-for-ui                                                         │
+│   for-ui                      language                                       │
+│   --no-always-use-default-lo                                                 │
+│   cale-for-ui                                                                │
 │ --games-sorting-mode          Order to show games in UI [choices: priority,  │
 │                               last-played, alphabetical]                     │
 │ --on-game-start               What OneLauncher should do when a game is      │
@@ -95,8 +96,7 @@ set with ONELAUNCHER_CONFIG_DIRECTORY.
 │ --game-directory              The game's install directory                   │
 │ --locale                      Language used for game                         │
 │ --client-type                 Which version of the game client to use        │
-│                               [choices: win64, win32, win32-legacy,          │
-│                               win32-legacy]                                  │
+│                               [choices: win64, win32, win32-legacy]          │
 │ --high-res-enabled            If the high resolution game files should be    │
 │   --no-high-res-enabled       used                                           │
 │ --standard-game-launcher-fil  Name of the standard game launcher executable. │
