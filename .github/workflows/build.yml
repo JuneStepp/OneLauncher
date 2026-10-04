@@ -37,7 +37,9 @@ jobs:
       # `run_patch_client` C code
       - name: Install mingw-w64 on Linux
         if: runner.os == 'Linux'
-        run: sudo apt-get install mingw-w64
+        run: |
+          sudo apt-get update
+          sudo apt-get install mingw-w64
       - name: Install mingw-w64 on macOS
         if: runner.os == 'macOS'
         run: brew install mingw-w64
