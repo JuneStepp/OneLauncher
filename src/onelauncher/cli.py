@@ -263,7 +263,11 @@ def get_app() -> cyclopts.App:
             "can be set with `ONELAUNCHER_CONFIG_DIRECTORY`."
         ),
         config=cyclopts.config.Env(prefix=f"{__title__.upper()}_", show=False),
-        default_parameter=Parameter(consume_multiple=True),
+        default_parameter=Parameter(
+            consume_multiple=True,
+            # Don't show parameter type in help by default.
+            metavar="",
+        ),
     )
     _config_manager: ConfigManager | None = None
     _game_id: GameConfigID | None = None
