@@ -3,7 +3,7 @@ import logging
 import os
 import subprocess
 import sysconfig
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from enum import Enum
 from functools import partial
 from pathlib import Path
@@ -16,6 +16,7 @@ from typing import (
 import attrs
 import cyclopts
 from cyclopts import Parameter, Token
+from cyclopts.completion import CompletionContext
 from cyclopts.types import (
     ResolvedDirectory,
     ResolvedExistingDirectory,
@@ -33,6 +34,7 @@ from .config import ConfigFieldMetadata
 from .config_manager import (
     GAMES_DIR_DEFAULT,
     PROGRAM_CONFIG_DIR_DEFAULT,
+    ConfigFileError,
     ConfigManager,
     NoValidGamesError,
     get_converter,
@@ -41,7 +43,7 @@ from .game_account_config import GameAccountConfig, GameAccountsConfig
 from .game_config import ClientType, GameConfig, GameConfigID, GameType
 from .logs import LogLevel, setup_application_logging
 from .program_config import GamesSortingMode, OnGameStartAction, ProgramConfig
-from .resources import OneLauncherLocale
+from .resources import OneLauncherLocale, available_locales
 from .ui import qtdesigner
 from .utilities import CaseInsensitiveAbsolutePath
 from .wine.config import WineConfigSection
@@ -313,12 +315,65 @@ def get_app() -> cyclopts.App:
         else:
             raise ValueError("Provided game type or game config ID does not exist")
 
+    def complete_game_param(context: CompletionContext) -> Iterable[tuple[str, str]]:
+        completions = [
+            (game_type, f"First {game_type} game")
+            for game_type in context.argument.get_choices() or ()
+        ]
+
+        config_manager = ConfigManager(
+            program_config_dir=context["config_directory"].value,
+            games_dir=context["games_directory"].value,
+        )
+        try:
+            config_manager.verify_configs()
+            game_ids = config_manager.get_games_sorted(
+                config_manager.get_program_config().games_sorting_mode
+            )
+        except ConfigFileError:
+            game_ids = ()
+        completions.extend(
+            (game_id, config_manager.get_game_config(game_id).name)
+            for game_id in game_ids
+        )
+
+        return completions
+
     def validate_game_param(
         type_: type[_GameParamGameType | GameConfigID | None],
         value: _GameParamGameType | GameConfigID | None,
     ) -> None:
         if isinstance(value, _GameParamGameType | GameConfigID) and _config_manager:
             parse_game_arg(game_arg=value, config_manager=_config_manager)
+
+    def complete_username_param(
+        context: CompletionContext,
+    ) -> Iterable[tuple[str, str]]:
+        config_manager = ConfigManager(
+            program_config_dir=context["config_directory"].value,
+            games_dir=context["games_directory"].value,
+        )
+        try:
+            config_manager.verify_configs()
+
+            game_arg = context["game"].value
+            game_id = (
+                parse_game_arg(game_arg=game_arg, config_manager=config_manager)
+                if game_arg
+                else config_manager.get_initial_game()
+            )
+        except (ConfigFileError, ValueError):
+            return ()
+        return tuple(
+            (account.username, account.display_name or account.username)
+            for account in config_manager.get_game_accounts(game_id)
+        )
+
+    def complete_locale(context: CompletionContext) -> Iterable[tuple[str, str]]:
+        return (
+            (locale.lang_tag, locale.display_name)
+            for locale in available_locales.values()
+        )
 
     # --- Commands ---
     # They all return an exit code integer.
@@ -357,6 +412,7 @@ def get_app() -> cyclopts.App:
                 group=ProgramGroup,
                 help=prog_help("default_locale"),
                 converter=_cattrs_converter,
+                completer=complete_locale,
             ),
         ] = None,
         always_use_default_locale_for_ui: Annotated[
@@ -384,6 +440,7 @@ def get_app() -> cyclopts.App:
                 help=(
                     "Which game to load. Can be either a game type or game config ID."
                 ),
+                completer=complete_game_param,
                 validator=validate_game_param,
             ),
         ] = None,
@@ -431,7 +488,10 @@ def get_app() -> cyclopts.App:
         locale: Annotated[
             OneLauncherLocale | None,
             Parameter(
-                group=GameGroup, help=game_help("locale"), converter=_cattrs_converter
+                group=GameGroup,
+                help=game_help("locale"),
+                converter=_cattrs_converter,
+                completer=complete_locale,
             ),
         ] = None,
         client_type: Annotated[
@@ -469,6 +529,7 @@ def get_app() -> cyclopts.App:
             Parameter(
                 group=AccountGroup,
                 help=account_help("username"),
+                completer=complete_username_param,
             ),
         ] = None,
         display_name: Annotated[
