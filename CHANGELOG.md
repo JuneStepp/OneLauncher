@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.1.4 (2026-10-04)
+
+### Improvements
+- (wine): Disable frill color on macOS
+- (network/world): Fix ghost world status
+- (addon_manager): Fix HTTPS context
+- (patch_game): Increase Akamai network timeout
+- (wine): Re-create prefix on component update
+- (wine): Prompt users if Rosetta isn't installed
+- (wine): Update Linux DXVK
+- (cli): Fix game config ID selection
+- (cli): Add game, username, and locale dynamic completions
+
+### Internal
+- refactor(wine): remove unused Proton code
+- build(deps): add 1 week cooldown
+- build(deps): update
+- docs(cli): update help output
+- fix(build): run apt-get update
+
 ## 2.1.3 (2026-07-16)
 
 **Important macOS info**:
