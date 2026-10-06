@@ -64,6 +64,8 @@ test = [
 ]
 build = [
     "Nuitka[all]>=4.1",
+    # For Nuitka onefile compression.
+    "zstandard>=0.15 ; python_version < '3.14'",
     # Needed by Nuitka.
     "jsonschema>=4.26.0",
     "marko>=2.1.2",
