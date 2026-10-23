@@ -346,8 +346,6 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.actionShowOnLotrointerfaceSelected
         )
 
-        self.openDB()
-
         self.data_folder = get_game_settings_dir(
             game_config=self.config_manager.get_game_config(self.game_id),
             launcher_local_config=launcher_local_config,
@@ -360,6 +358,9 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.data_folder_plugins = self.data_folder / "Plugins"
             self.data_folder_skins = self.data_folder / "ui/skins"
             self.data_folder_music = self.data_folder / "Music"
+
+        self.openDB()
+
         # This will load up whatever's needed for the initial tab. Ex. Plugins
         self.tabBarInstalledIndexChanged(self.ui.tabBarInstalled.currentIndex())
 
@@ -1326,7 +1327,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                     if not duplicate:
                         self.addRowToTable(table, rowid=rowid, addon_info=addon_info)
         else:
-            # Shows all plugins if the search bar is empty
+            # Shows all addons if the search bar is empty
             for result in self.c.execute(
                 # nosec
                 f"SELECT rowid, * FROM {table.objectName()}"  # noqa: S608
@@ -1814,10 +1815,9 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             # Populate remote addons tables if not done already.
             if self.ui.tableSkins not in self.tables_loaded and self.loadRemoteAddons():
                 self.getOutOfDateAddons()
-                # Make sure correct stacked widget page is selected
-                self.tabBarRemoteIndexChanged(self.ui.tabBarRemote.currentIndex())
 
-        self.searchSearchBarContents()
+        # Make sure correct stacked widget page is selected.
+        self.tabBarRemoteIndexChanged(self.ui.tabBarRemote.currentIndex())
 
     def loadRemoteAddons(self) -> bool:
         if (
