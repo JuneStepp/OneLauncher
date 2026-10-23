@@ -46,7 +46,7 @@ from urllib import request
 from urllib.error import HTTPError, URLError
 
 import attrs
-import certifi
+import truststore
 from PySide6 import QtCore, QtWidgets
 
 from .config import platform_dirs
@@ -151,7 +151,7 @@ class WineManagement:
         """Downloads file from url to path and shows progress with self.handle_download_progress"""
         try:
             https_handler = request.HTTPSHandler(
-                context=ssl.create_default_context(cafile=certifi.where())
+                context=truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
             )
             opener = request.build_opener(https_handler)
             request.install_opener(opener)

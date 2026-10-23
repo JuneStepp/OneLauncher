@@ -57,10 +57,10 @@ from xml.dom.minidom import Element
 from xml.parsers.expat import ExpatError
 
 import attrs
-import certifi
 import defusedxml.minidom  # type: ignore[import-untyped]
 import qtawesome
-from httpx import HTTPError
+import truststore
+from httpx2 import HTTPError
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from .__about__ import __title__
@@ -1941,7 +1941,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 self.ui.progressBar.setVisible(True)
 
                 https_handler = urllib.request.HTTPSHandler(
-                    context=ssl.create_default_context(cafile=certifi.where())
+                    context=truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
                 )
                 opener = urllib.request.build_opener(https_handler)
                 urllib.request.install_opener(opener)

@@ -9,9 +9,9 @@ from typing import Literal, assert_never
 from uuid import uuid4
 
 import attrs
-import httpx
+import httpx2
 import trio
-from httpx import HTTPError, HTTPStatusError
+from httpx2 import HTTPError, HTTPStatusError
 from xmlschema import XMLSchemaValidationError
 
 from onelauncher.async_utils import for_each_in_stream
@@ -217,7 +217,7 @@ async def _handle_akamai_download_file(
     try:
         async with (
             get_httpx_client(url).stream(
-                "GET", url, timeout=httpx.Timeout(60, pool=None)
+                "GET", url, timeout=httpx2.Timeout(60, pool=None)
             ) as response,
             await temp_download_path.open("wb") as temp_download_file,
         ):
@@ -242,7 +242,7 @@ async def _handle_akamai_download_file(
     except HTTPError as e:
         if (
             isinstance(e, HTTPStatusError)
-            and e.response.status_code == httpx.codes.NOT_FOUND
+            and e.response.status_code == httpx2.codes.NOT_FOUND
         ):
             # Not an error, because there are always some specific files that 404.
             logger.debug("Download not found: %s", local_path.name, exc_info=True)

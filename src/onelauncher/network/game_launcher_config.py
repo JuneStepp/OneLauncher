@@ -5,7 +5,7 @@ from typing import Self
 import attrs
 from asyncache import cached
 from cachetools import TTLCache
-from httpx import HTTPError
+from httpx2 import HTTPError
 
 from ..game_config import ClientType, GameConfig
 from ..official_clients import (

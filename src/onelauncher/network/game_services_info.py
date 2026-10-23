@@ -4,7 +4,7 @@ from typing import Any, Self
 import zeep.exceptions
 from asyncache import cached
 from cachetools import TTLCache
-from httpx import HTTPError
+from httpx2 import HTTPError
 
 from ..game_config import GameConfig
 from ..game_launcher_local_config import GameLauncherLocalConfig

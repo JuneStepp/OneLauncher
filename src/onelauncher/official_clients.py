@@ -32,7 +32,7 @@ from pathlib import Path
 from typing import Final, assert_never
 from urllib.parse import urlparse
 
-import httpx
+import httpx2
 
 from onelauncher import resources
 from onelauncher.game_config import GameType
@@ -79,8 +79,8 @@ DDO_PREVIEW_LATEST_INFO_URL: Final = "https://forums.ddo.com/index.php?forums/la
 
 
 CONNECTION_RETRIES: Final[int] = 3
-TIMEOUT: Final = httpx.Timeout(timeout=6.0, read=10.0)
-LIMITS: Final = httpx.Limits(max_connections=6)
+TIMEOUT: Final = httpx2.Timeout(timeout=6.0, read=10.0)
+LIMITS: Final = httpx2.Limits(max_connections=6)
 
 
 def is_official_game_server(url: str) -> bool:
@@ -104,11 +104,11 @@ def is_gls_url_for_preview_client(url: str) -> bool:
     ]
 
 
-class DDOPreviewIPDoesNotMatchDomainError(httpx.RequestError):
+class DDOPreviewIPDoesNotMatchDomainError(httpx2.RequestError):
     """Expected IP to match the DDO preview GLS server domain IP"""
 
 
-def _httpx_request_hook_sync(request: httpx.Request) -> None:
+def _httpx_request_hook_sync(request: httpx2.Request) -> None:
     # Force HTTPS. It's supported by all the official servers, but most URLs
     # default to HTTP.
     request.url = request.url.copy_with(scheme="https")
@@ -133,22 +133,22 @@ def _httpx_request_hook_sync(request: httpx.Request) -> None:
                     "IP doesn't match the DDO preview GLS server domain IP"
                 )
         except OSError as e:
-            raise httpx.RequestError(
+            raise httpx2.RequestError(
                 "Connection error while verifying DDO preview GLS server IP"
             ) from e
 
         request.url = request.url.copy_with(host=DDO_GLS_PREVIEW_DOMAIN)
 
 
-async def _httpx_request_hook(request: httpx.Request) -> None:
+async def _httpx_request_hook(request: httpx2.Request) -> None:
     _httpx_request_hook_sync(request)
 
 
 @cache
-def get_official_servers_httpx_client() -> httpx.AsyncClient:
+def get_official_servers_httpx_client() -> httpx2.AsyncClient:
     """Return httpx client configured to work with official game servers"""
-    transport = httpx.AsyncHTTPTransport(retries=CONNECTION_RETRIES)
-    return httpx.AsyncClient(
+    transport = httpx2.AsyncHTTPTransport(retries=CONNECTION_RETRIES)
+    return httpx2.AsyncClient(
         timeout=TIMEOUT,
         limits=LIMITS,
         event_hooks={"request": [_httpx_request_hook]},
@@ -157,10 +157,10 @@ def get_official_servers_httpx_client() -> httpx.AsyncClient:
 
 
 @cache
-def get_official_servers_httpx_client_sync() -> httpx.Client:
+def get_official_servers_httpx_client_sync() -> httpx2.Client:
     """Return httpx client configured to work with official game servers"""
-    transport = httpx.HTTPTransport(retries=CONNECTION_RETRIES)
-    return httpx.Client(
+    transport = httpx2.HTTPTransport(retries=CONNECTION_RETRIES)
+    return httpx2.Client(
         timeout=TIMEOUT,
         limits=LIMITS,
         event_hooks={"request": [_httpx_request_hook_sync]},

@@ -9,7 +9,7 @@ from typing import Final
 
 import attrs
 import trio
-from httpx import HTTPError
+from httpx2 import HTTPError
 
 from .addons.config import AddonsConfigSection
 from .async_utils import TemporaryDirectoryAsyncPath

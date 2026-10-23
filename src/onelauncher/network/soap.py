@@ -2,7 +2,7 @@ import logging
 from typing import override
 from urllib.parse import urlparse, urlunparse
 
-import httpx
+import httpx2
 import trio
 import zeep.exceptions
 from zeep import AsyncClient, Settings
@@ -29,12 +29,12 @@ class FullyAsyncTransport(AsyncTransport):
 
     def __init__(  # noqa: PLR0917
         self,
-        client: httpx.AsyncClient,
+        client: httpx2.AsyncClient,
         cache: Base | None = None,
         timeout: int = 300,
         operation_timeout: int | None = None,
         verify_ssl: bool = True,
-        proxy: httpx.Proxy | None = None,
+        proxy: httpx2.Proxy | None = None,
     ):
         super().__init__(  # type: ignore[no-untyped-call]
             client=client,
@@ -74,7 +74,7 @@ class FullyAsyncTransport(AsyncTransport):
 
         try:
             response.raise_for_status()
-        except httpx.HTTPStatusError as exc:
+        except httpx2.HTTPStatusError as exc:
             raise zeep.exceptions.TransportError(  # type: ignore[no-untyped-call]
                 status_code=response.status_code
             ) from exc

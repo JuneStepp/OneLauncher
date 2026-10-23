@@ -34,7 +34,7 @@ from pathlib import Path
 from typing import cast, override
 
 import attrs
-import httpx
+import httpx2
 import keyring
 import packaging.version
 import qtawesome
@@ -592,7 +592,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         except login_account.WrongUsernameOrPasswordError as e:
             logger.exception(e.msg)
             return None
-        except httpx.HTTPError:
+        except httpx2.HTTPError:
             logger.exception("Network error while authenticating account")
             return None
         except GLSServiceError:
@@ -683,7 +683,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
 
         try:
             selected_world_status = await selected_world.get_status()
-        except httpx.HTTPError:
+        except httpx2.HTTPError:
             logger.exception("Network error while fetching world status")
             return
         except WorldUnavailableError:
@@ -725,7 +725,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                     login_response=login_response,
                     game_launcher_config=game_launcher_config,
                 )
-            except httpx.HTTPError:
+            except httpx2.HTTPError:
                 logger.exception("Network error while joining world login queue")
                 return
             except WorldQueueResultXMLParseError:
@@ -991,7 +991,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                 gls_datacenter_service=self.game_launcher_local_config.gls_datacenter_service,
                 game_datacenter_name=self.game_launcher_local_config.datacenter_game_name,
             )
-        except httpx.HTTPError:
+        except httpx2.HTTPError:
             logger.exception("Network error while fetching game services info")
             return
         except GLSServiceError:
@@ -1038,7 +1038,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             )
             logger.info("Game launcher configuration read")
             return game_launcher_config
-        except httpx.HTTPError:
+        except httpx2.HTTPError:
             logger.exception("Network error while retrieving game launcher config")
             return None
         except GameLauncherConfigParseError:
@@ -1060,7 +1060,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
                     url=newsfeed_url, locale=ui_locale, game_config=game_config
                 )
             )
-        except httpx.HTTPError:
+        except httpx2.HTTPError:
             logger.exception("Network error while downloading newsfeed")
 
     def ClearLog(self) -> None:
@@ -1092,7 +1092,7 @@ async def check_for_update() -> None:
     try:
         response = await get_httpx_client(latest_release_url).get(latest_release_url)
         response.raise_for_status()
-    except httpx.HTTPError:
+    except httpx2.HTTPError:
         logger.exception(
             "Network error while checking for %s updates", __about__.__title__
         )

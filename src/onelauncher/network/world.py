@@ -3,7 +3,7 @@ from typing import Any, ClassVar, override
 from urllib.parse import urlparse, urlunparse
 
 import attrs
-import httpx
+import httpx2
 import xmlschema
 from asyncache import cached
 from cachetools import TTLCache
@@ -92,7 +92,7 @@ class World:
         """
         response = await get_httpx_client(status_server_url).get(status_server_url)
 
-        if response.status_code == httpx.codes.NOT_FOUND or not response.text:
+        if response.status_code == httpx2.codes.NOT_FOUND or not response.text:
             # Fix broken status URLs for some LOTRO legendary servers
             if self._gls_datacenter_service:
                 parsed_status_url = urlparse(status_server_url)
