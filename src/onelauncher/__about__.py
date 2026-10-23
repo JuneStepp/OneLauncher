@@ -2,26 +2,30 @@ import importlib.metadata
 
 from packaging.version import Version
 
-# Metadata has been temporarily manually entered to work with Nuitka.
+# Metadata has been manually entered to work with Nuitka.
 # See https://github.com/Nuitka/Nuitka/issues/2965
-
-# metadata = importlib.metadata.metadata(__package__)   # noqa: ERA001
+# ruff: ignore[ERA001]
+# metadata = importlib.metadata.metadata(__package__)
+# __title__ = metadata["Name"]
+# __version__ = metadata["Version"]
+# version_parsed = Version(__version__)
+# __description__ = metadata["Summary"]
+# # Update checks only work with a repository hosted on GitHub.
+# __project_url__ = next(
+#     url.split(",")[1].strip()
+#     for url in metadata.get_all("Project-URL", ())
+#     if url.lower().startswith("repository")
+# )
+# __author__, __author_email__ = parseaddr(metadata["Author-email"])
 __title__ = "OneLauncher"
 __version__ = importlib.metadata.version(__package__)
+version_parsed = Version(__version__)
 __description__ = "The OneLauncher to rule them all"
+# Update checks only work with a repository hosted on GitHub.
 __project_url__ = "https://github.com/JuneStepp/OneLauncher"
 __author__ = "June Stepp"
 __author_email__ = "contact@junestepp.me"
-__license__ = "GPL-3.0-or-later"
-# __title__ = metadata["Name"]  # noqa: ERA001
-# __version__ = metadata["Version"]  # noqa: ERA001
-version_parsed = Version(__version__)
-# __description__ = metadata["Summary"]  # noqa: ERA001
-# # Update checks only work with a repository hosted on GitHub.
-# __project_url__ = metadata.get("Home-page")  # noqa: ERA001
-# __author__ = metadata.get("Author")  # noqa: ERA001
-# __author_email__ = metadata.get("Author-email")  # noqa: ERA001
-# __license__ = metadata.get("License")  # noqa: ERA001
+
 __copyright__ = "(C) 2019-2026 June Stepp"
 __copyright_history__ = (
     "Based on PyLotRO\n(C) 2009-2010 AJackson\n"
