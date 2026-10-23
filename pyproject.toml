@@ -46,13 +46,13 @@ onelauncher = "onelauncher.__main__:main"
 
 [dependency-groups]
 lint = [
-    "mypy>=2.3.0",
+    "mypy>=2.4.0",
     "types-cachetools>=5.3.0.7",
-    "ruff>=0.16.0",
+    "ruff>=0.17.1",
     # Newer versions have more accurate types.
-    "PySide6-Essentials>=6.11.0",
+    "PySide6-Essentials>=6.12.0",
     "typos>=1.45.2",
-    "zizmor>=1.27.0",
+    "zizmor>=1.31.1",
 ]
 test = [
     "pytest>=8.3.2",
