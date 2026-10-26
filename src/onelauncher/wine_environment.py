@@ -62,9 +62,8 @@ if sys.platform == "darwin":
         WINE_VERSION = "WS12WineSikarugir10.0_6"
         WINE_URL = "https://github.com/Sikarugir-App/Engines/releases/download/v1.0/WS12WineSikarugir10.0_6.tar.xz"
     else:
-        WINE_VERSION = "wine-stable-11.0_1-osx64"
-        WINE_URL = "https://github.com/Gcenx/macOS_Wine_builds/releases/download/11.0_1/wine-stable-11.0_1-osx64.tar.xz"
-        MACOS_WINEHQ_WINE = True
+        WINE_VERSION = "WS11WineSikarugir11.0_1"
+        WINE_URL = "https://github.com/Sikarugir-App/Engines/releases/download/v1.0/WS11WineSikarugir11.0_1.tar.xz"
 
     DXVK_VERSION = "1.10.3-20230507-repack"
     DXVK_URL = "https://github.com/Gcenx/DXVK-macOS/releases/download/v1.10.3-20230507-repack/dxvk-macOS-async-v1.10.3-20230507-repack.tar.gz"
@@ -82,8 +81,14 @@ D3D_EXTRAS_URL = "https://github.com/lutris/d3d_extras/releases/download/v2/v2.t
 D3D_EXTRAS_HASH = "9117ac86947b53865fc0d675314179e738b1e3e38bbb4281e4afe6b665b073af"
 
 # macOS only. Includes DXVK.
-SIKARUGIR_FRAMEWORKS_VERSION = "Template-1.0.11"
-SIKARUGIR_FRAMEWORKS_URL = "https://github.com/Sikarugir-App/Wrapper/releases/download/v1.0/Template-1.0.11.tar.xz"
+if platform.machine() == "x86_64":
+    SIKARUGIR_FRAMEWORKS_VERSION = "Template-1.0.11-redownload"
+    SIKARUGIR_FRAMEWORKS_URL = "https://github.com/Sikarugir-App/Wrapper/releases/download/v1.0/Template-1.0.11.tar.xz"
+else:
+    SIKARUGIR_FRAMEWORKS_VERSION = "Template-1.0.24"
+    SIKARUGIR_FRAMEWORKS_URL = "https://github.com/Sikarugir-App/Template/releases/download/v1.0/Template-1.0.24.tar.xz"
+
+KOSMICKRISP_MINIMUM_MACOS_VERSION = 26  # Tahoe
 
 
 @attrs.define
@@ -116,7 +121,7 @@ class WineManagement:
         self.latest_d3d_extras_path: Final[Path] = (
             self.downloads_path / f"d3d-extras-{D3D_EXTRAS_VERSION}"
         )
-        self.latest_sikarugir_frameworks_path: Final[Path] = (
+        self.latest_sikarugir_template_path: Final[Path] = (
             self.downloads_path / f"frameworks-{SIKARUGIR_FRAMEWORKS_VERSION}"
         )
 
@@ -346,16 +351,17 @@ class WineManagement:
             with lzma.open(archive_path) as file, tarfile.open(fileobj=file) as tar:
                 tar.extractall(temp_dir, filter="data")
 
-            source_dir = next(temp_dir.glob("*/")) / "Contents" / "Frameworks"
+            source_dir = next(temp_dir.glob("*/")) / "Contents"
+
             # Using `shutil.move` instead of `Path.rename`, so that it works across
             # filesystems.
-            move(source_dir, self.latest_sikarugir_frameworks_path)
+            move(source_dir, self.latest_sikarugir_template_path)
 
         # Remove old versions.
         for folder in self.downloads_path.glob("*/"):
             if (
                 folder.name.startswith("frameworks")
-                and folder != self.latest_sikarugir_frameworks_path
+                and folder != self.latest_sikarugir_template_path
             ):
                 rmtree(folder)
 
@@ -419,7 +425,7 @@ class WineManagement:
         # macOS specific
         if sys.platform == "darwin":
             # Sikarugir
-            if not self.latest_sikarugir_frameworks_path.exists():
+            if not self.latest_sikarugir_template_path.exists():
                 download_steps.append(self._download_sikarugir_frameworks)
             # Rosetta
             if platform.machine() != "x86_64":
@@ -492,27 +498,54 @@ def get_wine_process_args(
             edited_environment["WINEFSYNC"] = "1"
 
         if sys.platform == "darwin":
+            macos_major_version = int(platform.mac_ver()[0].split(".")[0])
+
+            frameworks_path = (
+                wine_management.latest_sikarugir_template_path / "Frameworks"
+            )
             edited_environment["DYLD_FALLBACK_LIBRARY_PATH"] = ":".join(
                 str(path)
                 for path in (
-                    (wine_management.latest_sikarugir_frameworks_path / "moltenvkcx"),
+                    (frameworks_path / "moltenvkcx"),
                     (wine_management.latest_wine_path / "lib"),
                     (wine_management.latest_wine_path / "lib64"),
-                    wine_management.latest_sikarugir_frameworks_path,
+                    frameworks_path,
                     Path("/opt/wine/lib"),
                     Path("/usr/lib"),
                     Path("/usr/libexec"),
                     Path("/usr/lib/system"),
                 )
             )
+            if platform.machine() != "x86_64":
+                driver_config = (
+                    "kosmickrisp_mesa_icd.json"
+                    if macos_major_version >= KOSMICKRISP_MINIMUM_MACOS_VERSION
+                    else "MoltenVK_icd.json"
+                )
+                edited_environment["VK_DRIVER_FILES"] = str(
+                    wine_management.latest_sikarugir_template_path
+                    / "Resources/vulkan/icd.d"
+                    / driver_config
+                )
 
             if not MACOS_WINEHQ_WINE:
-                edited_environment["WINEDLLPATH_PREPEND"] = str(
-                    wine_management.latest_sikarugir_frameworks_path
-                    / "renderer"
-                    / "dxvk"
-                    / "wine"
+                edited_environment["WINEDLLPATH_DXVK"] = str(
+                    wine_management.latest_sikarugir_template_path
+                    / f"SharedSupport/renderer/{
+                        'dxvk3'
+                        if macos_major_version >= KOSMICKRISP_MINIMUM_MACOS_VERSION
+                        else 'dxvk'
+                    }/wine"
                 )
+                if macos_major_version >= KOSMICKRISP_MINIMUM_MACOS_VERSION:
+                    edited_environment["DXVK_ASYNC"] = "1"
+                # Used in older Sikarugir versions.
+                edited_environment["WINEDLLPATH_PREPEND"] = str(
+                    frameworks_path / "renderer/dxvk/wine"
+                )
+
+                # Sikarugir 11 WINE will instantly exit without this.
+                edited_environment["SikarugirAppWine11"] = "1"
 
             # "wine doesn't handle VK_ERROR_DEVICE_LOST correctly"
             #     -- <https://github.com/Gcenx/macOS_Wine_builds/releases/tag/10.18>
