@@ -88,7 +88,7 @@ else:
     SIKARUGIR_FRAMEWORKS_VERSION = "Template-1.0.24"
     SIKARUGIR_FRAMEWORKS_URL = "https://github.com/Sikarugir-App/Template/releases/download/v1.0/Template-1.0.24.tar.xz"
 
-KOSMICKRISP_MINIMUM_MACOS_VERSION = 26  # Tahoe
+KOSMICKRISP_MINIMUM_MACOS_VERSION = 99  # Tahoe
 
 
 @attrs.define
