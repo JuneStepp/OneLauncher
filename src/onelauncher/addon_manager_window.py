@@ -779,12 +779,11 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 if path.suffix == ".plugin":
                     self.install_plugin(tmp_dir, interface_id)
                     return
-                elif path.suffix == ".abc":
-                    if (
-                        self.install_music(tmp_dir, interface_id, addon_path.stem)
-                        is not False
-                    ):
-                        return
+                elif path.suffix == ".abc" and (
+                    self.install_music(tmp_dir, interface_id, addon_path.stem)
+                    is not False
+                ):
+                    return
             # Skins always have `SkinDefinition.xml` files but there aren't necessarily
             # at any given directory level.
             self.install_skin(tmp_dir, interface_id, addon_path.stem)
