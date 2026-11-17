@@ -308,7 +308,8 @@ class Progress:
         precision = 0 if unit == 1 else 1
         completed_str = f"{sum_completed / unit:,.{precision}f}"
         total_str = f"{sum_total / unit:,.{precision}f}"
-        progress_text = f"{sum_completed / sum_total:.0%} ({completed_str}/{total_str} {suffix}){self.progress_text_suffix}"
+        suffix = " " + suffix if suffix else ""
+        progress_text = f"{sum_completed / sum_total:.0%} ({completed_str}/{total_str}{suffix}){self.progress_text_suffix}"
 
         return CurrentProgress(
             # Using 0 to 10,000 instead of 0 to `current_progress.total` to prevent
