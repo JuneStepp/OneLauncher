@@ -365,13 +365,13 @@ class ConfigManager:
 
     GAME_CONFIG_FILE_NAME: Final[str] = attrs.field(default="config.toml", init=False)
     configs_are_verified: bool = attrs.field(default=False, init=False)
-    verified_game_config_ids: list[GameConfigID] = attrs.field(default=[], init=False)
+    verified_game_config_ids: list[GameConfigID] = attrs.field(factory=list, init=False)
     _cached_program_config: ProgramConfig | None = attrs.field(default=None, init=False)
     _cached_game_configs: dict[GameConfigID, GameConfig] = attrs.field(
-        default={}, init=False
+        factory=dict, init=False
     )
     _cached_game_accounts_configs: dict[GameConfigID, GameAccountsConfig] = attrs.field(
-        default={}, init=False
+        factory=dict, init=False
     )
 
     def __attrs_post_init__(self) -> None:
