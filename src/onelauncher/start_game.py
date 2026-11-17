@@ -237,6 +237,7 @@ async def start_game(
     """
     Raises:
         MissingLaunchArgumentError
+        WineComponentDownloadError
         OSError: Error encountered starting or communicating with the process
     """
     # This must be called before `game_config.last_played` is updated.
@@ -280,7 +281,7 @@ async def start_game(
     )
     environment = MappingProxyType(os.environ.copy() | game_config.environment)
     if os.name != "nt":
-        command, environment = get_wine_process_args(
+        command, environment = await get_wine_process_args(
             command=command, environment=environment, wine_config=game_config.wine
         )
 

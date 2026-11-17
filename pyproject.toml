@@ -1,6 +1,6 @@
 [project]
 name = "OneLauncher"
-version = "2.1.4"
+version = "2.1.5.dev"
 description = "The OneLauncher to rule them all"
 authors = [{ name = "June Stepp", email = "contact@junestepp.me" }]
 requires-python = ">=3.12"
@@ -34,6 +34,8 @@ dependencies = [
     "cattrs[tomlkit]>=23.2.3",
     "packaging>=24.1",
     "cyclopts>=4.3.0",
+    "tenacity>=9.2.1",
+    "retryhttp[httpx2]>=1.5.0",
 ]
 
 [project.urls]

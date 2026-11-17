@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'settings_window.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.10.0
+## Created by: Qt User Interface Compiler version 6.12.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -237,38 +237,48 @@ class Ui_settingsWindow(object):
         self.winePrefixLabel = QLabel(self.pageWine)
         self.winePrefixLabel.setObjectName(u"winePrefixLabel")
 
-        self.formLayout_3.setWidget(1, QFormLayout.ItemRole.LabelRole, self.winePrefixLabel)
+        self.formLayout_3.setWidget(2, QFormLayout.ItemRole.LabelRole, self.winePrefixLabel)
 
         self.winePrefixLineEdit = QLineEdit(self.pageWine)
         self.winePrefixLineEdit.setObjectName(u"winePrefixLineEdit")
         self.winePrefixLineEdit.setDragEnabled(True)
 
-        self.formLayout_3.setWidget(1, QFormLayout.ItemRole.FieldRole, self.winePrefixLineEdit)
+        self.formLayout_3.setWidget(2, QFormLayout.ItemRole.FieldRole, self.winePrefixLineEdit)
 
         self.wineExecutableLabel = QLabel(self.pageWine)
         self.wineExecutableLabel.setObjectName(u"wineExecutableLabel")
 
-        self.formLayout_3.setWidget(2, QFormLayout.ItemRole.LabelRole, self.wineExecutableLabel)
+        self.formLayout_3.setWidget(3, QFormLayout.ItemRole.LabelRole, self.wineExecutableLabel)
 
         self.wineExecutableLineEdit = QLineEdit(self.pageWine)
         self.wineExecutableLineEdit.setObjectName(u"wineExecutableLineEdit")
         self.wineExecutableLineEdit.setDragEnabled(True)
 
-        self.formLayout_3.setWidget(2, QFormLayout.ItemRole.FieldRole, self.wineExecutableLineEdit)
+        self.formLayout_3.setWidget(3, QFormLayout.ItemRole.FieldRole, self.wineExecutableLineEdit)
 
         self.wineDebugLabel = QLabel(self.pageWine)
         self.wineDebugLabel.setObjectName(u"wineDebugLabel")
 
-        self.formLayout_3.setWidget(3, QFormLayout.ItemRole.LabelRole, self.wineDebugLabel)
+        self.formLayout_3.setWidget(4, QFormLayout.ItemRole.LabelRole, self.wineDebugLabel)
 
         self.wineDebugLineEdit = QLineEdit(self.pageWine)
         self.wineDebugLineEdit.setObjectName(u"wineDebugLineEdit")
 
-        self.formLayout_3.setWidget(3, QFormLayout.ItemRole.FieldRole, self.wineDebugLineEdit)
+        self.formLayout_3.setWidget(4, QFormLayout.ItemRole.FieldRole, self.wineDebugLineEdit)
 
         self.verticalSpacer_3 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
-        self.formLayout_3.setItem(4, QFormLayout.ItemRole.FieldRole, self.verticalSpacer_3)
+        self.formLayout_3.setItem(5, QFormLayout.ItemRole.FieldRole, self.verticalSpacer_3)
+
+        self.wineMethodLabel = QLabel(self.pageWine)
+        self.wineMethodLabel.setObjectName(u"wineMethodLabel")
+
+        self.formLayout_3.setWidget(1, QFormLayout.ItemRole.LabelRole, self.wineMethodLabel)
+
+        self.wineMethodComboBox = QComboBox(self.pageWine)
+        self.wineMethodComboBox.setObjectName(u"wineMethodComboBox")
+
+        self.formLayout_3.setWidget(1, QFormLayout.ItemRole.FieldRole, self.wineMethodComboBox)
 
         self.stackedWidget.addWidget(self.pageWine)
         self.pageProgram = QWidget()
@@ -495,6 +505,7 @@ class Ui_settingsWindow(object):
 #if QT_CONFIG(tooltip)
         self.wineDebugLineEdit.setToolTip(QCoreApplication.translate("settingsWindow", u"Value for the WINEDEBUG environment variable", None))
 #endif // QT_CONFIG(tooltip)
+        self.wineMethodLabel.setText(QCoreApplication.translate("settingsWindow", u"Wine Method", None))
 #if QT_CONFIG(tooltip)
         self.defaultLanguageLabel.setToolTip(QCoreApplication.translate("settingsWindow", u"Default language to use for games", None))
 #endif // QT_CONFIG(tooltip)

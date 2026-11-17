@@ -32,7 +32,10 @@ from onelauncher.utilities import (
     Progress,
     ProgressItem,
 )
-from onelauncher.wine_environment import get_wine_process_args
+from onelauncher.wine_environment import (
+    WineComponentDownloadError,
+    get_wine_process_args,
+)
 
 logger = logging.getLogger(__name__)
 logger.addFilter(ExternalProcessLogsFilter())
@@ -380,9 +383,17 @@ async def patch_game(
             }
         )
     else:
-        command, environment = get_wine_process_args(
-            command=command, environment=environment, wine_config=game_config.wine
-        )
+        wine_setup_error: bool = False
+        try:
+            command, environment = await get_wine_process_args(
+                command=command, environment=environment, wine_config=game_config.wine
+            )
+        except* WineComponentDownloadError as exception_group:
+            wine_setup_error = True
+            for e in exception_group.exceptions:
+                logger.error(msg="Error downloading a WINE component", exc_info=e)
+        if wine_setup_error:
+            return
 
     # Initial data and splashscreens phase.
     progress.progress_text_suffix = (

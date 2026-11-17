@@ -245,3 +245,9 @@ def unstructure_config(
                             ConfigFieldMetadata.from_attribute(attribute),
                         )
     return destructured
+
+
+def get_help(field_name: str, /, attrs_class: type[attrs.AttrsInstance]) -> str | None:
+    return ConfigFieldMetadata.from_field_name(
+        field_name=field_name, attrs_class=attrs_class
+    ).help

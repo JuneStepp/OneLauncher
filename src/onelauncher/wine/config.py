@@ -1,3 +1,4 @@
+from enum import Enum
 from pathlib import Path
 
 import attrs
@@ -5,10 +6,22 @@ import attrs
 from ..config import config_field
 
 
+class WineMethod(Enum):
+    LINUX = "linux"
+    MOLTENVK_LEGACY = "legacy"
+    MOLTENVK = "moltenvk"
+    MOLTENVK_WINEHQ = "moltenvk_winehq"
+    KOSMICKRISP = "kosmickrisp"
+
+
 @attrs.frozen
 class WineConfigSection:
     builtin_prefix_enabled: bool = config_field(
         default=True, help="If WINE should be automatically managed"
+    )
+    wine_method: WineMethod | None = config_field(  # noqa: RUF009
+        default=None,
+        help="WINE method. You should not normally need to change this.",
     )
     user_wine_executable_path: Path | None = config_field(  # noqa: RUF009
         default=None,

@@ -40,8 +40,10 @@ import qtawesome
 import trio
 from PySide6 import QtCore, QtGui, QtWidgets
 
+from onelauncher.wine.config import WineConfigSection, WineMethod
+
 from .__about__ import __title__
-from .config import platform_dirs
+from .config import get_help, platform_dirs
 from .config_manager import ConfigManager
 from .game_config import ClientType, GameConfigID
 from .game_launcher_local_config import (
@@ -62,7 +64,7 @@ from .ui.qtapp import get_qapp
 from .ui.settings_window_uic import Ui_settingsWindow
 from .ui.utilities import show_warning_message
 from .utilities import CaseInsensitiveAbsolutePath
-from .wine_environment import get_wine_process_args
+from .wine_environment import WineComponentDownloadError, get_wine_process_args
 
 logger = logging.getLogger(__name__)
 
@@ -131,6 +133,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             self.ui.autoManageWineCheckBox.setChecked(
                 game_config.wine.builtin_prefix_enabled
             )
+            self.setup_wine_method_combo_box()
             self.ui.winePrefixLineEdit.setText(
                 str(game_config.wine.user_prefix_path or "")
             )
@@ -294,10 +297,28 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
             )
 
     def auto_manage_wine_checkbox_toggled(self, is_checked: bool) -> None:
+        self.ui.wineMethodLabel.setEnabled(is_checked)
+        self.ui.wineMethodComboBox.setEnabled(is_checked)
         self.ui.winePrefixLabel.setEnabled(not is_checked)
         self.ui.winePrefixLineEdit.setEnabled(not is_checked)
         self.ui.wineExecutableLabel.setEnabled(not is_checked)
         self.ui.wineExecutableLineEdit.setEnabled(not is_checked)
+
+    def setup_wine_method_combo_box(self) -> None:
+        wine_config = self.config_manager.read_game_config_file(self.game_id).wine
+
+        self.ui.wineMethodLabel.setToolTip(
+            get_help("wine_method", WineConfigSection) or ""
+        )
+        self.ui.wineMethodComboBox.setToolTip(
+            get_help("wine_method", WineConfigSection) or ""
+        )
+        self.ui.wineMethodComboBox.addItem("Default", userData=None)
+        for method in WineMethod:
+            self.ui.wineMethodComboBox.addItem(method.value, userData=method)
+        self.ui.wineMethodComboBox.setCurrentText(
+            wine_config.wine_method.value if wine_config.wine_method else "Default"
+        )
 
     def toggle_advanced_settings(self, is_checked: bool) -> None:
         advanced_widgets = [
@@ -370,9 +391,20 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
         if disable_patching:
             command = (*command, "-skiprawdownload", "-disablepatch")
         if os.name != "nt":
-            command, environment = get_wine_process_args(
-                command=command, environment=environment, wine_config=game_config.wine
-            )
+            wine_setup_error: bool = False
+            try:
+                command, environment = await get_wine_process_args(
+                    command=command,
+                    environment=environment,
+                    wine_config=game_config.wine,
+                )
+            except* WineComponentDownloadError as exception_group:
+                wine_setup_error = True
+                for e in exception_group.exceptions:
+                    logger.error(msg="Error downloading a WINE component", exc_info=e)
+            if wine_setup_error:
+                show_warning_message("Error setting up WINE", self)
+                return
 
         process = QtCore.QProcess()
         q_process_environment = QtCore.QProcessEnvironment()
@@ -471,6 +503,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
         updated_wine_config = attrs.evolve(
             game_config.wine,
             builtin_prefix_enabled=self.ui.autoManageWineCheckBox.isChecked(),
+            wine_method=self.ui.wineMethodComboBox.currentData(),
             user_prefix_path=(
                 Path(self.ui.winePrefixLineEdit.text())
                 if self.ui.winePrefixLineEdit.text()

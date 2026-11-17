@@ -30,7 +30,7 @@ from .__about__ import __title__, __version__, version_parsed
 from .addons.config import AddonsConfigSection
 from .addons.startup_script import StartupScript
 from .async_utils import start_async_gui
-from .config import ConfigFieldMetadata
+from .config import get_help
 from .config_manager import (
     GAMES_DIR_DEFAULT,
     PROGRAM_CONFIG_DIR_DEFAULT,
@@ -46,7 +46,7 @@ from .program_config import GamesSortingMode, OnGameStartAction, ProgramConfig
 from .resources import OneLauncherLocale, available_locales
 from .ui import qtdesigner
 from .utilities import CaseInsensitiveAbsolutePath
-from .wine.config import WineConfigSection
+from .wine.config import WineConfigSection, WineMethod
 
 logger = logging.getLogger(__name__)
 
@@ -62,12 +62,6 @@ class _GameParamGameType(Enum):
 def _cattrs_converter[T: type](type_: type[T], tokens: Sequence[Token]) -> T:
     converter = get_converter()
     return converter.structure(tokens[0].value, type_)
-
-
-def _get_help(field_name: str, /, attrs_class: type[attrs.AttrsInstance]) -> str | None:
-    return ConfigFieldMetadata.from_field_name(
-        field_name=field_name, attrs_class=attrs_class
-    ).help
 
 
 def _merge_program_config(
@@ -117,6 +111,7 @@ def _merge_game_config(
     user_wine_executable_path: Path | None,
     user_prefix_path: Path | None,
     wine_debug_level: str | None,
+    wine_method: WineMethod | None,
 ) -> GameConfig:
     """
     Merge `game_config` with CLI options. Any specified CLI options will
@@ -161,6 +156,9 @@ def _merge_game_config(
             wine_debug_level
             if wine_debug_level is not None
             else game_config.wine.debug_level
+        ),
+        wine_method=(
+            wine_method if wine_method is not None else game_config.wine.wine_method
         ),
     )
     return attrs.evolve(
@@ -249,11 +247,11 @@ DevGroup = cyclopts.Group.create_ordered(
     name="Dev Stuff", show=version_parsed.is_devrelease
 )
 
-prog_help = partial(_get_help, attrs_class=ProgramConfig)
-game_help = partial(_get_help, attrs_class=GameConfig)
-account_help = partial(_get_help, attrs_class=GameAccountConfig)
-addons_help = partial(_get_help, attrs_class=AddonsConfigSection)
-wine_help = partial(_get_help, attrs_class=WineConfigSection)
+prog_help = partial(get_help, attrs_class=ProgramConfig)
+game_help = partial(get_help, attrs_class=GameConfig)
+account_help = partial(get_help, attrs_class=GameAccountConfig)
+addons_help = partial(get_help, attrs_class=AddonsConfigSection)
+wine_help = partial(get_help, attrs_class=WineConfigSection)
 
 
 def get_app() -> cyclopts.App:
@@ -572,6 +570,15 @@ def get_app() -> cyclopts.App:
         wine_debug_level: Annotated[
             str | None, Parameter(group=WineGroup, help=wine_help("debug_level"))
         ] = None,
+        wine_method: Annotated[
+            WineMethod | None,
+            Parameter(
+                group=WineGroup,
+                help=wine_help("wine_method"),
+                # This option is likely temporary or will change over time.
+                show=False,
+            ),
+        ] = None,
     ) -> int:
         setup_application_logging(
             log_level_override=config_manager.get_program_config().log_verbosity
@@ -593,6 +600,7 @@ def get_app() -> cyclopts.App:
             user_wine_executable_path=user_wine_executable_path,
             user_prefix_path=user_prefix_path,
             wine_debug_level=wine_debug_level,
+            wine_method=wine_method,
         )
         config_manager.get_merged_game_accounts_config = partial(
             _merge_accounts_config,

@@ -44,6 +44,7 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from xmlschema import XMLSchemaValidationError
 
 from onelauncher.async_utils import app_cancel_scope
+from onelauncher.wine_environment import WineComponentDownloadError
 
 from . import __about__, addon_manager_window
 from .addons.startup_script import run_startup_script
@@ -783,6 +784,11 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             logger.exception(
                 "Game launch argument missing. Please report this error if using a supported server."
             )
+        except* WineComponentDownloadError as exception_group:
+            for exception in exception_group.exceptions:
+                logger.error(
+                    msg="Error downloading a WINE component", exc_info=exception
+                )
         except* OSError:
             logger.exception("Failed to start game")
 
