@@ -14,12 +14,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-14, macos-15-intel, windows-latest]
+        os: [ubuntu-22.04, macos-15, macos-15-intel, windows-latest]
         include:
           - os: ubuntu-22.04
             artifact_path_name: onelauncher.bin
             artifact_rename: OneLauncher-Linux.bin
-          - os: macos-14
+          - os: macos-15
             artifact_path_name: onelauncher.zip
             artifact_rename: OneLauncher-macOS-ARM64.zip
           - os: macos-15-intel
