@@ -155,7 +155,9 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         color_scheme_changed.connect(
             lambda: self.ui.btnOptions.setIcon(get_options_icon())
         )
-        self.ui.btnAddonManager.clicked.connect(self.btnAddonManagerSelected)
+        self.ui.btnAddonManager.clicked.connect(
+            lambda: self.nursery.start_soon(self.btnAddonManagerSelected)
+        )
         get_addons_manager_icon = partial(qtawesome.icon, "fa5s.plus-circle")
         self.ui.btnAddonManager.setIcon(get_addons_manager_icon())
         color_scheme_changed.connect(
@@ -357,7 +359,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
         if winSettings.result() == QtWidgets.QDialog.DialogCode.Accepted:
             await self.InitialSetup()
 
-    def btnAddonManagerSelected(self) -> None:
+    async def btnAddonManagerSelected(self) -> None:
         if self.addon_manager_window:
             if self.addon_manager_window.isVisible():
                 self.addon_manager_window.raise_()
@@ -371,7 +373,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             game_id=self.game_id,
             launcher_local_config=self.game_launcher_local_config,
         )
-        self.addon_manager_window.show()
+        await self.addon_manager_window.run()
 
     async def btnSwitchGameClicked(self) -> None:
         new_game_type = (

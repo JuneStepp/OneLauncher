@@ -31,8 +31,6 @@ import html
 import logging
 import re
 import sqlite3
-import ssl
-import urllib
 import xml.dom.minidom
 import xml.etree.ElementTree as ET
 import zipfile
@@ -59,22 +57,24 @@ from xml.parsers.expat import ExpatError
 import attrs
 import defusedxml.minidom  # type: ignore[import-untyped]
 import qtawesome
-import truststore
+import retryhttp
+import trio
 from httpx2 import HTTPError
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from .__about__ import __title__
 from .addons.startup_script import StartupScript
+from .async_utils import TemporaryDirectoryAsyncPath
 from .config import platform_dirs
 from .config_manager import ConfigManager
 from .game_config import GameConfigID, GameType
 from .game_launcher_local_config import GameLauncherLocalConfig
 from .game_utilities import get_game_settings_dir
-from .network.httpx_client import get_httpx_client_sync
+from .network.httpx_client import get_httpx_client, get_httpx_client_sync
 from .ui.addon_manager_window_uic import Ui_addonManagerWindow
 from .ui.qtapp import get_qapp
 from .ui.qtdesigner.custom_widgets import QWidgetWithStylePreview
-from .utilities import CaseInsensitiveAbsolutePath
+from .utilities import CaseInsensitiveAbsolutePath, Progress, ProgressItem
 
 if TYPE_CHECKING:
     from xml.dom.minidom import _ElementChildren
@@ -221,14 +221,27 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         super().__init__()
         self.config_manager = config_manager
         self.game_id: GameConfigID = game_id
+
+        self.data_folder = get_game_settings_dir(
+            game_config=self.config_manager.get_game_config(self.game_id),
+            launcher_local_config=launcher_local_config,
+        )
+        game_config = self.config_manager.get_game_config(self.game_id)
+        if game_config.game_type == GameType.DDO:
+            self.data_folder_skins = self.data_folder / "ui/skins"
+        else:
+            self.data_folder_plugins = self.data_folder / "Plugins"
+            self.data_folder_skins = self.data_folder / "ui/skins"
+            self.data_folder_music = self.data_folder / "Music"
+
+    def setup_ui(self) -> None:
         self.ui = Ui_addonManagerWindow()
         self.ui.setupUi(self)
+        color_scheme_changed = get_qapp().styleHints().colorSchemeChanged
 
         game_config = self.config_manager.get_game_config(self.game_id)
 
         self.setWindowTitle(f"Addons Manager - {game_config.name}")
-
-        color_scheme_changed = get_qapp().styleHints().colorSchemeChanged
 
         for source_tab_name in self.SOURCE_TAB_NAMES:
             self.ui.tabBarSource.addTab(source_tab_name)
@@ -252,7 +265,9 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         self.btnAddonsMenu = QtWidgets.QMenu()
         self.btnAddonsMenu.addAction(self.ui.actionUpdateSelectedAddons)
-        self.ui.actionUpdateSelectedAddons.triggered.connect(self.updateSelectedAddons)
+        self.ui.actionUpdateSelectedAddons.triggered.connect(
+            lambda: self.nursery.start_soon(self.updateSelectedAddons)
+        )
         self.btnAddonsMenu.addAction(self.ui.actionShowSelectedOnLotrointerface)
         self.ui.actionShowSelectedOnLotrointerface.triggered.connect(
             self.showSelectedOnLotrointerface
@@ -262,7 +277,9 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.show_selected_addons_in_file_manager
         )
         self.btnAddonsMenu.addAction(self.ui.actionAddonImport)
-        self.ui.actionAddonImport.triggered.connect(self.actionAddonImportSelected)
+        self.ui.actionAddonImport.triggered.connect(
+            lambda: self.nursery.start_soon(self.actionAddonImportSelected)
+        )
         self.btnAddonsMenu.addAction(self.ui.actionShowPluginsFolderInFileManager)
         self.ui.actionShowPluginsFolderInFileManager.triggered.connect(
             self.actionShowPluginsFolderSelected
@@ -277,15 +294,21 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         )
         self.btnAddonsMenu.aboutToShow.connect(self.update_addons_button_actions)
         self.ui.btnAddons.setMenu(self.btnAddonsMenu)
-        self.ui.btnAddons.clicked.connect(self.btnAddonsClicked)
+        self.ui.btnAddons.clicked.connect(
+            lambda: self.nursery.start_soon(self.btnAddonsClicked)
+        )
         self.update_btn_addons()
         color_scheme_changed.connect(self.update_btn_addons)
 
-        self.ui.actionInstallAddon.triggered.connect(self.actionInstallAddonSelected)
+        self.ui.actionInstallAddon.triggered.connect(
+            lambda: self.nursery.start_soon(self.actionInstallAddonSelected)
+        )
         self.ui.actionUninstallAddon.triggered.connect(
             self.actionUninstallAddonSelected
         )
-        self.ui.actionUpdateAddon.triggered.connect(self.actionUpdateAddonSelected)
+        self.ui.actionUpdateAddon.triggered.connect(
+            lambda: self.nursery.start_soon(self.actionUpdateAddonSelected)
+        )
 
         self.ui.actionEnableStartupScript.triggered.connect(
             self.actionEnableStartupScriptSelected
@@ -311,18 +334,20 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         )
         self.ui.btnCheckForUpdates.pressed.connect(self.checkForUpdates)
         self.ui.btnCheckForUpdates_2.pressed.connect(self.checkForUpdates)
-        self.ui.btnUpdateAll.pressed.connect(self.updateAll)
+        self.ui.btnUpdateAll.pressed.connect(
+            lambda: self.nursery.start_soon(self.updateAll)
+        )
 
         self.ui.txtSearchBar.setFocus()
         self.ui.txtSearchBar.textChanged.connect(self.txtSearchBarTextChanged)
 
         # The order of these should match
-        self.ui_tables_installed: Final[tuple[QtWidgets.QTableWidget, ...]] = (
+        self.ui_tables_installed: tuple[QtWidgets.QTableWidget, ...] = (
             self.ui.tablePluginsInstalled,
             self.ui.tableSkinsInstalled,
             self.ui.tableMusicInstalled,
         )
-        self.ui_tables_remote: Final[tuple[QtWidgets.QTableWidget, ...]] = (
+        self.ui_tables_remote: tuple[QtWidgets.QTableWidget, ...] = (
             self.ui.tablePlugins,
             self.ui.tableSkins,
             self.ui.tableMusic,
@@ -346,23 +371,27 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.actionShowOnLotrointerfaceSelected
         )
 
-        self.data_folder = get_game_settings_dir(
-            game_config=self.config_manager.get_game_config(self.game_id),
-            launcher_local_config=launcher_local_config,
-        )
         if game_config.game_type == GameType.DDO:
-            self.data_folder_skins = self.data_folder / "ui/skins"
             self.ui.tableSkinsInstalled.setObjectName("tableSkinsDDOInstalled")
             self.ui.tableSkins.setObjectName("tableSkinsDDO")
-        else:
-            self.data_folder_plugins = self.data_folder / "Plugins"
-            self.data_folder_skins = self.data_folder / "ui/skins"
-            self.data_folder_music = self.data_folder / "Music"
+
+    async def run(self) -> None:
+        self.setup_ui()
 
         self.openDB()
-
         # This will load up whatever's needed for the initial tab. Ex. Plugins
         self.tabBarInstalledIndexChanged(self.ui.tabBarInstalled.currentIndex())
+        self.show()
+
+        async with trio.open_nursery() as self.nursery:
+            # Will be canceled when the window is closed
+            self.nursery.start_soon(trio.sleep_forever)
+
+    @override
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
+        self.closeDB()
+        self.nursery.cancel_scope.cancel()
+        event.accept()
 
     def getInstalledSkins(self, folders_list: list[Path] | None = None) -> None:
         self.data_folder_skins.mkdir(parents=True, exist_ok=True)
@@ -706,7 +735,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self.conn.commit()
         self.conn.close()
 
-    def actionAddonImportSelected(self) -> None:
+    async def actionAddonImportSelected(self) -> None:
         # DDO doesn't support playing music from .abc files
         if self.config_manager.get_game_config(self.game_id).game_type == GameType.DDO:
             addon_formats = "*.zip *.rar"
@@ -716,15 +745,15 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         file_names = QtWidgets.QFileDialog.getOpenFileNames(
             self,
             "Addon Files/Archives",
-            str(Path("~").expanduser()),
+            str(await trio.Path.home()),
             addon_formats,
         )
 
         if file_names[0]:
             for file in file_names[0]:
-                self.installAddon(Path(file))
+                await self.installAddon(Path(file))
 
-    def installAddon(
+    async def installAddon(
         self,
         addon_path: Path,
         interface_id: str | None = None,
@@ -742,7 +771,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             )
             return
         elif addon_path.suffix == ".zip":
-            self.installZipAddon(addon_path, interface_id)
+            await self.installZipAddon(addon_path, interface_id)
 
     def installAbcFile(self, addon_path: Path) -> None:
         if self.config_manager.get_game_config(self.game_id).game_type == GameType.DDO:
@@ -756,7 +785,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         # so what is scanned can't be controlled.
         self.getInstalledMusic(folders_list=None)
 
-    def installZipAddon(
+    async def installZipAddon(
         self,
         addon_path: Path,
         interface_id: str | None,
@@ -777,18 +806,18 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
             for path in tmp_dir.glob("**/*.*"):
                 if path.suffix == ".plugin":
-                    self.install_plugin(tmp_dir, interface_id)
+                    await self.install_plugin(tmp_dir, interface_id)
                     return
                 elif path.suffix == ".abc" and (
-                    self.install_music(tmp_dir, interface_id, addon_path.stem)
+                    await self.install_music(tmp_dir, interface_id, addon_path.stem)
                     is not False
                 ):
                     return
             # Skins always have `SkinDefinition.xml` files but there aren't necessarily
             # at any given directory level.
-            self.install_skin(tmp_dir, interface_id, addon_path.stem)
+            await self.install_skin(tmp_dir, interface_id, addon_path.stem)
 
-    def install_plugin(
+    async def install_plugin(
         self, tmp_dir: CaseInsensitiveAbsolutePath, interface_id: str | None
     ) -> None:
         """Install plugin from temporary directory"""
@@ -891,12 +920,13 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self.addInstalledPluginsToDB(plugin_files, compendium_files)
 
         if interface_id:
+            self.setRemoteAddonToInstalled(interface_id, table)
             self.handleStartupScriptActivationPrompt(table, interface_id)
         logger.debug(
             "Installed plugin corresponding to %s %s", plugin_files, compendium_files
         )
 
-        self.installAddonRemoteDependencies(self.ui.tablePluginsInstalled)
+        await self.installAddonRemoteDependencies(self.ui.tablePluginsInstalled)
 
     def get_existing_compendium_file(
         self, tmp_search_dir: CaseInsensitiveAbsolutePath
@@ -918,7 +948,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             return existing_compendium_files[0]
         return None
 
-    def install_music(
+    async def install_music(
         self,
         tmp_dir: CaseInsensitiveAbsolutePath,
         interface_id: str | None,
@@ -957,14 +987,15 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self.getInstalledMusic(folders_list=[root_dir])
 
         if interface_id:
+            self.setRemoteAddonToInstalled(interface_id, table)
             self.handleStartupScriptActivationPrompt(table, interface_id)
 
         logger.debug("%s music installed at %s", addon_name, root_dir)
 
-        self.installAddonRemoteDependencies(self.ui.tableMusicInstalled)
+        await self.installAddonRemoteDependencies(self.ui.tableMusicInstalled)
         return None
 
-    def install_skin(
+    async def install_skin(
         self,
         tmp_dir: CaseInsensitiveAbsolutePath,
         interface_id: str | None,
@@ -994,13 +1025,16 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self.getInstalledSkins(folders_list=[root_dir])
 
         if interface_id:
+            self.setRemoteAddonToInstalled(interface_id, table)
             self.handleStartupScriptActivationPrompt(table, interface_id)
 
         logger.debug("%s skin installed at %s", addon_name, root_dir)
 
-        self.installAddonRemoteDependencies(table=self.ui.tableSkinsInstalled)
+        await self.installAddonRemoteDependencies(table=self.ui.tableSkinsInstalled)
 
-    def installAddonRemoteDependencies(self, table: QtWidgets.QTableWidget) -> None:
+    async def installAddonRemoteDependencies(
+        self, table: QtWidgets.QTableWidget
+    ) -> None:
         """Installs the dependencies for the last installed addon"""
         # Get dependencies for last column in db
         dependencies: str | None = None
@@ -1029,7 +1063,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                     (interface_id,),
                 )
             ):
-                self.installRemoteAddon(item[0], item[1], interface_id)
+                await self.installRemoteAddon(item[0], item[1], interface_id)
 
     def fix_improper_root_dir_addon(
         self, addon_tmp_dir: CaseInsensitiveAbsolutePath, addon_name: str
@@ -1368,14 +1402,12 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         )
 
     def setRemoteAddonToInstalled(
-        self, addon: Addon, remote_table: QtWidgets.QTableWidget
+        self, interface_id: str, table: QtWidgets.QTableWidget
     ) -> None:
+        remote_table = self.getRemoteOrLocalTableFromOne(table, remote=True)
         self.c.execute(
-            f"UPDATE {remote_table.objectName()} SET Name = ? WHERE InterfaceID == ?",  # noqa: S608
-            (
-                f"(Installed) {addon[2]}",
-                addon[0],
-            ),
+            f"UPDATE {remote_table.objectName()} SET Name = '(Installed) ' || Name WHERE InterfaceID == ?",  # noqa: S608
+            (interface_id,),
         )
 
     def addRowToTable(
@@ -1445,7 +1477,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             f"INSERT INTO {table.objectName()} VALUES({question_marks})", addon_info
         )
 
-    def btnAddonsClicked(self) -> None:
+    async def btnAddonsClicked(self) -> None:
         table = self.getCurrentTable()
 
         # If on installed tab which means remove addons
@@ -1457,7 +1489,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 uninstall_function(addons, table)
                 self.resetRemoteAddonsTables()
         elif self.SOURCE_TAB_NAMES[self.ui.tabBarSource.currentIndex()] == "Find More":
-            self.installRemoteAddons()
+            await self.installRemoteAddons()
 
     def getUninstallFunctionFromTable(
         self, table: QtWidgets.QTableWidget
@@ -1472,14 +1504,15 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             return self.uninstallMusic
         assert_never()
 
-    def installRemoteAddons(self) -> None:
+    async def installRemoteAddons(self) -> None:
         table = self.getCurrentTable()
 
         addons, details = self.getSelectedAddons(table)
         if addons and details:
             for addon in addons:
-                self.installRemoteAddon(addon.file, addon.name, addon.interface_id)
-                self.setRemoteAddonToInstalled(addon, table)
+                await self.installRemoteAddon(
+                    addon.file, addon.name, addon.interface_id
+                )
 
             self.resetRemoteAddonsTables()
             self.searchSearchBarContents()
@@ -1511,15 +1544,14 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             assert_never(source_tab)
         return table
 
-    def installRemoteAddon(self, url: str, name: str, interface_id: str) -> None:
-        with TemporaryDirectory() as tmp_dir_name:
-            tmp_dir = Path(tmp_dir_name)
-
-            path = tmp_dir / f"{name}.zip"
-            status = self.downloader(url, path)
+    async def installRemoteAddon(self, url: str, name: str, interface_id: str) -> None:
+        async with TemporaryDirectoryAsyncPath() as temp_dir:
+            path = temp_dir / f"{name}.zip"
+            status = await self.downloader(url=url, download_path=path)
             if status:
-                self.installAddon(path, interface_id=interface_id)
-                path.unlink()
+                await self.installAddon(
+                    addon_path=Path(path), interface_id=interface_id
+                )
 
     def getUninstallConfirm(
         self, table: QtWidgets.QTableWidget
@@ -1929,45 +1961,67 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         return True
 
-    def downloader(self, url: str, path: Path) -> bool:
+    @retryhttp.retry
+    async def _download_file(
+        self, url: str, download_path: trio.Path, progress: Progress
+    ) -> None:
+        progress_item = ProgressItem()
+        progress.progress_items.append(progress_item)
+        try:
+            async with (
+                get_httpx_client(url).stream(
+                    "GET", url, follow_redirects=True
+                ) as response,
+                await download_path.open("w+b") as download_file,
+            ):
+                response.raise_for_status()
+
+                bytes_currently_downloaded = response.num_bytes_downloaded
+                progress_item.total = int(
+                    response.headers.get("Content-Length", 1000000)  # 1MB fallback.
+                )
+                async for chunk in response.aiter_bytes():
+                    progress_item.completed += (
+                        response.num_bytes_downloaded - bytes_currently_downloaded
+                    )
+                    bytes_currently_downloaded = response.num_bytes_downloaded
+                    await download_file.write(chunk)
+        except Exception as e:
+            progress.progress_items.remove(progress_item)
+            raise e
+
+    async def keep_progress_bar_updated(self, progress: Progress) -> None:
+        # Will be canceled once the window is closed.
+        while True:
+            current_progress = progress.get_current_progress()
+            self.ui.progressBar.setFormat(current_progress.progress_text)
+            self.ui.progressBar.setMaximum(current_progress.total)
+            self.ui.progressBar.setValue(current_progress.completed)
+            await trio.sleep(0.05)
+
+    async def downloader(self, url: str, download_path: trio.Path) -> bool:
         """
-        Download file from `url` to `path` and show progress with
-        `self.handleDownloadProgress`.
+        Download file from `url` to `path` and show progress.
         """
-        if url.lower().startswith("http"):
-            try:
-                self.ui.progressBar.setValue(0)
-                self.ui.progressBar.setVisible(True)
-
-                https_handler = urllib.request.HTTPSHandler(
-                    context=truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        progress = Progress(unit_type="byte")
+        self.ui.progressBar.setVisible(True)
+        download_error: bool = False
+        try:
+            async with trio.open_nursery() as nursery:
+                nursery.start_soon(self.keep_progress_bar_updated, progress)
+                await self._download_file(
+                    url=url, download_path=download_path, progress=progress
                 )
-                opener = urllib.request.build_opener(https_handler)
-                urllib.request.install_opener(opener)
+                nursery.cancel_scope.cancel()
+        except* HTTPError:
+            logger.exception(
+                "There was a network error. You may want to check your connection."
+            )
+            download_error = True
+        finally:
+            self.ui.progressBar.setVisible(False)
 
-                urllib.request.urlretrieve(  # noqa: S310
-                    url, path, self.handleDownloadProgress
-                )
-            except (urllib.error.URLError, urllib.error.HTTPError):
-                logger.exception(
-                    "There was a network error. You may want to check your connection."
-                )
-                self.ui.progressBar.setVisible(False)
-                return False
-        else:
-            raise ValueError from None
-        self.ui.progressBar.setVisible(False)
-        return True
-
-    def handleDownloadProgress(self, index: int, frame: int, size: int) -> None:
-        # Updates progress bar with download progress
-        percent = 100 * index * frame // size
-        self.ui.progressBar.setValue(percent)
-
-    @override
-    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
-        self.closeDB()
-        super().closeEvent(event)
+        return not download_error
 
     def contextMenuRequested(
         self, cursor_position: QtCore.QPoint, table: QtWidgets.QTableWidget
@@ -2113,7 +2167,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             )
             QtGui.QDesktopServices.openUrl(info_url)
 
-    def actionInstallAddonSelected(self) -> None:
+    async def actionInstallAddonSelected(self) -> None:
         """
         Install addon selected by context menu. This function
         should only be called while in one of the remote/find more
@@ -2125,8 +2179,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         if not addon:
             return
 
-        self.installRemoteAddon(addon.file, addon.name, addon.interface_id)
-        self.setRemoteAddonToInstalled(addon, table)
+        await self.installRemoteAddon(addon.file, addon.name, addon.interface_id)
 
         self.resetRemoteAddonsTables()
         self.searchSearchBarContents()
@@ -2369,7 +2422,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             (str(rowid_remote),),
         )
 
-    def updateAll(self) -> None:
+    async def updateAll(self) -> None:
         if not self.loadRemoteAddons():
             return
         self.getOutOfDateAddons()
@@ -2388,7 +2441,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                     f"SELECT InterfaceID, File, Name FROM {table.objectName()} WHERE Version LIKE '(Outdated) %'"  # noqa: S608
                 )
             ):
-                self.updateAddon(
+                await self.updateAddon(
                     Addon(
                         interface_id=addon[0],
                         file=str(self.data_folder / addon[1]),
@@ -2400,7 +2453,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         self.resetRemoteAddonsTables()
         self.searchSearchBarContents()
 
-    def updateAddon(self, addon: Addon, table: QtWidgets.QTableWidget) -> None:
+    async def updateAddon(self, addon: Addon, table: QtWidgets.QTableWidget) -> None:
         uninstall_function = self.getUninstallFunctionFromTable(table)
         table_installed = self.getRemoteOrLocalTableFromOne(table, remote=False)
         table_remote = self.getRemoteOrLocalTableFromOne(table, remote=True)
@@ -2415,10 +2468,9 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             url = entry[0]
         if url is None:
             raise ValueError("Addon not found in DB", addon)
-        self.installRemoteAddon(url, addon.name, addon.interface_id)
-        self.setRemoteAddonToInstalled(addon, table_remote)
+        await self.installRemoteAddon(url, addon.name, addon.interface_id)
 
-    def actionUpdateAddonSelected(self) -> None:
+    async def actionUpdateAddonSelected(self) -> None:
         table = self.context_menu_selected_table
         row = self.context_menu_selected_row
         addon = self.getAddonObjectFromRow(table, row, remote=False)
@@ -2426,19 +2478,19 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         if not addon:
             return
 
-        self.updateAddon(addon, table)
+        await self.updateAddon(addon, table)
 
         self.resetRemoteAddonsTables()
         self.searchSearchBarContents()
 
-    def updateSelectedAddons(self) -> None:
+    async def updateSelectedAddons(self) -> None:
         table = self.getCurrentTable()
         addons, _ = self.getSelectedAddons(table)
 
         if addons:
             for addon in addons:
                 if self.checkIfAddonHasUpdate(addon, table):
-                    self.updateAddon(addon, table)
+                    await self.updateAddon(addon, table)
 
             self.resetRemoteAddonsTables()
             self.searchSearchBarContents()
