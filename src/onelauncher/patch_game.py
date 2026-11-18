@@ -10,8 +10,10 @@ from uuid import uuid4
 
 import attrs
 import httpx2
+import retryhttp
 import trio
 from httpx2 import HTTPError, HTTPStatusError
+from tenacity import before_sleep_log
 from xmlschema import XMLSchemaValidationError
 
 from onelauncher.async_utils import for_each_in_stream
@@ -160,6 +162,11 @@ def get_patchclient_arguments(
     return (*base_arguments, phase_arg)
 
 
+@retryhttp.retry(
+    max_attempt_number=5,
+    reraise=True,
+    before_sleep=before_sleep_log(logger, logging.DEBUG),
+)
 async def _handle_akamai_download_file(
     download_file: PatchingDownloadFile | SplashscreenDownloadFile,
     game_directory: CaseInsensitiveAbsolutePath,
@@ -243,6 +250,7 @@ async def _handle_akamai_download_file(
 
                 await temp_download_file.write(chunk)
     except HTTPError as e:
+        progress.progress_items.remove(progress_item)
         if (
             isinstance(e, HTTPStatusError)
             and e.response.status_code == httpx2.codes.NOT_FOUND
@@ -250,8 +258,8 @@ async def _handle_akamai_download_file(
             # Not an error, because there are always some specific files that 404.
             logger.debug("Download not found: %s", local_path.name, exc_info=True)
         else:
-            logger.exception("Failed to download %s", local_path.name)
-        progress.progress_items.remove(progress_item)
+            e.add_note(local_path.name)
+            raise e
     else:
         await local_path.unlink(missing_ok=True)
         await temp_download_path.rename(local_path)
@@ -274,7 +282,7 @@ async def akamai_patching(
     exist for the initial data download are downloaded.
 
     Raises:
-        AkamaiPatchingFailed
+        AkamaiPatchingError
     """
     progress.unit_type = "byte"
 
@@ -338,18 +346,27 @@ async def akamai_patching(
     temp_download_dir = game_config.game_directory / "downloading"
     temp_download_dir.mkdir(exist_ok=True)
 
-    async with trio.open_nursery() as nursery:
-        for download_file in file_list:
-            nursery.start_soon(
-                partial(
-                    _handle_akamai_download_file,
-                    download_file=download_file,
-                    game_directory=game_config.game_directory,
-                    temp_download_dir=temp_download_dir,
-                    base_download_url=base_download_url,
-                    progress=progress,
+    try:
+        async with trio.open_nursery() as nursery:
+            for download_file in file_list:
+                nursery.start_soon(
+                    partial(
+                        _handle_akamai_download_file,
+                        download_file=download_file,
+                        game_directory=game_config.game_directory,
+                        temp_download_dir=temp_download_dir,
+                        base_download_url=base_download_url,
+                        progress=progress,
+                    )
                 )
+    except* HTTPError as exception_group:
+        for exception in exception_group.exceptions:
+            logger.error(
+                "Failed to download: %s", exception.__notes__[-1], exc_info=exception
             )
+        raise AkamaiPatchingError(
+            msg="Network error while patching"
+        ) from exception_group
 
 
 async def patch_game(
@@ -405,7 +422,7 @@ async def patch_game(
         )
     except AkamaiPatchingError as e:
         logger.exception(e.msg)
-        logger.info("Skipping phase")
+        return
 
     try:
         async with trio.open_nursery() as nursery:
