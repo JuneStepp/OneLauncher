@@ -1529,6 +1529,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             if uninstallConfirm:
                 await uninstall_function(addons, table)
                 self.resetRemoteAddonsTables()
+                self.searchSearchBarContents()
         elif self.SOURCE_TAB_NAMES[self.ui.tabBarSource.currentIndex()] == "Find More":
             await self.installRemoteAddons()
 
