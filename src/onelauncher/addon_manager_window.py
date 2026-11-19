@@ -48,8 +48,6 @@ from typing import (
     override,
 )
 from xml.dom import EMPTY_NAMESPACE
-from xml.dom.minicompat import NodeList
-from xml.dom.minidom import Element
 from xml.parsers.expat import ExpatError
 
 import attrs
@@ -61,7 +59,6 @@ from httpx2 import HTTPError
 from PySide6 import QtCore, QtGui, QtWidgets
 from xmlschema import XMLSchemaValidationError
 
-from onelauncher.addons.addon import AddonType
 from onelauncher.addons.feed import (
     DDO_SKINS_FEED,
     LOTRO_MUSIC_FEED,
@@ -74,9 +71,7 @@ from .__about__ import __title__
 from .addons.startup_script import StartupScript
 from .async_utils import TemporaryDirectoryAsyncPath
 from .config import platform_dirs
-from .config_manager import ConfigManager
 from .game_config import GameConfigID, GameType
-from .game_launcher_local_config import GameLauncherLocalConfig
 from .game_utilities import get_game_settings_dir
 from .network.httpx_client import get_httpx_client
 from .ui.addon_manager_window_uic import Ui_addonManagerWindow
@@ -85,7 +80,13 @@ from .ui.qtdesigner.custom_widgets import QWidgetWithStylePreview
 from .utilities import CaseInsensitiveAbsolutePath, Progress, ProgressItem
 
 if TYPE_CHECKING:
-    from xml.dom.minidom import _ElementChildren
+    from xml.dom.minicompat import NodeList
+    from xml.dom.minidom import Element, _ElementChildren
+
+    from onelauncher.addons.addon import AddonType
+
+    from .config_manager import ConfigManager
+    from .game_launcher_local_config import GameLauncherLocalConfig
 
 logger = logging.getLogger(__name__)
 

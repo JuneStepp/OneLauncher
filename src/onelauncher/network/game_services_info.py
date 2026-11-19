@@ -6,8 +6,9 @@ from asyncache import cached
 from cachetools import TTLCache
 from httpx2 import HTTPError
 
-from ..game_config import GameConfig
-from ..game_launcher_local_config import GameLauncherLocalConfig
+from onelauncher.game_config import GameConfig
+from onelauncher.game_launcher_local_config import GameLauncherLocalConfig
+
 from .soap import GLSServiceError, get_soap_client
 from .world import World
 

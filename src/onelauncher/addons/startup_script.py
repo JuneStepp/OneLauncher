@@ -2,7 +2,7 @@ from pathlib import Path
 
 import attrs
 
-from ..utilities import CaseInsensitiveAbsolutePath
+from onelauncher.utilities import CaseInsensitiveAbsolutePath
 
 
 @attrs.frozen

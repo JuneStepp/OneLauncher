@@ -1,17 +1,20 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Mapping
 from contextlib import suppress
 from typing import TYPE_CHECKING, Any, Self, overload
 
 import attrs
-import cattrs
-from cattrs.dispatch import StructuredValue, UnstructuredValue
-from packaging.version import Version
 from platformdirs import PlatformDirs
 
 from .__about__ import __title__
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Mapping
+
+    import cattrs
+    from cattrs.dispatch import StructuredValue, UnstructuredValue
+    from packaging.version import Version
 
 platform_dirs = PlatformDirs(appname=__title__.lower(), appauthor=False)
 

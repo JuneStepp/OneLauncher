@@ -3,7 +3,8 @@ from typing import Any, Final, NamedTuple
 import attrs
 import xmlschema
 
-from ..resources import data_dir
+from onelauncher.resources import data_dir
+
 from .httpx_client import get_httpx_client
 
 

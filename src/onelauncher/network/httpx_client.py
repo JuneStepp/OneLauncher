@@ -3,7 +3,7 @@ from typing import Final
 
 import httpx2
 
-from ..official_clients import (
+from onelauncher.official_clients import (
     get_official_servers_httpx_client,
     get_official_servers_httpx_client_sync,
     is_official_game_server,

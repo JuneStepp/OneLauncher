@@ -112,6 +112,8 @@ select = [
     "S",     # flake8-bandit
     "ASYNC", # flake8-async
     "ANN",   # flake8-annotations
+	"TC",	 # flake8-type-checking
+	"TID",	 # flake8-tidy-imports
     "A",     # flake8-builtins
     "FA",    # flake8-future-annotations
     "T20",   # flake8-print

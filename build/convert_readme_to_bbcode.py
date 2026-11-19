@@ -87,7 +87,7 @@ class BBCodeRenderer(marko.renderer.Renderer):
         return f"[CODE]{self.render_children(element)}[/CODE]\n"  # type
 
     def render_code_block(self, element: marko.block.CodeBlock) -> str:
-        return self.render_fenced_code(cast(marko.block.FencedCode, element))
+        return self.render_fenced_code(cast("marko.block.FencedCode", element))
 
     def render_html_block(self, element: marko.block.HTMLBlock) -> str:
         return self.html_parser.get_bbcode(element.body)
@@ -100,7 +100,7 @@ class BBCodeRenderer(marko.renderer.Renderer):
         return f"[SIZE={bbcode_size}][B]{self.render_children(element)}[/B][/SIZE]\n"
 
     def render_setext_heading(self, element: marko.block.SetextHeading) -> str:
-        return self.render_heading(cast(marko.block.Heading, element))
+        return self.render_heading(cast("marko.block.Heading", element))
 
     def render_blank_line(self, element: marko.block.BlankLine) -> str:
         return "\n"
@@ -115,7 +115,7 @@ class BBCodeRenderer(marko.renderer.Renderer):
         return f"[B]{self.render_children(element)}[/B]"
 
     def render_inline_html(self, element: marko.inline.InlineHTML) -> str:
-        return cast(str, element.children)
+        return cast("str", element.children)
 
     def render_link(self, element: marko.inline.Link) -> str:
         dest = element.dest
@@ -130,7 +130,7 @@ class BBCodeRenderer(marko.renderer.Renderer):
         return f"[URL={dest}]{element.title or ''}{self.render_children(element)}[/URL]"
 
     def render_auto_link(self, element: marko.inline.AutoLink) -> str:
-        return self.render_link(cast(marko.inline.Link, element))
+        return self.render_link(cast("marko.inline.Link", element))
 
     def render_image(self, element: marko.inline.Image) -> str:
         return f"[IMG]{element.dest}[/IMG]"

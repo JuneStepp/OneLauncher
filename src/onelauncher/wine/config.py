@@ -3,7 +3,7 @@ from pathlib import Path
 
 import attrs
 
-from ..config import config_field
+from onelauncher.config import config_field
 
 
 class WineMethod(Enum):
@@ -19,17 +19,17 @@ class WineConfigSection:
     builtin_prefix_enabled: bool = config_field(
         default=True, help="If WINE should be automatically managed"
     )
-    wine_method: WineMethod | None = config_field(  # noqa: RUF009
+    wine_method: WineMethod | None = config_field(
         default=None,
         help="WINE method. You should not normally need to change this.",
     )
-    user_wine_executable_path: Path | None = config_field(  # noqa: RUF009
+    user_wine_executable_path: Path | None = config_field(
         default=None,
         help=(
             "Path to the WINE executable to use when WINE isn't automatically managed"
         ),
     )
-    user_prefix_path: Path | None = config_field(  # noqa: RUF009
+    user_prefix_path: Path | None = config_field(
         default=None,
         help="Path to the WINE prefix to use when WINE isn't automatically managed",
     )

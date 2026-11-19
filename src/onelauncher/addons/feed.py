@@ -10,8 +10,8 @@ import retryhttp
 import xmlschema
 
 from onelauncher.network.httpx_client import get_httpx_client
+from onelauncher.resources import data_dir
 
-from ..resources import data_dir
 from .addon import AddonType, RemoteAddon
 
 logger = logging.getLogger(__name__)

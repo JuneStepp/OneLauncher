@@ -7,13 +7,14 @@ from asyncache import cached
 from cachetools import TTLCache
 from httpx2 import HTTPError
 
-from ..game_config import ClientType, GameConfig
-from ..official_clients import (
+from onelauncher.game_config import ClientType, GameConfig
+from onelauncher.official_clients import (
     DDO_PREVIEW_BROKEN_NEWS_URL_TEMPLATE,
     DDO_PREVIEW_NEWS_URL_TEMPLATE,
 )
-from ..resources import OneLauncherLocale
-from ..utilities import AppSettingsParseError, parse_app_settings_config
+from onelauncher.resources import OneLauncherLocale
+from onelauncher.utilities import AppSettingsParseError, parse_app_settings_config
+
 from .game_services_info import GameServicesInfo
 from .httpx_client import get_httpx_client
 

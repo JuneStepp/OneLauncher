@@ -5,7 +5,7 @@ from typing import Final, Literal
 from PySide6 import QtCore, QtGui
 from PySide6.QtWidgets import QApplication
 
-from ..resources import data_dir
+from onelauncher.resources import data_dir
 
 # Dynamic property used for styling, like the class attribute in HTML
 CLASS_PROPERTY: str = "qssClass"

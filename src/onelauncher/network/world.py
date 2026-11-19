@@ -8,7 +8,8 @@ import xmlschema
 from asyncache import cached
 from cachetools import TTLCache
 
-from ..resources import data_dir
+from onelauncher.resources import data_dir
+
 from .httpx_client import get_httpx_client
 
 logger = logging.getLogger(__name__)

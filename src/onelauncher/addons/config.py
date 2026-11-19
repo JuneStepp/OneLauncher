@@ -1,6 +1,7 @@
 import attrs
 
-from ..config import config_field
+from onelauncher.config import config_field
+
 from .startup_script import StartupScript
 
 

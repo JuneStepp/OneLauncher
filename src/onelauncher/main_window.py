@@ -168,7 +168,7 @@ class MainWindow(FramelessQMainWindowWithStylePreview):
             lambda: self.nursery.start_soon(self.btnSwitchGameClicked)
         )
 
-        account_line_edit = cast(QtWidgets.QLineEdit, self.ui.cboAccount.lineEdit())
+        account_line_edit = cast("QtWidgets.QLineEdit", self.ui.cboAccount.lineEdit())
         account_line_edit.setClearButtonEnabled(True)
         # Accounts combo box item selection signal
         self.ui.cboAccount.currentIndexChanged.connect(self.accounts_index_changed)

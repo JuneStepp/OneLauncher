@@ -162,13 +162,13 @@ class GameLauncherLocalConfig:
         if existing_xml:
             verify_app_settings_config(existing_xml)
             root = ElementTree.fromstring(existing_xml)
-            root = cast(Element, root)
+            root = cast("Element", root)
         else:
             root = ET.Element("configuration")
             root.append(ET.Element("appSettings"))
 
         app_settings = root.find("./appSettings")
-        app_settings = cast(ET.Element, app_settings)
+        app_settings = cast("ET.Element", app_settings)
         self._edit_config_xml_app_setting(
             app_settings, "Launcher.DataCenterService.GLS", self.gls_datacenter_service
         )

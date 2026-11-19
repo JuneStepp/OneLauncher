@@ -30,19 +30,22 @@ from __future__ import annotations
 import logging
 import os
 import sys
-from collections.abc import Generator, Iterator
 from math import log, trunc
 from pathlib import Path, PurePath
 from typing import (
+    TYPE_CHECKING,
     Literal,
     Self,
     assert_never,
     override,
 )
-from xml.etree.ElementTree import Element
 
 import attrs
 from defusedxml import ElementTree  # type: ignore[import-untyped]
+
+if TYPE_CHECKING:
+    from collections.abc import Generator, Iterator
+    from xml.etree.ElementTree import Element
 
 logger = logging.getLogger(__name__)
 
