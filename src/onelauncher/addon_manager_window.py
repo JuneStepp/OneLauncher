@@ -27,9 +27,7 @@
 ###########################################################################
 from __future__ import annotations
 
-import html
 import logging
-import re
 import sqlite3
 import xml.dom.minidom
 import xml.etree.ElementTree as ET
@@ -39,7 +37,6 @@ from functools import partial
 from pathlib import Path
 from shutil import copy, copytree, move, rmtree
 from tempfile import TemporaryDirectory
-from time import localtime, strftime
 from typing import (
     TYPE_CHECKING,
     Final,
@@ -61,6 +58,16 @@ import retryhttp
 import trio
 from httpx2 import HTTPError
 from PySide6 import QtCore, QtGui, QtWidgets
+from xmlschema import XMLSchemaValidationError
+
+from onelauncher.addons.addon import AddonType
+from onelauncher.addons.feed import (
+    DDO_SKINS_FEED,
+    LOTRO_MUSIC_FEED,
+    LOTRO_PLUGINS_FEED,
+    LOTRO_SKINS_FEED,
+    LotroInterfaceFeed,
+)
 
 from .__about__ import __title__
 from .addons.startup_script import StartupScript
@@ -70,7 +77,7 @@ from .config_manager import ConfigManager
 from .game_config import GameConfigID, GameType
 from .game_launcher_local_config import GameLauncherLocalConfig
 from .game_utilities import get_game_settings_dir
-from .network.httpx_client import get_httpx_client, get_httpx_client_sync
+from .network.httpx_client import get_httpx_client
 from .ui.addon_manager_window_uic import Ui_addonManagerWindow
 from .ui.qtapp import get_qapp
 from .ui.qtdesigner.custom_widgets import QWidgetWithStylePreview
@@ -89,9 +96,6 @@ class Document(xml.dom.minidom.Document):
     # `EMPTY_NAMESPACE` which is equal to `None`.
     def createElementNS(self, namespaceURI: str | None, qualifiedName: str) -> Element:
         return super().createElementNS(namespaceURI, qualifiedName)
-
-
-AddonType = Literal["plugin", "music", "skin"]
 
 
 class Addon(NamedTuple):
@@ -202,11 +206,6 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     TAB_NAMES_LOTRO: Final[tuple[AddonTypeTabName, ...]] = ("Plugins", "Skins", "Music")
     TAB_NAMES_DDO: Final[tuple[AddonTypeTabName, ...]] = ("Skins",)
 
-    PLUGINS_URL = "https://api.lotrointerface.com/fav/OneLauncher-Plugins.xml"
-    SKINS_URL = "https://api.lotrointerface.com/fav/OneLauncher-Themes.xml"
-    MUSIC_URL = "https://api.lotrointerface.com/fav/OneLauncher-Music.xml"
-    SKINS_DDO_URL = "https://api.lotrointerface.com/fav/OneLauncher-Themes-DDO.xml"
-
     CATEGORY_UNMANAGED: Final = "Unmanaged"
     """Category name for unmanaged addons"""
 
@@ -246,7 +245,9 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         for source_tab_name in self.SOURCE_TAB_NAMES:
             self.ui.tabBarSource.addTab(source_tab_name)
         self.ui.tabBarSource.setExpanding(True)
-        self.ui.tabBarSource.currentChanged.connect(self.tabBarIndexChanged)
+        self.ui.tabBarSource.currentChanged.connect(
+            lambda index: self.nursery.start_soon(self.tabBarIndexChanged, index)
+        )
         self.tab_names: tuple[AddonManagerWindow.AddonTypeTabName, ...]
         if game_config.game_type == GameType.LOTRO:
             self.tab_names = self.TAB_NAMES_LOTRO
@@ -332,8 +333,12 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         color_scheme_changed.connect(
             lambda: self.ui.btnCheckForUpdates_2.setIcon(get_check_for_updates_icon())
         )
-        self.ui.btnCheckForUpdates.pressed.connect(self.checkForUpdates)
-        self.ui.btnCheckForUpdates_2.pressed.connect(self.checkForUpdates)
+        self.ui.btnCheckForUpdates.pressed.connect(
+            lambda: self.nursery.start_soon(self.checkForUpdates)
+        )
+        self.ui.btnCheckForUpdates_2.pressed.connect(
+            lambda: self.nursery.start_soon(self.checkForUpdates)
+        )
         self.ui.btnUpdateAll.pressed.connect(
             lambda: self.nursery.start_soon(self.updateAll)
         )
@@ -378,7 +383,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     async def run(self) -> None:
         self.setup_ui()
 
-        self.openDB()
+        await self.openDB()
         # This will load up whatever's needed for the initial tab. Ex. Plugins
         self.tabBarInstalledIndexChanged(self.ui.tabBarInstalled.currentIndex())
         self.show()
@@ -639,7 +644,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         return addon_info
 
-    def openDB(self) -> None:
+    async def openDB(self) -> None:
         """
         Opens addons_cache database and creates new database if
         one doesn't exist or the current one has an outdated structure
@@ -653,9 +658,9 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             if self.isCurrentDBOutdated():
                 self.closeDB()
                 self.ADDONS_CACHE_PATH.unlink()
-                self.createDB()
+                await self.createDB()
         else:
-            self.createDB()
+            await self.createDB()
 
     def isCurrentDBOutdated(self) -> bool:
         """
@@ -704,7 +709,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         # Only return False if there are no extra tables
         return bool(tables_dict)
 
-    def createDB(self) -> None:
+    async def createDB(self) -> None:
         """Create and set up addons_cache database"""
         self.ADDONS_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
         self.conn = sqlite3.connect(str(self.ADDONS_CACHE_PATH))
@@ -729,7 +734,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
         # Populate cache, so that add-ons aren't initially shown as unmanaged.
         logger.info("Downloading remote addons info")
-        self.loadRemoteAddons()
+        await self.loadRemoteAddons()
 
     def closeDB(self) -> None:
         self.conn.commit()
@@ -1835,7 +1840,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.ui.btnAddons.setIcon(qtawesome.icon("fa5s.plus"))
             self.ui.btnAddons.setToolTip("Install addons")
 
-    def tabBarIndexChanged(self, index: int) -> None:
+    async def tabBarIndexChanged(self, index: int) -> None:
         self.update_btn_addons()
         if self.SOURCE_TAB_NAMES[index] == "Installed":
             self.ui.stackedWidgetSource.setCurrentWidget(self.ui.pageInstalled)
@@ -1844,48 +1849,57 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
             # Handle the first time this tab is switched to.
             # Populate remote addons tables if not done already.
-            if self.ui.tableSkins not in self.tables_loaded and self.loadRemoteAddons():
+            if (
+                self.ui.tableSkins not in self.tables_loaded
+                and await self.loadRemoteAddons()
+            ):
                 self.getOutOfDateAddons()
 
         # Make sure correct stacked widget page is selected.
         self.tabBarRemoteIndexChanged(self.ui.tabBarRemote.currentIndex())
 
-    def loadRemoteAddons(self) -> bool:
-        if (
-            self.config_manager.get_game_config(self.game_id).game_type
-            == GameType.LOTRO
-        ):
-            # Only keep loading remote addons if the first load doesn't run
-            # into issues
-            if self.getRemoteAddons(self.PLUGINS_URL, self.ui.tablePlugins):
-                self.getRemoteAddons(self.SKINS_URL, self.ui.tableSkins)
-                self.getRemoteAddons(self.MUSIC_URL, self.ui.tableMusic)
-                return True
-        elif self.getRemoteAddons(self.SKINS_DDO_URL, self.ui.tableSkins):
-            return True
+    async def loadRemoteAddons(self) -> bool:
+        self.ui.tabBarSource.setEnabled(False)
 
-        return False
-
-    def unescape_lotrointerface_feed_unicode(self, escaped_string: str) -> str:
-        """
-        Convert feed escaped characters to Unicode characters. This shouold be used with
-        strings that have already had the XML unesaaped.
-
-        Unicode characters in LotroInterface feeds are escaped with an ampersand followed
-        by the Unicode character number. Ex. `&1088`.
-        """
-        return html.unescape(
-            # Convert to HTML escape notation by adding `#`.
-            re.sub(
-                r"&(\d+);",
-                lambda match: f"&#{match.group(1)};",
-                escaped_string,
+        load_failed: bool = False
+        try:
+            async with trio.open_nursery() as nursery:
+                if (
+                    self.config_manager.get_game_config(self.game_id).game_type
+                    == GameType.LOTRO
+                ):
+                    nursery.start_soon(
+                        self.getRemoteAddons, LOTRO_PLUGINS_FEED, self.ui.tablePlugins
+                    )
+                    nursery.start_soon(
+                        self.getRemoteAddons, LOTRO_SKINS_FEED, self.ui.tableSkins
+                    )
+                    nursery.start_soon(
+                        self.getRemoteAddons, LOTRO_MUSIC_FEED, self.ui.tableMusic
+                    )
+                else:
+                    nursery.start_soon(
+                        self.getRemoteAddons, DDO_SKINS_FEED, self.ui.tableSkins
+                    )
+        except* HTTPError:
+            load_failed = True
+            logger.exception(
+                "There was a network error. You may want to check your connection."
             )
-        )
+            self.ui.tabBarSource.setCurrentIndex(0)
+        except* XMLSchemaValidationError:
+            load_failed = True
+            logger.exception(
+                "Addons feed has invalid XML. Please report this error if it continues."
+            )
+        finally:
+            self.ui.tabBarSource.setEnabled(True)
 
-    def getRemoteAddons(
-        self, favorites_url: str, table: QtWidgets.QTableWidget
-    ) -> bool:
+        return not load_failed
+
+    async def getRemoteAddons(
+        self, feed: LotroInterfaceFeed, table: QtWidgets.QTableWidget
+    ) -> None:
         # Clears rows from db table
         self.c.execute(f"DELETE FROM {table.objectName()}")  # noqa: S608
 
@@ -1897,57 +1911,16 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             if ID[0]:
                 installed_IDs.append(ID[0])
 
-        try:
-            addons_file_response = get_httpx_client_sync(favorites_url).get(
-                favorites_url
+        for addon in await feed.fetch_remote_addons():
+            addon_info = AddonInfo(
+                name=addon.name,
+                category=addon.category,
+                version=addon.version,
+                author=addon.author,
+                latest_release=addon.last_updated.astimezone().strftime("%Y-%m-%d"),
+                file=addon.download_url,
+                interface_id=str(addon.interface_id),
             )
-            addons_file_response.raise_for_status()
-        except HTTPError:
-            logger.exception(
-                "There was a network error. You may want to check your connection."
-            )
-            self.ui.tabBarSource.setCurrentIndex(0)
-            return False
-
-        try:
-            doc = defusedxml.minidom.parseString(addons_file_response.text)
-        except ExpatError:
-            logger.exception(
-                "Addons feed has invalid XML. Please report this error if it continues."
-            )
-            return False
-
-        tags = doc.getElementsByTagName("Ui")
-        for tag in tags:
-            addon_info = AddonInfo()
-            nodes = tag.childNodes
-            for node in nodes:
-                if node.nodeName == "UIName":
-                    addon_info.name = GetText(node.childNodes)
-                    addon_info.name = self.unescape_lotrointerface_feed_unicode(
-                        addon_info.name
-                    )
-                    # Sanitize
-                    addon_info.name = addon_info.name.replace("/", "-").replace(
-                        "\\", "-"
-                    )
-                elif node.nodeName == "UIAuthorName":
-                    addon_info.author = GetText(node.childNodes)
-                    addon_info.author = self.unescape_lotrointerface_feed_unicode(
-                        addon_info.author
-                    )
-                elif node.nodeName == "UICategory":
-                    addon_info.category = GetText(node.childNodes)
-                elif node.nodeName == "UID":
-                    addon_info.interface_id = GetText(node.childNodes)
-                elif node.nodeName == "UIVersion":
-                    addon_info.version = GetText(node.childNodes)
-                elif node.nodeName == "UIUpdated":
-                    addon_info.latest_release = strftime(
-                        "%Y-%m-%d", localtime(int(GetText(node.childNodes)))
-                    )
-                elif node.nodeName == "UIFileURL":
-                    addon_info.file = GetText(node.childNodes)
 
             # Prepends name with (Installed) if already installed
             if addon_info.interface_id in installed_IDs:
@@ -1958,8 +1931,6 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         # Populate user visible table. This should not reload the current
         # search.
         self.searchDB(table, "")
-
-        return True
 
     @retryhttp.retry
     async def _download_file(
@@ -2339,8 +2310,8 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             self.ui.actionShowSelectedOnLotrointerface.setVisible(False)
             self.ui.actionShowSelectedAddonsInFileManager.setVisible(False)
 
-    def checkForUpdates(self) -> None:
-        if self.loadRemoteAddons():
+    async def checkForUpdates(self) -> None:
+        if await self.loadRemoteAddons():
             self.getOutOfDateAddons()
             self.searchSearchBarContents()
 
@@ -2430,7 +2401,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             )
 
     async def updateAll(self) -> None:
-        if not self.loadRemoteAddons():
+        if not await self.loadRemoteAddons():
             return
         self.getOutOfDateAddons()
 
