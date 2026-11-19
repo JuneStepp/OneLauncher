@@ -2388,13 +2388,16 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 except KeyError:
                     continue
 
-                latest_version = remote_addon_info[0]
-                if addon[0] != latest_version:
+                current_version = addon[0].removeprefix("(Outdated) ")
+                latest_version = remote_addon_info[0].removeprefix("(Updated) ")
+                if current_version != latest_version:
                     rowid_remote = remote_addon_info[1]
                     self.markAddonForUpdating(
                         rowid_local=addon[2],
                         rowid_remote=rowid_remote,
                         table_installed=table_installed,
+                        mark_installed=not addon[0].startswith("(Outdated) "),
+                        mark_remote=not remote_addon_info[0].startswith("(Updated) "),
                     )
 
     def markAddonForUpdating(
@@ -2402,6 +2405,8 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         rowid_local: str | int,
         rowid_remote: str | int,
         table_installed: QtWidgets.QTableWidget,
+        mark_installed: bool = True,
+        mark_remote: bool = True,
     ) -> None:
         """
         Marks addon as having having updates
@@ -2409,18 +2414,20 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         """
         table_remote = self.getRemoteOrLocalTableFromOne(table_installed, remote=True)
 
-        self.c.execute(
-            (
-                f"UPDATE {table_installed.objectName()} SET Version=('(Outdated) ' || Version) WHERE rowid=?"  # noqa: S608
-            ),
-            (str(rowid_local),),
-        )
-        self.c.execute(
-            (
-                f"UPDATE {table_remote.objectName()} SET Version=('(Updated) ' || Version) WHERE rowid=?"  # noqa: S608
-            ),
-            (str(rowid_remote),),
-        )
+        if mark_installed:
+            self.c.execute(
+                (
+                    f"UPDATE {table_installed.objectName()} SET Version=('(Outdated) ' || Version) WHERE rowid=?"  # noqa: S608
+                ),
+                (str(rowid_local),),
+            )
+        if mark_remote:
+            self.c.execute(
+                (
+                    f"UPDATE {table_remote.objectName()} SET Version=('(Updated) ' || Version) WHERE rowid=?"  # noqa: S608
+                ),
+                (str(rowid_remote),),
+            )
 
     async def updateAll(self) -> None:
         if not self.loadRemoteAddons():
