@@ -32,7 +32,7 @@ import sqlite3
 import xml.dom.minidom
 import xml.etree.ElementTree as ET
 import zipfile
-from collections.abc import Callable, Coroutine, Iterator, Sequence
+from collections.abc import Iterator, Sequence
 from functools import partial
 from pathlib import Path
 from shutil import copy, copytree, move, rmtree
@@ -42,6 +42,7 @@ from typing import (
     Final,
     Literal,
     NamedTuple,
+    Protocol,
     assert_never,
     overload,
     override,
@@ -1533,9 +1534,17 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         elif self.SOURCE_TAB_NAMES[self.ui.tabBarSource.currentIndex()] == "Find More":
             await self.installRemoteAddons()
 
+    class UninstallFunction(Protocol):
+        async def __call__(
+            self,
+            addons: tuple[Addon, ...],
+            table: QtWidgets.QTableWidget,
+            for_update: bool = False,
+        ) -> None: ...
+
     def getUninstallFunctionFromTable(
         self, table: QtWidgets.QTableWidget
-    ) -> Callable[[list[Addon], QtWidgets.QTableWidget], Coroutine[None, None, None]]:
+    ) -> UninstallFunction:
         """Return function to uninstall addon type for table"""
         addon_type = self.get_addon_type_from_table(table)
         if addon_type == "plugin":
@@ -1597,7 +1606,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
     def getUninstallConfirm(
         self, table: QtWidgets.QTableWidget
-    ) -> tuple[bool, list[Addon]]:
+    ) -> tuple[bool, tuple[Addon, ...]]:
         addons, details = self.getSelectedAddons(table)
         if addons and details:
             num_depends = len(details.split("\n")) - 1
@@ -1617,9 +1626,9 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
     def getSelectedAddons(
         self, table: QtWidgets.QTableWidget
-    ) -> tuple[list[Addon], str | None]:
+    ) -> tuple[tuple[Addon, ...], str | None]:
         if not table.selectedItems():
-            return [], None
+            return tuple(), None
         selected_addons: list[Addon] = []
         details = ""
         # Column count is minus one because of hidden ID column
@@ -1648,19 +1657,22 @@ class AddonManagerWindow(QWidgetWithStylePreview):
                 )
                 details = details + selected_name + "\n"
 
-        return selected_addons, details
+        return tuple(selected_addons), details
 
     async def uninstallPlugins(
-        self, plugins: list[Addon], table: QtWidgets.QTableWidget
+        self,
+        addons: tuple[Addon, ...],
+        table: QtWidgets.QTableWidget,
+        for_update: bool = False,
     ) -> None:
         table = self.getRemoteOrLocalTableFromOne(table, remote=False)
 
-        for plugin in plugins:
+        for plugin in addons:
             if plugin[1].endswith(".plugin"):
                 plugin_files = [Path(plugin[1])]
             else:
                 plugin_files = []
-                if self.checkAddonForDependencies(plugin, table):
+                if for_update or self.checkAddonForDependencies(plugin, table):
                     try:
                         doc = defusedxml.minidom.parse(plugin[1])
                     except ExpatError:
@@ -1729,11 +1741,14 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         await self.getOutOfDateAddons()
 
     async def uninstallSkins(
-        self, skins: list[Addon], table: QtWidgets.QTableWidget
+        self,
+        addons: tuple[Addon, ...],
+        table: QtWidgets.QTableWidget,
+        for_update: bool = False,
     ) -> None:
         table = self.getRemoteOrLocalTableFromOne(table, remote=False)
 
-        for skin in skins:
+        for skin in addons:
             if skin[1].endswith(".skincompendium"):
                 skin_path = Path(skin[1]).parent
 
@@ -1755,11 +1770,14 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         await self.getOutOfDateAddons()
 
     async def uninstallMusic(
-        self, music_list: list[Addon], table: QtWidgets.QTableWidget
+        self,
+        addons: tuple[Addon, ...],
+        table: QtWidgets.QTableWidget,
+        for_update: bool = False,
     ) -> None:
         table = self.getRemoteOrLocalTableFromOne(table, remote=False)
 
-        for music in music_list:
+        for music in addons:
             if music[1].endswith(".musiccompendium"):
                 music_path = Path(music[1]).parent
 
@@ -2199,7 +2217,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             uninstall_function = self.getUninstallFunctionFromTable(table)
 
             table_installed = self.getRemoteOrLocalTableFromOne(table, remote=False)
-            await uninstall_function([addon], table_installed)
+            await uninstall_function((addon,), table_installed)
 
             self.resetRemoteAddonsTables()
             self.searchSearchBarContents()
@@ -2444,7 +2462,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         table_installed = self.getRemoteOrLocalTableFromOne(table, remote=False)
         table_remote = self.getRemoteOrLocalTableFromOne(table, remote=True)
 
-        await uninstall_function([addon], table_installed)
+        await uninstall_function((addon,), table_installed, for_update=True)
 
         url: str | None = None
         for entry in self.c.execute(
