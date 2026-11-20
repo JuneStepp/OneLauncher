@@ -402,7 +402,7 @@ async def patch_game(
     else:
         wine_setup_error: bool = False
         try:
-            command, environment = await get_wine_process_args(
+            command, environment, _ = await get_wine_process_args(
                 command=command, environment=environment, wine_config=game_config.wine
             )
         except* WineComponentDownloadError as exception_group:

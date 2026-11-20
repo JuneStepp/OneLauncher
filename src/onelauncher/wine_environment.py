@@ -525,6 +525,17 @@ class WineManager:
             if isinstance(component, WineComponent)
         )
 
+    @property
+    def sikarugir_template_component(self) -> SikarugirTemplateComponent | None:
+        return next(
+            (
+                component
+                for component in self.components
+                if isinstance(component, SikarugirTemplateComponent)
+            ),
+            None,
+        )
+
     async def setup(self, progress: Progress) -> None:
         """
         Raises:
@@ -647,7 +658,7 @@ async def get_wine_process_args(
     command: tuple[str | Path, ...],
     environment: MappingProxyType[str, str],
     wine_config: WineConfigSection,
-) -> tuple[tuple[str | Path, ...], MappingProxyType[str, str]]:
+) -> tuple[tuple[str | Path, ...], MappingProxyType[str, str], WineManager | None]:
     """
     Configure `run_process` arguments to use WINE.
 
@@ -656,10 +667,11 @@ async def get_wine_process_args(
     """
     if os.name == "nt":
         logger.warning("Attempt to use WINE on Windows. No changes were made.")
-        return command, environment
+        return command, environment, None
 
     edited_environment = environment.copy()
 
+    wine_manager: WineManager | None = None
     if wine_config.builtin_prefix_enabled:
         wine_manager = WineManager(wine_config.wine_method)
         progress = Progress(unit_type="byte")
@@ -693,4 +705,4 @@ async def get_wine_process_args(
     if "DXVK_LOG_LEVEL" not in edited_environment:
         edited_environment["DXVK_LOG_LEVEL"] = "error"
 
-    return ((wine_bin, *command), MappingProxyType(edited_environment))
+    return ((wine_bin, *command), MappingProxyType(edited_environment), wine_manager)

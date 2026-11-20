@@ -393,7 +393,7 @@ class SettingsWindow(FramelessQDialogWithStylePreview):
         if os.name != "nt":
             wine_setup_error: bool = False
             try:
-                command, environment = await get_wine_process_args(
+                command, environment, _ = await get_wine_process_args(
                     command=command,
                     environment=environment,
                     wine_config=game_config.wine,

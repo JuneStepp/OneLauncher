@@ -24,7 +24,7 @@ from .game_config import ClientType, GameConfig, GameConfigID, GameType
 from .network.game_launcher_config import GameLauncherConfig
 from .network.world import World
 from .resources import OneLauncherLocale
-from .wine_environment import get_wine_process_args
+from .wine_environment import WineManager, get_wine_process_args
 
 logger = logging.getLogger(__name__)
 logger.addFilter(ExternalProcessLogsFilter())
@@ -163,7 +163,9 @@ async def get_launch_args(
 
 
 async def update_game_user_preferences(
-    game_config: GameConfig, game_launcher_local_config: GameLauncherLocalConfig
+    game_config: GameConfig,
+    game_launcher_local_config: GameLauncherLocalConfig,
+    wine_manager: WineManager | None,
 ) -> None:
     """
     Set important `UserPreferences.ini` values.
@@ -182,7 +184,7 @@ async def update_game_user_preferences(
         config.read_string(await game_user_preferences_path.read_text())
     unedited_config = deepcopy(config)
 
-    if game_config.wine.builtin_prefix_enabled and "Render" not in config:
+    if wine_manager and "Render" not in config:
         with suppress(configparser.DuplicateSectionError):
             config.add_section("Render")
         # Default to DirectX11 with DXVK.
@@ -200,7 +202,7 @@ async def update_game_user_preferences(
             config["Display"]["FullScreen"] = "False"
             config["Display"]["ScreenMode"] = "FullScreenWindowed"
 
-        if game_config.wine.builtin_prefix_enabled:
+        if wine_manager:
             with suppress(configparser.DuplicateSectionError):
                 config.add_section("Render")
 
@@ -212,6 +214,11 @@ async def update_game_user_preferences(
                 # After update 49, the game sometimes crashes on startup with frill color
                 # enabled.
                 config["Render"]["FrillTerrainColor"] = "False"
+
+            if (
+                template := wine_manager.sikarugir_template_component
+            ) and template.render_backend == "kosmickrisp":
+                config["Display"]["antialiasing"] = "Disabled"
 
     if config == unedited_config:
         return
@@ -240,20 +247,6 @@ async def start_game(
         WineComponentDownloadError
         OSError: Error encountered starting or communicating with the process
     """
-    # This must be called before `game_config.last_played` is updated.
-    await update_game_user_preferences(
-        game_config=config_manager.get_game_config(game_id),
-        game_launcher_local_config=game_launcher_local_config,
-    )
-
-    # Game was last played right now.
-    config_manager.update_game_config_file(
-        game_id=game_id,
-        config=attrs.evolve(
-            config_manager.read_game_config_file(game_id),
-            last_played=datetime.now(UTC),
-        ),
-    )
     game_config = config_manager.get_game_config(game_id)
 
     launch_args = await get_launch_args(
@@ -280,10 +273,28 @@ async def start_game(
         *launch_args,
     )
     environment = MappingProxyType(os.environ.copy() | game_config.environment)
+
+    wine_manager: WineManager | None = None
     if os.name != "nt":
-        command, environment = await get_wine_process_args(
+        command, environment, wine_manager = await get_wine_process_args(
             command=command, environment=environment, wine_config=game_config.wine
         )
+
+    # This must be called before `game_config.last_played` is updated.
+    await update_game_user_preferences(
+        game_config=config_manager.get_game_config(game_id),
+        game_launcher_local_config=game_launcher_local_config,
+        wine_manager=wine_manager,
+    )
+
+    # Game was last played right now.
+    config_manager.update_game_config_file(
+        game_id=game_id,
+        config=attrs.evolve(
+            config_manager.read_game_config_file(game_id),
+            last_played=datetime.now(UTC),
+        ),
+    )
 
     async with trio.open_nursery() as nursery:
         process: trio.Process = await nursery.start(
