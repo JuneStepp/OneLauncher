@@ -674,13 +674,14 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     def getOnlineAddonInfo(
         self, addon_info: AddonInfo, remote_addons_table: str
     ) -> AddonInfo:
-        if addon_info.interface_id:
-            for info in self.c.execute(
+        if addon_info.interface_id and (
+            info := self.c.execute(
                 f"SELECT Category, LatestRelease FROM {remote_addons_table} WHERE InterfaceID == ?",  # noqa: S608
                 (addon_info.interface_id,),
-            ):
-                addon_info.category = info[0]
-                addon_info.latest_release = info[1]
+            ).fetchone()
+        ):
+            addon_info.category = info[0]
+            addon_info.latest_release = info[1]
 
         # Unmanaged if not in online cache
         if not addon_info.category:
@@ -693,12 +694,15 @@ class AddonManagerWindow(QWidgetWithStylePreview):
         Opens addons_cache database and creates new database if
         one doesn't exist or the current one has an outdated structure
         """
-        if self.ADDONS_CACHE_PATH.exists():
-            # Connects to addons_cache database
-            self.conn = sqlite3.connect(str(self.ADDONS_CACHE_PATH))
-            self.c = self.conn.cursor()
+        self.ADDONS_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        self.conn = sqlite3.connect(str(self.ADDONS_CACHE_PATH))
+        self.c = self.conn.cursor()
 
-            # Replace old database if its structure is out of date
+        self.c.execute("PRAGMA journal_mode=WAL")
+        self.c.execute("PRAGMA synchronous=NORMAL;")
+
+        if self.ADDONS_CACHE_PATH.exists():
+            # Replace old database if its structure is out of date.
             if self.isCurrentDBOutdated():
                 self.closeDB()
                 self.ADDONS_CACHE_PATH.unlink()
@@ -755,10 +759,6 @@ class AddonManagerWindow(QWidgetWithStylePreview):
 
     async def createDB(self) -> None:
         """Create and set up addons_cache database"""
-        self.ADDONS_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        self.conn = sqlite3.connect(str(self.ADDONS_CACHE_PATH))
-        self.c = self.conn.cursor()
-
         for table in self.TABLE_LIST:
             self.c.execute(
                 "CREATE VIRTUAL TABLE {tbl_nm} USING FTS5({clmA}, {clmB}, {clmC}, "  # noqa: UP032
@@ -897,7 +897,7 @@ class AddonManagerWindow(QWidgetWithStylePreview):
             if author_folders_compendium := [
                 folder
                 for folder in author_folders
-                if list(folder.glob("*.plugincompendium"))
+                if next(folder.glob("*.plugincompendium"), None)
             ]:
                 author_folder = author_folders_compendium[0]
             # The next most likely author folder is where
@@ -1082,15 +1082,13 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     ) -> None:
         """Installs the dependencies for the last installed addon"""
         # Get dependencies for last column in db
-        dependencies: str | None = None
-        for item in self.c.execute(
+        dependencies: tuple[str] | None = self.c.execute(
             f"SELECT Dependencies FROM {table.objectName()} ORDER BY rowid DESC LIMIT 1"  # noqa: S608
-        ):
-            dependencies = item[0]
+        ).fetchone()
         if dependencies is None:
             raise ValueError("Addon dependencies not found in DB")
 
-        for dependency in dependencies.split(","):
+        for dependency in dependencies[0].split(","):
             if not dependency:
                 continue
             # 0 is the arbitrary ID for Turbine Utilities. 1064 is the ID
@@ -2503,15 +2501,16 @@ class AddonManagerWindow(QWidgetWithStylePreview):
     def checkIfAddonHasUpdate(
         self, addon: Addon, table: QtWidgets.QTableWidget
     ) -> bool | None:
-        for entry in self.c.execute(
+        if entry := self.c.execute(
             f"SELECT Version FROM {table.objectName()} WHERE InterfaceID = ?",  # noqa: S608
             (addon[0],),
-        ):
+        ).fetchone():
             version: str = entry[0]
             return bool(
                 version.startswith("(Outdated) ") or version.startswith("(Updated) ")
             )
-        return None
+        else:
+            return None
 
     def actionEnableStartupScriptSelected(self) -> None:
         if not self.context_menu_selected_interface_ID:
